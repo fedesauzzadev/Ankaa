@@ -35,6 +35,10 @@ describe("parseSpec · AC-O.1 petstore mini 3.1", () => {
       "get /pets/{petId}",
     ]);
     expect(result.spec.components.schemas).toEqual(["Error", "Pet", "Pets"]);
+    expect(result.spec.components.securitySchemes).toEqual([]);
+    expect(result.spec.servers).toEqual([
+      { url: "https://api.example.com/v1" },
+    ]);
     expect(result.spec.inputHash).toMatch(/^[0-9a-f]{64}$/);
   });
 });

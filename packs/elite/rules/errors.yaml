@@ -1,0 +1,16 @@
+# rules/errors.yaml — skeleton M1.3
+- id: ERR-001
+  category: errors
+  severity: warning
+  message: "Write operations should document at least one 4xx response."
+  fix: "Document a 400/401/403/404/409 response for mutating operations."
+  source:
+    title: Zalando RESTful API Guidelines
+    url: https://opensource.zalando.com/restful-api-guidelines/
+    section: "Errors"
+  when:
+    all:
+      - op: method
+        in: [post, put, patch, delete]
+      - op: responseMissing
+        status: "4xx"

@@ -180,6 +180,8 @@ export function parseSpec(
   operations.sort(compareOperations);
 
   const components = buildComponentIndex(raw);
+  const servers = parseServers(raw.servers);
+  const extensions = pickExtensions(raw);
 
   return {
     ok: true,
@@ -191,8 +193,26 @@ export function parseSpec(
       operations,
       components,
       parseWarnings: warnings,
+      ...(servers ? { servers } : {}),
+      ...(Object.keys(extensions).length > 0 ? { extensions } : {}),
     },
   };
+}
+
+function parseServers(
+  value: unknown,
+): Array<{ url: string; description?: string }> | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const out: Array<{ url: string; description?: string }> = [];
+  for (const item of value) {
+    if (!isRecord(item) || typeof item.url !== "string") continue;
+    const server: { url: string; description?: string } = { url: item.url };
+    if (typeof item.description === "string") {
+      server.description = item.description;
+    }
+    out.push(server);
+  }
+  return out.length > 0 ? out : undefined;
 }
 
 function parseDocumentToUnknown(
@@ -538,7 +558,10 @@ function buildComponentIndex(doc: Record<string, unknown>): ComponentIndex {
   const parameters = isRecord(components.parameters)
     ? Object.keys(components.parameters).sort()
     : [];
-  return { schemas, responses, parameters };
+  const securitySchemes = isRecord(components.securitySchemes)
+    ? Object.keys(components.securitySchemes).sort()
+    : [];
+  return { schemas, responses, parameters, securitySchemes };
 }
 
 function escapePointer(segment: string): string {

@@ -1,0 +1,12 @@
+# rules/security.yaml — skeleton M1.3
+- id: SEC-002
+  category: security
+  severity: warning
+  message: "Non-local servers must use https."
+  fix: "Change server URLs to https:// (localhost/127.0.0.1 may use http)."
+  source:
+    title: RFC 9110 HTTP Semantics
+    url: https://www.rfc-editor.org/rfc/rfc9110
+    section: "https / TLS"
+  when:
+    op: serverInsecure

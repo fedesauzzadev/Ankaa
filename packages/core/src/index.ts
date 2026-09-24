@@ -64,3 +64,11 @@ export {
 export { evaluate } from "./evaluate.js";
 
 export { evaluateMatcher, evaluateAtom } from "./atoms.js";
+
+export {
+  loadPack,
+  flattenRuleLists,
+  type PackMeta,
+  type PackLoadIssue,
+  type PackLoadResult,
+} from "./pack.js";

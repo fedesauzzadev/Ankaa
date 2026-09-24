@@ -84,7 +84,14 @@ export type AtomMatcher =
   | { op: "deprecatedWithoutSunset" }
   | { op: "docFieldMissing"; field: DocField }
   | { op: "specExtensionPresent"; name: string }
-  | { op: "schemaInlineDepthMax"; max: number };
+  | { op: "schemaInlineDepthMax"; max: number }
+  | { op: "pathParamUndeclared" }
+  | { op: "pathParamNotRequired" }
+  | { op: "responseDescriptionMissing" }
+  | { op: "operationIdDuplicate" }
+  | { op: "securitySchemeMissing" }
+  | { op: "openapiVersionMismatch"; pattern: string }
+  | { op: "serverInsecure" };
 
 export type Matcher =
   | { all: Matcher[] }

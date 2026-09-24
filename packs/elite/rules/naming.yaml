@@ -1,0 +1,41 @@
+# rules/naming.yaml — skeleton M1.3
+- id: NAMING-001
+  category: naming
+  severity: error
+  message: "Resource path segments should be plural nouns."
+  fix: "Rename the last fixed path segment to plural (user → users)."
+  source:
+    title: Google API Design Guide
+    url: https://cloud.google.com/apis/design
+    section: "Methods and GET-ability / resource naming"
+  when:
+    not:
+      op: pathSegmentPlural
+      segmentIndex: last
+
+- id: NAMING-003
+  category: naming
+  severity: warning
+  message: "Every operation must declare a unique `operationId`."
+  fix: "Add a unique camelCase operationId to each operation."
+  source:
+    title: OpenAPI Specification
+    url: https://spec.openapis.org/oas/v3.1.0
+    section: "Operation Object"
+  when:
+    any:
+      - not:
+          op: operationIdRequired
+      - op: operationIdDuplicate
+
+- id: NAMING-009
+  category: naming
+  severity: error
+  message: "Path template parameter must be declared in operation parameters."
+  fix: "Declare each {param} as an `in: path` parameter on the operation."
+  source:
+    title: OpenAPI Specification
+    url: https://spec.openapis.org/oas/v3.1.0
+    section: "Paths / Path Templating"
+  when:
+    op: pathParamUndeclared

@@ -1,0 +1,39 @@
+# rules/structure.yaml — skeleton M1.3
+- id: STRUCT-001
+  category: structure
+  severity: error
+  message: "OpenAPI document must declare a 3.x `openapi` version."
+  fix: "Set `openapi: 3.1.0` (or 3.0.x) at the document root."
+  source:
+    title: OpenAPI Specification
+    url: https://spec.openapis.org/oas/v3.1.0
+    section: "Versions"
+  when:
+    op: openapiVersionMismatch
+    pattern: '^3\.'
+
+- id: STRUCT-002
+  category: structure
+  severity: error
+  message: "OpenAPI document must declare `info.title`."
+  fix: "Add a human-readable title under `info`."
+  source:
+    title: OpenAPI Specification
+    url: https://spec.openapis.org/oas/v3.1.0
+    section: "Info Object"
+  when:
+    op: docFieldMissing
+    field: info.title
+
+- id: STRUCT-003
+  category: structure
+  severity: error
+  message: "OpenAPI document must declare `info.version`."
+  fix: "Add a version string under `info`."
+  source:
+    title: OpenAPI Specification
+    url: https://spec.openapis.org/oas/v3.1.0
+    section: "Info Object"
+  when:
+    op: docFieldMissing
+    field: info.version

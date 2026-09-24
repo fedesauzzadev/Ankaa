@@ -72,7 +72,14 @@ type AtomMatcher =
   | { op: "deprecatedWithoutSunset" }
   | { op: "docFieldMissing"; field: "info.title" | "info.version" | "servers" | "components.schemas" }
   | { op: "specExtensionPresent"; name: string }       // x-sunset etc.
-  | { op: "schemaInlineDepthMax"; max: number };       // hint PERF/SCHEMA
+  | { op: "schemaInlineDepthMax"; max: number }        // hint PERF/SCHEMA
+  | { op: "pathParamUndeclared" }                      // M1.3 pack gap
+  | { op: "pathParamNotRequired" }
+  | { op: "responseDescriptionMissing" }
+  | { op: "operationIdDuplicate" }
+  | { op: "securitySchemeMissing" }
+  | { op: "openapiVersionMismatch"; pattern: string }
+  | { op: "serverInsecure" };
 
 interface Rule {
   id: string;                      // /^[A-Z][A-Z0-9]*-\d{3}$/
@@ -218,3 +225,4 @@ Comparar por:
 
 - 2026-09-23 · Spec creado desde SDD v1.0.
 - 2026-09-23 · M1.2 implementado: AC-E.1…11 verdes; sha256 TS puro (AC-E.8); zod strict; whitelist de átomos.
+- 2026-09-23 · M1.3: átomos de gap del pack elite (`pathParamUndeclared`, `pathParamNotRequired`, `responseDescriptionMissing`, `operationIdDuplicate`, `securitySchemeMissing`, `openapiVersionMismatch`, `serverInsecure`); `Spec.components.securitySchemes` + `servers` en parser.

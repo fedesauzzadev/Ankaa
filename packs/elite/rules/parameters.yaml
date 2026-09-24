@@ -1,0 +1,24 @@
+# rules/parameters.yaml — skeleton M1.3
+- id: PARAM-001
+  category: parameters
+  severity: error
+  message: "All path template parameters must be documented as path parameters."
+  fix: "Declare every {param} with `in: path` and a schema."
+  source:
+    title: OpenAPI Specification
+    url: https://spec.openapis.org/oas/v3.1.0
+    section: "Parameter Object"
+  when:
+    op: pathParamUndeclared
+
+- id: PARAM-002
+  category: parameters
+  severity: error
+  message: "Path parameters must be marked `required: true`."
+  fix: "Set `required: true` on every path parameter."
+  source:
+    title: OpenAPI Specification
+    url: https://spec.openapis.org/oas/v3.1.0
+    section: "Parameter Object"
+  when:
+    op: pathParamNotRequired

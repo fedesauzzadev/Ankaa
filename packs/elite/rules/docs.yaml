@@ -1,0 +1,27 @@
+# rules/docs.yaml — skeleton M1.3
+- id: DOCS-001
+  category: docs
+  severity: warning
+  message: "Operation summary must be present and at least 10 characters."
+  fix: "Add a descriptive summary (≥ 10 chars) to the operation."
+  source:
+    title: Microsoft REST API Guidelines
+    url: https://github.com/microsoft/api-guidelines
+    section: "Operation summary/description"
+  when:
+    not:
+      op: descriptionMinLength
+      target: summary
+      min: 10
+
+- id: DOCS-004
+  category: docs
+  severity: warning
+  message: "Every response must document a description."
+  fix: "Add a description to each response entry."
+  source:
+    title: OpenAPI Specification
+    url: https://spec.openapis.org/oas/v3.1.0
+    section: "Response Object"
+  when:
+    op: responseDescriptionMissing

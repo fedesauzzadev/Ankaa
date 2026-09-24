@@ -55,20 +55,22 @@ Plan: [plans/f1-mvp.md](../plans/f1-mvp.md) · Specs: `f1-openapi`, `f1-engine`,
 
 ## M1.3 — Pack elite skeleton (parte de f1-elite-pack)
 
-- [ ] `packs/elite/pack.yaml` + `sources.yaml` + `CHANGELOG.md`
-- [ ] Loader de pack YAML → `Rule[]` con `packId/Version`
-- [ ] Átomos extra si el gap analysis los pide (actualizar spec engine)
-- [ ] Reglas lote 1 (~10–15) del inventario con `source`:
-  - [ ] STRUCT-001, STRUCT-002, STRUCT-003
-  - [ ] NAMING-001, NAMING-003, NAMING-009
-  - [ ] DOCS-001, DOCS-004
-  - [ ] RESP-001
-  - [ ] ERR-001
-  - [ ] PARAM-001, PARAM-002
-  - [ ] AUTH-003
-  - [ ] SEC-002
-- [ ] Test: pack pasa `validateRule` todas
-- [ ] Test: `strictSource` — url presente
+- [x] `packs/elite/pack.yaml` + `sources.yaml` + `CHANGELOG.md`
+- [x] Loader de pack YAML → `Rule[]` con `packId/Version` (`loadPack` en core; FS en adapter/test)
+- [x] Átomos extra si el gap analysis los pide (actualizar spec engine)
+- [x] Reglas lote 1 (~10–15) del inventario con `source`:
+  - [x] STRUCT-001, STRUCT-002, STRUCT-003
+  - [x] NAMING-001, NAMING-003, NAMING-009
+  - [x] DOCS-001, DOCS-004
+  - [x] RESP-001
+  - [x] ERR-001
+  - [x] PARAM-001, PARAM-002
+  - [x] AUTH-003
+  - [x] SEC-002
+- [x] Test: pack pasa `validateRule` todas
+- [x] Test: `strictSource` — url presente
+
+**Gap M1.3:** átomos nuevos + `Spec.components.securitySchemes` / `servers` poblados por el parser.
 
 ---
 

@@ -75,6 +75,7 @@ export interface ComponentIndex {
   schemas: string[];
   responses: string[];
   parameters: string[];
+  securitySchemes: string[];
 }
 
 export interface SecurityRequirement {

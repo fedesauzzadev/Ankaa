@@ -1,0 +1,16 @@
+# rules/responses.yaml — skeleton M1.3
+- id: RESP-001
+  category: structure
+  severity: error
+  message: "Each operation must document at least one 2xx or 3xx response."
+  fix: "Add a 200/201/204 (or redirect) success response to the operation."
+  source:
+    title: OpenAPI Specification
+    url: https://spec.openapis.org/oas/v3.1.0
+    section: "Responses Object"
+  when:
+    all:
+      - op: responseMissing
+        status: "2xx"
+      - op: responseMissing
+        status: "3xx"

@@ -101,12 +101,38 @@ function schemaDepth(node: SchemaNode | undefined, depth = 0): number {
   return max;
 }
 
+function isLocalHostname(hostname: string): boolean {
+  const h = hostname.toLowerCase();
+  return h === "localhost" || h === "127.0.0.1" || h === "::1" || h === "[::1]";
+}
+
+function isInsecureServerUrl(url: string): boolean {
+  if (url.startsWith("https://")) return false;
+  if (url.startsWith("http://")) {
+    try {
+      return !isLocalHostname(new URL(url).hostname);
+    } catch {
+      return true;
+    }
+  }
+  return false;
+}
+
 function hasAnyExample(content: Array<{ schema?: SchemaNode }>): boolean {
   return content.some(
     (c) =>
       c.schema?.example !== undefined ||
       (c as { example?: unknown }).example !== undefined,
   );
+}
+
+function getPathParamNames(path: string): string[] {
+  const out: string[] = [];
+  for (const match of path.matchAll(/\{([^}]+)\}/g)) {
+    const name = match[1];
+    if (name !== undefined && name.length > 0) out.push(name);
+  }
+  return out;
 }
 
 export function evaluateAtom(
@@ -116,6 +142,16 @@ export function evaluateAtom(
 ): boolean {
   if (atom.op === "docFieldMissing") {
     return !docFieldPresent(spec, atom.field);
+  }
+  if (atom.op === "openapiVersionMismatch") {
+    try {
+      return !new RegExp(atom.pattern).test(spec.openapiVersion);
+    } catch {
+      return false;
+    }
+  }
+  if (atom.op === "serverInsecure") {
+    return (spec.servers ?? []).some((server) => isInsecureServerUrl(server.url));
   }
 
   if (!op) return false;
@@ -243,6 +279,37 @@ export function evaluateAtom(
           p.in === "header" &&
           p.name.toLowerCase() === atom.name.toLowerCase(),
       );
+    }
+    case "pathParamUndeclared": {
+      const names = getPathParamNames(op.path);
+      if (names.length === 0) return false;
+      const declared = new Set(
+        op.parameters.filter((p) => p.in === "path").map((p) => p.name),
+      );
+      return names.some((n) => !declared.has(n));
+    }
+    case "pathParamNotRequired": {
+      const pathParams = op.parameters.filter((p) => p.in === "path");
+      if (pathParams.length === 0) return false;
+      return pathParams.some((p) => !p.required);
+    }
+    case "responseDescriptionMissing":
+      return op.responses.some(
+        (r) => r.description === undefined || r.description.length === 0,
+      );
+    case "operationIdDuplicate": {
+      if (op.operationId === undefined || op.operationId.length === 0) {
+        return false;
+      }
+      return (
+        spec.operations.filter((o) => o.operationId === op.operationId)
+          .length > 1
+      );
+    }
+    case "securitySchemeMissing": {
+      if (!op.security || op.security.length === 0) return false;
+      const known = new Set(spec.components.securitySchemes ?? []);
+      return op.security.some((req) => !known.has(req.name));
     }
   }
 }

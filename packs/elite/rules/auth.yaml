@@ -1,0 +1,12 @@
+# rules/auth.yaml — skeleton M1.3
+- id: AUTH-003
+  category: security
+  severity: error
+  message: "Referenced security schemes must exist in `components.securitySchemes`."
+  fix: "Define the missing scheme under components.securitySchemes or remove the reference."
+  source:
+    title: OpenAPI Specification
+    url: https://spec.openapis.org/oas/v3.1.0
+    section: "Security Scheme Object"
+  when:
+    op: securitySchemeMissing

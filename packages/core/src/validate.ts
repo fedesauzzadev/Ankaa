@@ -128,6 +128,16 @@ const atomSchema = z.discriminatedUnion("op", [
     op: z.literal("schemaInlineDepthMax"),
     max: z.number().int().min(1),
   }),
+  z.strictObject({ op: z.literal("pathParamUndeclared") }),
+  z.strictObject({ op: z.literal("pathParamNotRequired") }),
+  z.strictObject({ op: z.literal("responseDescriptionMissing") }),
+  z.strictObject({ op: z.literal("operationIdDuplicate") }),
+  z.strictObject({ op: z.literal("securitySchemeMissing") }),
+  z.strictObject({
+    op: z.literal("openapiVersionMismatch"),
+    pattern: z.string().min(1).max(200),
+  }),
+  z.strictObject({ op: z.literal("serverInsecure") }),
 ]);
 
 const matcherSchema: z.ZodType<Matcher> = z.lazy(() =>
@@ -153,7 +163,11 @@ const ruleSchema = z.strictObject({
   packVersion: z.string().min(1),
 });
 
-const DOC_ATOMS = new Set<string>(["docFieldMissing"]);
+const DOC_ATOMS = new Set<string>([
+  "docFieldMissing",
+  "openapiVersionMismatch",
+  "serverInsecure",
+]);
 
 export type Scope = "doc" | "operation" | "mixed";
 
