@@ -63,5 +63,5 @@ Plan: [plans/f2-governance.md](../plans/f2-governance.md) · Specs: `f2-custom-r
 
 - [x] `pnpm check` verde
 - [x] Actualizar specs/README.md índice f2
-- [ ] Revisar DoD plans/f2-governance.md
-- [ ] Tag `v0.2.0-governance`
+- [x] Revisar DoD plans/f2-governance.md
+- [x] Tag `v0.2.0-governance`

@@ -111,7 +111,7 @@ Búsqueda: `--config <file>` → `./apigovscan.yaml` → `./apigovscan.yml`. Pre
 
 ## Estado
 
-**Fase 0–1 (MVP) implementada:** monorepo pnpm + TypeScript strict + ESLint/Prettier + Vitest + CI multi-OS + parser OpenAPI 3.x + rules engine + pack **elite ≥ 50 reglas (65 activas)** + `analyze` e2e + reporters console/JSON + suite de invariantes INV-1…7. Specs `f0-foundation` y `f1-*` en estado `implementada`.
+**Fase 0–2 implementada:** monorepo pnpm + TypeScript strict + ESLint/Prettier + Vitest + CI multi-OS + parser OpenAPI 3.x + rules engine + pack **elite ≥ 50 reglas (65 activas)** + `analyze` e2e + reporters console/JSON + suite de invariantes INV-1…7 + config strict + custom rules + baseline. Specs `f0-*` y `f1-*` y `f2-*` en estado `cerrada`. Tags: `v0.1.0-mvp`, `v0.2.0-governance`.
 
 ```bash
 pnpm install
@@ -124,5 +124,5 @@ Ver [docs/SDD.md §7](docs/SDD.md).
 
 - **F0 (listo):** fundación del monorepo.
 - **F1 (MVP · tag `v0.1.0-mvp`):** `analyze` OpenAPI + pack elite ≥ 50 reglas + invariantes.
-- **F2 (en curso):** config full ✅, custom rules ✅, baseline ✅ (spec `f2-*` → `implementada`); falta cerrar DoD + tag `v0.2.0-governance`.
+- **F2 (tag `v0.2.0-governance`):** config full ✅, custom rules ✅, baseline ✅ — specs `f2-*` en estado `cerrada`.
 - **F3+:** skills/learn, MCP, GitHub Action, Cloudflare, self-host.

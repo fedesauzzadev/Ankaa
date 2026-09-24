@@ -87,7 +87,7 @@ Pasos:
 - [x] `pnpm check` verde matriz OS
 - [x] Criterio salida SDD Fase 2: proyecto con deuda + baseline; `--baseline` solo falla lo nuevo
 - [x] README: secciones config, custom rules, baseline
-- [ ] Tag `v0.2.0-governance`
+- [x] Tag `v0.2.0-governance`
 - [x] tasks/f2 cerrados
 
 ## Changelog del plan
