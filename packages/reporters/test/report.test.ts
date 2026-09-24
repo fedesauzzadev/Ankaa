@@ -143,6 +143,22 @@ describe("buildReport (AC-R.5, AC-R.10)", () => {
     const b = makeReport({ suppressed: 0 });
     expect(a.reportHash).not.toBe(b.reportHash);
   });
+
+  it("includes summary.skillsSuppressed when > 0 (AC-S.1)", () => {
+    const report = makeReport({ skillsSuppressed: 3 });
+    expect(report.summary.skillsSuppressed).toBe(3);
+  });
+
+  it("omits summary.skillsSuppressed when 0 (AC-S.5)", () => {
+    const report = makeReport({ skillsSuppressed: 0 });
+    expect(report.summary.skillsSuppressed).toBeUndefined();
+  });
+
+  it("skillsSuppressed changes reportHash when present", () => {
+    const a = makeReport();
+    const b = makeReport({ skillsSuppressed: 1 });
+    expect(a.reportHash).not.toBe(b.reportHash);
+  });
 });
 
 describe("formatJson", () => {

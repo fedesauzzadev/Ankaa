@@ -17,6 +17,7 @@ export interface AnalyzeArgs {
   force: boolean;
   strictHash: boolean;
   baselineIgnoreHash: boolean;
+  skillsDir?: string;
 }
 
 export type ParseArgsResult =
@@ -148,6 +149,15 @@ export function parseAnalyzeArgs(argv: readonly string[]): ParseArgsResult {
 
     if (token === "--baseline-ignore-hash") {
       args.baselineIgnoreHash = true;
+      continue;
+    }
+
+    if (token === "--skills-dir") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--skills-dir requires a directory path" };
+      }
+      args.skillsDir = value;
       continue;
     }
 

@@ -34,6 +34,12 @@ import {
   type RulesSource,
 } from "./custom-rules.js";
 import {
+  compileMatchRegexes,
+  loadSkills,
+  mergeSeverityOverrides,
+  resolveSkillsDir,
+} from "./skills.js";
+import {
   createFsPackRepository,
   createFsSpecLoader,
   createReportSink,
@@ -76,6 +82,7 @@ export function getHelp(): string {
     "  --force           overwrite existing baseline (creates .bak)",
     "  --strict-hash     baseline inputHash mismatch is fatal (exit 2)",
     "  --baseline-ignore-hash  silence inputHash mismatch warnings",
+    "  --skills-dir      override skills directory (default: .apigovscan/skills)",
     "  --no-color        disable color (also respects NO_COLOR)",
     "  --debug           stage timings to stderr (never spec bodies)",
     "  -h, --help",
@@ -84,9 +91,9 @@ export function getHelp(): string {
     "Exit codes:",
     "  0  no findings at or above --fail-on",
     "  1  findings at or above --fail-on",
-    "  2  usage / parse / config / rule / baseline error",
+    "  2  usage / parse / config / rule / baseline / skills error",
     "",
-    "Docs: docs/SDD.md · specs/f1-analyze.md · specs/f2-custom-rules.md · specs/f2-config.md · specs/f2-baseline.md",
+    "Docs: docs/SDD.md · specs/f1-analyze.md · specs/f2-*.md · specs/f3-skills.md",
   ].join("\n");
 }
 
@@ -207,6 +214,23 @@ async function runAnalyze(
     }
   }
 
+  // Load skills (f3): suppressions, severity overrides, active drafts.
+  const skillsDir = resolveSkillsDir(config, io.cwd, args.skillsDir);
+  const skillsResult = loadSkills(skillsDir, packageVersion());
+  if (!skillsResult.ok) {
+    io.stderr(`error: ${skillsResult.error}\n`);
+    return 2;
+  }
+  const skills = skillsResult.skills;
+
+  // Severity: config rules > skills severities > pack default.
+  const configRuleResult = applyConfigRules(config);
+  const severityOverrides = mergeSeverityOverrides(
+    skills.severities,
+    configRuleResult.overrides,
+  );
+  const disabled = configRuleResult.disabled;
+
   let customRules: Rule[] | undefined;
   try {
     const sources: RulesSource[] = [];
@@ -226,11 +250,12 @@ async function runAnalyze(
     if (args.ruleInline !== undefined) {
       sources.push({ kind: "inline", json: args.ruleInline });
     }
+    const dir = findElitePackDir(defaultPackSearchRoots(io.cwd));
+    const eliteIds = dir
+      ? packRuleIds(loadPackFromDir(dir))
+      : undefined;
+    let collectedRules: Rule[] = [];
     if (sources.length > 0) {
-      const dir = findElitePackDir(defaultPackSearchRoots(io.cwd));
-      const eliteIds = dir
-        ? packRuleIds(loadPackFromDir(dir))
-        : undefined;
       const collected = collectCustomRules(sources, packageVersion(), {
         eliteRuleIds: eliteIds,
       });
@@ -238,13 +263,44 @@ async function runAnalyze(
         io.stderr(`error: ${collected.error}\n`);
         return 2;
       }
-      if (collected.rules.length > 0) {
-        customRules = collected.rules;
+      collectedRules = collected.rules;
+    }
+    // Active skill drafts: no id collision with config/--rules custom.
+    if (skills.activeDraftRules.length > 0) {
+      const seen = new Set(collectedRules.map((r) => r.id));
+      for (const draft of skills.activeDraftRules) {
+        if (seen.has(draft.id)) {
+          io.stderr(
+            `error: duplicate rule id ${draft.id} (skills draft and custom rules)\n`,
+          );
+          return 2;
+        }
+        if (eliteIds?.has(draft.id) === true) {
+          io.stderr(
+            `error: rule id ${draft.id} already exists in pack elite; use config rules: overrides or a new id\n`,
+          );
+          return 2;
+        }
+        seen.add(draft.id);
+        collectedRules.push(draft);
       }
+    }
+    if (collectedRules.length > 0) {
+      customRules = collectedRules;
     }
   } catch (err) {
     io.stderr(`error: ${err instanceof Error ? err.message : String(err)}\n`);
     return 2;
+  }
+
+  let skillsMatchRegexes: Map<number, RegExp> | undefined;
+  if (skills.suppressions.length > 0) {
+    const compiled = compileMatchRegexes(skills.suppressions, skillsDir);
+    if (!compiled.ok) {
+      io.stderr(`error: ${compiled.error}\n`);
+      return 2;
+    }
+    skillsMatchRegexes = compiled.map;
   }
 
   // Load baseline early (read mode): missing/invalid → exit 2 before analyze
@@ -284,7 +340,6 @@ async function runAnalyze(
     inputs = [inputPath];
   }
 
-  const { disabled, overrides } = applyConfigRules(config);
   const noColor =
     args.noColor ||
     (io.env.NO_COLOR !== undefined && io.env.NO_COLOR !== "");
@@ -315,10 +370,17 @@ async function runAnalyze(
       failOn,
       customRules,
       disabledRuleIds: disabled,
-      severityOverrides: overrides,
+      severityOverrides,
       toolVersion: packageVersion(),
       debug,
       baselineFingerprints,
+      skillsSuppressions:
+        skills.suppressions.length > 0 && skillsMatchRegexes !== undefined
+          ? {
+              suppressions: skills.suppressions,
+              matchRegexes: skillsMatchRegexes,
+            }
+          : undefined,
     },
   );
 

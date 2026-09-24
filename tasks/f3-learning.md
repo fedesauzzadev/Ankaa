@@ -6,14 +6,14 @@ Plan: [plans/f3-learning.md](../plans/f3-learning.md) · Specs: `f3-skills`, `f3
 
 ## M3.1 — Skills load/apply (spec f3-skills)
 
-- [ ] `skills.ts`: parse suppressions/severities/drafts schema v1
-- [ ] Resolución skillsDir (config > default) relative config dir
-- [ ] Wire post-evaluate: severity override → suppress → count → sort → baseline
-- [ ] `summary.skillsSuppressed` + console `(skills: N suppressed)`
-- [ ] Drafts `draft: true` no se evalúan
-- [ ] Errores load → exit 2 con path
-- [ ] Tests AC-S.1…10
-- [ ] Spec f3-skills → `implementada`
+- [x] `skills.ts`: parse suppressions/severities/drafts schema v1
+- [x] Resolución skillsDir (config > default) relative config dir (+ `--skills-dir` flag)
+- [x] Wire post-evaluate: severity override → suppress → count → sort → baseline
+- [x] `summary.skillsSuppressed` + console `(skills: N suppressed)`
+- [x] Drafts `draft: true` no se evalúan
+- [x] Errores load → exit 2 con path
+- [x] Tests AC-S.1…10
+- [x] Spec f3-skills → `implementada`
 
 ---
 

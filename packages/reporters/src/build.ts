@@ -25,6 +25,8 @@ export interface ReportSummary {
   total: number;
   /** Findings dropped by baseline filter (present only when baseline read mode ran). */
   suppressed?: number;
+  /** Findings dropped by skills suppressions (present only when > 0). */
+  skillsSuppressed?: number;
 }
 
 export interface ReportMeta {
@@ -51,6 +53,8 @@ export interface BuildReportInput {
   meta?: ReportMeta;
   /** Count of findings suppressed by baseline (omit when baseline off). */
   suppressed?: number;
+  /** Count of findings suppressed by skills (omit when 0 / skills off). */
+  skillsSuppressed?: number;
 }
 
 const SEVERITIES: Severity[] = ["error", "warning", "info"];
@@ -66,6 +70,7 @@ function redactFinding(finding: Finding): Finding {
 function countSummary(
   findings: Finding[],
   suppressed?: number,
+  skillsSuppressed?: number,
 ): ReportSummary {
   const counts: Record<Severity, number> = { error: 0, warning: 0, info: 0 };
   for (const f of findings) {
@@ -79,6 +84,9 @@ function countSummary(
   };
   if (suppressed !== undefined) {
     summary.suppressed = suppressed;
+  }
+  if (skillsSuppressed !== undefined && skillsSuppressed > 0) {
+    summary.skillsSuppressed = skillsSuppressed;
   }
   return summary;
 }
@@ -104,7 +112,11 @@ export function buildReport(input: BuildReportInput): Report {
     .map(redactFinding);
 
   const packs = [...input.packs].sort((a, b) => cmp(a.id, b.id));
-  const summary = countSummary(findings, input.suppressed);
+  const summary = countSummary(
+    findings,
+    input.suppressed,
+    input.skillsSuppressed,
+  );
   const withoutHash = {
     tool: { name: "apigovscan" as const, version: input.toolVersion },
     packs,

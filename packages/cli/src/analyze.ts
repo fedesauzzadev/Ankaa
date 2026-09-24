@@ -10,6 +10,7 @@ import { parseSpec, type ParseError } from "@apigovscan/openapi";
 import { buildReport, type Report } from "@apigovscan/reporters";
 import type { FailOn } from "./args.js";
 import type { PackRepository, ReportSink, SpecLoader } from "./ports.js";
+import { applySkillSuppressions, type SuppressionEntry } from "./skills.js";
 
 export interface AnalyzeOptions {
   inputs: readonly string[];
@@ -22,6 +23,14 @@ export interface AnalyzeOptions {
   debug?: (line: string) => void;
   /** When set, findings whose fingerprint is in the set are suppressed by baseline. */
   baselineFingerprints?: ReadonlySet<string>;
+  /**
+   * Skills suppressions applied post-evaluate, pre-baseline.
+   * `matchRegexes` is keyed by suppression entry index.
+   */
+  skillsSuppressions?: {
+    suppressions: readonly SuppressionEntry[];
+    matchRegexes: ReadonlyMap<number, RegExp>;
+  };
 }
 
 export type AnalyzeOutcome =
@@ -29,9 +38,10 @@ export type AnalyzeOutcome =
       ok: true;
       report: Report;
       exitCode: 0 | 1;
-      /** All findings before baseline filter (for --write-baseline). */
+      /** All findings before skills/baseline filters (for --write-baseline). */
       allFindings: Finding[];
       suppressedCount: number;
+      skillsSuppressedCount: number;
     }
   | { ok: false; exitCode: 2; error: string };
 
@@ -165,12 +175,31 @@ export async function analyzeUseCase(
   const tReport = performance.now();
 
   const allFindings = results.flatMap((r) => r.findings);
-  let filteredResults = results;
+
+  // Skills: severity overrides already applied at evaluate; suppress post-evaluate.
+  let skillsSuppressedCount = 0;
+  let afterSkills = results;
+  if (opts.skillsSuppressions !== undefined && opts.skillsSuppressions.suppressions.length > 0) {
+    const { suppressions, matchRegexes } = opts.skillsSuppressions;
+    const kept: EvaluationResult[] = [];
+    for (const r of results) {
+      const { visible, suppressed } = applySkillSuppressions(
+        r.findings,
+        suppressions,
+        matchRegexes,
+      );
+      skillsSuppressedCount += suppressed;
+      kept.push({ ...r, findings: visible });
+    }
+    afterSkills = kept;
+  }
+
+  let filteredResults = afterSkills;
   let suppressedCount = 0;
   if (opts.baselineFingerprints !== undefined) {
     const set = opts.baselineFingerprints;
     const kept: EvaluationResult[] = [];
-    for (const r of results) {
+    for (const r of afterSkills) {
       const visible = r.findings.filter((f) => !set.has(f.fingerprint));
       suppressedCount += r.findings.length - visible.length;
       kept.push({ ...r, findings: visible });
@@ -187,6 +216,7 @@ export async function analyzeUseCase(
     ...(opts.baselineFingerprints !== undefined
       ? { suppressed: suppressedCount }
       : {}),
+    ...(skillsSuppressedCount > 0 ? { skillsSuppressed: skillsSuppressedCount } : {}),
   });
   debug(
     `report ${report.findings.length} findings ${Math.round(performance.now() - tReport)}ms`,
@@ -208,5 +238,6 @@ export async function analyzeUseCase(
     exitCode: computeExitCode(report, opts.failOn),
     allFindings,
     suppressedCount,
+    skillsSuppressedCount,
   };
 }

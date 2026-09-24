@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | ready |
+| Estado | implementada |
 | Fase | 3 |
 | Deriva de | SDD FR-33/FR-34, doc 03 §8 (skills), ADR-007, INV-2 (orden tras skills); specs `f2-config` (skillsDir), `f1-engine` (fingerprints), `f2-baseline` (patrón de filtro) |
 | Roadmap | Fase 3 — init + skills + learn |
@@ -151,3 +151,4 @@ Severidad de skills **sobre** la del pack; si config `rules:` también overridea
 ## Changelog
 
 - 2026-09-24 · Spec creado desde SDD v1.0 §7 Fase 3 + FR-33/34 + doc 03 §8.
+- 2026-09-24 · M3.1 implementado: `skills.ts` loader + wire analyze + reporters `skillsSuppressed` + tests AC-S.1…10. Flag `--skills-dir` agregado a analyze.

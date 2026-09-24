@@ -48,7 +48,7 @@ npx @apigovscan/cli analyze ./openapi.yaml
 | `apigovscan rules list [--rules <file>]` | Lista reglas del pack (y custom si se pasa `--rules`) |
 | `apigovscan rules explain <ruleId> [--rules <file>]` | Muestra mensaje, fix, fuente y URL de una regla (`PREFIX-NNN`) |
 
-Flags útiles de `analyze`: `--format console|json`, `--output <file>`, `--fail-on error|warning|info|never`, `--rules <file>` (repetible), `--rule <json>`, `--config <file>`, `--write-baseline`, `--baseline`, `--baseline-path <file>`, `--force`, `--strict-hash`, `--baseline-ignore-hash`, `--no-color`, `--debug`.
+Flags útiles de `analyze`: `--format console|json`, `--output <file>`, `--fail-on error|warning|info|never`, `--rules <file>` (repetible), `--rule <json>`, `--config <file>`, `--write-baseline`, `--baseline`, `--baseline-path <file>`, `--force`, `--strict-hash`, `--baseline-ignore-hash`, `--skills-dir <dir>`, `--no-color`, `--debug`.
 
 Exit codes: `0` ok · `1` findings ≥ `failOn` · `2` usage/parse/config/rule/baseline error.
 
@@ -66,6 +66,35 @@ apigovscan analyze ./specs --baseline --fail-on error
 - `--strict-hash` ⇒ inputHash mismatch es exit 2; default solo warning; `--baseline-ignore-hash` lo silencia.
 - `summary.suppressed` entra en el reporte JSON; console muestra `(baseline: N suppressed)`.
 
+### Skills (`.apigovscan/skills/`)
+
+Análisis aplica suppressions (fingerprint o `match.ruleId`+`apiPath`) y overrides de severidad versionados en git:
+
+```yaml
+# .apigovscan/skills/suppressions.yaml
+version: 1
+suppressions:
+  - fingerprint: "<64 hex>"
+    reason: "Legacy endpoint frozen until v2"
+  - match:
+      ruleId: NAMING-001
+      apiPath: "^/legacy/"
+    reason: "Legacy namespace excluded"
+```
+
+```yaml
+# .apigovscan/skills/severities.yaml
+version: 1
+overrides:
+  - ruleId: PAGINATION-001
+    severity: error
+```
+
+- Precedencia: config `rules:` > skills > pack default.
+- Drafts en `skills/drafts/*.yaml` con `draft: true` **no** se evalúan hasta promover (`draft: false`).
+- `summary.skillsSuppressed` solo si > 0; console `(skills: N suppressed)`.
+- Dirección: `skillsDir` en config o flag `--skills-dir` (default `.apigovscan/skills`).
+
 ### Config `apigovscan.yaml`
 
 Schema estricto (keys desconocidas → exit 2). Ejemplo completo en [`examples/apigovscan.yaml`](examples/apigovscan.yaml):
@@ -78,10 +107,10 @@ rules:
   NAMING-001: off
 customRules:
   - ./team-rules.yaml   # relativas al directorio del config
-baseline:
+  baseline:
   enabled: false
   path: .apigovscan/baseline.json
-skillsDir: .apigovscan/skills   # reservado f3
+skillsDir: .apigovscan/skills   # suppressions/severities/drafts (f3)
 ```
 
 Búsqueda: `--config <file>` → `./apigovscan.yaml` → `./apigovscan.yml`. Precedencia: flag CLI > config > default.
