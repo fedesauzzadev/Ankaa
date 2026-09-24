@@ -30,6 +30,8 @@ Especificaciones **spec-driven** derivadas del [SDD v1.0](../docs/SDD.md). El SD
 | [f3-init](f3-init.md) | 3 | Scaffold `.apigovscan/` con `init` | cerrada |
 | [f3-skills](f3-skills.md) | 3 | Carga/aplica suppressions + severities en analyze | cerrada |
 | [f3-learn](f3-learn.md) | 3 | `learn` feedback → skills (INV-5) + list/promote | cerrada |
+| [f4-mcp-server](f4-mcp-server.md) | 4 | Server MCP stdio + sandbox + cmd `mcp` | ready |
+| [f4-mcp-tools](f4-mcp-tools.md) | 4 | Tools FR-50 con paridad CLI | ready |
 
 ## Orden de implementación sugerido
 
@@ -47,7 +49,8 @@ f0-foundation
 - **Fase 1 (SDD §7)** = specs `f1-*` en conjunto (MVP).
 - **Fase 2 (SDD §7)** = specs `f2-*` (config, custom rules, baseline) — cerrada en `v0.2.0-governance`.
 - **Fase 3 (SDD §7)** = specs `f3-*` (init, skills, learn) — cerrada en `v0.3.0-learning`.
-- **Fases 4+** = specs futuros (MCP, Action, CF…) — se abren cuando la fase anterior esté cerrada.
+- **Fase 4 (SDD §7)** = specs `f4-*` (MCP stdio local) — abierta.
+- **Fases 5+** = specs futuros (Action, CF…) — se abren cuando la fase anterior esté cerrada.
 
 ## Plantilla de spec (para futuras)
 

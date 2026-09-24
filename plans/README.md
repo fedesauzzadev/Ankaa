@@ -8,6 +8,7 @@ Planes de implementación derivados de los [specs](../specs/README.md). Un plan 
 | [f1-mvp](f1-mvp.md) | MVP analyze end-to-end | f1-* |
 | [f2-governance](f2-governance.md) | Config + custom rules + baseline | f2-* |
 | [f3-learning](f3-learning.md) | init + skills + learn | f3-* |
+| [f4-mcp](f4-mcp.md) | MCP stdio local | f4-mcp-* |
 
 ## Convención
 
