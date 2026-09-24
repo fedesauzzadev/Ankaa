@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | ready |
+| Estado | implementada |
 | Fase | 1 |
 | Deriva de | SDD ADR-002, FR-01/02, NFR-02; SDD §7 modelo de dominio |
 | Package | `@apigovscan/openapi` |
@@ -143,20 +143,20 @@ export interface ParseError {
 
 ## 4. Criterios de aceptación
 
-- [ ] **AC-O.1** Petstore mini 3.1 → `ok: true`, `operations.length` esperado (snapshot).
-- [ ] **AC-O.2** Spec 3.0.3 válido → `ok: true` y `openapiVersion === "3.0.3"`.
-- [ ] **AC-O.3** JSON OpenAPI (no YAML) → mismo `Spec` que la versión YAML equivalente (deep equal salvo `inputHash`).
-- [ ] **AC-O.4** YAML con bomba de aliases > `maxAliases` ⇒ `ok: false`, error `YAML_ALIAS_LIMIT`.
-- [ ] **AC-O.5** Archivo > `maxBytes` ⇒ error `SIZE_LIMIT` antes de parsear.
-- [ ] **AC-O.6** `$ref` remoto ⇒ `REF_REMOTE_FORBIDDEN` (INV-1).
-- [ ] **AC-O.7** `$ref` que escapa root (`../../etc/passwd`) ⇒ error `REF_OUTSIDE_ROOT`.
-- [ ] **AC-O.8** Ciclo de `$ref` local ⇒ no stack overflow; warning `REF_CYCLE`; engine puede seguir.
-- [ ] **AC-O.9** Profundidad de nesting > `maxDepth` ⇒ `DEPTH_LIMIT`.
-- [ ] **AC-O.10** `inputHash` estable: mismos bytes ⇒ mismo hash; un byte cambia ⇒ distinto.
-- [ ] **AC-O.11** Operaciones ordenadas deterministas (mezclar orden de paths en YAML da mismo array final).
-- [ ] **AC-O.12** Swagger 2.0 ⇒ comportamiento según §7 (error claro o conversión) + `parseWarnings` si conversión.
-- [ ] **AC-O.13** Path-level parameters mergeados y no duplicados en operation.
-- [ ] **AC-O.14** Extensiones `x-sunset` (u otras) disponibles en `extensions` para reglas futuras (al menos genérico `x-*` copiado de operation).
+- [x] **AC-O.1** Petstore mini 3.1 → `ok: true`, `operations.length` esperado (snapshot).
+- [x] **AC-O.2** Spec 3.0.3 válido → `ok: true` y `openapiVersion === "3.0.3"`.
+- [x] **AC-O.3** JSON OpenAPI (no YAML) → mismo `Spec` que la versión YAML equivalente (deep equal salvo `inputHash`).
+- [x] **AC-O.4** YAML con bomba de aliases > `maxAliases` ⇒ `ok: false`, error `YAML_ALIAS_LIMIT`.
+- [x] **AC-O.5** Archivo > `maxBytes` ⇒ error `SIZE_LIMIT` antes de parsear.
+- [x] **AC-O.6** `$ref` remoto ⇒ `REF_REMOTE_FORBIDDEN` (INV-1).
+- [x] **AC-O.7** `$ref` que escapa root (`../../etc/passwd`) ⇒ error `REF_OUTSIDE_ROOT`.
+- [x] **AC-O.8** Ciclo de `$ref` local ⇒ no stack overflow; warning `REF_CYCLE`; engine puede seguir.
+- [x] **AC-O.9** Profundidad de nesting > `maxDepth` ⇒ `DEPTH_LIMIT`.
+- [x] **AC-O.10** `inputHash` estable: mismos bytes ⇒ mismo hash; un byte cambia ⇒ distinto.
+- [x] **AC-O.11** Operaciones ordenadas deterministas (mezclar orden de paths en YAML da mismo array final).
+- [x] **AC-O.12** Swagger 2.0 ⇒ error claro `SWAGGER_20` + docs (decisión §7).
+- [x] **AC-O.13** Path-level parameters mergeados y no duplicados en operation.
+- [x] **AC-O.14** Extensiones `x-*` (u otras) disponibles en `extensions` para reglas futuras (al menos genérico `x-*` copiado de operation).
 
 ## 5. Test plan
 
@@ -192,3 +192,4 @@ Unit tests de normalize + property: shuffle keys de path ⇒ mismo orden.
 ## Changelog
 
 - 2026-09-23 · Spec creado desde SDD v1.0.
+- 2026-09-23 · Implementada (M1.1): `parseSpec` con `yaml@2` + limits; AC-O.1…14 verdes (16 tests); tipos `Spec` consolidados en `@apigovscan/core`; Swagger 2.0 = error `SWAGGER_20` (decisión §7).

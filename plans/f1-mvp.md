@@ -32,7 +32,7 @@ Pasos:
 
 **DoD:** todos AC-O verdes; package `openapi` con API exportada.
 
-**Riesgo:**swagger-parser vs own — timebox spike al inicio de M1.1; decisión escrita en plan (append changelog).
+**Riesgo:** swagger-parser vs own — resuelto: paquete `yaml` v2 (sin swagger-parser). Ver tasks/f1-mvp.md M1.1.
 
 ## M1.2 — Engine + DSL mínimo
 

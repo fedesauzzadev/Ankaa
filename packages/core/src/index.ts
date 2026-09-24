@@ -15,3 +15,16 @@ export function isSeverity(value: unknown): value is Severity {
 export function packageVersion(): string {
   return VERSION;
 }
+
+export type {
+  Spec,
+  Operation,
+  Parameter,
+  RequestBody,
+  ContentMedia,
+  Response,
+  SchemaNode,
+  ComponentIndex,
+  SecurityRequirement,
+  ParseWarning,
+} from "./spec.js";

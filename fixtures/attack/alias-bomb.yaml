@@ -1,0 +1,21 @@
+openapi: 3.1.0
+info:
+  title: Alias Bomb
+  version: 1.0.0
+x-bomb: &bomb
+  x-a: *bomb
+  x-b: *bomb
+  x-c: *bomb
+  x-d: *bomb
+  x-e: *bomb
+  x-f: *bomb
+  x-g: *bomb
+  x-h: *bomb
+  x-i: *bomb
+  x-j: *bomb
+paths:
+  /bomb:
+    get:
+      responses:
+        "200":
+          description: OK

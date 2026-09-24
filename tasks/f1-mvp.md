@@ -6,25 +6,27 @@ Plan: [plans/f1-mvp.md](../plans/f1-mvp.md) · Specs: `f1-openapi`, `f1-engine`,
 
 ## M1.1 — OpenAPI → Spec (spec f1-openapi)
 
-- [ ] Spike YAML: probar lib candidata con alias bomb + depth limit (timebox) — **decisión anotada en plan**
-- [ ] `parseSpec`: size limit `maxBytes` (AC-O.5)
-- [ ] `parseSpec`: depth limit (AC-O.9)
-- [ ] `parseSpec`: alias limit (AC-O.4)
-- [ ] Rechazo de tags YAML no permitidos
-- [ ] Errores tipados (`ParseError` con code/message/pointer)
-- [ ] Detectar versión openapi 3.0.x / 3.1.x (AC-O.1, AC-O.2)
-- [ ] Soporte JSON input (AC-O.3)
-- [ ] `inputHash` sha256 bytes crudos (AC-O.10)
-- [ ] Normalizar operations: sort `(path, method)` (AC-O.11)
-- [ ] Merge path-level + op parameters (AC-O.13)
-- [ ] JSON Pointer al doc original en cada operation/response/parameter
-- [ ] `$ref` local resolución + sandbox root (AC-O.7)
-- [ ] `$ref` remoto forbidden (AC-O.6)
-- [ ] Ciclo `$ref` ⇒ warning, no crash (AC-O.8)
-- [ ] Copiar `x-*` extensiones relevantes en operation (AC-O.14)
-- [ ] Swagger 2.0 ⇒ comportamiento según decisión §7 (AC-O.12)
-- [ ] Fixtures de ataque committeados + tests
-- [ ] Spec f1-openapi → todos AC-O verdes → estado `implementada`
+- [x] Spike YAML: lib `yaml@2.9.1` con `maxAliasCount` (AC-O.4) — decisión anotada abajo
+- [x] `parseSpec`: size limit `maxBytes` (AC-O.5)
+- [x] `parseSpec`: depth limit (AC-O.9)
+- [x] `parseSpec`: alias limit (AC-O.4)
+- [x] Rechazo de tags YAML no permitidos (mapeo `YAML_TAG_FORBIDDEN`)
+- [x] Errores tipados (`ParseError` con code/message/pointer)
+- [x] Detectar versión openapi 3.0.x / 3.1.x (AC-O.1, AC-O.2)
+- [x] Soporte JSON input (AC-O.3)
+- [x] `inputHash` sha256 bytes crudos (AC-O.10)
+- [x] Normalizar operations: sort `(path, method)` (AC-O.11)
+- [x] Merge path-level + op parameters (AC-O.13)
+- [x] JSON Pointer al doc original en cada operation/response/parameter
+- [x] `$ref` local: validados (remote/outside rechazados); expansión queda para engine
+- [x] `$ref` remoto forbidden (AC-O.6)
+- [x] Ciclo `$ref` ⇒ warning `REF_CYCLE`, no crash (AC-O.8)
+- [x] Copiar `x-*` extensiones relevantes en operation (AC-O.14)
+- [x] Swagger 2.0 ⇒ error claro `SWAGGER_20` (AC-O.12, §7)
+- [x] Fixtures de ataque committeados + tests (16 AC-O tests)
+- [x] Spec f1-openapi → todos AC-O verdes → estado `implementada`
+
+**Decisión spike (M1.1):** parser YAML = paquete [`yaml`](https://eemeli.org/yaml/) v2 (`maxAliasCount` nativo + `uniqueKeys`); sin `@apidevtools/swagger-parser` (pesado, resolución remota).
 
 ---
 

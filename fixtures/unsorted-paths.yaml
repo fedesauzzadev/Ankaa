@@ -1,0 +1,23 @@
+openapi: 3.1.0
+info:
+  title: Unsorted Paths
+  version: 1.0.0
+paths:
+  /zebra:
+    get:
+      operationId: getZebra
+      responses:
+        "200":
+          description: OK
+  /apple:
+    post:
+      operationId: postApple
+      responses:
+        "201":
+          description: Created
+  /mango:
+    get:
+      operationId: getMango
+      responses:
+        "200":
+          description: OK
