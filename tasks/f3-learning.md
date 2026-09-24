@@ -41,4 +41,4 @@ Plan: [plans/f3-learning.md](../plans/f3-learning.md) · Specs: `f3-skills`, `f3
 - [x] `pnpm check` verde
 - [x] Specs f3-* → `cerrada`
 - [x] DoD plans/f3-learning.md
-- [ ] Tag `v0.3.0-learning`
+- [x] Tag `v0.3.0-learning`

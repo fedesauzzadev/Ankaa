@@ -82,10 +82,10 @@ Pasos:
 - [x] INV-5 con test en CI
 - [x] Criterio SDD: flujo report→feedback→learn→re-analyze demostrado (e2e)
 - [x] README: init, skills, learn
-- [ ] Tag `v0.3.0-learning`
+- [x] Tag `v0.3.0-learning`
 - [x] tasks/f3 cerrados
 
 ## Changelog del plan
 
 - 2026-09-24 · Plan inicial desde specs f3 (tras tag v0.2.0-governance).
-- 2026-09-24 · M3.1–M3.3 implementados; DoD verde salvo tag `v0.3.0-learning`.
+- 2026-09-24 · M3.1–M3.3 implementados; tag `v0.3.0-learning` creado; fase 3 cerrada.
