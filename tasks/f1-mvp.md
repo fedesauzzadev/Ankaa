@@ -143,6 +143,6 @@ Plan: [plans/f1-mvp.md](../plans/f1-mvp.md) · Specs: `f1-openapi`, `f1-engine`,
 
 - [x] Performance: spec 1 MB < 2 s p95 — medir, anotar resultado
 - [x] README quickstart (`pnpm dlx` / bin local + ejemplos)
-- [ ] Tag `v0.1.0-mvp`
+- [x] Tag `v0.1.0-mvp`
 - [x] Revisar DoD de plans/f1-mvp.md
 - [x] Actualizar estado de specs f1 en specs/README.md

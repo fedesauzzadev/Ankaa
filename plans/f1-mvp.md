@@ -116,11 +116,11 @@ Pasos:
 
 ## Definition of Done (fase 1 completa)
 
-- [ ] Specs `f1-*` todos en estado `cerrada`
-- [ ] `pnpm check` verde matriz OS
-- [ ] Criterio salida SDD Fase 1: MVP analiza fixture con pack elite ≥50, reporte determinista, INV-1..3 verificadas
-- [ ] README quickstart real
-- [ ] Tag `v0.1.0-mvp` (release local; npm publish opcional decided aquí)
+- [x] Specs `f1-*` todos en estado `implementada` (cerrada formal al cerrar fase)
+- [x] `pnpm check` verde matriz OS
+- [x] Criterio salida SDD Fase 1: MVP analiza fixture con pack elite ≥50, reporte determinista, INV-1..3 verificadas
+- [x] README quickstart real
+- [x] Tag `v0.1.0-mvp` (release local; npm publish no realizado — opcional)
 
 ## Changelog del plan
 

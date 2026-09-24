@@ -24,6 +24,9 @@ Especificaciones **spec-driven** derivadas del [SDD v1.0](../docs/SDD.md). El SD
 | [f1-elite-pack](f1-elite-pack.md) | 1 | Pack elite ≥ 50 reglas con fuentes citadas | implementada |
 | [f1-reporters](f1-reporters.md) | 1 | Reportes console + JSON canónico | implementada |
 | [f1-invariants](f1-invariants.md) | 1 | INV-1…INV-7 como gates de CI | implementada |
+| [f2-config](f2-config.md) | 2 | Config `apigovscan.yaml` completa (strict) | ready |
+| [f2-custom-rules](f2-custom-rules.md) | 2 | DSL custom + `rules validate`/`list` | ready |
+| [f2-baseline](f2-baseline.md) | 2 | Baseline: gate solo findings nuevos | ready |
 
 ## Orden de implementación sugerido
 
@@ -39,7 +42,8 @@ f0-foundation
 
 - **Fase 0 (SDD §7)** = spec `f0-foundation`.
 - **Fase 1 (SDD §7)** = specs `f1-*` en conjunto (MVP).
-- **Fases 2+** = specs futuros (baseline, learn, MCP, Action, CF…) — se abren cuando el MVP esté cerrado.
+- **Fase 2 (SDD §7)** = specs `f2-*` (config, custom rules, baseline) — abiertos tras `v0.1.0-mvp`.
+- **Fases 3+** = specs futuros (skills/learn, MCP, Action, CF…) — se abren cuando la fase anterior esté cerrada.
 
 ## Plantilla de spec (para futuras)
 
