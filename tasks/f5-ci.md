@@ -6,18 +6,18 @@ Plan: [plans/f5-ci.md](../plans/f5-ci.md) · Specs: `f5-reporters`, `f5-action`
 
 ## M5.1 — Formatters + CLI (f5-reporters)
 
-- [ ] `formatSarif(report, opts?)` en `packages/reporters/src/sarif.ts` (AC-SARIF.1–7)
-- [ ] `formatMarkdown(report)` en `markdown.ts` (AC-MD.1–3)
-- [ ] `formatAnnotations(report)` en `annotations.ts` (AC-ANN.1–3)
-- [ ] Exportar los 3 formatters en `packages/reporters/src/index.ts`
-- [ ] `OutputFormat` 5 valores + `ANALYZE_FORMATS` en `args.ts` (AC-CLI.1)
-- [ ] `RULES_FORMATS` (console|json) separado en `parseRulesArgs` (AC-CLI.3)
-- [ ] Dispatch de formatos en `createReportSink` (`loaders.ts`) — stdout silencioso con `--output` (AC-CLI.2)
-- [ ] Help de `analyze` documenta los 5 formatos (AC-CLI.4)
-- [ ] Tests unit reporters: SARIF, MD, annotations, redacción (AC-RED.1), determinismo (AC-INV.2)
-- [ ] Tests e2e CLI: formatos aceptados/inválidos, rules separado, `--output` sarif
-- [ ] Spec f5-reporters → `implementada`
-- [ ] `pnpm check` verde + commit M5.1
+- [x] `formatSarif(report, opts?)` en `packages/reporters/src/sarif.ts` (AC-SARIF.1–7)
+- [x] `formatMarkdown(report)` en `markdown.ts` (AC-MD.1–3)
+- [x] `formatAnnotations(report)` en `annotations.ts` (AC-ANN.1–3)
+- [x] Exportar los 3 formatters en `packages/reporters/src/index.ts`
+- [x] `OutputFormat` 5 valores + `ANALYZE_FORMATS` en `args.ts` (AC-CLI.1)
+- [x] `RULES_FORMATS` (console|json) separado en `parseRulesArgs` (AC-CLI.3)
+- [x] Dispatch de formatos en `createReportSink` (`loaders.ts`) — stdout silencioso con `--output` (AC-CLI.2)
+- [x] Help de `analyze` documenta los 5 formatos (AC-CLI.4)
+- [x] Tests unit reporters: SARIF, MD, annotations, redacción (AC-RED.1), determinismo (AC-INV.2)
+- [x] Tests e2e CLI: formatos aceptados/inválidos, rules separado, `--output` sarif
+- [x] Spec f5-reporters → `implementada`
+- [x] `pnpm check` verde + commit M5.1
 
 ---
 

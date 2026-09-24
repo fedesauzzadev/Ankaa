@@ -1,5 +1,10 @@
 export type FailOn = "error" | "warning" | "info" | "never";
-export type OutputFormat = "console" | "json";
+export type OutputFormat =
+  | "console"
+  | "json"
+  | "sarif"
+  | "markdown"
+  | "annotations";
 
 export interface AnalyzeArgs {
   path: string;
@@ -24,7 +29,16 @@ export type ParseArgsResult =
   | { ok: true; args: AnalyzeArgs }
   | { ok: false; error: string };
 
-const FORMATS = new Set<OutputFormat>(["console", "json"]);
+const ANALYZE_FORMATS = new Set<OutputFormat>([
+  "console",
+  "json",
+  "sarif",
+  "markdown",
+  "annotations",
+]);
+const RULES_FORMATS = new Set<OutputFormat>(["console", "json"]);
+const ANALYZE_FORMAT_LIST = "console | json | sarif | markdown | annotations";
+const RULES_FORMAT_LIST = "console | json";
 const FAIL_ON = new Set<FailOn>(["error", "warning", "info", "never"]);
 
 function isFlag(token: string): boolean {
@@ -52,12 +66,15 @@ export function parseAnalyzeArgs(argv: readonly string[]): ParseArgsResult {
     if (token === "--format") {
       const value = argv[++i];
       if (value === undefined || isFlag(value)) {
-        return { ok: false, error: "--format requires a value (console | json)" };
-      }
-      if (!FORMATS.has(value as OutputFormat)) {
         return {
           ok: false,
-          error: `invalid --format "${value}" (expected console | json)`,
+          error: `--format requires a value (${ANALYZE_FORMAT_LIST})`,
+        };
+      }
+      if (!ANALYZE_FORMATS.has(value as OutputFormat)) {
+        return {
+          ok: false,
+          error: `invalid --format "${value}" (expected ${ANALYZE_FORMAT_LIST})`,
         };
       }
       args.format = value as OutputFormat;
@@ -229,12 +246,15 @@ export function parseRulesArgs(argv: readonly string[]): ParseRulesArgsResult {
     if (token === "--format") {
       const value = argv[++i];
       if (value === undefined || isFlag(value)) {
-        return { ok: false, error: "--format requires a value (console | json)" };
-      }
-      if (!FORMATS.has(value as OutputFormat)) {
         return {
           ok: false,
-          error: `invalid --format "${value}" (expected console | json)`,
+          error: `--format requires a value (${RULES_FORMAT_LIST})`,
+        };
+      }
+      if (!RULES_FORMATS.has(value as OutputFormat)) {
+        return {
+          ok: false,
+          error: `invalid --format "${value}" (expected ${RULES_FORMAT_LIST})`,
         };
       }
       args.format = value as OutputFormat;

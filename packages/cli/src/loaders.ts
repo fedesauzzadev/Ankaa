@@ -1,6 +1,12 @@
 import { readFile, writeFile } from "node:fs/promises";
 import type { Report } from "@apigovscan/reporters";
-import { formatConsole, formatJson } from "@apigovscan/reporters";
+import {
+  formatAnnotations,
+  formatConsole,
+  formatJson,
+  formatMarkdown,
+  formatSarif,
+} from "@apigovscan/reporters";
 import type { PackRepository, ReportSink, SpecLoader } from "./ports.js";
 import { defaultPackSearchRoots, findElitePackDir, loadPackFromDir } from "./pack-fs.js";
 import type { OutputFormat } from "./args.js";
@@ -48,26 +54,33 @@ function shortSummary(report: Report): string {
   return `${error} errors · ${warning} warnings · ${info} info · reportHash ${hash}\n`;
 }
 
+function renderReport(report: Report, opts: SinkOptions, toFile: boolean): string {
+  switch (opts.format) {
+    case "json":
+      return formatJson(report, { pretty: !toFile && opts.pretty });
+    case "sarif":
+      return formatSarif(report);
+    case "markdown":
+      return formatMarkdown(report);
+    case "annotations":
+      return formatAnnotations(report);
+    case "console":
+      return formatConsole(report, { color: !toFile && opts.color });
+  }
+}
+
 export function createReportSink(opts: SinkOptions): ReportSink {
   return {
     async write(report: Report): Promise<void> {
       if (opts.output !== undefined) {
-        const text =
-          opts.format === "json"
-            ? formatJson(report, { pretty: false })
-            : formatConsole(report, { color: false });
-        await writeFile(opts.output, text, "utf8");
+        await writeFile(opts.output, renderReport(report, opts, true), "utf8");
         if (opts.format === "console") {
           opts.stdout(shortSummary(report));
         }
         return;
       }
 
-      const text =
-        opts.format === "json"
-          ? formatJson(report, { pretty: opts.pretty })
-          : formatConsole(report, { color: opts.color });
-      opts.stdout(text);
+      opts.stdout(renderReport(report, opts, false));
     },
   };
 }

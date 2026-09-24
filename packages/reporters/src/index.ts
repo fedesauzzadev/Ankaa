@@ -20,3 +20,7 @@ export { canonicalJson } from "./canonical.js";
 export { redactText } from "./redact.js";
 export { formatConsole, type ConsoleOpts } from "./console.js";
 export { formatJson } from "./json.js";
+export { formatSarif } from "./sarif.js";
+export { formatMarkdown } from "./markdown.js";
+export { formatAnnotations } from "./annotations.js";
+export { artifactUri } from "./uri.js";

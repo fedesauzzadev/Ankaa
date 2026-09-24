@@ -90,7 +90,12 @@ export function getHelp(): string {
     "  dir               init target directory (default: .)",
     "",
     "Options:",
-    "  --format <fmt>    console | json          (default: console)",
+    "  --format <fmt>    report format (default: console):",
+    "                    console     human-readable report",
+    "                    json        canonical JSON with reportHash",
+    "                    sarif       SARIF 2.1.0 (code scanning)",
+    "                    markdown    Markdown summary (job summaries)",
+    "                    annotations GitHub workflow commands (::error ...)",
     "  --output <file>   write report to file",
     "  --fail-on <sev>   error | warning | info | never   (default: error)",
     "  --rules <file>    YAML/JSON custom rules (repeatable; added to pack)",
@@ -121,7 +126,7 @@ export function getHelp(): string {
     "  1  findings at or above --fail-on",
     "  2  usage / parse / config / rule / baseline / skills / learn / init / mcp error",
     "",
-    "Docs: docs/SDD.md · specs/f1-analyze.md · specs/f2-*.md · specs/f3-*.md · specs/f4-mcp-*.md",
+    "Docs: docs/SDD.md · specs/f1-analyze.md · specs/f2-*.md · specs/f3-*.md · specs/f4-mcp-*.md · specs/f5-*.md",
   ].join("\n");
 }
 

@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | ready |
+| Estado | implementada |
 | Fase | 5 |
 | Deriva de | SDD FR-40/41/43, SDD §7 fila 5; doc 06 §8.6; spec `f1-reporters` |
 | Package | `@apigovscan/reporters` + CLI (`f1-analyze`) |
@@ -69,8 +69,9 @@ export function formatAnnotations(report: Report): string;
 }
 ```
 
-- **rule** (metadata): `{ id, shortDescription: { text: <mensaje de la regla> }, help?: { text: <fix>, uri: <source.url> }, properties: { "apigovscan/severity": ..., "apigovscan/category": ..., "apigovscan/pack": "<packId@packVersion>" } }`.
-  - `help.uri` solo si el finding trae `source.url`; **nunca** inventar URLs; sin `informationUri` en el driver.
+- **rule** (metadata): `{ id, shortDescription: { text: <mensaje de la regla> }, help?: { text: <fix> }, helpUri?: <source.url>, properties: { "apigovscan/severity": ..., "apigovscan/category": ..., "apigovscan/pack": "<packId@packVersion>" } }`.
+  - `helpUri` (propiedad directa de `reportingDescriptor`, no va dentro de `help`) solo si el finding trae `source.url`; **nunca** inventar URLs; sin `informationUri` en el driver.
+  - `help` solo si hay `fix` (multiformatMessageString exige `text`).
   - Reglas con distinto `severity`/mensaje entre findings: gana la **primera aparición** estable del report (ya ordenado).
 - **result**: `{ ruleId, level, message: { text }, locations: [...], partialFingerprints: { apigovscanFingerprint: <fingerprint> } }`.
   - Mapeo `level`: `error → "error"`, `warning → "warning"`, `info → "note"`.
@@ -144,25 +145,25 @@ const RULES_FORMATS  = new Set(["console", "json"]);   // rules list/validate/ex
 
 ## 4. Criterios de aceptación
 
-- [ ] **AC-SARIF.1** `formatSarif` parsea como JSON, tiene `$schema` + `"version": "2.1.0"` y `runs[0].tool.driver.name === "apigovscan"`.
-- [ ] **AC-SARIF.2** Mapeo de `level`: error→`error`, warning→`warning`, info→`note` (test con los 3 niveles).
-- [ ] **AC-SARIF.3** `artifactLocation.uri` = label antes de `#`; **no** existe `locations[].physicalLocation.region` en ningún result.
-- [ ] **AC-SARIF.4** Dos serializaciones del mismo `Report` ⇒ string idéntico (sin timestamps ni `meta` en la salida).
-- [ ] **AC-SARIF.5** `driver.rules` deduplicado por `ruleId` y ordenado alfabético; `help.uri` presente **solo** cuando el finding tiene `source.url`.
-- [ ] **AC-SARIF.6** Cada result lleva `partialFingerprints.apigovscanFingerprint` = `finding.fingerprint`.
-- [ ] **AC-SARIF.7** Report con findings de 2 reglas distintas ⇒ 2 `rules` y N `results` = N findings.
-- [ ] **AC-MD.1** Markdown contiene tabla de conteos (errores/warnings/info) + `reportHash`; cero escapes ANSI (`\x1b`).
-- [ ] **AC-MD.2** Dos renderizados del mismo report ⇒ string idéntico (INV-2).
-- [ ] **AC-MD.3** Caracteres `|` y saltos de línea en messages/fix no rompen tablas (escape `\|` / `<br>`).
-- [ ] **AC-ANN.1** 1 finding ⇒ exactamente 1 línea `::error|warning|notice …`; nivel correcto para las 3 severidades.
-- [ ] **AC-ANN.2** Message con `%`, salto de línea y texto con `:` en title/file ⇒ `%25`/`%0A`/`%3A`/`%2C` aplicados; sin crudos `\n` dentro de la línea.
-- [ ] **AC-ANN.3** `--format annotations` sin findings ⇒ salida vacía (solo `""`, sin headers).
-- [ ] **AC-CLI.1** `analyze --format sarif|markdown|annotations` acepta los 3; valor inválido ⇒ error con los 5 valores listados.
-- [ ] **AC-CLI.2** `--format sarif --output out.sarif` ⇒ archivo creado con el SARIF y **stdout silencioso** (paridad AC-A.11); `--format sarif` sin `--output` ⇒ SARIF a stdout.
-- [ ] **AC-CLI.3** `rules list --format sarif` ⇒ error `(expected console | json)` (reglas no cambian).
-- [ ] **AC-CLI.4** Help de `analyze` documenta `console | json | sarif | markdown | annotations`.
-- [ ] **AC-RED.1** Report cuyo message contiene patrón secret ⇒ SARIF/Markdown/annotations **no** contienen el valor crudo (usan `***REDACTED***`).
-- [ ] **AC-INV.2** Corrida doble e2e de los 3 formatos sobre `fixtures/petstore-mini.yaml` ⇒ bytes idénticos.
+- [x] **AC-SARIF.1** `formatSarif` parsea como JSON, tiene `$schema` + `"version": "2.1.0"` y `runs[0].tool.driver.name === "apigovscan"`.
+- [x] **AC-SARIF.2** Mapeo de `level`: error→`error`, warning→`warning`, info→`note` (test con los 3 niveles).
+- [x] **AC-SARIF.3** `artifactLocation.uri` = label antes de `#`; **no** existe `locations[].physicalLocation.region` en ningún result.
+- [x] **AC-SARIF.4** Dos serializaciones del mismo `Report` ⇒ string idéntico (sin timestamps ni `meta` en la salida).
+- [x] **AC-SARIF.5** `driver.rules` deduplicado por `ruleId` y ordenado alfabético; `helpUri` presente **solo** cuando el finding tiene `source.url` (y `help.text` solo cuando hay `fix`).
+- [x] **AC-SARIF.6** Cada result lleva `partialFingerprints.apigovscanFingerprint` = `finding.fingerprint`.
+- [x] **AC-SARIF.7** Report con findings de 2 reglas distintas ⇒ 2 `rules` y N `results` = N findings.
+- [x] **AC-MD.1** Markdown contiene tabla de conteos (errores/warnings/info) + `reportHash`; cero escapes ANSI (`\x1b`).
+- [x] **AC-MD.2** Dos renderizados del mismo report ⇒ string idéntico (INV-2).
+- [x] **AC-MD.3** Caracteres `|` y saltos de línea en messages/fix no rompen tablas (escape `\|` / `<br>`).
+- [x] **AC-ANN.1** 1 finding ⇒ exactamente 1 línea `::error|warning|notice …`; nivel correcto para las 3 severidades.
+- [x] **AC-ANN.2** Message con `%`, salto de línea y texto con `:` en title/file ⇒ `%25`/`%0A`/`%3A`/`%2C` aplicados; sin crudos `\n` dentro de la línea.
+- [x] **AC-ANN.3** `--format annotations` sin findings ⇒ salida vacía (solo `""`, sin headers).
+- [x] **AC-CLI.1** `analyze --format sarif|markdown|annotations` acepta los 3; valor inválido ⇒ error con los 5 valores listados.
+- [x] **AC-CLI.2** `--format sarif --output out.sarif` ⇒ archivo creado con el SARIF y **stdout silencioso** (paridad AC-A.11); `--format sarif` sin `--output` ⇒ SARIF a stdout.
+- [x] **AC-CLI.3** `rules list --format sarif` ⇒ error `(expected console | json)` (reglas no cambian).
+- [x] **AC-CLI.4** Help de `analyze` documenta `console | json | sarif | markdown | annotations`.
+- [x] **AC-RED.1** Report cuyo message contiene patrón secret ⇒ SARIF/Markdown/annotations **no** contienen el valor crudo (usan `***REDACTED***`).
+- [x] **AC-INV.2** Corrida doble e2e de los 3 formatos sobre `fixtures/petstore-mini.yaml` ⇒ bytes idénticos.
 
 ## 5. Test plan
 
@@ -198,3 +199,5 @@ const RULES_FORMATS  = new Set(["console", "json"]);   // rules list/validate/ex
 ## Changelog
 
 - 2026-09-24 · Spec creado desde SDD v1.0 §7 Fase 5 + FR-40/41/43 + doc 06 §8.6 (estado `ready`).
+- 2026-09-24 · Ajuste pre-implementación: `help.uri` → `helpUri` (propiedad directa del descriptor) y `help.text` solo cuando hay `fix` — conformidad SARIF.
+- 2026-09-24 · M5.1: `formatSarif`/`formatMarkdown`/`formatAnnotations` + CLI `--format sarif|markdown|annotations` → `implementada` (AC-SARIF.1–7, AC-MD.1–3, AC-ANN.1–3, AC-CLI.1–4, AC-RED.1, AC-INV.2 verdes).
