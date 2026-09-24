@@ -1,0 +1,57 @@
+# Specs · ApiGovScan
+
+Especificaciones **spec-driven** derivadas del [SDD v1.0](../docs/SDD.md). El SDD es el contrato de producto; estos specs descompone la **Fase 0–1** del roadmap en unidades implementables con criterios de aceptación verificables.
+
+## Convención
+
+| Elemento | Significado |
+|---|---|
+| `fN-*.md` | Spec de una feature (N = fase del roadmap) |
+| Estado | `draft` → `ready` → `implementada` → `cerrada` |
+| AC | Criterios de aceptación (Given/When/Then o checkboxes verificables en tests) |
+| Fuera de alcance | Lo que este spec **no** cubre (evita scope creep) |
+
+**Regla de oro:** no se escribe código de una feature sin su spec en `ready` y su plan/tasks asociados. Cambios de alcance = editar spec + changelog al pie, no improvisar en código.
+
+## Índice
+
+| Spec | Fase | Resumen | Estado |
+|---|---|---|---|
+| [f0-foundation](f0-foundation.md) | 0 | Monorepo, toolchain, CI, esqueletos de packages | ready |
+| [f1-analyze](f1-analyze.md) | 1 | Caso de uso end-to-end `analyze` + CLI | ready |
+| [f1-openapi](f1-openapi.md) | 1 | Parser/normalizador OpenAPI 3.x → modelo `Spec` | ready |
+| [f1-engine](f1-engine.md) | 1 | Rules engine + DSL whitelist + fingerprints | ready |
+| [f1-elite-pack](f1-elite-pack.md) | 1 | Pack elite ≥ 50 reglas con fuentes citadas | ready |
+| [f1-reporters](f1-reporters.md) | 1 | Reportes console + JSON canónico | ready |
+| [f1-invariants](f1-invariants.md) | 1 | INV-1…INV-7 como gates de CI | ready |
+
+## Orden de implementación sugerido
+
+```
+f0-foundation
+    → f1-openapi ─┐
+    → f1-engine  ─┼→ f1-analyze → f1-reporters
+    → f1-elite-pack ┘                    ↘
+                                          f1-invariants (corre sobre todo lo anterior)
+```
+
+## Relación con el roadmap del SDD
+
+- **Fase 0 (SDD §7)** = spec `f0-foundation`.
+- **Fase 1 (SDD §7)** = specs `f1-*` en conjunto (MVP).
+- **Fases 2+** = specs futuros (baseline, learn, MCP, Action, CF…) — se abren cuando el MVP esté cerrado.
+
+## Plantilla de spec (para futuras)
+
+```markdown
+# fN-nombre · Título
+Estado | Fecha | Deriva de (SDD/ADR/FR)
+## 1. Objetivo / user story
+## 2. Alcance (in / out)
+## 3. Contrato (interfaces, schemas, UX)
+## 4. Criterios de aceptación (AC-1…)
+## 5. Test plan
+## 6. Dependencias
+## 7. Riesgos y decisiones abiertas
+## Changelog
+```
