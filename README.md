@@ -25,6 +25,12 @@ node packages/cli/bin/apigovscan.js analyze ./openapi.yaml --fail-on error
 
 # Explicar una regla del pack elite
 node packages/cli/bin/apigovscan.js rules explain NAMING-001
+
+# Validar reglas custom del equipo
+node packages/cli/bin/apigovscan.js rules validate ./team-rules.yaml
+
+# Analizar con reglas custom
+node packages/cli/bin/apigovscan.js analyze ./openapi.yaml --rules ./team-rules.yaml
 ```
 
 Cuando el paquete esté publicado:
@@ -33,16 +39,18 @@ Cuando el paquete esté publicado:
 npx @apigovscan/cli analyze ./openapi.yaml
 ```
 
-### Comandos (f1)
+### Comandos (f1–f2)
 
 | Comando | Descripción |
 |---|---|
 | `apigovscan analyze <path>` | Analiza archivo, directorio o `-` (stdin) con el pack `elite` embebido |
-| `apigovscan rules explain <ruleId>` | Muestra mensaje, fix, fuente y URL de una regla (`PREFIX-NNN`) |
+| `apigovscan rules validate <file...>` | Valida reglas custom YAML/JSON contra el DSL (exit 0/2) |
+| `apigovscan rules list [--rules <file>]` | Lista reglas del pack (y custom si se pasa `--rules`) |
+| `apigovscan rules explain <ruleId> [--rules <file>]` | Muestra mensaje, fix, fuente y URL de una regla (`PREFIX-NNN`) |
 
-Flags útiles de `analyze`: `--format console|json`, `--output <file>`, `--fail-on error|warning|info|never`, `--rules <file>`, `--rule <json>`, `--config <file>`, `--no-color`, `--debug`.
+Flags útiles de `analyze`: `--format console|json`, `--output <file>`, `--fail-on error|warning|info|never`, `--rules <file>` (repetible), `--rule <json>`, `--config <file>`, `--no-color`, `--debug`.
 
-Exit codes: `0` ok · `1` findings ≥ `failOn` · `2` usage/parse/config error.
+Exit codes: `0` ok · `1` findings ≥ `failOn` · `2` usage/parse/config/rule error.
 
 ## Documentación
 
@@ -81,5 +89,6 @@ pnpm check    # lint + typecheck + test + build + invariants
 Ver [docs/SDD.md §7](docs/SDD.md).
 
 - **F0 (listo):** fundación del monorepo.
-- **F1 (MVP):** `analyze` OpenAPI + pack elite ≥ 50 reglas + invariantes.
-- **F2+:** baseline, skills/learn, MCP, GitHub Action, Cloudflare, self-host.
+- **F1 (MVP · tag `v0.1.0-mvp`):** `analyze` OpenAPI + pack elite ≥ 50 reglas + invariantes.
+- **F2 (en curso):** config full, custom rules (`rules validate/list`), baseline.
+- **F3+:** skills/learn, MCP, GitHub Action, Cloudflare, self-host.

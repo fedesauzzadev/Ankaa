@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | ready |
+| Estado | implementada |
 | Fase | 2 |
 | Deriva de | SDD FR-14/FR-15, doc 03 §3 reglas custom; specs `f1-engine`, `f1-analyze` |
 | Roadmap | Fase 2 — Config + custom rules + baseline |
@@ -98,16 +98,16 @@ apigovscan rules explain <ruleId>   # ya f1; busca pack + custom si se pasan --r
 
 ## 4. Criterios de aceptación
 
-- [ ] **AC-R2.1** `rules validate` con file válido (≥1 regla) ⇒ exit 0 y conteo.
-- [ ] **AC-R2.2** `rules validate` con unknown atom / MIXED_SCOPE / bad id ⇒ exit 2 y issues legibles (sin stack).
-- [ ] **AC-R2.3** `rules validate` con N files: falla si alguno falla; lista todos los issues.
-- [ ] **AC-R2.4** Duplicate id entre dos files custom en analyze ⇒ exit 2.
-- [ ] **AC-R2.5** Custom rule con id `NAMING-001` (choca con elite) ⇒ exit 2 mensaje citando pack.
-- [ ] **AC-R2.6** `rules list` muestra reglas elite (≥50) y, con `--rules`, las custom al final ordenadas por id.
-- [ ] **AC-R2.7** `rules explain TEAM-001` con `--rules` cargado ⇒ imprime source si la regla lo tiene (o nota `pack: custom@…`).
-- [ ] **AC-R2.8** e2e: fixture + `--rules team-rules.yaml` ⇒ finding `TEAM-001` en JSON con `packId: custom`.
-- [ ] **AC-R2.9** Custom no exige `source` (validate pasa sin source); pack elite sigue exigiéndolo (no-regresión AC-P.2).
-- [ ] **AC-R2.10** File no encontrado / YAML inválido ⇒ exit 2 con path.
+- [x] **AC-R2.1** `rules validate` con file válido (≥1 regla) ⇒ exit 0 y conteo.
+- [x] **AC-R2.2** `rules validate` con unknown atom / MIXED_SCOPE / bad id ⇒ exit 2 y issues legibles (sin stack).
+- [x] **AC-R2.3** `rules validate` con N files: falla si alguno falla; lista todos los issues.
+- [x] **AC-R2.4** Duplicate id entre dos files custom en analyze ⇒ exit 2.
+- [x] **AC-R2.5** Custom rule con id `NAMING-001` (choca con elite) ⇒ exit 2 mensaje citando pack.
+- [x] **AC-R2.6** `rules list` muestra reglas elite (≥50) y, con `--rules`, las custom al final ordenadas por id.
+- [x] **AC-R2.7** `rules explain TEAM-001` con `--rules` cargado ⇒ imprime source si la regla lo tiene (o nota `pack: custom@…`).
+- [x] **AC-R2.8** e2e: fixture + `--rules team-rules.yaml` ⇒ finding `TEAM-001` en JSON con `packId: custom`.
+- [x] **AC-R2.9** Custom no exige `source` (validate pasa sin source); pack elite sigue exigiéndolo (no-regresión AC-P.2).
+- [x] **AC-R2.10** File no encontrado / YAML inválido ⇒ exit 2 con path.
 
 ## 5. Test plan
 
@@ -137,3 +137,4 @@ apigovscan rules explain <ruleId>   # ya f1; busca pack + custom si se pasan --r
 ## Changelog
 
 - 2026-09-24 · Spec creado desde SDD v1.0 §7 Fase 2 + FR-14/15.
+- 2026-09-24 · M2.1: implementada (AC-R2.1…10; `custom-rules.ts`, `rules validate|list|explain`, colisiones).

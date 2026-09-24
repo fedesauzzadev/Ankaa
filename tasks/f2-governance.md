@@ -6,17 +6,17 @@ Plan: [plans/f2-governance.md](../plans/f2-governance.md) · Specs: `f2-custom-r
 
 ## M2.1 — Custom rules (spec f2-custom-rules)
 
-- [ ] Extraer loader/stamp de `index.ts` → `custom-rules.ts` multi-file
-- [ ] Errores con file path + index (`invalid custom rule`)
-- [ ] Colisión duplicate custom id → exit 2 (AC-R2.4)
-- [ ] Colisión custom vs elite id → exit 2 (AC-R2.5)
-- [ ] `rules validate <files...>` + `--format json` (AC-R2.1…3, AC-R2.10)
-- [ ] `rules list` (+ optional `--rules`) (AC-R2.6)
-- [ ] `rules explain` considera custom con `--rules` (AC-R2.7)
-- [ ] e2e finding TEAM-001 (AC-R2.8)
-- [ ] no-regresión strictSource pack (AC-R2.9)
-- [ ] help/README actualizados
-- [ ] Spec f2-custom-rules → AC verdes → `implementada`
+- [x] Extraer loader/stamp de `index.ts` → `custom-rules.ts` multi-file
+- [x] Errores con file path + index (`invalid custom rule`)
+- [x] Colisión duplicate custom id → exit 2 (AC-R2.4)
+- [x] Colisión custom vs elite id → exit 2 (AC-R2.5)
+- [x] `rules validate <files...>` + `--format json` (AC-R2.1…3, AC-R2.10)
+- [x] `rules list` (+ optional `--rules`) (AC-R2.6)
+- [x] `rules explain` considera custom con `--rules` (AC-R2.7)
+- [x] e2e finding TEAM-001 (AC-R2.8)
+- [x] no-regresión strictSource pack (AC-R2.9)
+- [x] help/README actualizados
+- [x] Spec f2-custom-rules → AC verdes → `implementada`
 
 ---
 

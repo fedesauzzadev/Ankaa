@@ -6,7 +6,7 @@ export interface AnalyzeArgs {
   format: OutputFormat;
   output?: string;
   failOn?: FailOn;
-  rulesFile?: string;
+  rulesFiles: string[];
   ruleInline?: string;
   noColor: boolean;
   debug: boolean;
@@ -30,6 +30,7 @@ export function parseAnalyzeArgs(argv: readonly string[]): ParseArgsResult {
     format: "console",
     noColor: false,
     debug: false,
+    rulesFiles: [],
   };
   let pathSeen = false;
 
@@ -83,7 +84,7 @@ export function parseAnalyzeArgs(argv: readonly string[]): ParseArgsResult {
       if (value === undefined || isFlag(value)) {
         return { ok: false, error: "--rules requires a file path" };
       }
-      args.rulesFile = value;
+      args.rulesFiles.push(value);
       continue;
     }
 
@@ -138,4 +139,58 @@ export function parseAnalyzeArgs(argv: readonly string[]): ParseArgsResult {
   }
 
   return { ok: true, args };
+}
+
+export interface RulesCommonArgs {
+  format: OutputFormat;
+  rulesFiles: string[];
+}
+
+export type ParseRulesArgsResult =
+  | { ok: true; args: RulesCommonArgs; rest: string[] }
+  | { ok: false; error: string };
+
+export function parseRulesArgs(argv: readonly string[]): ParseRulesArgsResult {
+  const args: RulesCommonArgs = { format: "console", rulesFiles: [] };
+  const rest: string[] = [];
+
+  for (let i = 0; i < argv.length; i++) {
+    const token = argv[i]!;
+
+    if (token === "--format") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--format requires a value (console | json)" };
+      }
+      if (!FORMATS.has(value as OutputFormat)) {
+        return {
+          ok: false,
+          error: `invalid --format "${value}" (expected console | json)`,
+        };
+      }
+      args.format = value as OutputFormat;
+      continue;
+    }
+
+    if (token === "--rules") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--rules requires a file path" };
+      }
+      args.rulesFiles.push(value);
+      continue;
+    }
+
+    if (token === "--help" || token === "-h") {
+      return { ok: false, error: `unexpected ${token}` };
+    }
+
+    if (isFlag(token)) {
+      return { ok: false, error: `unknown option: ${token}` };
+    }
+
+    rest.push(token);
+  }
+
+  return { ok: true, args, rest };
 }

@@ -38,12 +38,25 @@ describe("parseAnalyzeArgs", () => {
       format: "json",
       output: "r.json",
       failOn: "warning",
-      rulesFile: "custom.yaml",
+      rulesFiles: ["custom.yaml"],
       ruleInline: "{}",
       config: "cfg.yaml",
       noColor: true,
       debug: true,
     });
+  });
+
+  it("accepts repeated --rules flags", () => {
+    const result = parseAnalyzeArgs([
+      "spec.yaml",
+      "--rules",
+      "a.yaml",
+      "--rules",
+      "b.yaml",
+    ]);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.args.rulesFiles).toEqual(["a.yaml", "b.yaml"]);
   });
 
   it("accepts stdin path", () => {

@@ -25,7 +25,7 @@ Especificaciones **spec-driven** derivadas del [SDD v1.0](../docs/SDD.md). El SD
 | [f1-reporters](f1-reporters.md) | 1 | Reportes console + JSON canónico | implementada |
 | [f1-invariants](f1-invariants.md) | 1 | INV-1…INV-7 como gates de CI | implementada |
 | [f2-config](f2-config.md) | 2 | Config `apigovscan.yaml` completa (strict) | ready |
-| [f2-custom-rules](f2-custom-rules.md) | 2 | DSL custom + `rules validate`/`list` | ready |
+| [f2-custom-rules](f2-custom-rules.md) | 2 | DSL custom + `rules validate`/`list` | implementada |
 | [f2-baseline](f2-baseline.md) | 2 | Baseline: gate solo findings nuevos | ready |
 
 ## Orden de implementación sugerido
