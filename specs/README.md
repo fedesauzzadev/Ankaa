@@ -29,7 +29,7 @@ Especificaciones **spec-driven** derivadas del [SDD v1.0](../docs/SDD.md). El SD
 | [f2-baseline](f2-baseline.md) | 2 | Baseline: gate solo findings nuevos | cerrada |
 | [f3-init](f3-init.md) | 3 | Scaffold `.apigovscan/` con `init` | ready |
 | [f3-skills](f3-skills.md) | 3 | Carga/aplica suppressions + severities en analyze | implementada |
-| [f3-learn](f3-learn.md) | 3 | `learn` feedback → skills (INV-5) + list/promote | ready |
+| [f3-learn](f3-learn.md) | 3 | `learn` feedback → skills (INV-5) + list/promote | implementada |
 
 ## Orden de implementación sugerido
 

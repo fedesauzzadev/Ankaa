@@ -39,7 +39,7 @@ Cuando el paquete esté publicado:
 npx @apigovscan/cli analyze ./openapi.yaml
 ```
 
-### Comandos (f1–f2)
+### Comandos (f1–f3)
 
 | Comando | Descripción |
 |---|---|
@@ -47,6 +47,9 @@ npx @apigovscan/cli analyze ./openapi.yaml
 | `apigovscan rules validate <file...>` | Valida reglas custom YAML/JSON contra el DSL (exit 0/2) |
 | `apigovscan rules list [--rules <file>]` | Lista reglas del pack (y custom si se pasa `--rules`) |
 | `apigovscan rules explain <ruleId> [--rules <file>]` | Muestra mensaje, fix, fuente y URL de una regla (`PREFIX-NNN`) |
+| `apigovscan learn --report <r> --feedback <f>` | Aplica feedback a `.apigovscan/skills` (idempotente, INV-5) |
+| `apigovscan skills list [--format json]` | Enumera suppressions, overrides y drafts |
+| `apigovscan skills promote <draftId>` | Activa un draft (`draft: false`) |
 
 Flags útiles de `analyze`: `--format console|json`, `--output <file>`, `--fail-on error|warning|info|never`, `--rules <file>` (repetible), `--rule <json>`, `--config <file>`, `--write-baseline`, `--baseline`, `--baseline-path <file>`, `--force`, `--strict-hash`, `--baseline-ignore-hash`, `--skills-dir <dir>`, `--no-color`, `--debug`.
 
@@ -95,6 +98,19 @@ overrides:
 - `summary.skillsSuppressed` solo si > 0; console `(skills: N suppressed)`.
 - Dirección: `skillsDir` en config o flag `--skills-dir` (default `.apigovscan/skills`).
 
+### Feedback → learn (INV-5)
+
+```bash
+apigovscan analyze ./openapi.yaml --format json --output report.json
+# …editar feedback.json con items[] (false_positive | wontfix | severity_change | confirm | suggest_rule)
+apigovscan learn --report report.json --feedback feedback.json
+apigovscan skills list
+apigovscan skills promote TEAM-001   # draft → activa
+```
+
+- `learn` es **idempotente**: dos corridas con el mismo input dejan los YAML byte-idénticos.
+- `--dry-run` imprime el plan sin escribir (INV-7).
+
 ### Config `apigovscan.yaml`
 
 Schema estricto (keys desconocidas → exit 2). Ejemplo completo en [`examples/apigovscan.yaml`](examples/apigovscan.yaml):
@@ -140,7 +156,7 @@ Búsqueda: `--config <file>` → `./apigovscan.yaml` → `./apigovscan.yml`. Pre
 
 ## Estado
 
-**Fase 0–2 implementada:** monorepo pnpm + TypeScript strict + ESLint/Prettier + Vitest + CI multi-OS + parser OpenAPI 3.x + rules engine + pack **elite ≥ 50 reglas (65 activas)** + `analyze` e2e + reporters console/JSON + suite de invariantes INV-1…7 + config strict + custom rules + baseline. Specs `f0-*` y `f1-*` y `f2-*` en estado `cerrada`. Tags: `v0.1.0-mvp`, `v0.2.0-governance`.
+**Fase 0–2 implementada + F3 parcial:** monorepo pnpm + TypeScript strict + ESLint/Prettier + Vitest + CI multi-OS + parser OpenAPI 3.x + rules engine + pack **elite ≥ 50 reglas (65 activas)** + `analyze` e2e + reporters console/JSON + suite de invariantes INV-1…7 + config strict + custom rules + baseline + **skills load/apply (M3.1)** + **learn/skills CLI (M3.2)**. Specs `f0-*`, `f1-*`, `f2-*` en `cerrada`; `f3-skills`, `f3-learn` en `implementada`. Tags: `v0.1.0-mvp`, `v0.2.0-governance`.
 
 ```bash
 pnpm install

@@ -1,5 +1,5 @@
 import { existsSync, statSync } from "node:fs";
-import { isAbsolute, relative, resolve, sep } from "node:path";
+import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import {
   explain,
   packageVersion,
@@ -35,10 +35,21 @@ import {
 } from "./custom-rules.js";
 import {
   compileMatchRegexes,
+  listSkills,
   loadSkills,
   mergeSeverityOverrides,
+  promoteDraft,
   resolveSkillsDir,
 } from "./skills.js";
+import {
+  buildLearnPatch,
+  loadExistingSeverities,
+  loadExistingSuppressions,
+  loadFeedbackFile,
+  loadReportFile,
+  resolveLearnSkillsDir,
+  writeLearnPatch,
+} from "./learn.js";
 import {
   createFsPackRepository,
   createFsSpecLoader,
@@ -63,6 +74,9 @@ export function getHelp(): string {
     "  apigovscan rules validate <file...> [options]",
     "  apigovscan rules list [--rules <file>]",
     "  apigovscan rules explain <ruleId> [--rules <file>]",
+    "  apigovscan learn --report <r.json> --feedback <f.json> [options]",
+    "  apigovscan skills list [--format json]",
+    "  apigovscan skills promote <draftId>",
     "  apigovscan --version",
     "  apigovscan --help",
     "",
@@ -83,6 +97,9 @@ export function getHelp(): string {
     "  --strict-hash     baseline inputHash mismatch is fatal (exit 2)",
     "  --baseline-ignore-hash  silence inputHash mismatch warnings",
     "  --skills-dir      override skills directory (default: .apigovscan/skills)",
+    "  --report          learn: report JSON path",
+    "  --feedback        learn: feedback JSON path",
+    "  --dry-run         learn: print plan without writing",
     "  --no-color        disable color (also respects NO_COLOR)",
     "  --debug           stage timings to stderr (never spec bodies)",
     "  -h, --help",
@@ -91,9 +108,9 @@ export function getHelp(): string {
     "Exit codes:",
     "  0  no findings at or above --fail-on",
     "  1  findings at or above --fail-on",
-    "  2  usage / parse / config / rule / baseline / skills error",
+    "  2  usage / parse / config / rule / baseline / skills / learn error",
     "",
-    "Docs: docs/SDD.md · specs/f1-analyze.md · specs/f2-*.md · specs/f3-skills.md",
+    "Docs: docs/SDD.md · specs/f1-analyze.md · specs/f2-*.md · specs/f3-*.md",
   ].join("\n");
 }
 
@@ -748,6 +765,351 @@ function runRulesCommand(
   return 2;
 }
 
+function runLearn(
+  argv: readonly string[],
+  io: {
+    stdout: (text: string) => void;
+    stderr: (text: string) => void;
+    cwd: string;
+  },
+): number {
+  if (argv.includes("--help") || argv.includes("-h")) {
+    io.stdout(
+      [
+        "Usage:",
+        "  apigovscan learn --report <file> --feedback <file> [--skills-dir <dir>] [--dry-run] [--config <file>]",
+        "",
+        "Apply feedback decisions to .apigovscan/skills (idempotent, INV-5).",
+        "Decisions: false_positive | wontfix | severity_change | confirm | suggest_rule",
+        "",
+      ].join("\n"),
+    );
+    return 0;
+  }
+
+  let reportPath: string | undefined;
+  let feedbackPath: string | undefined;
+  let skillsDirFlag: string | undefined;
+  let dryRun = false;
+  let configPath: string | undefined;
+
+  for (let i = 0; i < argv.length; i++) {
+    const token = argv[i]!;
+    if (token === "--report") {
+      const v = argv[++i];
+      if (v === undefined || v.startsWith("-")) {
+        io.stderr("error: --report requires a file path\n");
+        return 2;
+      }
+      reportPath = v;
+      continue;
+    }
+    if (token === "--feedback") {
+      const v = argv[++i];
+      if (v === undefined || v.startsWith("-")) {
+        io.stderr("error: --feedback requires a file path\n");
+        return 2;
+      }
+      feedbackPath = v;
+      continue;
+    }
+    if (token === "--skills-dir") {
+      const v = argv[++i];
+      if (v === undefined || v.startsWith("-")) {
+        io.stderr("error: --skills-dir requires a directory path\n");
+        return 2;
+      }
+      skillsDirFlag = v;
+      continue;
+    }
+    if (token === "--config") {
+      const v = argv[++i];
+      if (v === undefined || v.startsWith("-")) {
+        io.stderr("error: --config requires a file path\n");
+        return 2;
+      }
+      configPath = v;
+      continue;
+    }
+    if (token === "--dry-run") {
+      dryRun = true;
+      continue;
+    }
+    if (token === "--no-color") {
+      continue;
+    }
+    if (token.startsWith("-")) {
+      io.stderr(`error: unknown option: ${token}\n`);
+      return 2;
+    }
+    io.stderr(`error: unexpected argument: ${token}\n`);
+    return 2;
+  }
+
+  if (reportPath === undefined || feedbackPath === undefined) {
+    io.stderr("error: learn requires --report and --feedback\n");
+    return 2;
+  }
+
+  const reportAbs = resolve(io.cwd, reportPath);
+  const feedbackAbs = resolve(io.cwd, feedbackPath);
+
+  const reportLoaded = loadReportFile(reportAbs);
+  if (!reportLoaded.ok) {
+    io.stderr(`error: ${reportLoaded.error}\n`);
+    return 2;
+  }
+  const feedbackLoaded = loadFeedbackFile(feedbackAbs);
+  if (!feedbackLoaded.ok) {
+    io.stderr(`error: ${feedbackLoaded.error}\n`);
+    return 2;
+  }
+
+  if (feedbackLoaded.feedback.items.length === 0) {
+    io.stdout("ok: no feedback items\n");
+    return 0;
+  }
+
+  if (
+    feedbackLoaded.feedback.reportHash !== undefined &&
+    typeof reportLoaded.report.reportHash === "string" &&
+    feedbackLoaded.feedback.reportHash !== reportLoaded.report.reportHash
+  ) {
+    io.stderr(
+      "warning: feedback reportHash differs from report (proceeding)\n",
+    );
+  }
+
+  const configResult = loadConfig(io.cwd, configPath);
+  if (!configResult.ok) {
+    io.stderr(`error: ${configResult.error}\n`);
+    return 2;
+  }
+  const skillsDir = resolveLearnSkillsDir(
+    skillsDirFlag,
+    configResult.config.skillsDir,
+    configResult.config.configDir,
+    io.cwd,
+  );
+
+  const supPath = join(skillsDir, "suppressions.yaml");
+  const sevPath = join(skillsDir, "severities.yaml");
+  const existingSuppressions = loadExistingSuppressions(supPath);
+  const existingSeverities = loadExistingSeverities(sevPath);
+
+  const patched = buildLearnPatch({
+    report: reportLoaded.report,
+    feedback: feedbackLoaded.feedback,
+    existingSuppressions,
+    existingSeverities,
+    toolVersion: packageVersion(),
+  });
+  if (!patched.ok) {
+    io.stderr(`error: ${patched.error}\n`);
+    return 2;
+  }
+
+  for (const w of patched.patch.warnings) {
+    io.stderr(`warning: ${w}\n`);
+  }
+
+  const supCount = patched.patch.suppressions.length;
+  const sevCount = patched.patch.severities.length;
+  const draftCount = patched.patch.draftsToWrite.length;
+  const confirm = patched.patch.confirmCount;
+
+  if (dryRun) {
+    io.stdout(
+      `learn(dry-run): ${supCount} suppressions, ${sevCount} severity overrides, ${draftCount} drafts, confirm: ${confirm}\n`,
+    );
+    for (const p of writeLearnPatch(skillsDir, patched.patch, true).written) {
+      io.stdout(`  would write: ${p}\n`);
+    }
+    return 0;
+  }
+
+  const written = writeLearnPatch(skillsDir, patched.patch, false);
+  io.stdout(
+    `learn: ${supCount} suppressions, ${sevCount} severity overrides, ${draftCount} drafts, confirm: ${confirm}\n`,
+  );
+  for (const p of written.written) {
+    io.stdout(`  wrote: ${p}\n`);
+  }
+  return 0;
+}
+
+function runSkillsCommand(
+  argv: readonly string[],
+  io: {
+    stdout: (text: string) => void;
+    stderr: (text: string) => void;
+    cwd: string;
+  },
+): number {
+  if (argv.includes("--help") || argv.includes("-h")) {
+    io.stdout(
+      [
+        "Usage:",
+        "  apigovscan skills list [--format json] [--skills-dir <dir>] [--config <file>]",
+        "  apigovscan skills promote <draftId> [--skills-dir <dir>] [--config <file>]",
+        "",
+        "list      Show suppressions, severity overrides, and drafts.",
+        "promote   Flip draft: true → false so the rule is evaluated.",
+        "",
+      ].join("\n"),
+    );
+    return 0;
+  }
+
+  const sub = argv[0];
+  const rest = argv.slice(1);
+
+  let format: "console" | "json" = "console";
+  let skillsDirFlag: string | undefined;
+  let configPath: string | undefined;
+  const positional: string[] = [];
+
+  for (let i = 0; i < rest.length; i++) {
+    const token = rest[i]!;
+    if (token === "--format") {
+      const v = rest[++i];
+      if (v !== "console" && v !== "json") {
+        io.stderr('error: --format must be console | json\n');
+        return 2;
+      }
+      format = v;
+      continue;
+    }
+    if (token === "--skills-dir") {
+      const v = rest[++i];
+      if (v === undefined || v.startsWith("-")) {
+        io.stderr("error: --skills-dir requires a directory path\n");
+        return 2;
+      }
+      skillsDirFlag = v;
+      continue;
+    }
+    if (token === "--config") {
+      const v = rest[++i];
+      if (v === undefined || v.startsWith("-")) {
+        io.stderr("error: --config requires a file path\n");
+        return 2;
+      }
+      configPath = v;
+      continue;
+    }
+    if (token === "--no-color") {
+      continue;
+    }
+    if (token.startsWith("-")) {
+      io.stderr(`error: unknown option: ${token}\n`);
+      return 2;
+    }
+    positional.push(token);
+  }
+
+  const configResult = loadConfig(io.cwd, configPath);
+  if (!configResult.ok) {
+    io.stderr(`error: ${configResult.error}\n`);
+    return 2;
+  }
+  const skillsDir = resolveLearnSkillsDir(
+    skillsDirFlag,
+    configResult.config.skillsDir,
+    configResult.config.configDir,
+    io.cwd,
+  );
+
+  if (sub === "list") {
+    if (positional.length > 0) {
+      io.stderr(`error: unexpected argument: ${positional[0]}\n`);
+      return 2;
+    }
+    const listed = listSkills(skillsDir, packageVersion());
+    if (!listed.ok) {
+      io.stderr(`error: ${listed.error}\n`);
+      return 2;
+    }
+    const { suppressions, severities, drafts } = listed.inventory;
+    const activeDrafts = drafts.filter((d) => !d.draft);
+    const pendingDrafts = drafts.filter((d) => d.draft);
+
+    if (format === "json") {
+      io.stdout(
+        `${JSON.stringify(
+          {
+            skillsDir,
+            suppressions,
+            severities,
+            drafts: drafts.map((d) => ({
+              id: d.id,
+              draft: d.draft,
+              severity: d.severity,
+            })),
+          },
+          null,
+          2,
+        )}\n`,
+      );
+      return 0;
+    }
+
+    const lines: string[] = [`skills: ${skillsDir}`, ""];
+    lines.push(`suppressions: ${suppressions.length}`);
+    for (const s of suppressions) {
+      if (s.fingerprint !== undefined) {
+        lines.push(`  fp ${s.fingerprint.slice(0, 12)}…  ${s.reason}`);
+      } else if (s.match !== undefined) {
+        const api = s.match.apiPath !== undefined ? ` apiPath=${s.match.apiPath}` : "";
+        lines.push(`  match ${s.match.ruleId}${api}  ${s.reason}`);
+      }
+    }
+    lines.push(`overrides: ${severities.length}`);
+    for (const o of severities) {
+      lines.push(`  ${o.ruleId} → ${o.severity}`);
+    }
+    lines.push(`drafts:`);
+    if (drafts.length === 0) {
+      lines.push("  (none)");
+    }
+    for (const d of pendingDrafts) {
+      lines.push(`  ${d.id}  [draft]${d.severity ? ` ${d.severity}` : ""}`);
+    }
+    for (const d of activeDrafts) {
+      lines.push(`  ${d.id}  [active]${d.severity ? ` ${d.severity}` : ""}`);
+    }
+    lines.push("");
+    io.stdout(lines.join("\n"));
+    return 0;
+  }
+
+  if (sub === "promote") {
+    const draftId = positional[0];
+    if (draftId === undefined || positional.length > 1) {
+      io.stderr("error: skills promote requires exactly one <draftId>\n");
+      return 2;
+    }
+    if (!/^[A-Z][A-Z0-9]*-\d{3}$/.test(draftId)) {
+      io.stderr(
+        `error: invalid draft id format "${draftId}" (expected PREFIX-NNN)\n`,
+      );
+      return 2;
+    }
+    const promoted = promoteDraft(skillsDir, draftId);
+    if (!promoted.ok) {
+      io.stderr(`error: ${promoted.error}\n`);
+      return 2;
+    }
+    io.stdout(`promoted: ${promoted.path}\n`);
+    return 0;
+  }
+
+  io.stderr(
+    `error: unknown skills subcommand "${sub ?? ""}" (expected: list | promote)\n`,
+  );
+  return 2;
+}
+
 export async function run(
   argv: readonly string[],
   io?: RunIO,
@@ -802,6 +1164,20 @@ export async function run(
   }
   if (command === "rules") {
     return runRulesCommand(args.slice(1), {
+      stdout,
+      stderr,
+      cwd,
+    });
+  }
+  if (command === "learn") {
+    return runLearn(args.slice(1), {
+      stdout,
+      stderr,
+      cwd,
+    });
+  }
+  if (command === "skills") {
+    return runSkillsCommand(args.slice(1), {
       stdout,
       stderr,
       cwd,

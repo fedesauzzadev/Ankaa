@@ -19,15 +19,15 @@ Plan: [plans/f3-learning.md](../plans/f3-learning.md) · Specs: `f3-skills`, `f3
 
 ## M3.2 — Learn + skills CLI (spec f3-learn)
 
-- [ ] feedback.json schema + mapeo decisions
-- [ ] learn upsert estable (INV-5) en suppressions/severities/drafts
-- [ ] CLI `learn --report --feedback [--dry-run] [--skills-dir]`
-- [ ] `skills list` (+ `--format json`)
-- [ ] `skills promote <id>` flip draft → active
-- [ ] reason default FP; severity_change sin finding → exit 2
-- [ ] validateRule en suggest_rule
-- [ ] Tests AC-L.1…12 + INV-5 byte-idempotent
-- [ ] Spec f3-learn → `implementada`
+- [x] feedback.json schema + mapeo decisions
+- [x] learn upsert estable (INV-5) en suppressions/severities/drafts
+- [x] CLI `learn --report --feedback [--dry-run] [--skills-dir]`
+- [x] `skills list` (+ `--format json`)
+- [x] `skills promote <id>` flip draft → active
+- [x] reason default FP; severity_change sin finding → exit 2
+- [x] validateRule en suggest_rule
+- [x] Tests AC-L.1…12 + INV-5 byte-idempotent
+- [x] Spec f3-learn → `implementada`
 
 ---
 

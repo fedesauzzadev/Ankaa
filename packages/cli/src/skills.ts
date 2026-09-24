@@ -1,6 +1,6 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { isAbsolute, join, resolve } from "node:path";
-import { parse as parseYaml } from "yaml";
+import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 import { validateRule, type Finding, type Rule, type Severity } from "@apigovscan/core";
 import type { AnalyzeConfig } from "./config.js";
 
@@ -393,4 +393,104 @@ export function mergeSeverityOverrides(
     merged.set(ruleId, severity);
   }
   return merged;
+}
+
+export interface DraftListEntry {
+  id: string;
+  draft: boolean;
+  severity?: string;
+  path: string;
+}
+
+export interface SkillsInventory {
+  suppressions: SuppressionEntry[];
+  severities: SeverityOverride[];
+  drafts: DraftListEntry[];
+}
+
+export function listSkills(
+  skillsDir: string,
+  toolVersion: string,
+): { ok: true; inventory: SkillsInventory } | { ok: false; error: string } {
+  const loaded = loadSkills(skillsDir, toolVersion);
+  if (!loaded.ok) return loaded;
+
+  const drafts: DraftListEntry[] = [];
+  const draftsDir = join(skillsDir, "drafts");
+  if (existsSync(draftsDir)) {
+    let names: string[];
+    try {
+      names = readdirSync(draftsDir)
+        .filter((n) => n.endsWith(".yaml") || n.endsWith(".yml") || n.endsWith(".json"))
+        .sort();
+    } catch (err) {
+      return {
+        ok: false,
+        error: `skills ${draftsDir}: ${err instanceof Error ? err.message : String(err)}`,
+      };
+    }
+    for (const name of names) {
+      const path = join(draftsDir, name);
+      const parsed = parseYamlFile(path);
+      if (!parsed.ok) return { ok: false, error: parsed.error };
+      if (parsed.raw === null || typeof parsed.raw !== "object" || Array.isArray(parsed.raw)) {
+        return { ok: false, error: `skills ${path}: root must be a mapping` };
+      }
+      const raw = parsed.raw as Record<string, unknown>;
+      const id =
+        typeof raw.id === "string"
+          ? raw.id
+          : name.replace(/\.(ya?ml|json)$/, "");
+      drafts.push({
+        id,
+        draft: raw.draft !== false,
+        severity: typeof raw.severity === "string" ? raw.severity : undefined,
+        path,
+      });
+    }
+  }
+
+  return {
+    ok: true,
+    inventory: {
+      suppressions: loaded.skills.suppressions,
+      severities: loaded.skills.severities,
+      drafts,
+    },
+  };
+}
+
+export function promoteDraft(
+  skillsDir: string,
+  draftId: string,
+): { ok: true; path: string } | { ok: false; error: string } {
+  const draftsDir = join(skillsDir, "drafts");
+  const candidates = [
+    join(draftsDir, `${draftId}.yaml`),
+    join(draftsDir, `${draftId}.yml`),
+    join(draftsDir, `${draftId}.json`),
+  ];
+  const path = candidates.find((p) => existsSync(p));
+  if (path === undefined) {
+    return { ok: false, error: `draft not found: ${draftId} (in ${draftsDir})` };
+  }
+  const parsed = parseYamlFile(path);
+  if (!parsed.ok) return { ok: false, error: parsed.error };
+  if (parsed.raw === null || typeof parsed.raw !== "object" || Array.isArray(parsed.raw)) {
+    return { ok: false, error: `skills ${path}: root must be a mapping` };
+  }
+  const raw = parsed.raw as Record<string, unknown>;
+  if (raw.draft === false) {
+    return { ok: true, path };
+  }
+  const updated = { ...raw, draft: false };
+  try {
+    writeFileSync(path, stringifyYaml(updated), "utf8");
+  } catch (err) {
+    return {
+      ok: false,
+      error: `failed to promote draft: ${err instanceof Error ? err.message : String(err)}`,
+    };
+  }
+  return { ok: true, path };
 }
