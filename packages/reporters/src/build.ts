@@ -23,6 +23,8 @@ export interface ReportSummary {
   warning: number;
   info: number;
   total: number;
+  /** Findings dropped by baseline filter (present only when baseline read mode ran). */
+  suppressed?: number;
 }
 
 export interface ReportMeta {
@@ -47,6 +49,8 @@ export interface BuildReportInput {
   packs: ReportPack[];
   toolVersion: string;
   meta?: ReportMeta;
+  /** Count of findings suppressed by baseline (omit when baseline off). */
+  suppressed?: number;
 }
 
 const SEVERITIES: Severity[] = ["error", "warning", "info"];
@@ -59,17 +63,24 @@ function redactFinding(finding: Finding): Finding {
   };
 }
 
-function countSummary(findings: Finding[]): ReportSummary {
+function countSummary(
+  findings: Finding[],
+  suppressed?: number,
+): ReportSummary {
   const counts: Record<Severity, number> = { error: 0, warning: 0, info: 0 };
   for (const f of findings) {
     counts[f.severity] += 1;
   }
-  return {
+  const summary: ReportSummary = {
     error: counts.error,
     warning: counts.warning,
     info: counts.info,
     total: findings.length,
   };
+  if (suppressed !== undefined) {
+    summary.suppressed = suppressed;
+  }
+  return summary;
 }
 
 function hashPayload(report: Omit<Report, "reportHash" | "meta">): string {
@@ -93,7 +104,7 @@ export function buildReport(input: BuildReportInput): Report {
     .map(redactFinding);
 
   const packs = [...input.packs].sort((a, b) => cmp(a.id, b.id));
-  const summary = countSummary(findings);
+  const summary = countSummary(findings, input.suppressed);
   const withoutHash = {
     tool: { name: "apigovscan" as const, version: input.toolVersion },
     packs,

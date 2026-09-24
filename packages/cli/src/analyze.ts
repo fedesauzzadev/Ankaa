@@ -20,10 +20,19 @@ export interface AnalyzeOptions {
   severityOverrides?: ReadonlyMap<string, Severity>;
   toolVersion: string;
   debug?: (line: string) => void;
+  /** When set, findings whose fingerprint is in the set are suppressed by baseline. */
+  baselineFingerprints?: ReadonlySet<string>;
 }
 
 export type AnalyzeOutcome =
-  | { ok: true; report: Report; exitCode: 0 | 1 }
+  | {
+      ok: true;
+      report: Report;
+      exitCode: 0 | 1;
+      /** All findings before baseline filter (for --write-baseline). */
+      allFindings: Finding[];
+      suppressedCount: number;
+    }
   | { ok: false; exitCode: 2; error: string };
 
 function formatParseErrors(label: string, errors: ParseError[]): string {
@@ -154,12 +163,30 @@ export async function analyzeUseCase(
   }
 
   const tReport = performance.now();
+
+  const allFindings = results.flatMap((r) => r.findings);
+  let filteredResults = results;
+  let suppressedCount = 0;
+  if (opts.baselineFingerprints !== undefined) {
+    const set = opts.baselineFingerprints;
+    const kept: EvaluationResult[] = [];
+    for (const r of results) {
+      const visible = r.findings.filter((f) => !set.has(f.fingerprint));
+      suppressedCount += r.findings.length - visible.length;
+      kept.push({ ...r, findings: visible });
+    }
+    filteredResults = kept;
+  }
+
   const report = buildReport({
-    results,
+    results: filteredResults,
     inputs,
     packs: packList.map((p) => ({ id: p.id, version: p.version })),
     toolVersion: opts.toolVersion,
     meta: { durationMs: Math.round(performance.now() - started) },
+    ...(opts.baselineFingerprints !== undefined
+      ? { suppressed: suppressedCount }
+      : {}),
   });
   debug(
     `report ${report.findings.length} findings ${Math.round(performance.now() - tReport)}ms`,
@@ -175,5 +202,11 @@ export async function analyzeUseCase(
     };
   }
 
-  return { ok: true, report, exitCode: computeExitCode(report, opts.failOn) };
+  return {
+    ok: true,
+    report,
+    exitCode: computeExitCode(report, opts.failOn),
+    allFindings,
+    suppressedCount,
+  };
 }

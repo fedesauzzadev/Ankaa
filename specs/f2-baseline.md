@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | ready |
+| Estado | cerrada |
 | Fase | 2 |
 | Deriva de | SDD FR-20…FR-22, doc 03 §10, escenario S2; specs `f1-engine` (fingerprints), `f1-analyze`, `f1-reporters` |
 | Roadmap | Fase 2 — Criterio de salida: solo falla lo nuevo |
@@ -127,18 +127,18 @@ Flags > config.
 
 ## 4. Criterios de aceptación
 
-- [ ] **AC-B.1** `analyze --write-baseline` sobre fixture ⇒ crea `baseline.json` con `version:1`, `fingerprints` sort unique, `inputs[].sha256` correctos; exit según findings completos.
-- [ ] **AC-B.2** Segundo `--write-baseline` sin `--force` ⇒ exit 2; con `--force` ⇒ exit 0 y `.bak` creado si había archivo previo.
-- [ ] **AC-B.3** `analyze --baseline` tras write ⇒ `summary.suppressed ≥ 1`, `findings` sin los filtrados, exit 0 si los restantes < failOn.
-- [ ] **AC-B.4** Spec modificado (nuevo finding) + `--baseline` ⇒ solo el nuevo (o los no-listados) en findings; exit 1 si ≥ failOn.
-- [ ] **AC-B.5** `inputHash` mismatch default ⇒ warning en stderr; corrida sigue; `--strict-hash` ⇒ exit 2; `--baseline-ignore-hash` ⇒ sin warning.
-- [ ] **AC-B.6** `--baseline` con archivo inexistente ⇒ exit 2 `baseline not found` (mensaje sugiere `--write-baseline`).
-- [ ] **AC-B.7** JSON `baseline.json` con `version: 99` ⇒ exit 2 mensaje de versión.
-- [ ] **AC-B.8** Console output incluye `(baseline: N suppressed)` cuando N>0.
-- [ ] **AC-B.9** Determinismo: dos `--write-baseline` back-to-back (con force) ⇒ mismos fingerprints y mismos `inputs[].sha256` (salvo `createdAt`).
-- [ ] **AC-B.10** `--baseline` no escribe ningún archivo (INV-7: spy/mtimes).
-- [ ] **AC-B.11** Config `baseline.enabled: true` equivale a flag (e2e).
-- [ ] **AC-B.12** e2e criterio de salida fase 2: con baseline en fixture sucia, introduce error nuevo → exit 1 solo por nuevo; sin baseline, mismos findings viejos no bloquearían distinto (snapshot counts).
+- [x] **AC-B.1** `analyze --write-baseline` sobre fixture ⇒ crea `baseline.json` con `version:1`, `fingerprints` sort unique, `inputs[].sha256` correctos; exit según findings completos.
+- [x] **AC-B.2** Segundo `--write-baseline` sin `--force` ⇒ exit 2; con `--force` ⇒ exit 0 y `.bak` creado si había archivo previo.
+- [x] **AC-B.3** `analyze --baseline` tras write ⇒ `summary.suppressed ≥ 1`, `findings` sin los filtrados, exit 0 si los restantes < failOn.
+- [x] **AC-B.4** Spec modificado (nuevo finding) + `--baseline` ⇒ solo el nuevo (o los no-listados) en findings; exit 1 si ≥ failOn.
+- [x] **AC-B.5** `inputHash` mismatch default ⇒ warning en stderr; corrida sigue; `--strict-hash` ⇒ exit 2; `--baseline-ignore-hash` ⇒ sin warning.
+- [x] **AC-B.6** `--baseline` con archivo inexistente ⇒ exit 2 `baseline not found` (mensaje sugiere `--write-baseline`).
+- [x] **AC-B.7** JSON `baseline.json` con `version: 99` ⇒ exit 2 mensaje de versión.
+- [x] **AC-B.8** Console output incluye `(baseline: N suppressed)` cuando N>0.
+- [x] **AC-B.9** Determinismo: dos `--write-baseline` back-to-back (con force) ⇒ mismos fingerprints y mismos `inputs[].sha256` (salvo `createdAt`).
+- [x] **AC-B.10** `--baseline` no escribe ningún archivo (INV-7: spy/mtimes).
+- [x] **AC-B.11** Config `baseline.enabled: true` equivale a flag (e2e).
+- [x] **AC-B.12** e2e criterio de salida fase 2: con baseline en fixture sucia, introduce error nuevo → exit 1 solo por nuevo; sin baseline, mismos findings viejos no bloquearían distinto (snapshot counts).
 
 ## 5. Test plan
 
@@ -172,3 +172,4 @@ Flags > config.
 ## Changelog
 
 - 2026-09-24 · Spec creado desde SDD v1.0 §7 Fase 2 + FR-20…22 + doc 03 §10.
+- 2026-09-24 · M2.3 implementado: baseline.ts build/load/filter + flags + summary.suppressed + console note + tests AC-B.*; estado → `implementada`.

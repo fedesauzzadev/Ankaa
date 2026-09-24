@@ -83,13 +83,14 @@ Pasos:
 
 ## Definition of Done (fase 2 completa)
 
-- [ ] Specs `f2-*` todos en estado `cerrada`
-- [ ] `pnpm check` verde matriz OS
-- [ ] Criterio salida SDD Fase 2: proyecto con deuda + baseline; `--baseline` solo falla lo nuevo
-- [ ] README: secciones config, custom rules, baseline
+- [x] Specs `f2-*` todos en estado `cerrada`
+- [x] `pnpm check` verde matriz OS
+- [x] Criterio salida SDD Fase 2: proyecto con deuda + baseline; `--baseline` solo falla lo nuevo
+- [x] README: secciones config, custom rules, baseline
 - [ ] Tag `v0.2.0-governance`
-- [ ] tasks/f2 cerrados
+- [x] tasks/f2 cerrados
 
 ## Changelog del plan
 
 - 2026-09-24 · Plan inicial desde specs f2 (tras tag v0.1.0-mvp).
+- 2026-09-24 · M2.1–M2.3 cerrados; DoD fase 2 cumplido (tag pendiente en commit).

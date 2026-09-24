@@ -11,6 +11,12 @@ export interface AnalyzeArgs {
   noColor: boolean;
   debug: boolean;
   config?: string;
+  writeBaseline: boolean;
+  baseline: boolean;
+  baselinePath?: string;
+  force: boolean;
+  strictHash: boolean;
+  baselineIgnoreHash: boolean;
 }
 
 export type ParseArgsResult =
@@ -31,6 +37,11 @@ export function parseAnalyzeArgs(argv: readonly string[]): ParseArgsResult {
     noColor: false,
     debug: false,
     rulesFiles: [],
+    writeBaseline: false,
+    baseline: false,
+    force: false,
+    strictHash: false,
+    baselineIgnoreHash: false,
   };
   let pathSeen = false;
 
@@ -106,6 +117,40 @@ export function parseAnalyzeArgs(argv: readonly string[]): ParseArgsResult {
       continue;
     }
 
+    if (token === "--write-baseline") {
+      args.writeBaseline = true;
+      continue;
+    }
+
+    if (token === "--baseline") {
+      args.baseline = true;
+      continue;
+    }
+
+    if (token === "--baseline-path") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--baseline-path requires a file path" };
+      }
+      args.baselinePath = value;
+      continue;
+    }
+
+    if (token === "--force") {
+      args.force = true;
+      continue;
+    }
+
+    if (token === "--strict-hash") {
+      args.strictHash = true;
+      continue;
+    }
+
+    if (token === "--baseline-ignore-hash") {
+      args.baselineIgnoreHash = true;
+      continue;
+    }
+
     if (token === "--no-color") {
       args.noColor = true;
       continue;
@@ -135,6 +180,20 @@ export function parseAnalyzeArgs(argv: readonly string[]): ParseArgsResult {
     return {
       ok: false,
       error: "missing required argument <path> (file, directory, or '-' for stdin)",
+    };
+  }
+
+  if (args.writeBaseline && args.baseline) {
+    return {
+      ok: false,
+      error: "--write-baseline and --baseline are mutually exclusive",
+    };
+  }
+
+  if (args.strictHash && args.baselineIgnoreHash) {
+    return {
+      ok: false,
+      error: "--strict-hash and --baseline-ignore-hash are mutually exclusive",
     };
   }
 

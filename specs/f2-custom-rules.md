@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | implementada |
+| Estado | cerrada |
 | Fase | 2 |
 | Deriva de | SDD FR-14/FR-15, doc 03 §3 reglas custom; specs `f1-engine`, `f1-analyze` |
 | Roadmap | Fase 2 — Config + custom rules + baseline |

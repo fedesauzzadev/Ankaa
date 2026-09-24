@@ -11,6 +11,11 @@ describe("parseAnalyzeArgs", () => {
     expect(result.args.noColor).toBe(false);
     expect(result.args.debug).toBe(false);
     expect(result.args.failOn).toBeUndefined();
+    expect(result.args.writeBaseline).toBe(false);
+    expect(result.args.baseline).toBe(false);
+    expect(result.args.force).toBe(false);
+    expect(result.args.strictHash).toBe(false);
+    expect(result.args.baselineIgnoreHash).toBe(false);
   });
 
   it("parses all supported flags", () => {
@@ -28,6 +33,11 @@ describe("parseAnalyzeArgs", () => {
       "{}",
       "--config",
       "cfg.yaml",
+      "--write-baseline",
+      "--baseline-path",
+      ".apigovscan/baseline.json",
+      "--force",
+      "--strict-hash",
       "--no-color",
       "--debug",
     ]);
@@ -41,9 +51,49 @@ describe("parseAnalyzeArgs", () => {
       rulesFiles: ["custom.yaml"],
       ruleInline: "{}",
       config: "cfg.yaml",
+      writeBaseline: true,
+      baselinePath: ".apigovscan/baseline.json",
+      force: true,
+      strictHash: true,
       noColor: true,
       debug: true,
     });
+  });
+
+  it("parses --baseline read flag", () => {
+    const result = parseAnalyzeArgs(["spec.yaml", "--baseline"]);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.args.baseline).toBe(true);
+  });
+
+  it("rejects --write-baseline with --baseline", () => {
+    const result = parseAnalyzeArgs([
+      "spec.yaml",
+      "--write-baseline",
+      "--baseline",
+    ]);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error).toContain("mutually exclusive");
+  });
+
+  it("rejects --strict-hash with --baseline-ignore-hash", () => {
+    const result = parseAnalyzeArgs([
+      "spec.yaml",
+      "--strict-hash",
+      "--baseline-ignore-hash",
+    ]);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error).toContain("mutually exclusive");
+  });
+
+  it("rejects missing path", () => {
+    const result = parseAnalyzeArgs([]);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error).toContain("missing required argument");
   });
 
   it("accepts repeated --rules flags", () => {
@@ -66,15 +116,8 @@ describe("parseAnalyzeArgs", () => {
     expect(result.args.path).toBe("-");
   });
 
-  it("rejects missing path", () => {
-    const result = parseAnalyzeArgs([]);
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.error).toContain("missing required argument");
-  });
-
   it("rejects unknown flags", () => {
-    const result = parseAnalyzeArgs(["spec.yaml", "--baseline", "x"]);
+    const result = parseAnalyzeArgs(["spec.yaml", "--nope", "x"]);
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error).toContain("unknown option");

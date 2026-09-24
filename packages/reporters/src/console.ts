@@ -87,7 +87,7 @@ export function formatConsole(report: Report, opts: ConsoleOpts): string {
     lines.push("");
   }
 
-  const { error, warning, info, total } = report.summary;
+  const { error, warning, info, total, suppressed } = report.summary;
   const counts = [
     `${error} error${error === 1 ? "" : "s"}`,
     `${warning} warning${warning === 1 ? "" : "s"}`,
@@ -95,7 +95,11 @@ export function formatConsole(report: Report, opts: ConsoleOpts): string {
   ].join(" · ");
   const hash = report.reportHash.slice(0, 8);
   const mark = total > 0 ? "!" : "ok";
-  lines.push(`${mark} ${counts} · reportHash ${hash}`);
+  const suppressedNote =
+    suppressed !== undefined && suppressed > 0
+      ? ` (baseline: ${suppressed} suppressed)`
+      : "";
+  lines.push(`${mark} ${counts}${suppressedNote} · reportHash ${hash}`);
 
   if (
     opts.maxFindings !== undefined &&

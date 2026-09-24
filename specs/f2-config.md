@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | implementada |
+| Estado | cerrada |
 | Fase | 2 |
 | Deriva de | SDD FR-13, doc 01 §6.2, doc 03 §5, doc 03 §8 (skills dir placeholder); specs `f1-analyze` (subconjunto f1) |
 | Roadmap | Fase 2 — Config + custom rules + baseline |

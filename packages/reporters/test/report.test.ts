@@ -126,6 +126,23 @@ describe("buildReport (AC-R.5, AC-R.10)", () => {
     });
     expect(report.meta?.durationMs).toBe(1200);
   });
+
+  it("includes optional summary.suppressed when provided (AC-B.3)", () => {
+    const report = makeReport({ suppressed: 7 });
+    expect(report.summary.suppressed).toBe(7);
+    expect(report.summary.total).toBe(1);
+  });
+
+  it("omits summary.suppressed when not provided", () => {
+    const report = makeReport();
+    expect(report.summary.suppressed).toBeUndefined();
+  });
+
+  it("suppressed changes reportHash (spec decision)", () => {
+    const a = makeReport();
+    const b = makeReport({ suppressed: 0 });
+    expect(a.reportHash).not.toBe(b.reportHash);
+  });
 });
 
 describe("formatJson", () => {

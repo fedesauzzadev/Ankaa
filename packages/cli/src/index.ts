@@ -13,6 +13,15 @@ import {
 } from "./args.js";
 import { analyzeUseCase } from "./analyze.js";
 import {
+  buildBaseline,
+  checkInputHashes,
+  fingerprintSet,
+  loadBaselineFile,
+  resolveBaselinePath,
+  writeBaselineFile,
+  type BaselineFile,
+} from "./baseline.js";
+import {
   loadConfig,
   resolveCustomRulePaths,
   type AnalyzeConfig,
@@ -61,6 +70,12 @@ export function getHelp(): string {
     "  --rules <file>    YAML/JSON custom rules (repeatable; added to pack)",
     "  --rule <json>     inline rule as JSON",
     "  --config <file>   config file (default: ./apigovscan.yaml)",
+    "  --write-baseline  write baseline.json from current findings",
+    "  --baseline        filter findings present in baseline",
+    "  --baseline-path   baseline file (default: .apigovscan/baseline.json)",
+    "  --force           overwrite existing baseline (creates .bak)",
+    "  --strict-hash     baseline inputHash mismatch is fatal (exit 2)",
+    "  --baseline-ignore-hash  silence inputHash mismatch warnings",
     "  --no-color        disable color (also respects NO_COLOR)",
     "  --debug           stage timings to stderr (never spec bodies)",
     "  -h, --help",
@@ -69,9 +84,9 @@ export function getHelp(): string {
     "Exit codes:",
     "  0  no findings at or above --fail-on",
     "  1  findings at or above --fail-on",
-    "  2  usage / parse / config / rule error",
+    "  2  usage / parse / config / rule / baseline error",
     "",
-    "Docs: docs/SDD.md · specs/f1-analyze.md · specs/f2-custom-rules.md · specs/f2-config.md",
+    "Docs: docs/SDD.md · specs/f1-analyze.md · specs/f2-custom-rules.md · specs/f2-config.md · specs/f2-baseline.md",
   ].join("\n");
 }
 
@@ -153,6 +168,26 @@ async function runAnalyze(
 
   const failOn = mergeFailOn(args.failOn, config, io.stderr);
 
+  // Baseline mode: flags > config > off. write and read are mutually exclusive (args).
+  const baselineMode: "write" | "read" | "off" = args.writeBaseline
+    ? "write"
+    : args.baseline || config.baseline?.enabled === true
+      ? "read"
+      : "off";
+
+  const baselinePath = resolveBaselinePath(
+    args.baselinePath,
+    config.baseline?.path,
+    config.configDir,
+    io.cwd,
+  );
+
+  const hashMode: "warn" | "strict" | "ignore" = args.baselineIgnoreHash
+    ? "ignore"
+    : args.strictHash || (baselineMode === "read" && config.baseline?.strictHash === true)
+      ? "strict"
+      : "warn";
+
   if (
     config.standards?.version !== undefined &&
     config.standards.version !== "0.0.0-dev"
@@ -212,6 +247,25 @@ async function runAnalyze(
     return 2;
   }
 
+  // Load baseline early (read mode): missing/invalid → exit 2 before analyze
+  // Write mode: refuse overwrite before analyze when file exists without --force
+  let baselineFingerprints: Set<string> | undefined;
+  let loadedBaseline: BaselineFile | undefined;
+  if (baselineMode === "read") {
+    const loaded = loadBaselineFile(baselinePath);
+    if (!loaded.ok) {
+      io.stderr(`error: ${loaded.error}\n`);
+      return 2;
+    }
+    loadedBaseline = loaded.baseline;
+    baselineFingerprints = fingerprintSet(loaded.baseline);
+  } else if (baselineMode === "write" && existsSync(baselinePath) && !args.force) {
+    io.stderr(
+      `error: baseline already exists: ${baselinePath} (pass --force to overwrite)\n`,
+    );
+    return 2;
+  }
+
   let inputs: string[];
   const inputPath = resolve(io.cwd, args.path);
   if (args.path === "-") {
@@ -264,6 +318,7 @@ async function runAnalyze(
       severityOverrides: overrides,
       toolVersion: packageVersion(),
       debug,
+      baselineFingerprints,
     },
   );
 
@@ -271,6 +326,42 @@ async function runAnalyze(
     io.stderr(`error: ${outcome.error}\n`);
     return outcome.exitCode;
   }
+
+  // Hash checks after we know report.input labels/sha256
+  if (baselineMode === "read" && loadedBaseline !== undefined) {
+    const complaints = checkInputHashes(
+      loadedBaseline,
+      outcome.report.input,
+      hashMode,
+    );
+    if (complaints.fatal !== undefined) {
+      io.stderr(`error: ${complaints.fatal}\n`);
+      return 2;
+    }
+    for (const w of complaints.warnings) {
+      io.stderr(`warning: ${w}\n`);
+    }
+  }
+
+  // Write baseline from unfiltered findings (report already emitted)
+  if (baselineMode === "write") {
+    const baseline = buildBaseline({
+      findings: outcome.allFindings,
+      inputs: outcome.report.input,
+      packs: outcome.report.packs,
+      toolVersion: packageVersion(),
+      engineVersion: packageVersion(),
+    });
+    const written = writeBaselineFile(baselinePath, baseline, args.force);
+    if (!written.ok) {
+      io.stderr(`error: ${written.error}\n`);
+      return 2;
+    }
+    io.stderr(
+      `baseline written: ${baselinePath} (${baseline.fingerprints.length} fingerprints, ${baseline.inputs.length} input(s))\n`,
+    );
+  }
+
   return outcome.exitCode;
 }
 

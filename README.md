@@ -48,9 +48,23 @@ npx @apigovscan/cli analyze ./openapi.yaml
 | `apigovscan rules list [--rules <file>]` | Lista reglas del pack (y custom si se pasa `--rules`) |
 | `apigovscan rules explain <ruleId> [--rules <file>]` | Muestra mensaje, fix, fuente y URL de una regla (`PREFIX-NNN`) |
 
-Flags útiles de `analyze`: `--format console|json`, `--output <file>`, `--fail-on error|warning|info|never`, `--rules <file>` (repetible), `--rule <json>`, `--config <file>`, `--no-color`, `--debug`.
+Flags útiles de `analyze`: `--format console|json`, `--output <file>`, `--fail-on error|warning|info|never`, `--rules <file>` (repetible), `--rule <json>`, `--config <file>`, `--write-baseline`, `--baseline`, `--baseline-path <file>`, `--force`, `--strict-hash`, `--baseline-ignore-hash`, `--no-color`, `--debug`.
 
-Exit codes: `0` ok · `1` findings ≥ `failOn` · `2` usage/parse/config/rule error.
+Exit codes: `0` ok · `1` findings ≥ `failOn` · `2` usage/parse/config/rule/baseline error.
+
+### Baseline (gate "solo lo nuevo")
+
+```bash
+# Congela la deuda actual en .apigovscan/baseline.json
+apigovscan analyze ./specs --write-baseline
+
+# En CI: solo falla por findings no listados en el baseline
+apigovscan analyze ./specs --baseline --fail-on error
+```
+
+- `--write-baseline` + `--force` pisa y deja `<path>.bak`.
+- `--strict-hash` ⇒ inputHash mismatch es exit 2; default solo warning; `--baseline-ignore-hash` lo silencia.
+- `summary.suppressed` entra en el reporte JSON; console muestra `(baseline: N suppressed)`.
 
 ### Config `apigovscan.yaml`
 
@@ -110,5 +124,5 @@ Ver [docs/SDD.md §7](docs/SDD.md).
 
 - **F0 (listo):** fundación del monorepo.
 - **F1 (MVP · tag `v0.1.0-mvp`):** `analyze` OpenAPI + pack elite ≥ 50 reglas + invariantes.
-- **F2 (en curso):** config full, custom rules (`rules validate/list`), baseline.
+- **F2 (en curso):** config full ✅, custom rules ✅, baseline ✅ (spec `f2-*` → `implementada`); falta cerrar DoD + tag `v0.2.0-governance`.
 - **F3+:** skills/learn, MCP, GitHub Action, Cloudflare, self-host.
