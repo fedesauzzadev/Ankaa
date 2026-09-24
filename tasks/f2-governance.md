@@ -22,18 +22,18 @@ Plan: [plans/f2-governance.md](../plans/f2-governance.md) · Specs: `f2-custom-r
 
 ## M2.2 — Config completa (spec f2-config)
 
-- [ ] Unknown top-level key → exit 2 (AC-C.1)
-- [ ] Allowlist `skillsDir` parse-only (AC-C.7)
-- [ ] `customRules` string | list (AC-C.2)
-- [ ] Resolución de rutas relative al config dir (AC-C.5)
-- [ ] Precedencia failOn flag > config (AC-C.3)
-- [ ] customRules path missing → exit 2 (AC-C.4)
-- [ ] Merge config + `--rules` + `--rule` orden estable (AC-C.8)
-- [ ] No-regresión config f1 (AC-C.6)
-- [ ] Ejemplo config (AC-C.9)
-- [ ] Bloque `baseline` parseado (enabled/path/strictHash)
-- [ ] `standards.version` mismatch embed → warning (si aplica)
-- [ ] Spec f2-config → AC verdes → `implementada`
+- [x] Unknown top-level key → exit 2 (AC-C.1)
+- [x] Allowlist `skillsDir` parse-only (AC-C.7)
+- [x] `customRules` string | list (AC-C.2)
+- [x] Resolución de rutas relative al config dir (AC-C.5)
+- [x] Precedencia failOn flag > config (AC-C.3)
+- [x] customRules path missing → exit 2 (AC-C.4)
+- [x] Merge config + `--rules` + `--rule` orden estable (AC-C.8)
+- [x] No-regresión config f1 (AC-C.6)
+- [x] Ejemplo config (AC-C.9)
+- [x] Bloque `baseline` parseado (enabled/path/strictHash)
+- [x] `standards.version` mismatch embed → warning
+- [x] Spec f2-config → AC verdes → `implementada`
 
 ---
 

@@ -12,7 +12,11 @@ import {
   type FailOn,
 } from "./args.js";
 import { analyzeUseCase } from "./analyze.js";
-import { loadConfig, type AnalyzeConfig } from "./config.js";
+import {
+  loadConfig,
+  resolveCustomRulePaths,
+  type AnalyzeConfig,
+} from "./config.js";
 import { discoverSpecs } from "./discovery.js";
 import {
   collectCustomRules,
@@ -67,7 +71,7 @@ export function getHelp(): string {
     "  1  findings at or above --fail-on",
     "  2  usage / parse / config / rule error",
     "",
-    "Docs: docs/SDD.md · specs/f1-analyze.md · specs/f2-custom-rules.md",
+    "Docs: docs/SDD.md · specs/f1-analyze.md · specs/f2-custom-rules.md · specs/f2-config.md",
   ].join("\n");
 }
 
@@ -149,9 +153,38 @@ async function runAnalyze(
 
   const failOn = mergeFailOn(args.failOn, config, io.stderr);
 
+  if (
+    config.standards?.version !== undefined &&
+    config.standards.version !== "0.0.0-dev"
+  ) {
+    const eliteDir = findElitePackDir(defaultPackSearchRoots(io.cwd));
+    if (eliteDir) {
+      try {
+        const pack = loadPackFromDir(eliteDir);
+        if (pack.version !== config.standards!.version) {
+          io.stderr(
+            `warning: standards.version ${config.standards!.version} does not match embedded pack ${pack.id}@${pack.version}\n`,
+          );
+        }
+      } catch {
+        // pack load failure is reported later by the use case
+      }
+    }
+  }
+
   let customRules: Rule[] | undefined;
   try {
     const sources: RulesSource[] = [];
+    const configRulePaths = resolveCustomRulePaths(config, io.cwd);
+    for (const path of configRulePaths) {
+      if (!existsSync(path)) {
+        io.stderr(
+          `error: config customRules not found: ${path}\n`,
+        );
+        return 2;
+      }
+      sources.push({ kind: "file", path });
+    }
     for (const path of args.rulesFiles) {
       sources.push({ kind: "file", path: resolve(io.cwd, path) });
     }

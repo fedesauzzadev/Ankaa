@@ -52,6 +52,26 @@ Flags útiles de `analyze`: `--format console|json`, `--output <file>`, `--fail-
 
 Exit codes: `0` ok · `1` findings ≥ `failOn` · `2` usage/parse/config/rule error.
 
+### Config `apigovscan.yaml`
+
+Schema estricto (keys desconocidas → exit 2). Ejemplo completo en [`examples/apigovscan.yaml`](examples/apigovscan.yaml):
+
+```yaml
+failOn: error
+standards:
+  pack: elite
+rules:
+  NAMING-001: off
+customRules:
+  - ./team-rules.yaml   # relativas al directorio del config
+baseline:
+  enabled: false
+  path: .apigovscan/baseline.json
+skillsDir: .apigovscan/skills   # reservado f3
+```
+
+Búsqueda: `--config <file>` → `./apigovscan.yaml` → `./apigovscan.yml`. Precedencia: flag CLI > config > default.
+
 ## Documentación
 
 ### SDD (Software Design Document)

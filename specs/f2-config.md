@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | ready |
+| Estado | implementada |
 | Fase | 2 |
 | Deriva de | SDD FR-13, doc 01 §6.2, doc 03 §5, doc 03 §8 (skills dir placeholder); specs `f1-analyze` (subconjunto f1) |
 | Roadmap | Fase 2 — Config + custom rules + baseline |
@@ -130,15 +130,15 @@ Resolución de rutas en config: **relativas al directorio del archivo de config*
 
 ## 4. Criterios de aceptación
 
-- [ ] **AC-C.1** Config con unknown top-level key ⇒ exit 2 + `unknown key`.
-- [ ] **AC-C.2** `customRules` (path o lista) carga y evalúa reglas igual que `--rules` (union).
-- [ ] **AC-C.3** Precedencia: `--fail-on warning` gana sobre `failOn: error` en config.
-- [ ] **AC-C.4** `customRules` con path inexistente ⇒ exit 2 antes de analizar.
-- [ ] **AC-C.5** Rutas en config relativas al config file (test: config en subdir con rules vecinas).
-- [ ] **AC-C.6** Config válida de f1 (solo `failOn` + `rules` overrides) sigue funcionando (no-regresión).
-- [ ] **AC-C.7** `skillsDir` presente ⇒ no error (allowlist f3); contenido no se lee en f2.
-- [ ] **AC-C.8** Merge custom rules: config + `--rules` + `--rule` ⇒ todos aplican; orden de carga estable.
-- [ ] **AC-C.9** Ejemplo `examples/apigovscan.yaml` (o snippet README) coincide con schema (test de smoke opcional).
+- [x] **AC-C.1** Config con unknown top-level key ⇒ exit 2 + `unknown key`.
+- [x] **AC-C.2** `customRules` (path o lista) carga y evalúa reglas igual que `--rules` (union).
+- [x] **AC-C.3** Precedencia: `--fail-on warning` gana sobre `failOn: error` en config.
+- [x] **AC-C.4** `customRules` con path inexistente ⇒ exit 2 antes de analizar.
+- [x] **AC-C.5** Rutas en config relativas al config file (test: config en subdir con rules vecinas).
+- [x] **AC-C.6** Config válida de f1 (solo `failOn` + `rules` overrides) sigue funcionando (no-regresión).
+- [x] **AC-C.7** `skillsDir` presente ⇒ no error (allowlist f3); contenido no se lee en f2.
+- [x] **AC-C.8** Merge custom rules: config + `--rules` + `--rule` ⇒ todos aplican; orden de carga estable.
+- [x] **AC-C.9** Ejemplo `examples/apigovscan.yaml` (o snippet README) coincide con schema (test de smoke opcional).
 
 ## 5. Test plan
 
@@ -167,3 +167,4 @@ Resolución de rutas en config: **relativas al directorio del archivo de config*
 ## Changelog
 
 - 2026-09-24 · Spec creado desde SDD v1.0 §7 Fase 2 + FR-13.
+- 2026-09-24 · M2.2 implementado: schema estricto, customRules, baseline parseado, merge, ejemplo, tests AC-C.*; estado → `implementada`.

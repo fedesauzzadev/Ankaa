@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, isAbsolute, join, resolve } from "node:path";
 import { parse as parseYaml } from "yaml";
 import type { Severity } from "@apigovscan/core";
 import type { FailOn } from "./args.js";
@@ -8,6 +8,15 @@ export interface AnalyzeConfig {
   failOn?: FailOn;
   standards?: { pack?: string; version?: string };
   rules?: Record<string, Severity | "off">;
+  customRules?: string[];
+  baseline?: {
+    enabled?: boolean;
+    path?: string;
+    strictHash?: boolean;
+  };
+  skillsDir?: string;
+  /** Directory of the config file when one was loaded (for relative paths). */
+  configDir?: string;
 }
 
 export type LoadConfigResult =
@@ -16,6 +25,45 @@ export type LoadConfigResult =
 
 const FAIL_ON = new Set(["error", "warning", "info", "never"]);
 const SEVERITIES = new Set(["error", "warning", "info", "off"]);
+const TOP_LEVEL_KEYS = new Set([
+  "failOn",
+  "standards",
+  "rules",
+  "customRules",
+  "baseline",
+  "skillsDir",
+]);
+
+function parseStringList(
+  raw: unknown,
+  path: string,
+  key: string,
+): { ok: true; values: string[] } | { ok: false; error: string } {
+  if (typeof raw === "string") {
+    if (raw.length === 0) {
+      return { ok: false, error: `config ${path}: ${key} must be a non-empty string` };
+    }
+    return { ok: true, values: [raw] };
+  }
+  if (Array.isArray(raw)) {
+    const values: string[] = [];
+    for (let i = 0; i < raw.length; i++) {
+      const item = raw[i];
+      if (typeof item !== "string" || item.length === 0) {
+        return {
+          ok: false,
+          error: `config ${path}: ${key}[${i}] must be a non-empty string`,
+        };
+      }
+      values.push(item);
+    }
+    return { ok: true, values };
+  }
+  return {
+    ok: false,
+    error: `config ${path}: ${key} must be a string or list of strings`,
+  };
+}
 
 function parseConfigObject(raw: unknown, path: string): LoadConfigResult {
   if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
@@ -23,6 +71,15 @@ function parseConfigObject(raw: unknown, path: string): LoadConfigResult {
   }
   const obj = raw as Record<string, unknown>;
   const config: AnalyzeConfig = {};
+
+  for (const key of Object.keys(obj)) {
+    if (!TOP_LEVEL_KEYS.has(key)) {
+      return {
+        ok: false,
+        error: `config ${path}: unknown key "${key}"`,
+      };
+    }
+  }
 
   if (obj.failOn !== undefined) {
     if (typeof obj.failOn !== "string" || !FAIL_ON.has(obj.failOn)) {
@@ -43,6 +100,14 @@ function parseConfigObject(raw: unknown, path: string): LoadConfigResult {
       return { ok: false, error: `config ${path}: standards must be a mapping` };
     }
     const standards = obj.standards as Record<string, unknown>;
+    for (const key of Object.keys(standards)) {
+      if (key !== "pack" && key !== "version") {
+        return {
+          ok: false,
+          error: `config ${path}: standards: unknown key "${key}"`,
+        };
+      }
+    }
     const out: { pack?: string; version?: string } = {};
     if (standards.pack !== undefined) {
       if (typeof standards.pack !== "string" || standards.pack.length === 0) {
@@ -85,6 +150,72 @@ function parseConfigObject(raw: unknown, path: string): LoadConfigResult {
     config.rules = rules;
   }
 
+  if (obj.customRules !== undefined) {
+    const list = parseStringList(obj.customRules, path, "customRules");
+    if (!list.ok) return { ok: false, error: list.error };
+    config.customRules = list.values;
+  }
+
+  if (obj.baseline !== undefined) {
+    if (
+      obj.baseline === null ||
+      typeof obj.baseline !== "object" ||
+      Array.isArray(obj.baseline)
+    ) {
+      return { ok: false, error: `config ${path}: baseline must be a mapping` };
+    }
+    const baseline = obj.baseline as Record<string, unknown>;
+    for (const key of Object.keys(baseline)) {
+      if (key !== "enabled" && key !== "path" && key !== "strictHash") {
+        return {
+          ok: false,
+          error: `config ${path}: baseline: unknown key "${key}"`,
+        };
+      }
+    }
+    const out: { enabled?: boolean; path?: string; strictHash?: boolean } = {};
+    if (baseline.enabled !== undefined) {
+      if (typeof baseline.enabled !== "boolean") {
+        return {
+          ok: false,
+          error: `config ${path}: baseline.enabled must be a boolean`,
+        };
+      }
+      out.enabled = baseline.enabled;
+    }
+    if (baseline.path !== undefined) {
+      if (typeof baseline.path !== "string" || baseline.path.length === 0) {
+        return {
+          ok: false,
+          error: `config ${path}: baseline.path must be a non-empty string`,
+        };
+      }
+      out.path = baseline.path;
+    }
+    if (baseline.strictHash !== undefined) {
+      if (typeof baseline.strictHash !== "boolean") {
+        return {
+          ok: false,
+          error: `config ${path}: baseline.strictHash must be a boolean`,
+        };
+      }
+      out.strictHash = baseline.strictHash;
+    }
+    config.baseline = out;
+  }
+
+  if (obj.skillsDir !== undefined) {
+    if (typeof obj.skillsDir !== "string" || obj.skillsDir.length === 0) {
+      return {
+        ok: false,
+        error: `config ${path}: skillsDir must be a non-empty string`,
+      };
+    }
+    config.skillsDir = obj.skillsDir;
+  }
+
+  config.configDir = dirname(path);
+
   return { ok: true, config, path };
 }
 
@@ -102,7 +233,11 @@ export function loadConfigFromText(
     };
   }
   if (raw === undefined || raw === null) {
-    return { ok: true, config: {}, path };
+    return {
+      ok: true,
+      config: { configDir: dirname(path) },
+      path,
+    };
   }
   return parseConfigObject(raw, path);
 }
@@ -120,11 +255,26 @@ export function loadConfig(cwd: string, overridePath?: string): LoadConfigResult
       continue;
     }
     const text = readFileSync(candidate, "utf8");
-    return loadConfigFromText(text, candidate);
+    const abs = isAbsolute(candidate) ? candidate : resolve(cwd, candidate);
+    return loadConfigFromText(text, abs);
   }
 
   if (overridePath) {
     return { ok: false, error: `config file not found: ${overridePath}` };
   }
-  return { ok: true, config: {} };
+  return { ok: true, config: { configDir: cwd } };
+}
+
+/**
+ * Resolve config customRules paths relative to the config file directory
+ * (or cwd when no config file was loaded). Returns absolute paths.
+ */
+export function resolveCustomRulePaths(
+  config: AnalyzeConfig,
+  cwd: string,
+): string[] {
+  const base = config.configDir ?? cwd;
+  return (config.customRules ?? []).map((p) =>
+    isAbsolute(p) ? p : resolve(base, p),
+  );
 }

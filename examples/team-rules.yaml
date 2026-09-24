@@ -1,0 +1,15 @@
+# Example team rules for ApiGovScan (see examples/apigovscan.yaml).
+rules:
+  - id: TEAM-001
+    category: custom
+    severity: error
+    message: "Every operation must accept x-request-id."
+    fix: "Add a required header parameter named x-request-id."
+    when:
+      all:
+        - op: method
+          in: [get, post, put, patch, delete]
+        - not:
+            op: headerRequired
+            name: x-request-id
+            in: request

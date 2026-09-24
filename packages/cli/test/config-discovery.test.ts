@@ -3,7 +3,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import { discoverSpecs } from "../src/discovery.js";
-import { loadConfig, loadConfigFromText } from "../src/config.js";
+import {
+  loadConfig,
+  loadConfigFromText,
+  resolveCustomRulePaths,
+} from "../src/config.js";
 
 const tempRoots: string[] = [];
 
@@ -143,7 +147,8 @@ describe("loadConfig", () => {
     const result = loadConfig(dir);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.config).toEqual({});
+    expect(result.config.failOn).toBeUndefined();
+    expect(result.config.customRules).toBeUndefined();
   });
 
   it("fails on invalid failOn", () => {
@@ -169,5 +174,94 @@ describe("loadConfig", () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error).toContain("not found");
+  });
+
+  it("AC-C.1 rejects unknown top-level key", () => {
+    const result = loadConfigFromText(
+      "failOn: error\nwat: true\n",
+      "apigovscan.yaml",
+    );
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error).toContain('unknown key "wat"');
+  });
+
+  it("AC-C.7 allows skillsDir without deep validation", () => {
+    const result = loadConfigFromText(
+      "skillsDir: .apigovscan/skills\n",
+      "apigovscan.yaml",
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.config.skillsDir).toBe(".apigovscan/skills");
+  });
+
+  it("parses customRules as string or list", () => {
+    const single = loadConfigFromText(
+      "customRules: ./team.yaml\n",
+      "apigovscan.yaml",
+    );
+    expect(single.ok).toBe(true);
+    if (single.ok) expect(single.config.customRules).toEqual(["./team.yaml"]);
+
+    const multi = loadConfigFromText(
+      "customRules:\n  - a.yaml\n  - b.yaml\n",
+      "apigovscan.yaml",
+    );
+    expect(multi.ok).toBe(true);
+    if (multi.ok) expect(multi.config.customRules).toEqual(["a.yaml", "b.yaml"]);
+  });
+
+  it("parses baseline block", () => {
+    const result = loadConfigFromText(
+      [
+        "baseline:",
+        "  enabled: true",
+        "  path: .apigovscan/baseline.json",
+        "  strictHash: true",
+      ].join("\n"),
+      "apigovscan.yaml",
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.config.baseline).toEqual({
+      enabled: true,
+      path: ".apigovscan/baseline.json",
+      strictHash: true,
+    });
+  });
+
+  it("rejects unknown key inside baseline", () => {
+    const result = loadConfigFromText(
+      "baseline:\n  enabled: true\n  nope: 1\n",
+      "apigovscan.yaml",
+    );
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error).toContain('unknown key "nope"');
+  });
+
+  it("AC-C.5 sets configDir for path resolution", () => {
+    const dir = tempDir();
+    const cfg = join(dir, "apigovscan.yaml");
+    writeFileSync(cfg, "customRules:\n  - ./team.yaml\n", "utf8");
+    const result = loadConfig(dir);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.config.configDir).toBe(dir);
+    expect(resolveCustomRulePaths(result.config, "/elsewhere")).toEqual([
+      join(dir, "team.yaml"),
+    ]);
+  });
+});
+
+describe("resolveCustomRulePaths", () => {
+  it("falls back to cwd when no config loaded", () => {
+    const dir = tempDir();
+    const paths = resolveCustomRulePaths(
+      { customRules: ["./team.yaml"] },
+      dir,
+    );
+    expect(paths).toEqual([join(dir, "team.yaml")]);
   });
 });

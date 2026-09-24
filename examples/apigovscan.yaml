@@ -1,0 +1,25 @@
+# Example ApiGovScan configuration (f2).
+# Copy to the project root as `apigovscan.yaml`.
+
+failOn: error
+
+standards:
+  pack: elite
+  # version: "2026.09.1"   # optional pin; warns when it differs from the embedded pack
+
+# Severity overrides / disable pack rules
+rules:
+  NAMING-001: off
+  # ERR-010: warning
+
+# Custom rule files (relative to this config file), loaded before --rules / --rule
+customRules:
+  - ./team-rules.yaml
+
+baseline:
+  enabled: false
+  path: .apigovscan/baseline.json
+  # strictHash: false
+
+# Reserved for skills (f3); parsed but not validated in f2
+skillsDir: .apigovscan/skills
