@@ -78,34 +78,34 @@ Plan: [plans/f1-mvp.md](../plans/f1-mvp.md) · Specs: `f1-openapi`, `f1-engine`,
 
 ### Engine de reportes
 
-- [ ] `buildReport` + summary counts (AC-R.5)
-- [ ] Canonical JSON + `reportHash` (AC-R.1…R.4)
-- [ ] Omitir `meta` del hash (AC-R.2)
-- [ ] `formatConsole` (AC-R.6: sin ANSI con color false)
-- [ ] `formatJson` pretty/compact según contrato
-- [ ] Redacción de secretos en output (AC-R.8)
-- [ ] `packs` sort por id (AC-R.10)
-- [ ] Unit tests + snapshot console
+- [x] `buildReport` + summary counts (AC-R.5)
+- [x] Canonical JSON + `reportHash` (AC-R.1…R.4)
+- [x] Omitir `meta` del hash (AC-R.2)
+- [x] `formatConsole` (AC-R.6: sin ANSI con color false)
+- [x] `formatJson` pretty/compact según contrato
+- [x] Redacción de secretos en output (AC-R.8)
+- [x] `packs` sort por id (AC-R.10)
+- [x] Unit tests + snapshot console
 
 ### Caso de uso + CLI
 
-- [ ] Ports: `SpecLoader`, `PackRepository`, `ReportSink`
-- [ ] `analyzeUseCase` orquestación (etapas debug)
-- [ ] Adapter FS loader
-- [ ] Adapter pack embebido
-- [ ] Parser argv: flags de spec f1-analyze **solo**
-- [ ] Exit codes 0/1/2 (AC-A.5, AC-A.6, AC-A.7)
-- [ ] Config `apigovscan.yaml` (`failOn`, `rules` off/override) (AC-A.8)
-- [ ] Discovery directorio orden estable (AC-A.9, AC-A.13)
-- [ ] stdin `-` (AC-A.10)
-- [ ] `--output` file behavior (AC-A.11)
-- [ ] `--debug` sin body largo (AC-A.12)
-- [ ] `--no-color` + `NO_COLOR` (AC-R.7)
-- [ ] e2e: happy path (AC-A.1)
-- [ ] e2e: determinismo double run `reportHash` (AC-A.2, INV-2)
-- [ ] e2e: red blocked (AC-A.3, INV-1)
-- [ ] e2e: `--format json` schema (AC-A.4)
-- [ ] Spec f1-analyze + f1-reporters → `implementada`
+- [x] Ports: `SpecLoader`, `PackRepository`, `ReportSink`
+- [x] `analyzeUseCase` orquestación (etapas debug)
+- [x] Adapter FS loader
+- [x] Adapter pack embebido (walk-up `packs/elite`)
+- [x] Parser argv: flags de spec f1-analyze **solo**
+- [x] Exit codes 0/1/2 (AC-A.5, AC-A.6, AC-A.7)
+- [x] Config `apigovscan.yaml` (`failOn`, `rules` off/override) (AC-A.8)
+- [x] Discovery directorio orden estable (AC-A.9, AC-A.13)
+- [x] stdin `-` (AC-A.10)
+- [x] `--output` file behavior (AC-A.11)
+- [x] `--debug` sin body largo (AC-A.12)
+- [x] `--no-color` + `NO_COLOR` (AC-R.7)
+- [x] e2e: happy path (AC-A.1)
+- [x] e2e: determinismo double run `reportHash` (AC-A.2, INV-2)
+- [x] e2e: red blocked (AC-A.3, INV-1)
+- [x] e2e: `--format json` schema (AC-A.4)
+- [x] Spec f1-analyze + f1-reporters → `implementada`
 
 ---
 

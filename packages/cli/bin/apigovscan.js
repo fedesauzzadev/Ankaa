@@ -1,4 +1,4 @@
 #!/usr/bin/env node
 import { run } from "../dist/index.js";
 
-process.exitCode = run(process.argv);
+process.exitCode = await run(process.argv);

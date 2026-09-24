@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | ready |
+| Estado | implementada |
 | Fase | 1 |
 | Deriva de | SDD FR-01…FR-06, ADR-003, ADR-004, INV-1/2/7; specs `f1-openapi`, `f1-engine`, `f1-elite-pack`, `f1-reporters` |
 | Roadmap | Fase 1 MVP |
@@ -168,3 +168,4 @@ Ver SDD §02.5. Etapas y debug:
 ## Changelog
 
 - 2026-09-23 · Spec creado desde SDD v1.0.
+- 2026-09-23 · M1.4: implementada (AC-A.1…13 verdes; e2e en `packages/cli/test/analyze.e2e.test.ts`).

@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | ready |
+| Estado | implementada |
 | Fase | 1 |
 | Deriva de | SDD FR-03/05/40/41, doc 03 §11; INV-2 |
 | Package | `@apigovscan/reporters` |
@@ -150,3 +150,4 @@ warning ERR-001  POST /payments
 ## Changelog
 
 - 2026-09-23 · Spec creado desde SDD v1.0.
+- 2026-09-23 · M1.4: implementada (AC-R.1…10 verdes en `packages/reporters/test`).
