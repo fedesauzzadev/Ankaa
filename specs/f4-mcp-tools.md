@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | ready |
+| Estado | cerrada |
 | Fase | 4 |
 | Deriva de | SDD FR-50/FR-51, scenario S5; doc 01 §6.6, doc 03 reglas; specs `f4-mcp-server`, `f1-analyze`, `f2-custom-rules` |
 | Roadmap | Fase 4 — MCP stdio local |
@@ -103,17 +103,17 @@ output: {
 
 ## 4. Criterios de aceptación
 
-- [ ] **AC-T.1** `analyze_spec` sobre fixture con findings ⇒ payload con `summary`, findings ordenados, fingerprints presentes.
-- [ ] **AC-T.2** `analyze_spec` >20 findings ⇒ `truncated: true`, `totalFindings` correcto, longitud findings = 20.
-- [ ] **AC-T.3** `analyze_spec` falla (spec malformado) ⇒ `ok: false`, `isError`, mensaje parse errors.
-- [ ] **AC-T.4** `list_rules` ⇒ incluye ≥1 regla elite conocida (ej. NAMING-004) con severity/message.
-- [ ] **AC-T.5** `explain_rule` NAMING-004 ⇒ source/fix presente (cita guide) — cubre S5 parcial.
-- [ ] **AC-T.6** `explain_rule` id inexistente ⇒ `ok: false`.
-- [ ] **AC-T.7** `validate_custom_rules` archivo válido ⇒ `ok: true`, ruleCount ≥1; inválido ⇒ errors con issues.
-- [ ] **AC-T.8** `explain_finding` con report del CLI + fingerprint ⇒ finding + explanation con source.
-- [ ] **AC-T.9** fingerprint inexistente ⇒ `ok: false`.
-- [ ] **AC-T.10** Paridad: mismo spec por CLI `analyze --format json` y `analyze_spec` ⇒ mismos fingerprints/summary (ignorando durationMs).
-- [ ] **AC-T.11** Config/skills en cwd respetados igual que CLI (o documentado si v1 simplifica — decisión §7).
+- [x] **AC-T.1** `analyze_spec` sobre fixture con findings ⇒ payload con `summary`, findings ordenados, fingerprints presentes.
+- [x] **AC-T.2** `analyze_spec` >20 findings ⇒ `truncated: true`, `totalFindings` correcto, longitud findings = 20.
+- [x] **AC-T.3** `analyze_spec` falla (spec malformado) ⇒ `ok: false`, `isError`, mensaje parse errors.
+- [x] **AC-T.4** `list_rules` ⇒ incluye ≥1 regla elite conocida (ej. NAMING-004) con severity/message.
+- [x] **AC-T.5** `explain_rule` NAMING-004 ⇒ source/fix presente (cita guide) — cubre S5 parcial.
+- [x] **AC-T.6** `explain_rule` id inexistente ⇒ `ok: false`.
+- [x] **AC-T.7** `validate_custom_rules` archivo válido ⇒ `ok: true`, ruleCount ≥1; inválido ⇒ errors con issues.
+- [x] **AC-T.8** `explain_finding` con report del CLI + fingerprint ⇒ finding + explanation con source.
+- [x] **AC-T.9** fingerprint inexistente ⇒ `ok: false`.
+- [x] **AC-T.10** Paridad: mismo spec por CLI `analyze --format json` y `analyze_spec` ⇒ mismos fingerprints/summary (ignorando durationMs).
+- [x] **AC-T.11** Config/skills en cwd respetados igual que CLI (o documentado si v1 simplifica — decisión §7).
 
 ## 5. Test plan
 
@@ -142,3 +142,4 @@ output: {
 ## Changelog
 
 - 2026-09-24 · Spec creado desde FR-50 + S5 + paridad f1/f2/f3.
+- 2026-09-24 · M4.1+M4.2: 5 handlers CLI + paridad reportHash + e2e S5 → `cerrada`.

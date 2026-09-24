@@ -64,14 +64,15 @@ Pasos:
 
 ## Definition of Done (fase 4 completa)
 
-- [ ] Specs `f4-mcp-server` y `f4-mcp-tools` en estado `cerrada`
-- [ ] `pnpm check` verde
-- [ ] INV-1 verificado en test de `analyze_spec` vía MCP
-- [ ] Criterio SDD: cliente MCP (SDK en tests / docs para Claude/Cursor) analiza spec local end-to-end
-- [ ] README: `apigovscan mcp` + snippet registro
-- [ ] Tag `v0.4.0-mcp`
-- [ ] tasks/f4 cerrados
+- [x] Specs `f4-mcp-server` y `f4-mcp-tools` en estado `cerrada`
+- [x] `pnpm check` verde
+- [x] INV-1 verificado en test de `analyze_spec` vía MCP
+- [x] Criterio SDD: cliente MCP (SDK en tests / docs para Claude/Cursor) analiza spec local end-to-end
+- [x] README: `apigovscan mcp` + snippet registro
+- [x] Tag `v0.4.0-mcp`
+- [x] tasks/f4 cerrados
 
 ## Changelog del plan
 
 - 2026-09-24 · Plan inicial desde specs f4 (tras tag v0.3.0-learning).
+- 2026-09-24 · M4.1–M4.2 implementados; `pnpm check` verde; tag `v0.4.0-mcp` creado; fase 4 cerrada.

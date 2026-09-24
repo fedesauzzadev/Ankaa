@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | ready |
+| Estado | cerrada |
 | Fase | 4 |
 | Deriva de | SDD FR-50/FR-51, ADR-009, D9; doc 02 §MCP stdio, doc 05 §6, doc 06 §7; specs `f4-mcp-tools` |
 | Roadmap | Fase 4 — MCP stdio local |
@@ -106,12 +106,12 @@ resolve(cwd, path) → must be inside cwd (inclusive)
 
 ## 4. Criterios de aceptación
 
-- [ ] **AC-SRV.1** `createMcpServer` + `initialize` + `tools/list` → 5 tools con schemas.
-- [ ] **AC-SRV.2** `apigovscan mcp --help` sale 0 y documenta tools + ejemplo de registro.
-- [ ] **AC-SRV.3** Path fuera de cwd en cualquier tool con path → `isError`, payload con `path escapes cwd sandbox`.
-- [ ] **AC-SRV.4** Dos calls independientes al mismo server sin estado compartido (mismo output).
-- [ ] **AC-SRV.5** INV-1: durante `analyze_spec` global fetch stub falla y el call sigue ok.
-- [ ] **AC-SRV.6** README/docs mencionan `apigovscan mcp` + snippet `mcpServers`.
+- [x] **AC-SRV.1** `createMcpServer` + `initialize` + `tools/list` → 5 tools con schemas.
+- [x] **AC-SRV.2** `apigovscan mcp --help` sale 0 y documenta tools + ejemplo de registro.
+- [x] **AC-SRV.3** Path fuera de cwd en cualquier tool con path → `isError`, payload con `path escapes cwd sandbox`.
+- [x] **AC-SRV.4** Dos calls independientes al mismo server sin estado compartido (mismo output).
+- [x] **AC-SRV.5** INV-1: durante `analyze_spec` global fetch stub falla y el call sigue ok.
+- [x] **AC-SRV.6** README/docs mencionan `apigovscan mcp` + snippet `mcpServers`.
 
 ## 5. Test plan
 
@@ -142,3 +142,4 @@ resolve(cwd, path) → must be inside cwd (inclusive)
 ## Changelog
 
 - 2026-09-24 · Spec creado desde SDD v1.0 §7 Fase 4 + ADR-009 + FR-50/51 + doc 06 §7.
+- 2026-09-24 · M4.1+M4.2: server SDK 1.30, 5 tools, sandbox, truncación, cmd `mcp`, tests → `cerrada`.

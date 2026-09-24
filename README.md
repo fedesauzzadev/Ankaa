@@ -39,7 +39,7 @@ Cuando el paquete esté publicado:
 npx @apigovscan/cli analyze ./openapi.yaml
 ```
 
-### Comandos (f1–f3)
+### Comandos (f1–f4)
 
 | Comando | Descripción |
 |---|---|
@@ -51,6 +51,29 @@ npx @apigovscan/cli analyze ./openapi.yaml
 | `apigovscan learn --report <r> --feedback <f>` | Aplica feedback a `.apigovscan/skills` (idempotente, INV-5) |
 | `apigovscan skills list [--format json]` | Enumera suppressions, overrides y drafts |
 | `apigovscan skills promote <draftId>` | Activa un draft (`draft: false`) |
+| `apigovscan mcp [--help]` | Server MCP **stdio** local (tools FR-50, sandbox bajo cwd) |
+
+#### MCP (Claude / Cursor / opencode)
+
+```bash
+apigovscan mcp
+# o
+npx @apigovscan/cli mcp
+```
+
+```json
+{
+  "mcpServers": {
+    "apigovscan": {
+      "command": "npx",
+      "args": ["-y", "@apigovscan/cli", "mcp"]
+    }
+  }
+}
+```
+
+Tools: `analyze_spec`, `list_rules`, `explain_rule`, `validate_custom_rules`, `explain_finding`.  
+Paths rechazados si escapan del cwd; `analyze_spec` trunca findings (top 20) — el CLI da el reporte completo. Misma semántica que el CLI (FR-51); **0 red** (INV-1).
 
 Flags útiles de `analyze`: `--format console|json`, `--output <file>`, `--fail-on error|warning|info|never`, `--rules <file>` (repetible), `--rule <json>`, `--config <file>`, `--write-baseline`, `--baseline`, `--baseline-path <file>`, `--force`, `--strict-hash`, `--baseline-ignore-hash`, `--skills-dir <dir>`, `--no-color`, `--debug`.
 
@@ -157,7 +180,7 @@ Búsqueda: `--config <file>` → `./apigovscan.yaml` → `./apigovscan.yml`. Pre
 
 ## Estado
 
-**Fase 0–3 implementada:** monorepo pnpm + TypeScript strict + ESLint/Prettier + Vitest + CI multi-OS + parser OpenAPI 3.x + rules engine + pack **elite ≥ 50 reglas (65 activas)** + `analyze` e2e + reporters console/JSON + suite de invariantes INV-1…7 + config strict + custom rules + baseline + **skills load/apply (M3.1)** + **learn/skills CLI (M3.2)** + **init scaffold + S4 e2e (M3.3)**. Specs `f0-*`, `f1-*`, `f2-*` en `cerrada`; `f3-*` en `cerrada`. Tags: `v0.1.0-mvp`, `v0.2.0-governance`, `v0.3.0-learning`.
+**Fase 0–4 implementada:** monorepo pnpm + TypeScript strict + ESLint/Prettier + Vitest + CI multi-OS + parser OpenAPI 3.x + rules engine + pack **elite ≥ 50 reglas (65 activas)** + `analyze` e2e + reporters console/JSON + suite de invariantes INV-1…7 + config strict + custom rules + baseline + **skills load/apply (M3.1)** + **learn/skills CLI (M3.2)** + **init scaffold + S4 e2e (M3.3)** + **MCP stdio local con 5 tools FR-50 + sandbox + paridad CLI (F4)**. Specs `f0-*`, `f1-*`, `f2-*`, `f3-*`, `f4-mcp-*` en `cerrada`. Tags: `v0.1.0-mvp`, `v0.2.0-governance`, `v0.3.0-learning`, `v0.4.0-mcp`.
 
 ```bash
 pnpm install
@@ -171,4 +194,6 @@ Ver [docs/SDD.md §7](docs/SDD.md).
 - **F0 (listo):** fundación del monorepo.
 - **F1 (MVP · tag `v0.1.0-mvp`):** `analyze` OpenAPI + pack elite ≥ 50 reglas + invariantes.
 - **F2 (tag `v0.2.0-governance`):** config full ✅, custom rules ✅, baseline ✅ — specs `f2-*` en estado `cerrada`.
-- **F3+:** skills/learn, MCP, GitHub Action, Cloudflare, self-host.
+- **F3 (tag `v0.3.0-learning`):** skills, learn, init ✅ — specs `f3-*` en estado `cerrada`.
+- **F4 (tag `v0.4.0-mcp`):** MCP stdio local ✅ — specs `f4-mcp-*` en estado `cerrada`.
+- **F5+:** GitHub Action, Cloudflare, self-host.
