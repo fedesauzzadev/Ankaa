@@ -27,6 +27,9 @@ Especificaciones **spec-driven** derivadas del [SDD v1.0](../docs/SDD.md). El SD
 | [f2-config](f2-config.md) | 2 | Config `apigovscan.yaml` completa (strict) | cerrada |
 | [f2-custom-rules](f2-custom-rules.md) | 2 | DSL custom + `rules validate`/`list` | cerrada |
 | [f2-baseline](f2-baseline.md) | 2 | Baseline: gate solo findings nuevos | cerrada |
+| [f3-init](f3-init.md) | 3 | Scaffold `.apigovscan/` con `init` | ready |
+| [f3-skills](f3-skills.md) | 3 | Carga/aplica suppressions + severities en analyze | ready |
+| [f3-learn](f3-learn.md) | 3 | `learn` feedback → skills (INV-5) + list/promote | ready |
 
 ## Orden de implementación sugerido
 
@@ -42,8 +45,9 @@ f0-foundation
 
 - **Fase 0 (SDD §7)** = spec `f0-foundation`.
 - **Fase 1 (SDD §7)** = specs `f1-*` en conjunto (MVP).
-- **Fase 2 (SDD §7)** = specs `f2-*` (config, custom rules, baseline) — abiertos tras `v0.1.0-mvp`.
-- **Fases 3+** = specs futuros (skills/learn, MCP, Action, CF…) — se abren cuando la fase anterior esté cerrada.
+- **Fase 2 (SDD §7)** = specs `f2-*` (config, custom rules, baseline) — cerrada en `v0.2.0-governance`.
+- **Fase 3 (SDD §7)** = specs `f3-*` (init, skills, learn) — abiertos tras `v0.2.0-governance`.
+- **Fases 4+** = specs futuros (MCP, Action, CF…) — se abren cuando la fase anterior esté cerrada.
 
 ## Plantilla de spec (para futuras)
 

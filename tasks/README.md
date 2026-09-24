@@ -15,3 +15,4 @@ Checklists ejecutables ligados a [plans](../plans/README.md) y [specs](../specs/
 | [f0-foundation](f0-foundation.md) | plans/f0 | specs/f0 |
 | [f1-mvp](f1-mvp.md) | plans/f1-mvp | specs/f1-* |
 | [f2-governance](f2-governance.md) | plans/f2-governance | specs/f2-* |
+| [f3-learning](f3-learning.md) | plans/f3-learning | specs/f3-* |
