@@ -1,0 +1,38 @@
+{
+  "name": "@apigovscan/cli",
+  "version": "0.0.0-dev",
+  "description": "ApiGovScan CLI — local-first API governance analyzer",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "apigovscan": "./bin/apigovscan.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run",
+    "typecheck": "tsc -b --pretty"
+  },
+  "dependencies": {
+    "@apigovscan/core": "workspace:*",
+    "@apigovscan/openapi": "workspace:*",
+    "@apigovscan/reporters": "workspace:*"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.8"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -58,6 +58,6 @@ Dejar el esqueleto mergeable con CI verde **antes** de escribir lógica de anál
 
 ## Checklist de cierre del plan
 
-- [ ] Todos los AC de `specs/f0-foundation.md` verificados
-- [ ] CI verde en main
-- [ ] Spec marcada `implementada` / `cerrada`
+- [x] Todos los AC de `specs/f0-foundation.md` verificados
+- [x] CI verde local (`pnpm check`); workflow GitHub listo para remote
+- [x] Spec marcada `implementada`

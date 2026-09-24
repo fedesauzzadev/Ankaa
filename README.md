@@ -28,9 +28,12 @@
 
 ## Estado
 
-**Diseño SDD v1.0 + specs/plans/tasks Fase 0–1 listos.** Aún no hay código de producto.
+**Fase 0 (fundación) implementada:** monorepo pnpm + TypeScript strict + ESLint/Prettier + Vitest + CI multi-OS + 5 packages esqueleto + fixtures. Spec `f0-foundation` en estado `implementada`.
 
 ```bash
+pnpm install
+pnpm check    # lint + typecheck + test + build + invariants
+
 # Próximamente (fase 1 del roadmap):
 npx @apigovscan/cli analyze ./openapi.yaml
 ```
@@ -39,5 +42,6 @@ npx @apigovscan/cli analyze ./openapi.yaml
 
 Ver [docs/SDD.md §7](docs/SDD.md).
 
-- **F0–F1 (specs listos):** fundación + MVP `analyze` OpenAPI + pack elite ≥ 50 reglas.
+- **F0 (listo):** fundación del monorepo.
+- **F1 (specs listos):** MVP `analyze` OpenAPI + pack elite ≥ 50 reglas.
 - **F2+:** baseline, skills/learn, MCP, GitHub Action, Cloudflare, self-host.

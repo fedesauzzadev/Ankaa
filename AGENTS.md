@@ -37,7 +37,7 @@ pnpm build
 pnpm test
 pnpm lint
 pnpm typecheck
-pnpm ci              # lint + typecheck + test + build
+pnpm check           # lint + typecheck + test + build + invariants
 pnpm test:invariants # gates INV-*
 ```
 
@@ -86,7 +86,7 @@ Dependencias: `cli/mcp → application(core) → core`; los adapters inyectan I/
 | Regla nueva | fixture donde matchea + una donde no |
 | Parse/normalize | fixture + ataque si aplica |
 | CLI flag | e2e exit code |
-| Cualquier PR | `pnpm ci` + `pnpm test:invariants` verde en matriz CI |
+| Cualquier PR | `pnpm check` verde en matriz CI |
 
 No borres snapshots de determinismo "porque flaquean": investiga (INV-2).
 
@@ -110,7 +110,7 @@ No borres snapshots de determinismo "porque flaquean": investiga (INV-2).
 1. Leer spec target + tasks correspondientes
 2. Marcar en tasks/ lo que vas a hacer [ ]
 3. Implementar slice + tests
-4. pnpm ci && pnpm test:invariants
+4. pnpm check
 5. Actualizar AC cumplidos en tasks y estado de spec
 6. Redactar commit/PR con referencia a AC
 ```

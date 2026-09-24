@@ -1,0 +1,21 @@
+# Snapshot of primary sources for the elite pack.
+# Each rule also carries its own source.url (strictSource: true).
+sources:
+  - id: google-api-design
+    title: Google API Design Guide
+    url: https://cloud.google.com/apis/design
+  - id: microsoft-rest
+    title: Microsoft REST API Guidelines
+    url: https://github.com/microsoft/api-guidelines
+  - id: zalando
+    title: Zalando RESTful API Guidelines
+    url: https://opensource.zalando.com/restful-api-guidelines/
+  - id: openapi-spec
+    title: OpenAPI Specification
+    url: https://spec.openapis.org/
+  - id: rfc9110
+    title: RFC 9110 HTTP Semantics
+    url: https://www.rfc-editor.org/rfc/rfc9110
+  - id: rfc9457
+    title: RFC 9457 Problem Details for HTTP APIs
+    url: https://www.rfc-editor.org/rfc/rfc9457

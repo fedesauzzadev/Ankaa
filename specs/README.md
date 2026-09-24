@@ -17,7 +17,7 @@ Especificaciones **spec-driven** derivadas del [SDD v1.0](../docs/SDD.md). El SD
 
 | Spec | Fase | Resumen | Estado |
 |---|---|---|---|
-| [f0-foundation](f0-foundation.md) | 0 | Monorepo, toolchain, CI, esqueletos de packages | ready |
+| [f0-foundation](f0-foundation.md) | 0 | Monorepo, toolchain, CI, esqueletos de packages | implementada |
 | [f1-analyze](f1-analyze.md) | 1 | Caso de uso end-to-end `analyze` + CLI | ready |
 | [f1-openapi](f1-openapi.md) | 1 | Parser/normalizador OpenAPI 3.x → modelo `Spec` | ready |
 | [f1-engine](f1-engine.md) | 1 | Rules engine + DSL whitelist + fingerprints | ready |

@@ -1,0 +1,10 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/core" },
+    { "path": "packages/openapi" },
+    { "path": "packages/reporters" },
+    { "path": "packages/mcp" },
+    { "path": "packages/cli" }
+  ]
+}

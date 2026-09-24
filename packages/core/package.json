@@ -1,0 +1,29 @@
+{
+  "name": "@apigovscan/core",
+  "version": "0.0.0-dev",
+  "description": "Pure domain and rules engine for ApiGovScan (no I/O)",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run",
+    "typecheck": "tsc -b --pretty"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.8"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

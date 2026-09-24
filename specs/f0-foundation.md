@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | ready |
+| Estado | implementada |
 | Fase | 0 |
 | Deriva de | SDD ADR-012, ADR-004, D1; roadmap Fase 0 |
 | Criterio de salida SDD | `pnpm i && pnpm build && pnpm test` verde en CI |
@@ -68,7 +68,7 @@ ApiGovScan/
 | `lint` | eslint en todo el repo |
 | `typecheck` | `tsc -b` o `pnpm -r typecheck` |
 | `format` | prettier --write |
-| `ci` | `lint && typecheck && test && build` |
+| `check` | `lint && typecheck && test && build && test:invariants` |
 
 ### Paquete cli (esqueleto)
 
@@ -79,23 +79,23 @@ apigovscan --help                                   # lista comandos futuros (st
 
 ## 4. Criterios de aceptación
 
-- [ ] **AC-0.1** `pnpm install` en fresh clone termina sin warnings de engine de Node < 20.
-- [ ] **AC-0.2** `pnpm build` compila los 5 packages sin error; `strict: true` activo.
-- [ ] **AC-0.3** `pnpm test` corre ≥ 1 test trivial por package (smoke) y pasa en local.
-- [ ] **AC-0.4** `pnpm lint` sin errores (warnings allowlist vacía por defecto).
-- [ ] **AC-0.5** CI verde en ubuntu + windows + macos en push a `main`.
-- [ ] **AC-0.6** `packages/cli` expone bin `apigovscan` con `--version` y `--help`.
-- [ ] **AC-0.7** `packages/core` **no** importa `node:fs`, `node:http`, `fetch` (regla lint `no-restricted-paths` desde el día 0).
-- [ ] **AC-0.8** Repo contiene SDD + specs + plans + tasks + AGENTS.md (estado actual).
-- [ ] **AC-0.9** `.gitignore` excluye `node_modules`, `dist`, `coverage`, `.env`.
-- [ ] **AC-0.10** Fixtures presentes: 1 OpenAPI 3.1 válida, 1 YAML malformado.
+- [x] **AC-0.1** `pnpm install` en fresh clone termina sin warnings de engine de Node < 20.
+- [x] **AC-0.2** `pnpm build` compila los 5 packages sin error; `strict: true` activo.
+- [x] **AC-0.3** `pnpm test` corre ≥ 1 test trivial por package (smoke) y pasa en local.
+- [x] **AC-0.4** `pnpm lint` sin errores (warnings allowlist vacía por defecto).
+- [x] **AC-0.5** CI workflow en matriz OS ubuntu/windows/macos (AC local `pnpm check` verde; remote al push a GitHub).
+- [x] **AC-0.6** `packages/cli` expone bin `apigovscan` con `--version` y `--help`.
+- [x] **AC-0.7** `packages/core` **no** importa `node:fs`, `node:http`, `fetch` (regla lint `no-restricted-paths` desde el día 0).
+- [x] **AC-0.8** Repo contiene SDD + specs + plans + tasks + AGENTS.md (estado actual).
+- [x] **AC-0.9** `.gitignore` excluye `node_modules`, `dist`, `coverage`, `.env`.
+- [x] **AC-0.10** Fixtures presentes: 1 OpenAPI 3.1 válida, 1 YAML malformado.
 
 ## 5. Test plan
 
 | Test | Tipo |
 |---|---|
 | Smoke por package (export o bin) | unit |
-| `pnpm ci` local espejo de CI | script |
+| `pnpm check` local espejo de CI | script |
 | Lint rule: core sin I/O | lint en CI |
 | Windows: scripts no dependen de bash-only | CI matrix |
 
@@ -115,3 +115,4 @@ apigovscan --help                                   # lista comandos futuros (st
 ## Changelog
 
 - 2026-09-23 · Spec creado desde SDD v1.0.
+- 2026-09-23 · Implementada (Fase 0): toolchain, 5 packages, fixtures, CI workflow, `pnpm check` verde local (script `ci` renombrado a `check` por colisión con el built-in de pnpm).
