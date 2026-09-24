@@ -35,7 +35,9 @@ const OPERATION_FIELD = [
 const DOC_FIELD = [
   "info.title",
   "info.version",
+  "info.description",
   "servers",
+  "tags",
   "components.schemas",
 ] as const;
 
@@ -138,6 +140,60 @@ const atomSchema = z.discriminatedUnion("op", [
     pattern: z.string().min(1).max(200),
   }),
   z.strictObject({ op: z.literal("serverInsecure") }),
+  z.strictObject({
+    op: z.literal("parameterNamingViolation"),
+    pattern: z.string().min(1).max(200),
+    in: z.union([z.enum(PARAMETER_IN), z.literal("any")]).optional(),
+  }),
+  z.strictObject({ op: z.literal("parameterDuplicate") }),
+  z.strictObject({ op: z.literal("booleanParamNotTyped") }),
+  z.strictObject({ op: z.literal("arrayParamNotExploded") }),
+  z.strictObject({ op: z.literal("pageParamWithoutMax") }),
+  z.strictObject({ op: z.literal("paginationParamMissing") }),
+  z.strictObject({ op: z.literal("paginationTotalMissing") }),
+  z.strictObject({ op: z.literal("collectionGetNonArrayResponse") }),
+  z.strictObject({
+    op: z.literal("responseHasContent"),
+    status: z.string().min(1),
+  }),
+  z.strictObject({ op: z.literal("redirectMissingLocation") }),
+  z.strictObject({ op: z.literal("securityEmptyOverride") }),
+  z.strictObject({ op: z.literal("errorUsesJsonNotProblem") }),
+  z.strictObject({ op: z.literal("errorSchemaMissingTitle") }),
+  z.strictObject({ op: z.literal("objectSchemaNotRef") }),
+  z.strictObject({ op: z.literal("emptyObjectSchema") }),
+  z.strictObject({ op: z.literal("schemaTypeAmbiguous") }),
+  z.strictObject({ op: z.literal("enumWithoutDescription") }),
+  z.strictObject({ op: z.literal("additionalPropertiesAbsent") }),
+  z.strictObject({ op: z.literal("enumCasingInconsistent") }),
+  z.strictObject({ op: z.literal("nonStandardDateTimeFormat") }),
+  z.strictObject({ op: z.literal("sensitiveFieldInResponse") }),
+  z.strictObject({
+    op: z.literal("propertyNamingViolation"),
+    pattern: z.string().min(1).max(200),
+  }),
+  z.strictObject({ op: z.literal("externalDocsMissingUrl") }),
+  z.strictObject({ op: z.literal("operationTagsWithoutRootTags") }),
+  z.strictObject({
+    op: z.literal("schemaNameNotMatching"),
+    pattern: z.string().min(1).max(200),
+  }),
+  z.strictObject({ op: z.literal("errorMediaTypeInconsistent") }),
+  z.strictObject({ op: z.literal("missingAny5xx") }),
+  z.strictObject({ op: z.literal("securityDeclaredNowhere") }),
+  z.strictObject({ op: z.literal("apiKeySchemeInQuery") }),
+  z.strictObject({ op: z.literal("bearerSchemeWithoutAuthHeader") }),
+  z.strictObject({ op: z.literal("versionStyleInconsistent") }),
+  z.strictObject({ op: z.literal("breakingChangePolicyUndocumented") }),
+  z.strictObject({
+    op: z.literal("infoVersionNotMatching"),
+    pattern: z.string().min(1).max(200),
+  }),
+  z.strictObject({
+    op: z.literal("inputSizeExceeds"),
+    maxBytes: z.number().int().min(0),
+  }),
+  z.strictObject({ op: z.literal("paginationNamingInconsistent") }),
 ]);
 
 const matcherSchema: z.ZodType<Matcher> = z.lazy(() =>
@@ -167,6 +223,18 @@ const DOC_ATOMS = new Set<string>([
   "docFieldMissing",
   "openapiVersionMismatch",
   "serverInsecure",
+  "operationTagsWithoutRootTags",
+  "schemaNameNotMatching",
+  "errorMediaTypeInconsistent",
+  "missingAny5xx",
+  "securityDeclaredNowhere",
+  "apiKeySchemeInQuery",
+  "bearerSchemeWithoutAuthHeader",
+  "versionStyleInconsistent",
+  "breakingChangePolicyUndocumented",
+  "infoVersionNotMatching",
+  "inputSizeExceeds",
+  "paginationNamingInconsistent",
 ]);
 
 export type Scope = "doc" | "operation" | "mixed";

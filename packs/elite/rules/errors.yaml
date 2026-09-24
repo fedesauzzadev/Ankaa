@@ -1,4 +1,4 @@
-# rules/errors.yaml — skeleton M1.3
+# rules/errors.yaml — M1.3 skeleton + M1.5 full inventory
 - id: ERR-001
   category: errors
   severity: warning
@@ -14,3 +14,71 @@
         in: [post, put, patch, delete]
       - op: responseMissing
         status: "4xx"
+
+- id: ERR-002
+  category: errors
+  severity: warning
+  message: "Secured operations should distinguish 401 (unauthenticated) vs 403 (forbidden)."
+  fix: "Document both 401 and 403 (or explain why only one applies)."
+  source:
+    title: Microsoft REST API Guidelines
+    url: https://github.com/microsoft/api-guidelines
+    section: "Authentication errors"
+  when:
+    all:
+      - not:
+          op: securityMissing
+      - not:
+          any:
+            - op: responsePresent
+              status: "401"
+            - op: responsePresent
+              status: "403"
+
+- id: ERR-003
+  category: errors
+  severity: warning
+  message: "Error media types should be consistent across operations."
+  fix: "Use one error representation (e.g. application/problem+json) everywhere."
+  source:
+    title: Zalando RESTful API Guidelines
+    url: https://opensource.zalando.com/restful-api-guidelines/
+    section: "Errors"
+  when:
+    op: errorMediaTypeInconsistent
+
+- id: ERR-004
+  category: errors
+  severity: info
+  message: "Prefer RFC 9457 `application/problem+json` for error bodies."
+  fix: "Use application/problem+json instead of bare application/json for errors."
+  source:
+    title: RFC 9457 Problem Details for HTTP APIs
+    url: https://www.rfc-editor.org/rfc/rfc9457
+    section: "Problem Details"
+  when:
+    op: errorUsesJsonNotProblem
+
+- id: ERR-005
+  category: errors
+  severity: warning
+  message: "Public APIs should document at least one 5xx response."
+  fix: "Document a 500 (or 5xx) response for unexpected server failures."
+  source:
+    title: Microsoft REST API Guidelines
+    url: https://github.com/microsoft/api-guidelines
+    section: "Server errors"
+  when:
+    op: missingAny5xx
+
+- id: ERR-006
+  category: errors
+  severity: info
+  message: "Error schemas should include a `title` field (RFC 9457 guidance)."
+  fix: "Add `title` (and ideally `status`/`type`) to error object schemas."
+  source:
+    title: RFC 9457 Problem Details for HTTP APIs
+    url: https://www.rfc-editor.org/rfc/rfc9457
+    section: "Problem Details members"
+  when:
+    op: errorSchemaMissingTitle

@@ -51,6 +51,14 @@ type Matcher =
   | AtomMatcher;
 
 // Whitelist v1 — cada átomo declara op discriminante
+type DocField =
+  | "info.title"
+  | "info.version"
+  | "info.description"
+  | "servers"
+  | "tags"
+  | "components.schemas";
+
 type AtomMatcher =
   | { op: "method"; in: string[] }
   | { op: "pathMatches"; pattern: string; segmentIndex?: number | "last" }
@@ -70,7 +78,7 @@ type AtomMatcher =
   | { op: "exampleRequired"; target: "operation" | "response"; status?: string }
   | { op: "sensitiveExample" }
   | { op: "deprecatedWithoutSunset" }
-  | { op: "docFieldMissing"; field: "info.title" | "info.version" | "servers" | "components.schemas" }
+  | { op: "docFieldMissing"; field: DocField }
   | { op: "specExtensionPresent"; name: string }       // x-sunset etc.
   | { op: "schemaInlineDepthMax"; max: number }        // hint PERF/SCHEMA
   | { op: "pathParamUndeclared" }                      // M1.3 pack gap
@@ -79,7 +87,43 @@ type AtomMatcher =
   | { op: "operationIdDuplicate" }
   | { op: "securitySchemeMissing" }
   | { op: "openapiVersionMismatch"; pattern: string }
-  | { op: "serverInsecure" };
+  | { op: "serverInsecure" }
+  // M1.5 pack ≥50 gap
+  | { op: "parameterNamingViolation"; pattern: string; in?: ParameterIn | "any" }
+  | { op: "parameterDuplicate" }
+  | { op: "booleanParamNotTyped" }
+  | { op: "arrayParamNotExploded" }
+  | { op: "pageParamWithoutMax" }
+  | { op: "paginationParamMissing" }
+  | { op: "paginationTotalMissing" }
+  | { op: "collectionGetNonArrayResponse" }
+  | { op: "responseHasContent"; status: string }
+  | { op: "redirectMissingLocation" }
+  | { op: "securityEmptyOverride" }
+  | { op: "errorUsesJsonNotProblem" }
+  | { op: "errorSchemaMissingTitle" }
+  | { op: "objectSchemaNotRef" }
+  | { op: "emptyObjectSchema" }
+  | { op: "schemaTypeAmbiguous" }
+  | { op: "enumWithoutDescription" }
+  | { op: "additionalPropertiesAbsent" }
+  | { op: "enumCasingInconsistent" }
+  | { op: "nonStandardDateTimeFormat" }
+  | { op: "sensitiveFieldInResponse" }
+  | { op: "propertyNamingViolation"; pattern: string }
+  | { op: "externalDocsMissingUrl" }
+  | { op: "operationTagsWithoutRootTags" }             // doc scope
+  | { op: "schemaNameNotMatching"; pattern: string }   // doc scope
+  | { op: "errorMediaTypeInconsistent" }               // doc scope
+  | { op: "missingAny5xx" }                            // doc scope
+  | { op: "securityDeclaredNowhere" }                  // doc scope
+  | { op: "apiKeySchemeInQuery" }                      // doc scope
+  | { op: "bearerSchemeWithoutAuthHeader" }            // doc scope
+  | { op: "versionStyleInconsistent" }                 // doc scope
+  | { op: "breakingChangePolicyUndocumented" }         // doc scope
+  | { op: "infoVersionNotMatching"; pattern: string }  // doc scope
+  | { op: "inputSizeExceeds"; maxBytes: number }       // doc scope
+  | { op: "paginationNamingInconsistent" };            // doc scope
 
 interface Rule {
   id: string;                      // /^[A-Z][A-Z0-9]*-\d{3}$/
@@ -226,3 +270,4 @@ Comparar por:
 - 2026-09-23 · Spec creado desde SDD v1.0.
 - 2026-09-23 · M1.2 implementado: AC-E.1…11 verdes; sha256 TS puro (AC-E.8); zod strict; whitelist de átomos.
 - 2026-09-23 · M1.3: átomos de gap del pack elite (`pathParamUndeclared`, `pathParamNotRequired`, `responseDescriptionMissing`, `operationIdDuplicate`, `securitySchemeMissing`, `openapiVersionMismatch`, `serverInsecure`); `Spec.components.securitySchemes` + `servers` en parser.
+- 2026-09-23 · M1.5: átomos de gap para pack ≥50 (operación + doc scope); `DocField` += `info.description`, `tags`; `Spec` += `rootTags?`, `security?`, `inputBytes?`; `Operation` += `externalDocs?`; `Parameter` += `style?`, `explode?`; `SchemaNode` += `description?`, `additionalProperties?`, `maximum?`, `items?`; `ComponentIndex` += `schemaNodes?`, `securitySchemeDefs?`.

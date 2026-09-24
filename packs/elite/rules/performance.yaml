@@ -1,0 +1,13 @@
+# rules/performance.yaml — M1.5 inventory
+- id: PERF-001
+  category: performance
+  severity: info
+  message: "Spec file size budget warning (> 2 MB)."
+  fix: "Split large specs or extract heavy examples/schemas into components."
+  source:
+    title: OpenAPI Specification
+    url: https://spec.openapis.org/oas/v3.1.0
+    section: "Document structure"
+  when:
+    op: inputSizeExceeds
+    maxBytes: 2000000

@@ -113,36 +113,36 @@ Plan: [plans/f1-mvp.md](../plans/f1-mvp.md) · Specs: `f1-openapi`, `f1-engine`,
 
 ### Pack ≥ 50
 
-- [ ] Completar inventario de spec f1-elite-pack (ids faltantes)
-- [ ] Gap analysis átomos → engine PRs
-- [ ] Fixtures públicos committeados + thresholds ruido (AC-P.6)
-- [ ] Test count ≥ 50 activas (AC-P.1)
-- [ ] Test 100% source.url (AC-P.2)
-- [ ] Test ids únicos + formato (AC-P.3)
-- [ ] validateRule all (AC-P.4)
-- [ ] Inventario vs CHANGELOG (AC-P.5)
-- [ ] CHANGELOG 2026.09.1 con impacto por severidad (AC-P.7)
-- [ ] Pack embebido sin red (AC-P.8)
-- [ ] `explain(ruleId)` unit + uso desde CLI `rules explain` (AC-P.9)
-- [ ] Messages EN literales (AC-P.10)
+- [x] Completar inventario de spec f1-elite-pack (ids faltantes)
+- [x] Gap analysis átomos → engine PRs
+- [x] Fixtures públicos committeados + thresholds ruido (AC-P.6)
+- [x] Test count ≥ 50 activas (AC-P.1)
+- [x] Test 100% source.url (AC-P.2)
+- [x] Test ids únicos + formato (AC-P.3)
+- [x] validateRule all (AC-P.4)
+- [x] Inventario vs CHANGELOG (AC-P.5)
+- [x] CHANGELOG 2026.09.1 con impacto por severidad (AC-P.7)
+- [x] Pack embebido sin red (AC-P.8)
+- [x] `explain(ruleId)` unit + uso desde CLI `rules explain` (AC-P.9)
+- [x] Messages EN literales (AC-P.10)
 
 ### Invariants suite
 
-- [ ] `no-network.test` INV-1 + e2e preload (AC-I.1)
-- [ ] `determinism.test` INV-2
-- [ ] `core-purity` / banned imports INV-3
-- [ ] `no-eval` INV-4
-- [ ] `fingerprint/sort` INV-5 mínimo f1
-- [ ] `report packs version` INV-6
-- [ ] `fs-boundary` INV-7
-- [ ] `pack-embed` test
-- [ ] CI job `invariants` en matriz OS (AC-I.1, AC-I.2 documentado)
-- [ ] Spec f1-elite-pack + f1-invariants → `implementada`
+- [x] `no-network.test` INV-1 + e2e preload (AC-I.1)
+- [x] `determinism.test` INV-2
+- [x] `core-purity` / banned imports INV-3
+- [x] `no-eval` INV-4
+- [x] `fingerprint/sort` INV-5 mínimo f1
+- [x] `report packs version` INV-6
+- [x] `fs-boundary` INV-7
+- [x] `pack-embed` test
+- [x] CI job `invariants` en matriz OS (AC-I.1, AC-I.2 documentado)
+- [x] Spec f1-elite-pack + f1-invariants → `implementada`
 
 ### Cierre fase 1
 
-- [ ] Performance: spec 1 MB < 2 s p95 — medir, anotar resultado
-- [ ] README quickstart (`pnpm dlx` / bin local + ejemplos)
+- [x] Performance: spec 1 MB < 2 s p95 — medir, anotar resultado
+- [x] README quickstart (`pnpm dlx` / bin local + ejemplos)
 - [ ] Tag `v0.1.0-mvp`
-- [ ] Revisar DoD de plans/f1-mvp.md
-- [ ] Actualizar estado de specs f1 en specs/README.md
+- [x] Revisar DoD de plans/f1-mvp.md
+- [x] Actualizar estado de specs f1 en specs/README.md

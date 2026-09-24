@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | ready |
+| Estado | implementada |
 | Fase | 1 (corre sobre todo el MVP) |
 | Deriva de | SDD §5 invariantes INV-1…INV-7, NFR-01/05/06/08 |
 | Cross-cutting | Sí |
@@ -107,10 +107,10 @@ invariants/
 
 ## 4. Criterios de aceptación (gate global f1)
 
-- [ ] **AC-I.1** `pnpm test:invariants` verde en CI matriz OS.
-- [ ] **AC-I.2** Un PR que introduzca `fetch` en core rompe CI (demostrado: test falla en rama de prueba o lint rule documentado).
-- [ ] **AC-I.3** Cobertura lista INV-1..7 en f1 documentada arriba; gaps → issues con due date antes de cerrar fase.
-- [ ] **AC-I.4** Runtime de suite invariants < 60 s en CI shared runners (si se excede, marcar heavy y justificar).
+- [x] **AC-I.1** `pnpm test:invariants` verde en CI matriz OS.
+- [x] **AC-I.2** Un PR que introduzca `fetch` en core rompe CI (demostrado: test falla en rama de prueba o lint rule documentado).
+- [x] **AC-I.3** Cobertura lista INV-1..7 en f1 documentada arriba; gaps → issues con due date antes de cerrar fase.
+- [x] **AC-I.4** Runtime de suite invariants < 60 s en CI shared runners (si se excede, marcar heavy y justificar).
 
 ## 5. Test plan
 
@@ -134,3 +134,4 @@ invariants/
 ## Changelog
 
 - 2026-09-23 · Spec creado desde SDD v1.0.
+- 2026-09-24 · M1.5: suite `tests/invariants/{full,fs-boundary}.test.ts` cubre INV-1…7 + pack embed; CI job `invariants` en matriz OS; AC-I.1…4 verdes. Estado → `implementada`.

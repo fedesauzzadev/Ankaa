@@ -1,0 +1,36 @@
+# rules/pagination.yaml — M1.5 inventory
+- id: PAG-001
+  category: pagination
+  severity: warning
+  message: "Collection GET endpoints should define a page/cursor/limit query parameter."
+  fix: "Add a pagination parameter (page, cursor, limit, or offset)."
+  source:
+    title: Google API Design Guide
+    url: https://cloud.google.com/apis/design
+    section: "List methods / pagination"
+  when:
+    op: paginationParamMissing
+
+- id: PAG-002
+  category: pagination
+  severity: warning
+  message: "Page-size parameters should declare max/bounds guidance."
+  fix: "Set `maximum` (and preferably `default`) on limit/pageSize parameters."
+  source:
+    title: Zalando RESTful API Guidelines
+    url: https://opensource.zalando.com/restful-api-guidelines/
+    section: "Pagination"
+  when:
+    op: pageParamWithoutMax
+
+- id: PAG-003
+  category: pagination
+  severity: info
+  message: "Collection responses should document a total count field when provided."
+  fix: "Expose `total`/`count` in list response schemas when the API knows it."
+  source:
+    title: Google API Design Guide
+    url: https://cloud.google.com/apis/design
+    section: "List methods"
+  when:
+    op: paginationTotalMissing

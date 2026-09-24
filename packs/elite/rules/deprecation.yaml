@@ -1,0 +1,30 @@
+# rules/deprecation.yaml — M1.5 inventory
+- id: DEPR-001
+  category: deprecation
+  severity: warning
+  message: "Deprecated operations should include `x-sunset` or sunset documentation."
+  fix: "Add `x-sunset: YYYY-MM-DD` (or document sunset in description)."
+  source:
+    title: Microsoft REST API Guidelines
+    url: https://github.com/microsoft/api-guidelines
+    section: "Deprecation"
+  when:
+    op: deprecatedWithoutSunset
+
+- id: DEPR-002
+  category: deprecation
+  severity: info
+  message: "Deprecated operations should prefix summary with `[deprecated]`."
+  fix: "Start the summary with `[deprecated]` so lists and docs surface it."
+  source:
+    title: Microsoft REST API Guidelines
+    url: https://github.com/microsoft/api-guidelines
+    section: "Deprecation"
+  when:
+    all:
+      - op: presentField
+        field: deprecated
+      - not:
+          op: descriptionMatches
+          target: summary
+          pattern: '^\[deprecated\]'

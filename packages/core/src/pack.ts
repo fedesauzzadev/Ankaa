@@ -66,3 +66,42 @@ export function loadPack(
 export function flattenRuleLists(lists: readonly unknown[][]): unknown[] {
   return lists.flat();
 }
+
+export interface RuleExplanation {
+  id: string;
+  category: Rule["category"];
+  severity: Rule["severity"];
+  message: string;
+  fix?: string;
+  source?: Rule["source"];
+  packId: string;
+  packVersion: string;
+}
+
+export function explainRule(
+  pack: RulePack | readonly Rule[],
+  ruleId: string,
+): RuleExplanation | undefined {
+  const rules = Array.isArray(pack)
+    ? (pack as readonly Rule[])
+    : (pack as RulePack).rules;
+  const rule = rules.find((r) => r.id === ruleId);
+  if (!rule) return undefined;
+  return {
+    id: rule.id,
+    category: rule.category,
+    severity: rule.severity,
+    message: rule.message,
+    ...(rule.fix !== undefined ? { fix: rule.fix } : {}),
+    ...(rule.source !== undefined ? { source: rule.source } : {}),
+    packId: rule.packId,
+    packVersion: rule.packVersion,
+  };
+}
+
+export function explain(
+  pack: RulePack | readonly Rule[],
+  ruleId: string,
+): RuleExplanation | undefined {
+  return explainRule(pack, ruleId);
+}

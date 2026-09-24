@@ -1,7 +1,13 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { isAbsolute, relative, resolve, sep } from "node:path";
 import { parse as parseYaml } from "yaml";
-import { packageVersion, validateRule, type Rule, type Severity } from "@apigovscan/core";
+import {
+  explain,
+  packageVersion,
+  validateRule,
+  type Rule,
+  type Severity,
+} from "@apigovscan/core";
 import { parseAnalyzeArgs, type FailOn } from "./args.js";
 import { analyzeUseCase } from "./analyze.js";
 import { loadConfig, type AnalyzeConfig } from "./config.js";
@@ -11,6 +17,11 @@ import {
   createFsSpecLoader,
   createReportSink,
 } from "./loaders.js";
+import {
+  defaultPackSearchRoots,
+  findElitePackDir,
+  loadPackFromDir,
+} from "./pack-fs.js";
 
 export function getVersion(): string {
   return packageVersion();
@@ -22,6 +33,7 @@ export function getHelp(): string {
     "",
     "Usage:",
     "  apigovscan analyze <path> [options]",
+    "  apigovscan rules explain <ruleId>",
     "  apigovscan --version",
     "  apigovscan --help",
     "",
@@ -251,6 +263,101 @@ async function runAnalyze(
   return outcome.exitCode;
 }
 
+function formatExplain(
+  ruleId: string,
+  explanation: ReturnType<typeof explain>,
+): string {
+  if (explanation === undefined) {
+    return `rule not found: ${ruleId}\n`;
+  }
+  const lines = [
+    `${explanation.id}  [${explanation.severity}]  (${explanation.category})`,
+    "",
+    explanation.message,
+  ];
+  if (explanation.fix !== undefined) {
+    lines.push("", `fix: ${explanation.fix}`);
+  }
+  if (explanation.source !== undefined) {
+    lines.push("", `source: ${explanation.source.title}`);
+    lines.push(`url: ${explanation.source.url}`);
+    if (explanation.source.section !== undefined) {
+      lines.push(`section: ${explanation.source.section}`);
+    }
+  }
+  lines.push(
+    "",
+    `pack: ${explanation.packId}@${explanation.packVersion}`,
+  );
+  lines.push("");
+  return lines.join("\n");
+}
+
+function runRules(argv: readonly string[], io: {
+  stdout: (text: string) => void;
+  stderr: (text: string) => void;
+  cwd: string;
+}): number {
+  const sub = argv[0];
+  if (sub !== "explain") {
+    io.stderr(`error: unknown rules subcommand "${sub ?? ""}" (expected: explain)\n`);
+    return 2;
+  }
+  const ruleId = argv[1];
+  if (ruleId === undefined || argv.length > 2) {
+    io.stderr("error: rules explain requires exactly one <ruleId>\n");
+    return 2;
+  }
+  if (!/^[A-Z][A-Z0-9]*-\d{3}$/.test(ruleId)) {
+    io.stderr(`error: invalid rule id format "${ruleId}" (expected PREFIX-NNN)\n`);
+    return 2;
+  }
+
+  let pack;
+  try {
+    const dir = findElitePackDir(defaultPackSearchRoots(io.cwd));
+    if (!dir) {
+      throw new Error(
+        "elite pack not found (searched for packs/elite/pack.yaml from cwd and CLI install)",
+      );
+    }
+    pack = loadPackFromDir(dir);
+  } catch (err) {
+    io.stderr(`error: ${err instanceof Error ? err.message : String(err)}\n`);
+    return 2;
+  }
+
+  const explanation = explain(pack, ruleId);
+  if (explanation === undefined) {
+    io.stderr(`rule not found: ${ruleId}\n`);
+    return 2;
+  }
+  io.stdout(formatExplain(ruleId, explanation));
+  return 0;
+}
+
+function runRulesCommand(
+  argv: readonly string[],
+  io: {
+    stdout: (text: string) => void;
+    stderr: (text: string) => void;
+    cwd: string;
+  },
+): number {
+  if (argv.includes("--help") || argv.includes("-h")) {
+    io.stdout(
+      [
+        "Usage: apigovscan rules explain <ruleId>",
+        "",
+        "Prints message, fix, source URL, and pack version for a rule.",
+        "",
+      ].join("\n"),
+    );
+    return 0;
+  }
+  return runRules(argv, io);
+}
+
 export async function run(
   argv: readonly string[],
   io?: RunIO,
@@ -301,6 +408,13 @@ export async function run(
       cwd,
       isTTY,
       readStdin,
+    });
+  }
+  if (command === "rules") {
+    return runRulesCommand(args.slice(1), {
+      stdout,
+      stderr,
+      cwd,
     });
   }
 

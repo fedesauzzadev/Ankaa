@@ -17,10 +17,11 @@
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
-    "bin"
+    "bin",
+    "packs"
   ],
   "scripts": {
-    "build": "tsc -b",
+    "build": "tsc -b && node ./scripts/copy-packs.mjs",
     "test": "vitest run",
     "typecheck": "tsc -b --pretty"
   },

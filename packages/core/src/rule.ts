@@ -40,7 +40,9 @@ export type ParameterIn = "path" | "query" | "header" | "cookie";
 export type DocField =
   | "info.title"
   | "info.version"
+  | "info.description"
   | "servers"
+  | "tags"
   | "components.schemas";
 
 export type AtomMatcher =
@@ -91,7 +93,46 @@ export type AtomMatcher =
   | { op: "operationIdDuplicate" }
   | { op: "securitySchemeMissing" }
   | { op: "openapiVersionMismatch"; pattern: string }
-  | { op: "serverInsecure" };
+  | { op: "serverInsecure" }
+  | {
+      op: "parameterNamingViolation";
+      pattern: string;
+      in?: ParameterIn | "any";
+    }
+  | { op: "parameterDuplicate" }
+  | { op: "booleanParamNotTyped" }
+  | { op: "arrayParamNotExploded" }
+  | { op: "pageParamWithoutMax" }
+  | { op: "paginationParamMissing" }
+  | { op: "paginationTotalMissing" }
+  | { op: "collectionGetNonArrayResponse" }
+  | { op: "responseHasContent"; status: string }
+  | { op: "redirectMissingLocation" }
+  | { op: "securityEmptyOverride" }
+  | { op: "errorUsesJsonNotProblem" }
+  | { op: "errorSchemaMissingTitle" }
+  | { op: "objectSchemaNotRef" }
+  | { op: "emptyObjectSchema" }
+  | { op: "schemaTypeAmbiguous" }
+  | { op: "enumWithoutDescription" }
+  | { op: "additionalPropertiesAbsent" }
+  | { op: "enumCasingInconsistent" }
+  | { op: "nonStandardDateTimeFormat" }
+  | { op: "sensitiveFieldInResponse" }
+  | { op: "propertyNamingViolation"; pattern: string }
+  | { op: "externalDocsMissingUrl" }
+  | { op: "operationTagsWithoutRootTags" }
+  | { op: "schemaNameNotMatching"; pattern: string }
+  | { op: "errorMediaTypeInconsistent" }
+  | { op: "missingAny5xx" }
+  | { op: "securityDeclaredNowhere" }
+  | { op: "apiKeySchemeInQuery" }
+  | { op: "bearerSchemeWithoutAuthHeader" }
+  | { op: "versionStyleInconsistent" }
+  | { op: "breakingChangePolicyUndocumented" }
+  | { op: "infoVersionNotMatching"; pattern: string }
+  | { op: "inputSizeExceeds"; maxBytes: number }
+  | { op: "paginationNamingInconsistent" };
 
 export type Matcher =
   | { all: Matcher[] }

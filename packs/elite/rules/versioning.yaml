@@ -1,0 +1,37 @@
+# rules/versioning.yaml — M1.5 inventory
+- id: VER-001
+  category: versioning
+  severity: warning
+  message: "Version style should be consistent across servers and paths."
+  fix: "Pick one style (path `/v1/`, header, or query) and use it everywhere."
+  source:
+    title: Microsoft REST API Guidelines
+    url: https://github.com/microsoft/api-guidelines
+    section: "Versioning"
+  when:
+    op: versionStyleInconsistent
+
+- id: VER-002
+  category: versioning
+  severity: warning
+  message: "Document a breaking-change / compatibility policy."
+  fix: "Describe versioning and deprecation policy in info.description or extensions."
+  source:
+    title: Microsoft REST API Guidelines
+    url: https://github.com/microsoft/api-guidelines
+    section: "Breaking changes"
+  when:
+    op: breakingChangePolicyUndocumented
+
+- id: VER-003
+  category: versioning
+  severity: info
+  message: "`info.version` should be semver-ish (e.g. 1.2.3)."
+  fix: "Use a semver-compatible version string under info.version."
+  source:
+    title: Google API Design Guide
+    url: https://cloud.google.com/apis/design
+    section: "Versioning"
+  when:
+    op: infoVersionNotMatching
+    pattern: '^\d+\.\d+(\.\d+)?([-+][0-9A-Za-z.-]+)?$'

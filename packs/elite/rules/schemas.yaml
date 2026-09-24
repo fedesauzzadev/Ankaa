@@ -1,0 +1,60 @@
+# rules/schemas.yaml — M1.5 inventory
+- id: SCHEMA-001
+  category: schemas
+  severity: warning
+  message: "Repeated object schemas should be reused via `$ref`."
+  fix: "Extract object shapes into components.schemas and reference them."
+  source:
+    title: Google API Design Guide
+    url: https://cloud.google.com/apis/design
+    section: "Schema reuse"
+  when:
+    op: objectSchemaNotRef
+
+- id: SCHEMA-002
+  category: schemas
+  severity: warning
+  message: "Top-level object schemas should declare `properties` (or `$ref`)."
+  fix: "Add a `properties` map or `$ref` to a defined schema."
+  source:
+    title: OpenAPI Specification
+    url: https://spec.openapis.org/oas/v3.1.0
+    section: "Schema Object"
+  when:
+    op: emptyObjectSchema
+
+- id: SCHEMA-003
+  category: schemas
+  severity: info
+  message: "Schema should declare an explicit `type` (or `$ref`/`enum`)."
+  fix: "Set `type: object|string|number|boolean|array|integer`."
+  source:
+    title: OpenAPI Specification
+    url: https://spec.openapis.org/oas/v3.1.0
+    section: "Schema Object"
+  when:
+    op: schemaTypeAmbiguous
+
+- id: SCHEMA-004
+  category: schemas
+  severity: warning
+  message: "Enum schemas should include a `description`."
+  fix: "Document allowed enum values with a description."
+  source:
+    title: Google API Design Guide
+    url: https://cloud.google.com/apis/design
+    section: "Enums"
+  when:
+    op: enumWithoutDescription
+
+- id: SCHEMA-005
+  category: schemas
+  severity: info
+  message: "`additionalProperties` should be set intentionally on object schemas."
+  fix: "Set `additionalProperties: false` (closed) or `true` with a rationale."
+  source:
+    title: OpenAPI Specification
+    url: https://spec.openapis.org/oas/v3.1.0
+    section: "Schema Object"
+  when:
+    op: additionalPropertiesAbsent

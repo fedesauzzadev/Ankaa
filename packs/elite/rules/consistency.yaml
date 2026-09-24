@@ -1,0 +1,36 @@
+# rules/consistency.yaml — M1.5 inventory
+- id: CONS-001
+  category: consistency
+  severity: warning
+  message: "Enum values should use a consistent casing style."
+  fix: "Pick one style (UPPER_SNAKE, lower, camel, or kebab) for all enum values."
+  source:
+    title: Google API Design Guide
+    url: https://cloud.google.com/apis/design
+    section: "Enums"
+  when:
+    op: enumCasingInconsistent
+
+- id: CONS-002
+  category: consistency
+  severity: info
+  message: "Date-time fields should use RFC 3339 `format: date-time`."
+  fix: "Set `format: date-time` (not custom datetime/iso8601 aliases)."
+  source:
+    title: Google API Design Guide
+    url: https://cloud.google.com/apis/design
+    section: "Timestamps"
+  when:
+    op: nonStandardDateTimeFormat
+
+- id: CONS-003
+  category: consistency
+  severity: warning
+  message: "Pagination parameter naming should be consistent across collection ops."
+  fix: "Use the same pagination parameter family (page vs cursor vs offset) everywhere."
+  source:
+    title: Zalando RESTful API Guidelines
+    url: https://opensource.zalando.com/restful-api-guidelines/
+    section: "Pagination"
+  when:
+    op: paginationNamingInconsistent

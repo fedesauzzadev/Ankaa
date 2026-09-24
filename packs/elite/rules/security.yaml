@@ -1,4 +1,16 @@
-# rules/security.yaml — skeleton M1.3
+# rules/security.yaml — M1.3 skeleton + M1.5 full inventory
+- id: SEC-001
+  category: security
+  severity: warning
+  message: "Examples must not look like real secrets (passwords, tokens, API keys)."
+  fix: "Replace example values with obvious placeholders (string, EXAMPLE, …)."
+  source:
+    title: Google API Design Guide
+    url: https://cloud.google.com/apis/design
+    section: "Security / examples"
+  when:
+    op: sensitiveExample
+
 - id: SEC-002
   category: security
   severity: warning
@@ -10,3 +22,15 @@
     section: "https / TLS"
   when:
     op: serverInsecure
+
+- id: SEC-003
+  category: security
+  severity: info
+  message: "Avoid exposing sensitive fields (password, token) in 2xx response schemas."
+  fix: "Remove or redact secret-like fields from success response models."
+  source:
+    title: Google API Design Guide
+    url: https://cloud.google.com/apis/design
+    section: "Security"
+  when:
+    op: sensitiveFieldInResponse

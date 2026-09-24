@@ -8,6 +8,7 @@ import type {
   Response,
   SchemaNode,
   SecurityRequirement,
+  SecuritySchemeDef,
   Spec,
 } from "@apigovscan/core";
 import { createHash } from "node:crypto";
@@ -182,6 +183,16 @@ export function parseSpec(
   const components = buildComponentIndex(raw);
   const servers = parseServers(raw.servers);
   const extensions = pickExtensions(raw);
+  const rootTags = Array.isArray(raw.tags)
+    ? raw.tags
+        .filter((t): t is Record<string, unknown> => isRecord(t))
+        .map((t) => (typeof t.name === "string" ? t.name : ""))
+        .filter((n) => n.length > 0)
+        .sort()
+    : undefined;
+  const security =
+    raw.security !== undefined ? parseSecurity(raw.security) : undefined;
+  const inputBytes = bytes.byteLength;
 
   return {
     ok: true,
@@ -195,6 +206,9 @@ export function parseSpec(
       parseWarnings: warnings,
       ...(servers ? { servers } : {}),
       ...(Object.keys(extensions).length > 0 ? { extensions } : {}),
+      ...(rootTags && rootTags.length > 0 ? { rootTags } : {}),
+      ...(security && security.length > 0 ? { security } : {}),
+      inputBytes,
     },
   };
 }
@@ -339,6 +353,15 @@ function collectOperations(
       if (typeof opRaw.description === "string") {
         operation.description = opRaw.description;
       }
+      if (isRecord(opRaw.externalDocs)) {
+        operation.externalDocs = {};
+        if (typeof opRaw.externalDocs.url === "string") {
+          operation.externalDocs.url = opRaw.externalDocs.url;
+        }
+        if (typeof opRaw.externalDocs.description === "string") {
+          operation.externalDocs.description = opRaw.externalDocs.description;
+        }
+      }
       if (isRecord(opRaw.requestBody)) {
         operation.requestBody = parseRequestBody(
           opRaw.requestBody,
@@ -413,6 +436,8 @@ function parseParameters(
     };
     if (raw.deprecated === true) p.deprecated = true;
     if (typeof raw.description === "string") p.description = raw.description;
+    if (typeof raw.style === "string") p.style = raw.style;
+    if (typeof raw.explode === "boolean") p.explode = raw.explode;
     if (isRecord(raw.schema)) {
       p.schema = toSchemaNode(raw.schema);
     }
@@ -525,6 +550,12 @@ function toSchemaNode(raw: Record<string, unknown>): SchemaNode {
     node.required = raw.required.filter((r): r is string => typeof r === "string");
   }
   if (typeof raw.maxLength === "number") node.maxLength = raw.maxLength;
+  if (typeof raw.maximum === "number") node.maximum = raw.maximum;
+  if (typeof raw.description === "string") node.description = raw.description;
+  if (typeof raw.additionalProperties === "boolean") {
+    node.additionalProperties = raw.additionalProperties;
+  }
+  if (isRecord(raw.items)) node.items = toSchemaNode(raw.items);
   if ("example" in raw) node.example = raw.example;
   return node;
 }
@@ -561,7 +592,39 @@ function buildComponentIndex(doc: Record<string, unknown>): ComponentIndex {
   const securitySchemes = isRecord(components.securitySchemes)
     ? Object.keys(components.securitySchemes).sort()
     : [];
-  return { schemas, responses, parameters, securitySchemes };
+
+  const schemaNodes: Record<string, SchemaNode> = {};
+  if (isRecord(components.schemas)) {
+    for (const name of Object.keys(components.schemas).sort()) {
+      const node = components.schemas[name];
+      if (isRecord(node)) schemaNodes[name] = toSchemaNode(node);
+    }
+  }
+
+  const securitySchemeDefs: SecuritySchemeDef[] = [];
+  if (isRecord(components.securitySchemes)) {
+    for (const name of Object.keys(components.securitySchemes).sort()) {
+      const raw = components.securitySchemes[name];
+      if (!isRecord(raw)) continue;
+      const def: SecuritySchemeDef = {
+        name,
+        type: typeof raw.type === "string" ? raw.type : "unknown",
+      };
+      if (typeof raw.scheme === "string") def.scheme = raw.scheme;
+      if (typeof raw.in === "string") def.in = raw.in;
+      if (typeof raw.name === "string") def.paramName = raw.name;
+      securitySchemeDefs.push(def);
+    }
+  }
+
+  return {
+    schemas,
+    responses,
+    parameters,
+    securitySchemes,
+    schemaNodes,
+    securitySchemeDefs,
+  };
 }
 
 function escapePointer(segment: string): string {

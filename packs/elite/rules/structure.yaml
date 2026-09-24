@@ -1,4 +1,4 @@
-# rules/structure.yaml — skeleton M1.3
+# rules/structure.yaml — M1.3 skeleton + M1.5 full inventory
 - id: STRUCT-001
   category: structure
   severity: error
@@ -37,3 +37,41 @@
   when:
     op: docFieldMissing
     field: info.version
+
+- id: STRUCT-004
+  category: structure
+  severity: warning
+  message: "OpenAPI document should declare `servers`."
+  fix: "Add a `servers` array at the document root."
+  source:
+    title: Microsoft REST API Guidelines
+    url: https://github.com/microsoft/api-guidelines
+    section: "Versioning / base URL"
+  when:
+    op: docFieldMissing
+    field: servers
+
+- id: STRUCT-005
+  category: structure
+  severity: warning
+  message: "Root `tags` should be declared when operations use tags."
+  fix: "Declare tag objects under the root `tags` array."
+  source:
+    title: Microsoft REST API Guidelines
+    url: https://github.com/microsoft/api-guidelines
+    section: "Tags"
+  when:
+    op: operationTagsWithoutRootTags
+
+- id: STRUCT-006
+  category: structure
+  severity: info
+  message: "Prefer reusable `components.schemas` over deeply nested inline schemas."
+  fix: "Extract repeated object shapes into components.schemas and $ref them."
+  source:
+    title: Google API Design Guide
+    url: https://cloud.google.com/apis/design
+    section: "Schema definitions"
+  when:
+    op: schemaInlineDepthMax
+    max: 4

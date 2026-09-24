@@ -9,6 +9,9 @@ export interface Spec {
   };
   servers?: Array<{ url: string; description?: string }>;
   extensions?: Record<string, unknown>;
+  rootTags?: string[];
+  security?: SecurityRequirement[];
+  inputBytes?: number;
   operations: Operation[];
   components: ComponentIndex;
   parseWarnings: ParseWarning[];
@@ -27,6 +30,7 @@ export interface Operation {
   responses: Response[];
   security: SecurityRequirement[] | undefined;
   extensions: Record<string, unknown>;
+  externalDocs?: { url?: string; description?: string };
   jsonPointer: string;
 }
 
@@ -36,6 +40,8 @@ export interface Parameter {
   required: boolean;
   deprecated?: boolean;
   description?: string;
+  style?: string;
+  explode?: boolean;
   schema?: SchemaNode;
   jsonPointer: string;
 }
@@ -65,10 +71,22 @@ export interface SchemaNode {
   format?: string;
   ref?: string;
   enum?: unknown[];
+  description?: string;
   properties?: Record<string, SchemaNode>;
   required?: string[];
   maxLength?: number;
+  maximum?: number;
+  additionalProperties?: boolean;
+  items?: SchemaNode;
   example?: unknown;
+}
+
+export interface SecuritySchemeDef {
+  name: string;
+  type: string;
+  scheme?: string;
+  in?: string;
+  paramName?: string;
 }
 
 export interface ComponentIndex {
@@ -76,6 +94,8 @@ export interface ComponentIndex {
   responses: string[];
   parameters: string[];
   securitySchemes: string[];
+  schemaNodes?: Record<string, SchemaNode>;
+  securitySchemeDefs?: SecuritySchemeDef[];
 }
 
 export interface SecurityRequirement {

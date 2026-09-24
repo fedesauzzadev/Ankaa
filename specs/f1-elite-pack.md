@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | ready |
+| Estado | implementada |
 | Fase | 1 |
 | Deriva de | SDD D6, FR-10/11/12, doc 04 estándares; criterio salida Fase 1 |
 | Artefacto | `packs/elite/<version>/` embebido en `@apigovscan/cli` |
@@ -198,16 +198,16 @@ Conteo del inventario: **≥ 65 IDs** comprometidos (meta ≥ 50 activos; alguno
 
 ## 4. Criterios de aceptación
 
-- [ ] **AC-P.1** Test CI: `rules.length >= 50` con `enabledByDefault !== false`.
-- [ ] **AC-P.2** Test CI: 100% de reglas del pack tienen `source.url` válida (formato URL) — `strictSource`.
-- [ ] **AC-P.3** Test CI: ids únicos globales; formato `PREFIX-NNN`.
-- [ ] **AC-P.4** Test CI: `validateRule` (engine) pasa para **todas** las reglas del pack.
-- [ ] **AC-P.5** Inventario mínimo: todos los ids de la tabla presentes o removidos con entrada en `CHANGELOG.md`.
-- [ ] **AC-P.6** Fixtures: `ruido` — petstore y 2 specs de ejemplo públicos downloadeados **committeados** (no red en CI) con thresholds: findings ≤ máx documentado por fixture (snapshot estable).
-- [ ] **AC-P.7** CHANGELOG `2026.09.1` documenta conteo total y impacto por severidad en fixtures.
-- [ ] **AC-P.8** Pack embebido: `@apigovscan/cli` incluye el pack sin red (test AC-O/INV-1).
-- [ ] **AC-P.9** `apigovscan rules explain NAMING-001` muestra mensaje + fuente + url (puede llegar en f1-analyze o CLI commands — mínimo: export `explain(ruleId)` unit-testeado).
-- [ ] **AC-P.10** Ningún `message` contiene traducciones no deterministas (locale) — solo strings literales EN.
+- [x] **AC-P.1** Test CI: `rules.length >= 50` con `enabledByDefault !== false`.
+- [x] **AC-P.2** Test CI: 100% de reglas del pack tienen `source.url` válida (formato URL) — `strictSource`.
+- [x] **AC-P.3** Test CI: ids únicos globales; formato `PREFIX-NNN`.
+- [x] **AC-P.4** Test CI: `validateRule` (engine) pasa para **todas** las reglas del pack.
+- [x] **AC-P.5** Inventario mínimo: todos los ids de la tabla presentes o removidos con entrada en `CHANGELOG.md`.
+- [x] **AC-P.6** Fixtures: `ruido` — petstore y 2 specs de ejemplo públicos downloadeados **committeados** (no red en CI) con thresholds: findings ≤ máx documentado por fixture (snapshot estable).
+- [x] **AC-P.7** CHANGELOG `2026.09.1` documenta conteo total y impacto por severidad en fixtures.
+- [x] **AC-P.8** Pack embebido: `@apigovscan/cli` incluye el pack sin red (test AC-O/INV-1).
+- [x] **AC-P.9** `apigovscan rules explain NAMING-001` muestra mensaje + fuente + url (puede llegar en f1-analyze o CLI commands — mínimo: export `explain(ruleId)` unit-testeado).
+- [x] **AC-P.10** Ningún `message` contiene traducciones no deterministas (locale) — solo strings literales EN.
 
 ## 5. Test plan
 
@@ -235,3 +235,4 @@ Conteo del inventario: **≥ 65 IDs** comprometidos (meta ≥ 50 activos; alguno
 ## Changelog
 
 - 2026-09-23 · Spec creado desde SDD v1.0.
+- 2026-09-24 · M1.5: inventario completo (65 IDs) en `packs/elite/rules/`; AC-P.1…10 verdes; `explain` + CLI `rules explain`; pack embebido vía `packages/cli` build; fixtures públicos committeados con thresholds; CHANGELOG `2026.09.1` con impacto por severidad. Estado → `implementada`.

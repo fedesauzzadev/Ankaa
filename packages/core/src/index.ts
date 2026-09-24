@@ -26,6 +26,7 @@ export type {
   SchemaNode,
   ComponentIndex,
   SecurityRequirement,
+  SecuritySchemeDef,
   ParseWarning,
 } from "./spec.js";
 
@@ -68,7 +69,10 @@ export { evaluateMatcher, evaluateAtom } from "./atoms.js";
 export {
   loadPack,
   flattenRuleLists,
+  explain,
+  explainRule,
   type PackMeta,
   type PackLoadIssue,
   type PackLoadResult,
+  type RuleExplanation,
 } from "./pack.js";

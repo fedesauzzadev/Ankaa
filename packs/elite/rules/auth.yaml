@@ -1,4 +1,28 @@
-# rules/auth.yaml — skeleton M1.3
+# rules/auth.yaml — M1.3 skeleton + M1.5 full inventory
+- id: AUTH-001
+  category: security
+  severity: warning
+  message: "Declare global `security` or per-operation security for the public surface."
+  fix: "Add root `security` (or per-op security), or document an empty override as public."
+  source:
+    title: OpenAPI Specification
+    url: https://spec.openapis.org/oas/v3.1.0
+    section: "Security Requirement Object"
+  when:
+    op: securityDeclaredNowhere
+
+- id: AUTH-002
+  category: security
+  severity: warning
+  message: "Empty security override (`security: []`) should only mark intentional public operations."
+  fix: "Remove the empty override or document why the operation is public."
+  source:
+    title: Microsoft REST API Guidelines
+    url: https://github.com/microsoft/api-guidelines
+    section: "Authentication"
+  when:
+    op: securityEmptyOverride
+
 - id: AUTH-003
   category: security
   severity: error
@@ -10,3 +34,27 @@
     section: "Security Scheme Object"
   when:
     op: securitySchemeMissing
+
+- id: AUTH-004
+  category: security
+  severity: info
+  message: "Bearer (JWT) schemes should use the canonical `Authorization` header."
+  fix: "Document the Authorization header parameter for bearer authentication."
+  source:
+    title: Microsoft REST API Guidelines
+    url: https://github.com/microsoft/api-guidelines
+    section: "Authorization header"
+  when:
+    op: bearerSchemeWithoutAuthHeader
+
+- id: AUTH-005
+  category: security
+  severity: warning
+  message: "Prefer header API keys over query-string API keys for new designs."
+  fix: "Move apiKey schemes from query to header (or cookie)."
+  source:
+    title: Google API Design Guide
+    url: https://cloud.google.com/apis/design
+    section: "API keys"
+  when:
+    op: apiKeySchemeInQuery

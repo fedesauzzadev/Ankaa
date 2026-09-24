@@ -1,4 +1,4 @@
-# rules/naming.yaml — skeleton M1.3
+# rules/naming.yaml — M1.3 skeleton + M1.5 full inventory
 - id: NAMING-001
   category: naming
   severity: error
@@ -12,6 +12,19 @@
     not:
       op: pathSegmentPlural
       segmentIndex: last
+
+- id: NAMING-002
+  category: naming
+  severity: warning
+  message: "Paths must not end with a trailing slash."
+  fix: "Remove the trailing `/` from the path."
+  source:
+    title: Microsoft REST API Guidelines
+    url: https://github.com/microsoft/api-guidelines
+    section: "URLs"
+  when:
+    op: pathMatches
+    pattern: '/$'
 
 - id: NAMING-003
   category: naming
@@ -28,6 +41,74 @@
           op: operationIdRequired
       - op: operationIdDuplicate
 
+- id: NAMING-004
+  category: naming
+  severity: warning
+  message: "`operationId` should be camelCase."
+  fix: "Rename operationId to camelCase (listUsers)."
+  source:
+    title: Microsoft REST API Guidelines
+    url: https://github.com/microsoft/api-guidelines
+    section: "operationId"
+  when:
+    all:
+      - op: operationIdRequired
+      - not:
+          op: operationIdPattern
+          pattern: '^[a-z][a-zA-Z0-9]*$'
+
+- id: NAMING-005
+  category: naming
+  severity: warning
+  message: "Path segments should use a single style (camelCase or kebab-case), not snake_case."
+  fix: "Replace underscores in path segments with `-` or camelCase."
+  source:
+    title: Microsoft REST API Guidelines
+    url: https://github.com/microsoft/api-guidelines
+    section: "URLs"
+  when:
+    op: pathMatches
+    pattern: '/[a-zA-Z0-9]+_[a-zA-Z0-9]+'
+
+- id: NAMING-006
+  category: naming
+  severity: info
+  message: "Avoid file extensions in paths (`.json`, `.xml`)."
+  fix: "Drop the file extension; negotiate format via Accept/Content-Type."
+  source:
+    title: Google API Design Guide
+    url: https://cloud.google.com/apis/design
+    section: "Paths"
+  when:
+    op: pathMatches
+    pattern: '\.(json|xml|html|yaml|yml|csv)$'
+
+- id: NAMING-007
+  category: naming
+  severity: warning
+  message: "Schema type names should be PascalCase."
+  fix: "Rename component schemas to PascalCase (OrderHistory)."
+  source:
+    title: Google API Design Guide
+    url: https://cloud.google.com/apis/design
+    section: "Schema naming"
+  when:
+    op: schemaNameNotMatching
+    pattern: '^[A-Z][A-Za-z0-9]*$'
+
+- id: NAMING-008
+  category: naming
+  severity: warning
+  message: "JSON property names should be camelCase."
+  fix: "Rename properties to camelCase (lastName)."
+  source:
+    title: Google API Design Guide
+    url: https://cloud.google.com/apis/design
+    section: "Properties"
+  when:
+    op: propertyNamingViolation
+    pattern: '^[a-z][a-zA-Z0-9]*$'
+
 - id: NAMING-009
   category: naming
   severity: error
@@ -39,3 +120,16 @@
     section: "Paths / Path Templating"
   when:
     op: pathParamUndeclared
+
+- id: NAMING-010
+  category: naming
+  severity: warning
+  message: "Avoid verbs in resource-oriented paths (use HTTP methods instead)."
+  fix: "Replace verb segments (create, update, delete) with resources + methods."
+  source:
+    title: Google API Design Guide
+    url: https://cloud.google.com/apis/design
+    section: "Paths / methods"
+  when:
+    op: pathMatches
+    pattern: '/(create|update|delete|get|list|add|remove|insert|modify|save|fetch|find|search)(/|$)'

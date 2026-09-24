@@ -46,8 +46,12 @@ jobs:
         run: pnpm build
 
   invariants:
-    name: invariants (INV-* gates)
-    runs-on: ubuntu-latest
+    name: invariants (INV-* gates) (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@v4
 
@@ -62,6 +66,9 @@ jobs:
 
       - name: Install
         run: pnpm install --frozen-lockfile
+
+      - name: Build (embed packs for INV pack-embed)
+        run: pnpm build
 
       - name: Invariants
         run: pnpm test:invariants

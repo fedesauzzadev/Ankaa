@@ -56,7 +56,7 @@ describe("parseSpec · AC-O.2 spec 3.0.3", () => {
 });
 
 describe("parseSpec · AC-O.3 JSON equals YAML", () => {
-  it("produces deep-equal Spec (except inputHash)", () => {
+  it("produces deep-equal Spec (except inputHash/sourceLabel/inputBytes)", () => {
     const yamlResult = parseSpec(fixture("petstore-mini.yaml"), {
       sourceLabel: "petstore-mini.yaml",
     });
@@ -66,8 +66,18 @@ describe("parseSpec · AC-O.3 JSON equals YAML", () => {
     expect(yamlResult.ok).toBe(true);
     expect(jsonResult.ok).toBe(true);
     if (!yamlResult.ok || !jsonResult.ok) return;
-    const { inputHash: _yh, sourceLabel: _sl, ...yamlSpec } = yamlResult.spec;
-    const { inputHash: _jh, sourceLabel: _jl, ...jsonSpec } = jsonResult.spec;
+    const {
+      inputHash: _yh,
+      sourceLabel: _sl,
+      inputBytes: _yb,
+      ...yamlSpec
+    } = yamlResult.spec;
+    const {
+      inputHash: _jh,
+      sourceLabel: _jl,
+      inputBytes: _jb,
+      ...jsonSpec
+    } = jsonResult.spec;
     expect(jsonSpec).toEqual(yamlSpec);
   });
 });

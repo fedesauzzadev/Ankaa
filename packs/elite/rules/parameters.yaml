@@ -1,4 +1,4 @@
-# rules/parameters.yaml — skeleton M1.3
+# rules/parameters.yaml — M1.3 skeleton + M1.5 full inventory
 - id: PARAM-001
   category: parameters
   severity: error
@@ -22,3 +22,67 @@
     section: "Parameter Object"
   when:
     op: pathParamNotRequired
+
+- id: PARAM-003
+  category: parameters
+  severity: warning
+  message: "Query parameter names should be camelCase."
+  fix: "Rename query parameters to camelCase (pageSize)."
+  source:
+    title: Microsoft REST API Guidelines
+    url: https://github.com/microsoft/api-guidelines
+    section: "Query parameters"
+  when:
+    op: parameterNamingViolation
+    pattern: '^[a-z][a-zA-Z0-9]*$'
+    in: query
+
+- id: PARAM-004
+  category: parameters
+  severity: warning
+  message: "Boolean query parameters should be typed as boolean and documented."
+  fix: "Set `schema.type: boolean` and a clear description for flag parameters."
+  source:
+    title: Zalando RESTful API Guidelines
+    url: https://opensource.zalando.com/restful-api-guidelines/
+    section: "Parameters"
+  when:
+    op: booleanParamNotTyped
+
+- id: PARAM-005
+  category: parameters
+  severity: warning
+  message: "Array query parameters should use exploded style documentation."
+  fix: "Set `explode: true` (or omit for form default) on array parameters."
+  source:
+    title: Zalando RESTful API Guidelines
+    url: https://opensource.zalando.com/restful-api-guidelines/
+    section: "Serialization"
+  when:
+    op: arrayParamNotExploded
+
+- id: PARAM-006
+  category: parameters
+  severity: warning
+  message: "Duplicate `in` + `name` parameters are not allowed after merge."
+  fix: "Remove duplicate parameter entries for the same location and name."
+  source:
+    title: OpenAPI Specification
+    url: https://spec.openapis.org/oas/v3.1.0
+    section: "Parameter Object"
+  when:
+    op: parameterDuplicate
+
+- id: PARAM-007
+  category: parameters
+  severity: info
+  message: "Header parameter names should be lowercase (canonical)."
+  fix: "Rename header parameters to lowercase-with-dashes (x-request-id)."
+  source:
+    title: RFC 9110 HTTP Semantics
+    url: https://www.rfc-editor.org/rfc/rfc9110
+    section: "Field names"
+  when:
+    op: parameterNamingViolation
+    pattern: '^[a-z][a-z0-9-]*$'
+    in: header
