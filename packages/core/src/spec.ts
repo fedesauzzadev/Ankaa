@@ -7,6 +7,8 @@ export interface Spec {
     version?: string;
     description?: string;
   };
+  servers?: Array<{ url: string; description?: string }>;
+  extensions?: Record<string, unknown>;
   operations: Operation[];
   components: ComponentIndex;
   parseWarnings: ParseWarning[];

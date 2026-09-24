@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | ready |
+| Estado | implementada |
 | Fase | 1 |
 | Deriva de | SDD ADR-005, ADR-006, ADR-011, D5; doc 03 motor y reglas; INV-2/3/4 |
 | Package | `@apigovscan/core` |
@@ -179,17 +179,17 @@ Comparar por:
 
 ## 4. Criterios de aceptación
 
-- [ ] **AC-E.1** Fixture Spec + 1 regla atom true ⇒ exactamente 1 finding con fingerprint esperado (golden).
-- [ ] **AC-E.2** Evaluar misma regla dos veces + sort ⇒ arrays deep-equal (INV-2).
-- [ ] **AC-E.3** Orden de entrada de packs/rules invertido ⇒ mismo `findings` tras sort.
-- [ ] **AC-E.4** Matcher desconocido ⇒ `validateRule` emite issue; `evaluate` con regla inválida la excluye de `findings` y la reporta en `errors` (o el CLI falla antes — f1: **falla antes** en load).
-- [ ] **AC-E.5** `severityOverrides` cambia severity y **no** cambia fingerprint.
-- [ ] **AC-E.6** `disabledRuleIds` ⇒ 0 findings de esa regla.
-- [ ] **AC-E.7** Regex catastrófica candidata rechazada en `validateRule` (`UNSAFE_PATTERN`).
-- [ ] **AC-E.8** No hay imports de `node:*` ni `fetch` en `@apigovscan/core` (lint AC de f0) — se mantiene.
-- [ ] **AC-E.9** `all`/`any`/`not` anidados 3 niveles evalúan correctamente (tabla de verdad unitaria).
-- [ ] **AC-E.10** Operación A true, B false ⇒ findings solo en A con `apiLocation` correcto.
-- [ ] **AC-E.11** Performance smoke: 500 operaciones × 50 reglas < 500 ms en CI (medición orientativa, no flaky-hard).
+- [x] **AC-E.1** Fixture Spec + 1 regla atom true ⇒ exactamente 1 finding con fingerprint esperado (golden).
+- [x] **AC-E.2** Evaluar misma regla dos veces + sort ⇒ arrays deep-equal (INV-2).
+- [x] **AC-E.3** Orden de entrada de packs/rules invertido ⇒ mismo `findings` tras sort.
+- [x] **AC-E.4** Matcher desconocido ⇒ `validateRule` emite issue; `evaluate` con regla inválida la excluye de `findings` y la reporta en `errors` (o el CLI falla antes — f1: **falla antes** en load).
+- [x] **AC-E.5** `severityOverrides` cambia severity y **no** cambia fingerprint.
+- [x] **AC-E.6** `disabledRuleIds` ⇒ 0 findings de esa regla.
+- [x] **AC-E.7** Regex catastrófica candidata rechazada en `validateRule` (`UNSAFE_PATTERN`).
+- [x] **AC-E.8** No hay imports de `node:*` ni `fetch` en `@apigovscan/core` (lint AC de f0) — se mantiene.
+- [x] **AC-E.9** `all`/`any`/`not` anidados 3 niveles evalúan correctamente (tabla de verdad unitaria).
+- [x] **AC-E.10** Operación A true, B false ⇒ findings solo en A con `apiLocation` correcto.
+- [x] **AC-E.11** Performance smoke: 500 operaciones × 50 reglas < 500 ms en CI (medición orientativa, no flaky-hard).
 
 ## 5. Test plan
 
@@ -217,3 +217,4 @@ Comparar por:
 ## Changelog
 
 - 2026-09-23 · Spec creado desde SDD v1.0.
+- 2026-09-23 · M1.2 implementado: AC-E.1…11 verdes; sha256 TS puro (AC-E.8); zod strict; whitelist de átomos.

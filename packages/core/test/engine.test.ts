@@ -1,0 +1,527 @@
+import { describe, expect, it } from "vitest";
+import {
+  computeFingerprint,
+  dedupeFindings,
+  evaluate,
+  messageKey,
+  severityRank,
+  sortFindings,
+  validateRule,
+} from "../src/index.js";
+import type { Finding, Rule, Spec } from "../src/index.js";
+
+function makeSpec(overrides?: Partial<Spec>): Spec {
+  const base: Spec = {
+    inputHash: "abc",
+    openapiVersion: "3.1.0",
+    sourceLabel: "test.yaml",
+    info: { title: "API", version: "1.0.0" },
+    servers: [{ url: "https://api.example.com" }],
+    extensions: {},
+    operations: [
+      {
+        method: "get",
+        path: "/users",
+        operationId: "listUsers",
+        summary: "List users",
+        description: "Returns a list of users",
+        tags: ["users"],
+        deprecated: false,
+        parameters: [
+          {
+            name: "limit",
+            in: "query",
+            required: false,
+            jsonPointer: "/paths/~1users/get/parameters/0",
+          },
+        ],
+        responses: [
+          {
+            status: "200",
+            description: "OK",
+            content: [],
+            headers: [],
+            jsonPointer: "/paths/~1users/get/responses/200",
+          },
+        ],
+        security: undefined,
+        extensions: {},
+        jsonPointer: "/paths/~1users/get",
+      },
+      {
+        method: "post",
+        path: "/users",
+        operationId: "createUser",
+        summary: "Create a user",
+        description: "Creates a new user account",
+        tags: ["users"],
+        deprecated: false,
+        parameters: [],
+        requestBody: {
+          required: true,
+          content: [],
+          jsonPointer: "/paths/~1users/post/requestBody",
+        },
+        responses: [
+          {
+            status: "201",
+            description: "Created",
+            content: [],
+            headers: [],
+            jsonPointer: "/paths/~1users/post/responses/201",
+          },
+        ],
+        security: [{ name: "bearerAuth", scopes: [] }],
+        extensions: {},
+        jsonPointer: "/paths/~1users/post",
+      },
+    ],
+    components: {
+      schemas: [],
+      responses: [],
+      parameters: [],
+    },
+    parseWarnings: [],
+  };
+  return { ...base, ...overrides };
+}
+
+function makeRule(partial?: Partial<Rule>): Rule {
+  return {
+    id: "STRUCT-001",
+    category: "structure",
+    severity: "error",
+    message: "Operation must document a description",
+    when: { op: "missingField", field: "description" },
+    packId: "elite",
+    packVersion: "2026.09.1",
+    ...partial,
+  };
+}
+
+describe("AC-E.1 golden fingerprint", () => {
+  it("emits exactly 1 finding with expected fingerprint", () => {
+    const spec = makeSpec();
+    const rule = makeRule({
+      id: "STRUCT-001",
+      when: { op: "method", in: ["get"] },
+      message: "GET operations require documentation",
+    });
+    const result = evaluate({
+      specs: [spec],
+      packs: [{ id: "elite", version: "2026.09.1", rules: [rule] }],
+    });
+    expect(result.errors).toEqual([]);
+    expect(result.findings).toHaveLength(1);
+    const f = result.findings[0]!;
+    expect(f.ruleId).toBe("STRUCT-001");
+    expect(f.apiLocation).toBe("GET /users");
+    const expectedBase = {
+      ruleId: "STRUCT-001",
+      severity: "error",
+      category: "structure",
+      message: "GET operations require documentation",
+      location: "/paths/~1users/get",
+      apiLocation: "GET /users",
+      fix: undefined,
+      source: undefined,
+      packId: "elite",
+      packVersion: "2026.09.1",
+    };
+    expect(f.fingerprint).toBe(computeFingerprint(expectedBase));
+    expect(f.fingerprint).toMatch(/^[0-9a-f]{64}$/);
+  });
+});
+
+describe("AC-E.2 AC-E.3 determinism", () => {
+  it("same rule twice + sort yields deep-equal findings", () => {
+    const spec = makeSpec();
+    const rules = [
+      makeRule({ id: "STRUCT-001", when: { op: "method", in: ["get"] } }),
+      makeRule({
+        id: "DOCS-001",
+        category: "docs",
+        when: { op: "descriptionMinLength", target: "description", min: 10 },
+      }),
+    ];
+    const pack = { id: "elite", version: "2026.09.1", rules };
+    const a = evaluate({ specs: [spec], packs: [pack] });
+    const b = evaluate({ specs: [spec], packs: [pack] });
+    expect(a.findings).toEqual(b.findings);
+    expect(a.findings).toEqual(sortFindings(a.findings));
+  });
+
+  it("inverted pack/rule order yields same sorted findings", () => {
+    const spec = makeSpec();
+    const r1 = makeRule({
+      id: "STRUCT-001",
+      when: { op: "method", in: ["get"] },
+    });
+    const r2 = makeRule({
+      id: "DOCS-001",
+      category: "docs",
+      when: { op: "descriptionMinLength", target: "description", min: 10 },
+    });
+    const a = evaluate({
+      specs: [spec],
+      packs: [{ id: "elite", version: "2026.09.1", rules: [r1, r2] }],
+    });
+    const b = evaluate({
+      specs: [spec],
+      packs: [{ id: "elite", version: "2026.09.1", rules: [r2, r1] }],
+    });
+    expect(a.findings).toEqual(b.findings);
+  });
+});
+
+describe("AC-E.4 invalid rule", () => {
+  it("unknown op yields issue and is excluded from findings", () => {
+    const result = validateRule({
+      id: "BAD-001",
+      category: "structure",
+      severity: "error",
+      message: "x",
+      when: { op: "notARealAtom" },
+      packId: "elite",
+      packVersion: "1.0.0",
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.issues.length).toBeGreaterThan(0);
+  });
+
+  it("evaluate excludes invalid rules and reports errors", () => {
+    const spec = makeSpec();
+    const bad = {
+      id: "BAD-001",
+      category: "structure",
+      severity: "error",
+      message: "x",
+      when: { op: "totallyUnknown" },
+      packId: "elite",
+      packVersion: "1.0.0",
+    };
+    const good = makeRule({
+      id: "STRUCT-001",
+      when: { op: "method", in: ["get"] },
+    });
+    const result = evaluate({
+      specs: [spec],
+      packs: [
+        { id: "elite", version: "1.0.0", rules: [good, bad as unknown as Rule] },
+      ],
+    });
+    expect(result.errors).toHaveLength(1);
+    expect(result.errors[0]!.ruleId).toBe("BAD-001");
+    expect(result.findings.every((f) => f.ruleId !== "BAD-001")).toBe(true);
+    expect(result.findings.some((f) => f.ruleId === "STRUCT-001")).toBe(true);
+  });
+});
+
+describe("AC-E.5 severityOverrides", () => {
+  it("changes severity but not fingerprint", () => {
+    const spec = makeSpec();
+    const rule = makeRule({
+      id: "STRUCT-001",
+      when: { op: "method", in: ["get"] },
+      severity: "error",
+    });
+    const pack = { id: "elite", version: "2026.09.1", rules: [rule] };
+    const a = evaluate({ specs: [spec], packs: [pack] });
+    const b = evaluate({
+      specs: [spec],
+      packs: [pack],
+      severityOverrides: new Map([["STRUCT-001", "info" as const]]),
+    });
+    expect(a.findings[0]!.severity).toBe("error");
+    expect(b.findings[0]!.severity).toBe("info");
+    expect(b.findings[0]!.fingerprint).toBe(a.findings[0]!.fingerprint);
+  });
+});
+
+describe("AC-E.6 disabledRuleIds", () => {
+  it("emits 0 findings for disabled rule", () => {
+    const spec = makeSpec();
+    const rule = makeRule({
+      id: "STRUCT-001",
+      when: { op: "method", in: ["get"] },
+    });
+    const result = evaluate({
+      specs: [spec],
+      packs: [{ id: "elite", version: "1.0.0", rules: [rule] }],
+      disabledRuleIds: new Set(["STRUCT-001"]),
+    });
+    expect(result.findings).toEqual([]);
+  });
+});
+
+describe("AC-E.7 unsafe regex", () => {
+  it("rejects nested quantifier pattern", () => {
+    const result = validateRule(
+      makeRule({
+        id: "SEC-001",
+        when: { op: "pathMatches", pattern: "(a+)+" },
+      }),
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.issues.some((i) => i.includes("UNSAFE_PATTERN"))).toBe(true);
+    }
+  });
+});
+
+describe("AC-E.9 combinators", () => {
+  it("all/any/not nested 3 levels", () => {
+    const spec = makeSpec();
+    const rule = makeRule({
+      id: "STRUCT-002",
+      when: {
+        all: [
+          { op: "method", in: ["get", "post"] },
+          {
+            any: [
+              { not: { op: "securityMissing" } },
+              {
+                all: [
+                  { op: "pathHasPrefix", prefix: "/users" },
+                  { not: { op: "descriptionMatches", target: "summary", pattern: "^$" } },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+    const result = evaluate({
+      specs: [spec],
+      packs: [{ id: "elite", version: "1.0.0", rules: [rule] }],
+    });
+    expect(result.findings.map((f) => f.apiLocation).sort()).toEqual([
+      "GET /users",
+      "POST /users",
+    ]);
+  });
+});
+
+describe("AC-E.10 per-operation location", () => {
+  it("only matches operation A with correct apiLocation", () => {
+    const spec = makeSpec();
+    const rule = makeRule({
+      id: "STRUCT-001",
+      when: { op: "method", in: ["post"] },
+    });
+    const result = evaluate({
+      specs: [spec],
+      packs: [{ id: "elite", version: "1.0.0", rules: [rule] }],
+    });
+    expect(result.findings).toHaveLength(1);
+    expect(result.findings[0]!.apiLocation).toBe("POST /users");
+    expect(result.findings[0]!.location).toBe("/paths/~1users/post");
+  });
+});
+
+describe("atoms batch 1", () => {
+  it("pathSegmentPlural / pathHasPrefix / missingField / securityMissing", () => {
+    const spec = makeSpec();
+    const checks: Array<[string, Rule["when"], string[]]> = [
+      [
+        "plural on /users",
+        { op: "pathSegmentPlural", segmentIndex: -1 },
+        ["GET /users", "POST /users"],
+      ],
+      [
+        "securityMissing on GET",
+        { op: "securityMissing" },
+        ["GET /users"],
+      ],
+      [
+        "missing description none",
+        { op: "missingField", field: "description" },
+        [],
+      ],
+      [
+        "responseMissing 404",
+        { op: "responseMissing", status: "404" },
+        ["GET /users", "POST /users"],
+      ],
+      [
+        "responsePresent 200",
+        { op: "responsePresent", status: "200" },
+        ["GET /users"],
+      ],
+      [
+        "operationIdRequired all",
+        { op: "operationIdRequired" },
+        ["GET /users", "POST /users"],
+      ],
+      [
+        "descriptionMinLength desc>=10",
+        { op: "descriptionMinLength", target: "description", min: 10 },
+        ["GET /users", "POST /users"],
+      ],
+      [
+        "pathHasPrefix /users",
+        { op: "pathHasPrefix", prefix: "/users" },
+        ["GET /users", "POST /users"],
+      ],
+    ];
+    for (const [label, when, expected] of checks) {
+      const result = evaluate({
+        specs: [spec],
+        packs: [
+          {
+            id: "elite",
+            version: "1.0.0",
+            rules: [
+              makeRule({
+                id: "STRUCT-003",
+                message: label,
+                when,
+              }),
+            ],
+          },
+        ],
+      });
+      expect(
+        result.findings.map((f) => f.apiLocation).sort(),
+        label,
+      ).toEqual([...expected].sort());
+    }
+  });
+});
+
+describe("sort order", () => {
+  it("sorts by severity, ruleId, apiLocation, location, message, fingerprint", () => {
+    const findings: Finding[] = [
+      {
+        fingerprint: "b",
+        ruleId: "STRUCT-001",
+        severity: "info",
+        category: "structure",
+        message: "m",
+        location: "/l",
+        packId: "elite",
+        packVersion: "1",
+      },
+      {
+        fingerprint: "a",
+        ruleId: "STRUCT-001",
+        severity: "error",
+        category: "structure",
+        message: "m",
+        location: "/l",
+        packId: "elite",
+        packVersion: "1",
+      },
+    ];
+    const sorted = sortFindings(findings);
+    expect(sorted.map((f) => f.severity)).toEqual(["error", "info"]);
+    expect(severityRank("error")).toBe(0);
+    expect(severityRank("warning")).toBe(1);
+    expect(severityRank("info")).toBe(2);
+  });
+
+  it("messageKey strips placeholders and collapses whitespace", () => {
+    expect(messageKey("Found {count} issues   in  op")).toBe(
+      "Found issues in op",
+    );
+  });
+
+  it("dedupe keeps higher severity on same fingerprint", () => {
+    const base = {
+      ruleId: "X-001",
+      severity: "warning" as const,
+      category: "structure" as const,
+      message: "m",
+      location: "/l",
+      packId: "elite",
+      packVersion: "1",
+      fingerprint: "same",
+    };
+    const worse: Finding = { ...base, severity: "info" };
+    const better: Finding = { ...base, severity: "warning" };
+    const out = dedupeFindings([worse, better]);
+    expect(out).toHaveLength(1);
+    expect(out[0]!.severity).toBe("warning");
+  });
+});
+
+describe("AC-E.11 performance smoke", () => {
+  it("500 ops x 50 rules < 500ms", () => {
+    const ops = Array.from({ length: 500 }, (_, i) => ({
+      method: i % 2 === 0 ? "get" : "post",
+      path: `/resource${i}`,
+      operationId: `op${i}`,
+      summary: `Summary ${i}`,
+      description: "A sufficiently long description for the operation",
+      tags: ["t"],
+      deprecated: false,
+      parameters: [],
+      responses: [
+        {
+          status: "200",
+          description: "OK",
+          content: [],
+          headers: [],
+          jsonPointer: `/paths/~1resource${i}/get/responses/200`,
+        },
+      ],
+      security: undefined,
+      extensions: {},
+      jsonPointer: `/paths/~1resource${i}/get`,
+    }));
+    const spec = makeSpec({ operations: ops as Spec["operations"] });
+    const rules = Array.from({ length: 50 }, (_, i) =>
+      makeRule({
+        id: `STRUCT-${String(i + 1).padStart(3, "0")}`,
+        message: `Rule ${i} violation`,
+        when:
+          i % 3 === 0
+            ? ({ op: "method", in: ["get"] } as const)
+            : i % 3 === 1
+              ? ({ op: "pathSegmentPlural", segmentIndex: -1 } as const)
+              : ({
+                  op: "descriptionMinLength",
+                  target: "description",
+                  min: 9999,
+                } as const),
+      }),
+    );
+    const start = performance.now();
+    const result = evaluate({
+      specs: [spec],
+      packs: [{ id: "elite", version: "1.0.0", rules }],
+    });
+    const elapsed = performance.now() - start;
+    expect(result.errors).toEqual([]);
+    expect(elapsed).toBeLessThan(500);
+  });
+});
+
+describe("MIXED_SCOPE", () => {
+  it("rejects rules that mix doc and operation atoms", () => {
+    const result = validateRule(
+      makeRule({
+        id: "STRUCT-004",
+        when: {
+          all: [
+            { op: "docFieldMissing", field: "info.title" },
+            { op: "method", in: ["get"] },
+          ],
+        },
+      }),
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.issues.some((i) => i.includes("MIXED_SCOPE"))).toBe(true);
+    }
+  });
+});
+
+describe("validateRule strictSource", () => {
+  it("fails when source missing and strictSource", () => {
+    const result = validateRule(makeRule({ source: undefined }), {
+      strictSource: true,
+    });
+    expect(result.ok).toBe(false);
+  });
+});

@@ -28,3 +28,39 @@ export type {
   SecurityRequirement,
   ParseWarning,
 } from "./spec.js";
+
+export type {
+  Rule,
+  RulePack,
+  Matcher,
+  AtomMatcher,
+  Finding,
+  RuleEvalError,
+  EvaluateOptions,
+  EvaluationResult,
+  Category,
+  OperationField,
+  DocField,
+  ParameterIn,
+} from "./rule.js";
+
+export {
+  computeFingerprint,
+  sortFindings,
+  dedupeFindings,
+  severityRank,
+  messageKey,
+} from "./finding.js";
+
+export {
+  validateRule,
+  validateMatcher,
+  detectScope,
+  findUnsafePatterns,
+  type Scope,
+  type ValidateRuleResult,
+} from "./validate.js";
+
+export { evaluate } from "./evaluate.js";
+
+export { evaluateMatcher, evaluateAtom } from "./atoms.js";

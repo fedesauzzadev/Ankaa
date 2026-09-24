@@ -32,22 +32,24 @@ Plan: [plans/f1-mvp.md](../plans/f1-mvp.md) · Specs: `f1-openapi`, `f1-engine`,
 
 ## M1.2 — Engine + DSL (spec f1-engine)
 
-- [ ] Tipos `Rule`, `Matcher`, `Finding`, `RulePack`
-- [ ] zod strict para Rule y átomos (validación)
-- [ ] `validateRule` con issues (unknown op, id format, …)
-- [ ] Validación de regex inseguras (AC-E.7)
-- [ ] Scope detection doc vs operation (+ MIXED_SCOPE)
-- [ ] Átomos lote 1: `method`, `pathSegmentPlural`, `pathHasPrefix`, `pathMatches`, `missingField`, `presentField`, `responseMissing`, `responsePresent`, `descriptionMinLength`, `operationIdRequired`, `securityMissing` (mínimos para M1.3)
-- [ ] `evaluate()` + un finding por match (AC-E.1, AC-E.10)
-- [ ] Combinadores `all`/`any`/`not` (AC-E.9)
-- [ ] `computeFingerprint` golden (AC-E.1, INV-5)
-- [ ] `sortFindings` estable + shuffle invariants (AC-E.2, AC-E.3)
-- [ ] `severityOverrides` sin cambiar fingerprint (AC-E.5)
-- [ ] `disabledRuleIds` (AC-E.6)
-- [ ] Load falla ante regla inválida de pack (AC-E.4)
-- [ ] Performance smoke 500×50 (AC-E.11) — informativo
-- [ ] Confirmar lint core purity (AC-E.8)
-- [ ] Spec f1-engine → AC verdes → `implementada`
+- [x] Tipos `Rule`, `Matcher`, `Finding`, `RulePack`
+- [x] zod strict para Rule y átomos (validación)
+- [x] `validateRule` con issues (unknown op, id format, …)
+- [x] Validación de regex inseguras (AC-E.7)
+- [x] Scope detection doc vs operation (+ MIXED_SCOPE)
+- [x] Átomos lote 1: `method`, `pathSegmentPlural`, `pathHasPrefix`, `pathMatches`, `missingField`, `presentField`, `responseMissing`, `responsePresent`, `descriptionMinLength`, `operationIdRequired`, `securityMissing` (mínimos para M1.3)
+- [x] `evaluate()` + un finding por match (AC-E.1, AC-E.10)
+- [x] Combinadores `all`/`any`/`not` (AC-E.9)
+- [x] `computeFingerprint` golden (AC-E.1, INV-5)
+- [x] `sortFindings` estable + shuffle invariants (AC-E.2, AC-E.3)
+- [x] `severityOverrides` sin cambiar fingerprint (AC-E.5)
+- [x] `disabledRuleIds` (AC-E.6)
+- [x] Load falla ante regla inválida de pack (AC-E.4)
+- [x] Performance smoke 500×50 (AC-E.11) — informativo
+- [x] Confirmar lint core purity (AC-E.8)
+- [x] Spec f1-engine → AC verdes → `implementada`
+
+**Decisión (M1.2):** fingerprint sha256 implementado en TS puro (`sha256.ts`, sin `node:crypto`) para cumplir AC-E.8 + INV-3; átomos whitelist en `atoms.ts`; validador zod strict en `validate.ts`.
 
 ---
 
