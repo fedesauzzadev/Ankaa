@@ -9,6 +9,7 @@ Planes de implementación derivados de los [specs](../specs/README.md). Un plan 
 | [f2-governance](f2-governance.md) | Config + custom rules + baseline | f2-* |
 | [f3-learning](f3-learning.md) | init + skills + learn | f3-* |
 | [f4-mcp](f4-mcp.md) | MCP stdio local | f4-mcp-* |
+| [f5-ci](f5-ci.md) | SARIF/Markdown/annotations + GitHub Action | f5-* |
 
 ## Convención
 

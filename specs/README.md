@@ -1,6 +1,6 @@
 # Specs · ApiGovScan
 
-Especificaciones **spec-driven** derivadas del [SDD v1.0](../docs/SDD.md). El SDD es el contrato de producto; estos specs descompone la **Fase 0–1** del roadmap en unidades implementables con criterios de aceptación verificables.
+Especificaciones **spec-driven** derivadas del [SDD v1.0](../docs/SDD.md). El SDD es el contrato de producto; estos specs descompone el **roadmap por fases** (0–5) en unidades implementables con criterios de aceptación verificables.
 
 ## Convención
 
@@ -32,6 +32,8 @@ Especificaciones **spec-driven** derivadas del [SDD v1.0](../docs/SDD.md). El SD
 | [f3-learn](f3-learn.md) | 3 | `learn` feedback → skills (INV-5) + list/promote | cerrada |
 | [f4-mcp-server](f4-mcp-server.md) | 4 | Server MCP stdio + sandbox + cmd `mcp` | cerrada |
 | [f4-mcp-tools](f4-mcp-tools.md) | 4 | Tools FR-50 con paridad CLI | cerrada |
+| [f5-reporters](f5-reporters.md) | 5 | Reportes SARIF + Markdown + annotations | ready |
+| [f5-action](f5-action.md) | 5 | GitHub Action oficial (composite) | ready |
 
 ## Orden de implementación sugerido
 
@@ -50,7 +52,8 @@ f0-foundation
 - **Fase 2 (SDD §7)** = specs `f2-*` (config, custom rules, baseline) — cerrada en `v0.2.0-governance`.
 - **Fase 3 (SDD §7)** = specs `f3-*` (init, skills, learn) — cerrada en `v0.3.0-learning`.
 - **Fase 4 (SDD §7)** = specs `f4-*` (MCP stdio local) — cerrada en `v0.4.0-mcp`.
-- **Fases 5+** = specs futuros (Action, CF…) — se abren cuando la fase anterior esté cerrada.
+- **Fase 5 (SDD §7)** = specs `f5-*` (SARIF/Markdown/annotations + GitHub Action) — abierta.
+- **Fases 6+** = specs futuros (MCP remoto/CF, registry…) — se abren cuando la fase anterior esté cerrada.
 
 ## Plantilla de spec (para futuras)
 
