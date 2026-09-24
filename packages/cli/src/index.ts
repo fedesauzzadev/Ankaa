@@ -27,6 +27,7 @@ import {
   type AnalyzeConfig,
 } from "./config.js";
 import { discoverSpecs } from "./discovery.js";
+import { formatInitEntries, runInit } from "./init.js";
 import {
   collectCustomRules,
   packRuleIds,
@@ -70,6 +71,7 @@ export function getHelp(): string {
     "apigovscan — local-first API governance analyzer",
     "",
     "Usage:",
+    "  apigovscan init [dir] [--force] [--skills-dir <dir>]",
     "  apigovscan analyze <path> [options]",
     "  apigovscan rules validate <file...> [options]",
     "  apigovscan rules list [--rules <file>]",
@@ -82,6 +84,7 @@ export function getHelp(): string {
     "",
     "Arguments:",
     "  path              File, directory, or '-' (stdin)",
+    "  dir               init target directory (default: .)",
     "",
     "Options:",
     "  --format <fmt>    console | json          (default: console)",
@@ -93,13 +96,13 @@ export function getHelp(): string {
     "  --write-baseline  write baseline.json from current findings",
     "  --baseline        filter findings present in baseline",
     "  --baseline-path   baseline file (default: .apigovscan/baseline.json)",
-    "  --force           overwrite existing baseline (creates .bak)",
     "  --strict-hash     baseline inputHash mismatch is fatal (exit 2)",
     "  --baseline-ignore-hash  silence inputHash mismatch warnings",
     "  --skills-dir      override skills directory (default: .apigovscan/skills)",
     "  --report          learn: report JSON path",
     "  --feedback        learn: feedback JSON path",
     "  --dry-run         learn: print plan without writing",
+    "  --force           init: overwrite scaffold; baseline: overwrite (creates .bak)",
     "  --no-color        disable color (also respects NO_COLOR)",
     "  --debug           stage timings to stderr (never spec bodies)",
     "  -h, --help",
@@ -108,7 +111,7 @@ export function getHelp(): string {
     "Exit codes:",
     "  0  no findings at or above --fail-on",
     "  1  findings at or above --fail-on",
-    "  2  usage / parse / config / rule / baseline / skills / learn error",
+    "  2  usage / parse / config / rule / baseline / skills / learn / init error",
     "",
     "Docs: docs/SDD.md · specs/f1-analyze.md · specs/f2-*.md · specs/f3-*.md",
   ].join("\n");
@@ -373,13 +376,16 @@ async function runAnalyze(
     {
       loader: createFsSpecLoader(io.readStdin),
       packs: createFsPackRepository(io.cwd),
-      sink: createReportSink({
-        format: args.format,
-        color,
-        pretty,
-        output: args.output,
-        stdout: io.stdout,
-      }),
+        sink: createReportSink({
+          format: args.format,
+          color,
+          pretty,
+          output:
+            args.output !== undefined
+              ? resolve(io.cwd, args.output)
+              : undefined,
+          stdout: io.stdout,
+        }),
     },
     {
       inputs,
@@ -765,6 +771,107 @@ function runRulesCommand(
   return 2;
 }
 
+function runInitCommand(
+  argv: readonly string[],
+  io: {
+    stdout: (text: string) => void;
+    stderr: (text: string) => void;
+    cwd: string;
+  },
+): number {
+  if (argv.includes("--help") || argv.includes("-h")) {
+    io.stdout(
+      [
+        "Usage:",
+        "  apigovscan init [dir] [--force] [--skills-dir <dir>] [--config <file>]",
+        "",
+        "Scaffold apigovscan.yaml and .apigovscan/skills/ for baseline + learn.",
+        "Does not overwrite user content without --force (scaffold-only safe).",
+        "",
+      ].join("\n"),
+    );
+    return 0;
+  }
+
+  let force = false;
+  let skillsDirFlag: string | undefined;
+  let configPath: string | undefined;
+  const positional: string[] = [];
+
+  for (let i = 0; i < argv.length; i++) {
+    const token = argv[i]!;
+    if (token === "--force") {
+      force = true;
+      continue;
+    }
+    if (token === "--skills-dir") {
+      const v = argv[++i];
+      if (v === undefined || v.startsWith("-")) {
+        io.stderr("error: --skills-dir requires a directory path\n");
+        return 2;
+      }
+      skillsDirFlag = v;
+      continue;
+    }
+    if (token === "--config") {
+      const v = argv[++i];
+      if (v === undefined || v.startsWith("-")) {
+        io.stderr("error: --config requires a file path\n");
+        return 2;
+      }
+      configPath = v;
+      continue;
+    }
+    if (token === "--no-color") {
+      continue;
+    }
+    if (token.startsWith("-")) {
+      io.stderr(`error: unknown option: ${token}\n`);
+      return 2;
+    }
+    positional.push(token);
+  }
+
+  if (positional.length > 1) {
+    io.stderr(`error: unexpected argument: ${positional[1]}\n`);
+    return 2;
+  }
+
+  const target = positional[0] ?? ".";
+  const targetAbs = resolve(io.cwd, target);
+  let isDir = false;
+  try {
+    isDir = existsSync(targetAbs) && statSync(targetAbs).isDirectory();
+  } catch {
+    isDir = false;
+  }
+  if (!isDir) {
+    io.stderr(`init target is not a directory: ${target}\n`);
+    return 2;
+  }
+
+  const configResult = loadConfig(targetAbs, configPath);
+  if (!configResult.ok) {
+    io.stderr(`error: ${configResult.error}\n`);
+    return 2;
+  }
+
+  const result = runInit(targetAbs, {
+    force,
+    skillsDirFlag,
+    config: configResult.config,
+  });
+  if (!result.ok) {
+    io.stderr(`${result.error}\n`);
+    return 2;
+  }
+
+  for (const line of formatInitEntries(result.entries, targetAbs)) {
+    io.stdout(`${line}\n`);
+  }
+  return 0;
+}
+
 function runLearn(
   argv: readonly string[],
   io: {
@@ -1141,18 +1248,37 @@ export async function run(
 
   const args = argv.slice(2);
 
-  if (args.length === 0 || args.includes("--help") || args.includes("-h")) {
+  const first = args[0];
+  const isKnownCommand =
+    first === "init" ||
+    first === "analyze" ||
+    first === "rules" ||
+    first === "learn" ||
+    first === "skills";
+
+  if (
+    args.length === 0 ||
+    first === "--help" ||
+    first === "-h" ||
+    (!isKnownCommand && (args.includes("--help") || args.includes("-h")))
+  ) {
     stdout(`${getHelp()}\n`);
     return 0;
   }
 
-  if (args.includes("--version") || args.includes("-V")) {
+  if (first === "--version" || first === "-V") {
     stdout(`${getVersion()}\n`);
     return 0;
   }
 
-  const command = args[0];
-  if (command === "analyze") {
+  if (first === "init") {
+    return runInitCommand(args.slice(1), {
+      stdout,
+      stderr,
+      cwd,
+    });
+  }
+  if (first === "analyze") {
     return runAnalyze(args.slice(1), {
       stdout,
       stderr,
@@ -1162,21 +1288,21 @@ export async function run(
       readStdin,
     });
   }
-  if (command === "rules") {
+  if (first === "rules") {
     return runRulesCommand(args.slice(1), {
       stdout,
       stderr,
       cwd,
     });
   }
-  if (command === "learn") {
+  if (first === "learn") {
     return runLearn(args.slice(1), {
       stdout,
       stderr,
       cwd,
     });
   }
-  if (command === "skills") {
+  if (first === "skills") {
     return runSkillsCommand(args.slice(1), {
       stdout,
       stderr,
@@ -1184,6 +1310,6 @@ export async function run(
     });
   }
 
-  stderr(`Unknown command: ${command}\nRun apigovscan --help\n`);
+  stderr(`Unknown command: ${first}\nRun apigovscan --help\n`);
   return 2;
 }

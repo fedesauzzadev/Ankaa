@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | implementada |
+| Estado | cerrada |
 | Fase | 3 |
 | Deriva de | SDD FR-31/FR-32, INV-5, doc 03 §9, ADR-007/ADR-011; specs `f3-skills`, `f1-reporters` (report JSON), `f2-custom-rules` (schema drafts) |
 | Roadmap | Fase 3 — criterio de salida: flujo report→feedback→learn→re-analyze |
@@ -179,3 +179,4 @@ custom active:
 
 - 2026-09-24 · Spec creado desde SDD v1.0 §7 Fase 3 + FR-31/32 + INV-5 + doc 03 §9.
 - 2026-09-24 · M3.2 implementado: `learn.ts` + CLI `learn`/`skills list`/`skills promote` + tests AC-L.1…12 (INV-5 byte-idempotent).
+- 2026-09-24 · Cierre fase 3 con M3.3 (S4 e2e) → `cerrada`.

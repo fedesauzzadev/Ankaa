@@ -77,14 +77,15 @@ Pasos:
 
 ## Definition of Done (fase 3 completa)
 
-- [ ] Specs `f3-*` en estado `cerrada`
-- [ ] `pnpm check` verde
-- [ ] INV-5 con test en CI
-- [ ] Criterio SDD: flujo report→feedback→learn→re-analyze demostrado (e2e)
-- [ ] README: init, skills, learn
+- [x] Specs `f3-*` en estado `cerrada`
+- [x] `pnpm check` verde
+- [x] INV-5 con test en CI
+- [x] Criterio SDD: flujo report→feedback→learn→re-analyze demostrado (e2e)
+- [x] README: init, skills, learn
 - [ ] Tag `v0.3.0-learning`
-- [ ] tasks/f3 cerrados
+- [x] tasks/f3 cerrados
 
 ## Changelog del plan
 
 - 2026-09-24 · Plan inicial desde specs f3 (tras tag v0.2.0-governance).
+- 2026-09-24 · M3.1–M3.3 implementados; DoD verde salvo tag `v0.3.0-learning`.

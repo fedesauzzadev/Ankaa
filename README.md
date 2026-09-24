@@ -43,6 +43,7 @@ npx @apigovscan/cli analyze ./openapi.yaml
 
 | Comando | Descripción |
 |---|---|
+| `apigovscan init [dir]` | Scaffold `apigovscan.yaml` + `.apigovscan/skills/` (no pisa contenido del usuario) |
 | `apigovscan analyze <path>` | Analiza archivo, directorio o `-` (stdin) con el pack `elite` embebido |
 | `apigovscan rules validate <file...>` | Valida reglas custom YAML/JSON contra el DSL (exit 0/2) |
 | `apigovscan rules list [--rules <file>]` | Lista reglas del pack (y custom si se pasa `--rules`) |
@@ -156,7 +157,7 @@ Búsqueda: `--config <file>` → `./apigovscan.yaml` → `./apigovscan.yml`. Pre
 
 ## Estado
 
-**Fase 0–2 implementada + F3 parcial:** monorepo pnpm + TypeScript strict + ESLint/Prettier + Vitest + CI multi-OS + parser OpenAPI 3.x + rules engine + pack **elite ≥ 50 reglas (65 activas)** + `analyze` e2e + reporters console/JSON + suite de invariantes INV-1…7 + config strict + custom rules + baseline + **skills load/apply (M3.1)** + **learn/skills CLI (M3.2)**. Specs `f0-*`, `f1-*`, `f2-*` en `cerrada`; `f3-skills`, `f3-learn` en `implementada`. Tags: `v0.1.0-mvp`, `v0.2.0-governance`.
+**Fase 0–3 implementada:** monorepo pnpm + TypeScript strict + ESLint/Prettier + Vitest + CI multi-OS + parser OpenAPI 3.x + rules engine + pack **elite ≥ 50 reglas (65 activas)** + `analyze` e2e + reporters console/JSON + suite de invariantes INV-1…7 + config strict + custom rules + baseline + **skills load/apply (M3.1)** + **learn/skills CLI (M3.2)** + **init scaffold + S4 e2e (M3.3)**. Specs `f0-*`, `f1-*`, `f2-*` en `cerrada`; `f3-*` en `cerrada`. Tags: `v0.1.0-mvp`, `v0.2.0-governance`, `v0.3.0-learning`.
 
 ```bash
 pnpm install

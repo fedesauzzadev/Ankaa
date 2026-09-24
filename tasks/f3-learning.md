@@ -33,12 +33,12 @@ Plan: [plans/f3-learning.md](../plans/f3-learning.md) · Specs: `f3-skills`, `f3
 
 ## M3.3 — Init + cierre fase 3
 
-- [ ] `init [dir] [--force] [--skills-dir]` scaffold
-- [ ] Respetar skillsDir existente en config
-- [ ] AC-I.1…6 tests
-- [ ] E2E S4: analyze → feedback → learn → re-analyze
-- [ ] Help/README/índices f3
-- [ ] `pnpm check` verde
-- [ ] Specs f3-* → `cerrada`
-- [ ] DoD plans/f3-learning.md
+- [x] `init [dir] [--force] [--skills-dir]` scaffold
+- [x] Respetar skillsDir existente en config
+- [x] AC-I.1…6 tests
+- [x] E2E S4: analyze → feedback → learn → re-analyze
+- [x] Help/README/índices f3
+- [x] `pnpm check` verde
+- [x] Specs f3-* → `cerrada`
+- [x] DoD plans/f3-learning.md
 - [ ] Tag `v0.3.0-learning`

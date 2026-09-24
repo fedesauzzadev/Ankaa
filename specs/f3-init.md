@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | ready |
+| Estado | cerrada |
 | Fase | 3 |
 | Deriva de | SDD FR-30, doc 03 §8 (estructura skills), doc 01 §6.4; specs `f2-config` (schema), `f2-baseline` (path `.apigovscan/`) |
 | Roadmap | Fase 3 — init + skills + learn |
@@ -91,12 +91,12 @@ Directorios primero (`mkdir -p`), luego archivos. Determinista: mismo orden de "
 
 ## 4. Criterios de aceptación
 
-- [ ] **AC-I.1** `init` en dir vacío ⇒ exit 0 y existen los 4 paths (+ drafts dir).
-- [ ] **AC-I.2** `init` dos veces sin `--force` ⇒ exit 0; segunda vez todo `already present` (INV-7: no reescribe).
-- [ ] **AC-I.3** `init --force` ⇒ sobrescribe scaffold; no toca `baseline.json` ni `suppressions.yaml` si el usuario ya puso contenido distinto de `version:1 + empty` (decisión: force solo regenera README + config si eran de init — ver §7).
-- [ ] **AC-I.4** `init ./nope` (no existe) ⇒ exit 2.
-- [ ] **AC-I.5** Con config existente que declara `skillsDir: custom/skills`, init crea skills ahí (no en el default).
-- [ ] **AC-I.6** help/README mencionan `init`.
+- [x] **AC-I.1** `init` en dir vacío ⇒ exit 0 y existen los 4 paths (+ drafts dir).
+- [x] **AC-I.2** `init` dos veces sin `--force` ⇒ exit 0; segunda vez todo `already present` (INV-7: no reescribe).
+- [x] **AC-I.3** `init --force` ⇒ sobrescribe scaffold; no toca `baseline.json` ni `suppressions.yaml` si el usuario ya puso contenido distinto de `version:1 + empty` (decisión: force solo regenera README + config si eran de init — ver §7).
+- [x] **AC-I.4** `init ./nope` (no existe) ⇒ exit 2.
+- [x] **AC-I.5** Con config existente que declara `skillsDir: custom/skills`, init crea skills ahí (no en el default).
+- [x] **AC-I.6** help/README mencionan `init`.
 
 ## 5. Test plan
 
@@ -123,3 +123,4 @@ Directorios primero (`mkdir -p`), luego archivos. Determinista: mismo orden de "
 ## Changelog
 
 - 2026-09-24 · Spec creado desde SDD v1.0 §7 Fase 3 + FR-30.
+- 2026-09-24 · M3.3 implementado: `init` + e2e AC-I.1…6 + S4 full loop → `cerrada`.
