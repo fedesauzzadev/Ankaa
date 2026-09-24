@@ -1,7 +1,7 @@
 {
   "name": "@apigovscan/mcp",
   "version": "0.0.0-dev",
-  "description": "MCP server shell for ApiGovScan (tools land in later milestones)",
+  "description": "MCP stdio server for ApiGovScan (analyze_spec, list_rules, explain_rule, validate_custom_rules, explain_finding)",
   "license": "MIT",
   "type": "module",
   "exports": {
@@ -25,5 +25,9 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.30.1",
+    "zod": "4.6.5"
   }
 }

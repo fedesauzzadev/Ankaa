@@ -56,6 +56,8 @@ import {
   createFsSpecLoader,
   createReportSink,
 } from "./loaders.js";
+import { createCliMcpHandlers } from "./mcp.js";
+import { createMcpServer, startStdioServer } from "@apigovscan/mcp";
 import {
   defaultPackSearchRoots,
   findElitePackDir,
@@ -79,6 +81,7 @@ export function getHelp(): string {
     "  apigovscan learn --report <r.json> --feedback <f.json> [options]",
     "  apigovscan skills list [--format json]",
     "  apigovscan skills promote <draftId>",
+    "  apigovscan mcp [--help]",
     "  apigovscan --version",
     "  apigovscan --help",
     "",
@@ -108,12 +111,17 @@ export function getHelp(): string {
     "  -h, --help",
     "  -V, --version",
     "",
+    "MCP (apigovscan mcp):",
+    "  stdio server with tools analyze_spec, list_rules, explain_rule,",
+    "  validate_custom_rules, explain_finding (sandboxed under cwd).",
+    '  Client: {"mcpServers":{"apigovscan":{"command":"npx","args":["-y","@apigovscan/cli","mcp"]}}}',
+    "",
     "Exit codes:",
     "  0  no findings at or above --fail-on",
     "  1  findings at or above --fail-on",
-    "  2  usage / parse / config / rule / baseline / skills / learn / init error",
+    "  2  usage / parse / config / rule / baseline / skills / learn / init / mcp error",
     "",
-    "Docs: docs/SDD.md · specs/f1-analyze.md · specs/f2-*.md · specs/f3-*.md",
+    "Docs: docs/SDD.md · specs/f1-analyze.md · specs/f2-*.md · specs/f3-*.md · specs/f4-mcp-*.md",
   ].join("\n");
 }
 
@@ -1217,6 +1225,64 @@ function runSkillsCommand(
   return 2;
 }
 
+function getMcpHelp(): string {
+  return [
+    "apigovscan mcp — MCP stdio server (local-first)",
+    "",
+    "Usage:",
+    "  apigovscan mcp [--help]",
+    "",
+    "Tools (FR-50):",
+    "  analyze_spec(path, failOn?, rules?)",
+    "  list_rules(rules?)",
+    "  explain_rule(ruleId, rules?)",
+    "  validate_custom_rules(files[])",
+    "  explain_finding(reportPath, fingerprint)",
+    "",
+    "Paths are sandboxed under the process cwd. analyze_spec output is truncated.",
+    "Same engine as the CLI; stateless between calls; zero network (INV-1).",
+    "",
+    "Client registration (Claude / Cursor / opencode):",
+    '  { "mcpServers": { "apigovscan": { "command": "npx", "args": ["-y", "@apigovscan/cli", "mcp"] } } }',
+    "",
+  ].join("\n");
+}
+
+async function runMcpCommand(
+  argv: readonly string[],
+  io: {
+    stdout: (text: string) => void;
+    stderr: (text: string) => void;
+    cwd: string;
+  },
+): Promise<number> {
+  if (argv.includes("--help") || argv.includes("-h")) {
+    io.stdout(`${getMcpHelp()}\n`);
+    return 0;
+  }
+  const unexpected = argv.find((a) => !a.startsWith("-"));
+  if (unexpected !== undefined) {
+    io.stderr(`error: unexpected argument: ${unexpected}\n`);
+    return 2;
+  }
+
+  try {
+    const handlers = createCliMcpHandlers(io.cwd);
+    const server = createMcpServer(handlers, {
+      cwd: io.cwd,
+      name: "apigovscan",
+      version: packageVersion(),
+    });
+    await startStdioServer(server);
+    return 0;
+  } catch (err) {
+    io.stderr(
+      `error: mcp server failed: ${err instanceof Error ? err.message : String(err)}\n`,
+    );
+    return 2;
+  }
+}
+
 export async function run(
   argv: readonly string[],
   io?: RunIO,
@@ -1254,7 +1320,8 @@ export async function run(
     first === "analyze" ||
     first === "rules" ||
     first === "learn" ||
-    first === "skills";
+    first === "skills" ||
+    first === "mcp";
 
   if (
     args.length === 0 ||
@@ -1304,6 +1371,13 @@ export async function run(
   }
   if (first === "skills") {
     return runSkillsCommand(args.slice(1), {
+      stdout,
+      stderr,
+      cwd,
+    });
+  }
+  if (first === "mcp") {
+    return runMcpCommand(args.slice(1), {
       stdout,
       stderr,
       cwd,
