@@ -1,0 +1,107 @@
+name: "ApiGovScan"
+description: "Local-first API governance check for OpenAPI specs (SARIF, annotations, job summary)"
+branding:
+  icon: shield
+  color: purple
+
+inputs:
+  path:
+    description: "Spec file or directory to analyze"
+    default: "."
+  fail-on:
+    description: "Gate threshold: error | warning | info | never"
+    default: "error"
+  format:
+    description: "Artifact to produce: sarif | json | none"
+    default: "sarif"
+  cli:
+    description: "CLI command to invoke"
+    default: "npx -y @apigovscan/cli"
+  rules:
+    description: "Custom rule files (space-separated paths)"
+    default: ""
+  config:
+    description: "Path to apigovscan.yaml (optional)"
+    default: ""
+  baseline:
+    description: "Apply baseline findings filter (true|false)"
+    default: "false"
+
+outputs:
+  sarif-path:
+    description: "Path to the SARIF artifact (empty when format=none)"
+    value: ${{ steps.artifact.outputs.sarif-path }}
+  exit-code:
+    description: "Gate exit code (0 ok, 1 findings, 2 error)"
+    value: ${{ steps.gate.outputs.exit-code }}
+
+runs:
+  using: composite
+  steps:
+    - name: Analyze (artifact)
+      id: artifact
+      if: inputs.format != 'none'
+      shell: bash
+      env:
+        AG_CLI: ${{ inputs.cli }}
+        AG_PATH: ${{ inputs.path }}
+        AG_FORMAT: ${{ inputs.format }}
+        AG_RULES: ${{ inputs.rules }}
+        AG_CONFIG: ${{ inputs.config }}
+        AG_BASELINE: ${{ inputs.baseline }}
+      run: |
+        set -euo pipefail
+        if [ "$AG_FORMAT" = "json" ]; then out="apigovscan.json"; else out="apigovscan.sarif"; fi
+        flags=()
+        if [ -n "$AG_RULES" ]; then
+          read -ra rule_files <<< "$AG_RULES"
+          for f in "${rule_files[@]}"; do flags+=(--rules "$f"); done
+        fi
+        if [ -n "$AG_CONFIG" ]; then flags+=(--config "$AG_CONFIG"); fi
+        if [ "$AG_BASELINE" = "true" ]; then flags+=(--baseline); fi
+        $AG_CLI analyze "$AG_PATH" --fail-on never --format "$AG_FORMAT" --output "$out" "${flags[@]}"
+        echo "sarif-path=$out" >> "$GITHUB_OUTPUT"
+
+    - name: Annotations
+      id: annotations
+      shell: bash
+      env:
+        AG_CLI: ${{ inputs.cli }}
+        AG_PATH: ${{ inputs.path }}
+        AG_RULES: ${{ inputs.rules }}
+        AG_CONFIG: ${{ inputs.config }}
+        AG_BASELINE: ${{ inputs.baseline }}
+      run: |
+        set -euo pipefail
+        flags=()
+        if [ -n "$AG_RULES" ]; then
+          read -ra rule_files <<< "$AG_RULES"
+          for f in "${rule_files[@]}"; do flags+=(--rules "$f"); done
+        fi
+        if [ -n "$AG_CONFIG" ]; then flags+=(--config "$AG_CONFIG"); fi
+        if [ "$AG_BASELINE" = "true" ]; then flags+=(--baseline); fi
+        $AG_CLI analyze "$AG_PATH" --fail-on never --format annotations "${flags[@]}"
+
+    - name: Job summary and gate
+      id: gate
+      shell: bash
+      env:
+        AG_CLI: ${{ inputs.cli }}
+        AG_PATH: ${{ inputs.path }}
+        AG_FAIL_ON: ${{ inputs.fail-on }}
+        AG_RULES: ${{ inputs.rules }}
+        AG_CONFIG: ${{ inputs.config }}
+        AG_BASELINE: ${{ inputs.baseline }}
+      run: |
+        set -uo pipefail
+        flags=()
+        if [ -n "$AG_RULES" ]; then
+          read -ra rule_files <<< "$AG_RULES"
+          for f in "${rule_files[@]}"; do flags+=(--rules "$f"); done
+        fi
+        if [ -n "$AG_CONFIG" ]; then flags+=(--config "$AG_CONFIG"); fi
+        if [ "$AG_BASELINE" = "true" ]; then flags+=(--baseline); fi
+        $AG_CLI analyze "$AG_PATH" --fail-on "$AG_FAIL_ON" --format markdown "${flags[@]}" >> "$GITHUB_STEP_SUMMARY"
+        code=$?
+        echo "exit-code=$code" >> "$GITHUB_OUTPUT"
+        exit "$code"

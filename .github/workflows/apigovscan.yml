@@ -1,0 +1,41 @@
+name: ApiGovScan dogfood
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: apigovscan-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apigovscan:
+    name: action check (./action)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build (CLI bin for the action)
+        run: pnpm build
+
+      - name: ApiGovScan
+        id: apigovscan
+        uses: ./action
+        with:
+          path: fixtures/petstore-mini.yaml
+          cli: node packages/cli/bin/apigovscan.js
+          fail-on: never
