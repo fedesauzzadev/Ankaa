@@ -1,3 +1,12 @@
+import {
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_MAX_FINDINGS,
@@ -33,6 +42,45 @@ describe("resolveSandboxPath", () => {
 
   it("rejects stdin dash", () => {
     expect(() => resolveSandboxPath(cwd, "-")).toThrow(SandboxError);
+  });
+
+  it("keeps the lexical path through an inside symlink (CLI parity)", () => {
+    const root = mkdtempSync(join(tmpdir(), "apigovscan-sb-"));
+    try {
+      const realDir = join(root, "real");
+      mkdirSync(realDir);
+      writeFileSync(join(realDir, "openapi.yaml"), "openapi: 3.0.3\n");
+      try {
+        symlinkSync(realDir, join(root, "link"), "junction");
+      } catch {
+        return; // runner without symlink privileges
+      }
+      const resolved = resolveSandboxPath(root, "link/openapi.yaml")
+        .replace(/\\/g, "/");
+      expect(resolved).toContain("link/openapi.yaml");
+      expect(resolved).not.toContain("/real/openapi.yaml");
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("rejects symlinks that escape cwd", () => {
+    const root = mkdtempSync(join(tmpdir(), "apigovscan-sb-"));
+    const outside = mkdtempSync(join(tmpdir(), "apigovscan-out-"));
+    try {
+      writeFileSync(join(outside, "openapi.yaml"), "openapi: 3.0.3\n");
+      try {
+        symlinkSync(outside, join(root, "escape"), "junction");
+      } catch {
+        return; // runner without symlink privileges
+      }
+      expect(() => resolveSandboxPath(root, "escape/openapi.yaml")).toThrow(
+        SandboxError,
+      );
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+      rmSync(outside, { recursive: true, force: true });
+    }
   });
 });
 

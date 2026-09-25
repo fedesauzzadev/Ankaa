@@ -137,9 +137,10 @@ resolve(cwd, path) → must be inside cwd (inclusive)
 | Embebido vs paquete | Server library en `packages/mcp`; CLI solo spawn/inject — doc 02 "embebido" = bin + server juntos en UX, no mono-archivo. |
 | Alias de nombres SDD | Canónicos FR-50; help menciona ambos si aporta. |
 | Streams test | Preferir `McpServer` + in-memory transport del SDK si existe; si no, spawn proceso. |
-| Symlinks | v1: `realpath` best-effort; si falla, rechazar path no resuelto bajo cwd. |
+| Symlinks | v1: `realpath` **solo como chequeo de containment** (best-effort); se **devuelve la path léxica** para que los labels/`reportHash` del MCP coincidan con el CLI (paridad AC-T.10; en macOS `/var/folders` → `/private/…` rompía la paridad). Si `realpath` falla, se acepta tras el chequeo léxico (no cambia mensajes). |
 
 ## Changelog
 
 - 2026-09-24 · Spec creado desde SDD v1.0 §7 Fase 4 + ADR-009 + FR-50/51 + doc 06 §7.
 - 2026-09-24 · M4.1+M4.2: server SDK 1.30, 5 tools, sandbox, truncación, cmd `mcp`, tests → `cerrada`.
+- 2026-09-25 · Fix post-cierre (bug macOS en CI): el sandbox devuelve la path léxica tras validar con `realpath` — antes devolvía la realpath y el `report.input[].path` del MCP divergía del CLI en runners con symlink de temp (`/var` → `/private/var`), rompiendo AC-T.10. Tests de symlink agregados en `packages/mcp/test/smoke.test.ts`.

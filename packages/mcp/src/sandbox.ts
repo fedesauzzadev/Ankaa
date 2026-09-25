@@ -22,15 +22,17 @@ export function resolveSandboxPath(cwd: string, input: string): string {
   if (!isInside(root, abs)) {
     throw new SandboxError(input);
   }
+  // realpath is a containment check only; return the lexical path so MCP
+  // labels match the CLI (parity of report.input / reportHash). On macOS the
+  // temp dir (/var/folders -> /private/var/folders) would otherwise diverge.
   try {
     const realRoot = realpathSync(root);
     const realAbs = realpathSync(abs);
     if (!isInside(realRoot, realAbs)) {
       throw new SandboxError(input);
     }
-    return realAbs;
   } catch (err) {
     if (err instanceof SandboxError) throw err;
-    return abs;
   }
+  return abs;
 }
