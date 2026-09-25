@@ -20,6 +20,13 @@ Ejemplos:
 # Reporte JSON a archivo
 node packages/cli/bin/apigovscan.js analyze ./openapi.yaml --format json --output report.json
 
+# SARIF para code scanning + Markdown para job summaries
+node packages/cli/bin/apigovscan.js analyze ./openapi.yaml --format sarif --output report.sarif
+node packages/cli/bin/apigovscan.js analyze ./openapi.yaml --format markdown
+
+# Anotaciones de GitHub Actions (::error / ::warning / ::notice)
+node packages/cli/bin/apigovscan.js analyze ./openapi.yaml --format annotations
+
 # Fallar el CI solo con errors (default)
 node packages/cli/bin/apigovscan.js analyze ./openapi.yaml --fail-on error
 
@@ -75,7 +82,28 @@ npx @apigovscan/cli mcp
 Tools: `analyze_spec`, `list_rules`, `explain_rule`, `validate_custom_rules`, `explain_finding`.  
 Paths rechazados si escapan del cwd; `analyze_spec` trunca findings (top 20) — el CLI da el reporte completo. Misma semántica que el CLI (FR-51); **0 red** (INV-1).
 
-Flags útiles de `analyze`: `--format console|json`, `--output <file>`, `--fail-on error|warning|info|never`, `--rules <file>` (repetible), `--rule <json>`, `--config <file>`, `--write-baseline`, `--baseline`, `--baseline-path <file>`, `--force`, `--strict-hash`, `--baseline-ignore-hash`, `--skills-dir <dir>`, `--no-color`, `--debug`.
+#### GitHub Action (f5)
+
+Check de PR con anotaciones en el diff, job summary y artefacto SARIF — corre el **mismo CLI**
+(`action/action.yml`, composite, sin lógica duplicada):
+
+```yaml
+- uses: ./action          # o <owner>/<repo>@v1 cuando esté publicado
+  id: apigovscan
+  with:
+    path: specs/
+    fail-on: error
+- uses: github/codeql-action/upload-sarif@v3   # opcional
+  if: always()
+  with:
+    sarif_file: ${{ steps.apigovscan.outputs.sarif-path }}
+```
+
+Inputs `path`, `fail-on`, `format` (`sarif|json|none`), `cli`, `rules`, `config`, `baseline` ·
+Outputs `sarif-path`, `exit-code`. El gate funciona **sin code scanning** (exit 0/1/2 del CLI);
+detalles en [`action/README.md`](action/README.md).
+
+Flags útiles de `analyze`: `--format console|json|sarif|markdown|annotations`, `--output <file>`, `--fail-on error|warning|info|never`, `--rules <file>` (repetible), `--rule <json>`, `--config <file>`, `--write-baseline`, `--baseline`, `--baseline-path <file>`, `--force`, `--strict-hash`, `--baseline-ignore-hash`, `--skills-dir <dir>`, `--no-color`, `--debug`.
 
 Exit codes: `0` ok · `1` findings ≥ `failOn` · `2` usage/parse/config/rule/baseline error.
 
@@ -169,18 +197,18 @@ Búsqueda: `--config <file>` → `./apigovscan.yaml` → `./apigovscan.yml`. Pre
 | [docs/05-despliegue-y-costos.md](docs/05-despliegue-y-costos.md) | CLI, Docker, Cloudflare, MCP, costos ($0) |
 | [docs/06-seguridad.md](docs/06-seguridad.md) | Privacidad, hardening, supply chain, MCP |
 
-### Spec-driven development (Fase 0–1)
+### Spec-driven development (Fase 0–5)
 
 | Carpeta | Contenido |
 |---|---|
-| [specs/](specs/README.md) | Especificaciones con criterios de aceptación (`f0-*`, `f1-*`) |
+| [specs/](specs/README.md) | Especificaciones con criterios de aceptación (`f0-*` … `f5-*`) |
 | [plans/](plans/README.md) | Planes de implementación por milestone |
 | [tasks/](tasks/README.md) | Checklists ejecutables |
 | [AGENTS.md](AGENTS.md) | Convenciones para agentes y contribuidores |
 
 ## Estado
 
-**Fase 0–4 implementada:** monorepo pnpm + TypeScript strict + ESLint/Prettier + Vitest + CI multi-OS + parser OpenAPI 3.x + rules engine + pack **elite ≥ 50 reglas (65 activas)** + `analyze` e2e + reporters console/JSON + suite de invariantes INV-1…7 + config strict + custom rules + baseline + **skills load/apply (M3.1)** + **learn/skills CLI (M3.2)** + **init scaffold + S4 e2e (M3.3)** + **MCP stdio local con 5 tools FR-50 + sandbox + paridad CLI (F4)**. Specs `f0-*`, `f1-*`, `f2-*`, `f3-*`, `f4-mcp-*` en `cerrada`. Tags: `v0.1.0-mvp`, `v0.2.0-governance`, `v0.3.0-learning`, `v0.4.0-mcp`.
+**Fase 0–5 implementada:** monorepo pnpm + TypeScript strict + ESLint/Prettier + Vitest + CI multi-OS + parser OpenAPI 3.x + rules engine + pack **elite ≥ 50 reglas (65 activas)** + `analyze` e2e + reporters console/JSON + suite de invariantes INV-1…7 + config strict + custom rules + baseline + **skills load/apply (M3.1)** + **learn/skills CLI (M3.2)** + **init scaffold + S4 e2e (M3.3)** + **MCP stdio local con 5 tools FR-50 + sandbox + paridad CLI (F4)** + **reporters SARIF/Markdown/annotations + GitHub Action (F5)**. Specs `f0-*`, `f1-*`, `f2-*`, `f3-*`, `f4-mcp-*`, `f5-*` en `cerrada`. Tags: `v0.1.0-mvp`, `v0.2.0-governance`, `v0.3.0-learning`, `v0.4.0-mcp`, `v0.5.0-action`.
 
 ```bash
 pnpm install
@@ -196,4 +224,5 @@ Ver [docs/SDD.md §7](docs/SDD.md).
 - **F2 (tag `v0.2.0-governance`):** config full ✅, custom rules ✅, baseline ✅ — specs `f2-*` en estado `cerrada`.
 - **F3 (tag `v0.3.0-learning`):** skills, learn, init ✅ — specs `f3-*` en estado `cerrada`.
 - **F4 (tag `v0.4.0-mcp`):** MCP stdio local ✅ — specs `f4-mcp-*` en estado `cerrada`.
-- **F5+:** GitHub Action, Cloudflare, self-host.
+- **F5 (tag `v0.5.0-action`):** reporters SARIF/Markdown/annotations ✅ + GitHub Action ✅ — specs `f5-*` en estado `cerrada`.
+- **F6+:** Cloudflare (MCP remoto, registry/worker de fuentes), self-host.

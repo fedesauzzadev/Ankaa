@@ -46,7 +46,7 @@ Arguments:
   path              Archivo, directorio o '-' (stdin)
 
 Options:
-  --format <fmt>    console | json          (default: console)
+  --format <fmt>    console | json | sarif | markdown | annotations  (default: console)
   --output <file>   escribe reporte a archivo (además o en vez de stdout)
   --fail-on <sev>   error | warning | info | never   (default: error)
   --rules <file>    YAML/JSON de reglas custom (se añaden al pack)
@@ -169,3 +169,4 @@ Ver SDD §02.5. Etapas y debug:
 
 - 2026-09-23 · Spec creado desde SDD v1.0.
 - 2026-09-23 · M1.4: implementada (AC-A.1…13 verdes; e2e en `packages/cli/test/analyze.e2e.test.ts`).
+- 2026-09-25 · F5: superficie `--format` ampliada a `sarif|markdown|annotations` (especificado en `f5-reporters` AC-CLI.*; ayuda actualizada arriba).

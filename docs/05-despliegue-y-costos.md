@@ -67,18 +67,31 @@ npm i -g @apigovscan/cli && apigovscan analyze .
 
 ```yaml
 # .github/workflows/apigovscan.yml (usuario)
-- uses: apigovscan/action@v1
-  with:
-    path: specs/
-    format: sarif
-    fail-on: error
-    standards-version: "2026.09.1"   # pin
-- uses: github/codeql-action/upload-sarif@v3
+jobs:
+  apigovscan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./action            # hoy in-repo; <owner>/<repo>@v1 al publicarse
+        id: apigovscan
+        with:
+          path: specs/
+          format: sarif
+          fail-on: error
+      # Opcional: SARIF upload; el gate funciona sin codeql
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: ${{ steps.apigovscan.outputs.sarif-path }}
 ```
 
-- El action corre el **mismo CLI** (no lógica duplicada).
-- Outputs: annotations en PR, job summary Markdown, exit code.
-- SARIF upload es opcional; el gate funciona sin codeql.
+- El action corre el **mismo CLI** (no lógica duplicada): 3 corridas — artefacto
+  (`--format sarif --fail-on never`), annotations (`::error/::warning/::notice`) y
+  summary+gate (`--format markdown` → `$GITHUB_STEP_SUMMARY`).
+- Outputs: annotations en PR, job summary Markdown, `sarif-path` + `exit-code`.
+- `standards-version` (pin de packs) queda pendiente hasta el registry (fase 6).
+- Inputs/outputs completos en [`action/README.md`](../action/README.md); dogfood en
+  `.github/workflows/apigovscan.yml` (`uses: ./action`).
 
 ## 4. Docker y Docker Compose
 

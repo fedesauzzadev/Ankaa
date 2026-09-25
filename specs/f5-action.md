@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | ready |
+| Estado | cerrada |
 | Fase | 5 |
 | Deriva de | SDD FR-42/40, SDD §7 fila 5; doc 05 §3; doc 06 §8.6; spec `f5-reporters` |
 | Artefacto | `action/action.yml` (composite) |
@@ -119,15 +119,15 @@ jobs:
 
 ## 4. Criterios de aceptación
 
-- [ ] **AC-ACT.1** `action/action.yml` parsea como YAML y declara: inputs `path/fail-on/format/cli/rules/config/baseline` (con defaults), outputs `sarif-path/exit-code`, `runs.using: composite` con ≥ 3 steps.
-- [ ] **AC-ACT.2** Simulación e2e (3 corridas del CLI con `GITHUB_STEP_SUMMARY`/`GITHUB_OUTPUT` apuntando a temp files): existe `apigovscan.sarif` con `version: "2.1.0"`, el summary contiene el Markdown (`# ApiGovScan report`), `$GITHUB_OUTPUT` tiene `exit-code=0`, y stdout del paso 2 contiene `::` commands cuando hay findings.
-- [ ] **AC-ACT.3** Con `fail-on: never` sobre `fixtures/petstore-mini.yaml` ⇒ `exit-code=0` y artefacto con ≥ 1 `results` (o vacío si el fixture no tiene findings — verificar; el assertion es "corrida OK + artefacto válido").
-- [ ] **AC-ACT.4** Gate real: fixture con findings ≥ `error` + `fail-on: error` ⇒ `exit-code=1` (el paso 3 "fallaría" en GH); con `fail-on: never` ⇒ 0.
-- [ ] **AC-ACT.5** Ningún bloque `run:` del `action.yml` contiene `${{` (interpolación solo en `env:`/`outputs:`) — test con parseo YAML + regex.
-- [ ] **AC-ACT.6** El action no ejecuta nada que no sea el CLI + builtins de shell: ningún `run:` define reglas, parsea YAML ni serializa (revisión estructural en test: `run:` solo referencia `$AG_CLI`/`$GITHUB_*`).
-- [ ] **AC-ACT.7** Workflow dogfood `.github/workflows/apigovscan.yml` usa `uses: ./action` y el job de CI verde incluye ese check.
-- [ ] **AC-ACT.8** `action/README.md` documenta inputs/outputs + snippet con upload SARIF opcional (`if: always()`).
-- [ ] **AC-ACT.9** `pnpm check` verde; INV-1 (el action corre el CLI local, cero red en el código del action), INV-3 intactos.
+- [x] **AC-ACT.1** `action/action.yml` parsea como YAML y declara: inputs `path/fail-on/format/cli/rules/config/baseline` (con defaults), outputs `sarif-path/exit-code`, `runs.using: composite` con ≥ 3 steps.
+- [x] **AC-ACT.2** Simulación e2e (3 corridas del CLI con `GITHUB_STEP_SUMMARY`/`GITHUB_OUTPUT` apuntando a temp files): existe `apigovscan.sarif` con `version: "2.1.0"`, el summary contiene el Markdown (`# ApiGovScan report`), `$GITHUB_OUTPUT` tiene `exit-code=0`, y stdout del paso 2 contiene `::` commands cuando hay findings.
+- [x] **AC-ACT.3** Con `fail-on: never` sobre `fixtures/petstore-mini.yaml` ⇒ `exit-code=0` y artefacto con ≥ 1 `results` (o vacío si el fixture no tiene findings — verificar; el assertion es "corrida OK + artefacto válido").
+- [x] **AC-ACT.4** Gate real: fixture con findings ≥ `error` + `fail-on: error` ⇒ `exit-code=1` (el paso 3 "fallaría" en GH); con `fail-on: never` ⇒ 0.
+- [x] **AC-ACT.5** Ningún bloque `run:` del `action.yml` contiene `${{` (interpolación solo en `env:`/`outputs:`) — test con parseo YAML + regex.
+- [x] **AC-ACT.6** El action no ejecuta nada que no sea el CLI + builtins de shell: ningún `run:` define reglas, parsea YAML ni serializa (revisión estructural en test: `run:` solo referencia `$AG_CLI`/`$GITHUB_*`).
+- [x] **AC-ACT.7** Workflow dogfood `.github/workflows/apigovscan.yml` usa `uses: ./action` y el job de CI verde incluye ese check.
+- [x] **AC-ACT.8** `action/README.md` documenta inputs/outputs + snippet con upload SARIF opcional (`if: always()`).
+- [x] **AC-ACT.9** `pnpm check` verde; INV-1 (el action corre el CLI local, cero red en el código del action), INV-3 intactos.
 
 ## 5. Test plan
 
@@ -160,3 +160,4 @@ jobs:
 ## Changelog
 
 - 2026-09-24 · Spec creado desde SDD v1.0 §7 Fase 5 + FR-42 + doc 05 §3 + doc 06 §8.6 (estado `ready`).
+- 2026-09-25 · M5.2: `action/action.yml` composite (3 pasos env-based), `action/README.md`, dogfood `.github/workflows/apigovscan.yml`, tests `action.e2e` (8) → `cerrada` (AC-ACT.1–9 verdes).

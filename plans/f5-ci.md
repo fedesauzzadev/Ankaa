@@ -65,16 +65,17 @@ Pasos:
 
 ## Definition of Done (fase 5 completa)
 
-- [ ] Specs `f5-reporters` y `f5-action` en estado `cerrada`
-- [ ] `pnpm check` verde
-- [ ] AC-SARIF/MD/ANN/CLI/RED/INV de f5-reporters verdes
-- [ ] AC-ACT.1–9 de f5-action verdes
-- [ ] Criterio SDD: PR check publica annotations + job summary (dogfood CI + e2e simulado)
-- [ ] README: `--format sarif|markdown|annotations` + sección GitHub Action
-- [ ] `docs/01` FR-40 ampliada; `docs/05` §3 ajustado al action real
-- [ ] Tag `v0.5.0-action`
-- [ ] tasks/f5 cerrados
+- [x] Specs `f5-reporters` y `f5-action` en estado `cerrada`
+- [x] `pnpm check` verde
+- [x] AC-SARIF/MD/ANN/CLI/RED/INV de f5-reporters verdes
+- [x] AC-ACT.1–9 de f5-action verdes
+- [x] Criterio SDD: PR check publica annotations + job summary (dogfood CI + e2e simulado)
+- [x] README: `--format sarif|markdown|annotations` + sección GitHub Action
+- [x] `docs/01` FR-40 ampliada; `docs/05` §3 ajustado al action real
+- [x] Tag `v0.5.0-action`
+- [x] tasks/f5 cerrados
 
 ## Changelog del plan
 
 - 2026-09-24 · Plan inicial desde specs f5 (tras tag v0.4.0-mcp).
+- 2026-09-25 · M5.1 (reporters + CLI) y M5.2 (action + dogfood) implementados; `pnpm check` verde; tag `v0.5.0-action` creado; fase 5 cerrada.

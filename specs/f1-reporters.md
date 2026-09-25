@@ -151,3 +151,4 @@ warning ERR-001  POST /payments
 
 - 2026-09-23 · Spec creado desde SDD v1.0.
 - 2026-09-23 · M1.4: implementada (AC-R.1…10 verdes en `packages/reporters/test`).
+- 2026-09-25 · F5: se agregan `formatSarif`/`formatMarkdown`/`formatAnnotations` (outputs nuevos; `formatConsole`/`formatJson` sin cambios — contrato nuevo en `f5-reporters`).

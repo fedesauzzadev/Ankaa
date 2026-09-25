@@ -109,7 +109,7 @@ El resultado: cada proyecto nuevo nace mal si el gobierno del anterior estaba ma
 
 | ID | Requisito |
 |---|---|
-| FR-40 | `--format console|json|sarif|markdown` (sarif/md en fase 5; console/json en fase 1) |
+| FR-40 | `--format console\|json\|sarif\|markdown\|annotations` (console/json en fase 1; sarif/markdown/annotations en fase 5 — `annotations` extiende el alcance original, ver spec `f5-reporters`) |
 | FR-41 | JSON estable para diffs; orden determinista (INV-2) |
 | FR-42 | GitHub Action: `fail-on` configurable, output de annotations SARIF, resumen en job |
 | FR-43 | El reporte nunca incluye valores secretos de ejemplos del spec (redacción de patrones tipo token/clave) |

@@ -47,9 +47,10 @@ pnpm test:invariants # gates INV-*
 packages/
   core/        # domain puro — SIN node:fs, net, http, fetch
   openapi/     # parse + normalizar → Spec
-  reporters/   # console + json (+ futuros)
+  reporters/   # console + json + sarif + markdown + annotations
   cli/         # adaptador: argv, FS, exit codes, bin
   mcp/         # tools MCP (stdio)
+action/        # GitHub Action composite (invoca al CLI; sin lógica propia)
 packs/elite/   # rule packs YAML versionados
 fixtures/      # specs de prueba y de ataque
 docs/ specs/ plans/ tasks/

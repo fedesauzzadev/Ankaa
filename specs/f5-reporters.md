@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | implementada |
+| Estado | cerrada |
 | Fase | 5 |
 | Deriva de | SDD FR-40/41/43, SDD §7 fila 5; doc 06 §8.6; spec `f1-reporters` |
 | Package | `@apigovscan/reporters` + CLI (`f1-analyze`) |
@@ -34,7 +34,7 @@ Como **dev que corre ApiGovScan en CI**, quiero las mismas salidas de siempre en
 - Subir SARIF a code scanning (`upload-sarif`) — lo hace el usuario/action, no el CLI (doc 05 §3: "SARIF upload es opcional").
 - Regiones/line numbers en SARIF: el modelo `Finding` **no tiene líneas** (JSON pointer), así que no hay `region` (decisión, ver §7).
 - Cambiar `Finding`/`Report` de `f1-reporters`/`f1-engine`.
-- Lenguaje dual EN+ES de findings (decisión pendiente doc 02 §pendientes, sigue abierta).
+- Lenguaje dual EN+ES de findings — fuera de alcance; decisión **resuelta: EN only** (doc 02 §9, AGENTS §4).
 - SARIF de resultados de `rules list/validate/explain` (esos comandos quedan en `console|json`).
 
 ## 3. Contrato
@@ -201,3 +201,4 @@ const RULES_FORMATS  = new Set(["console", "json"]);   // rules list/validate/ex
 - 2026-09-24 · Spec creado desde SDD v1.0 §7 Fase 5 + FR-40/41/43 + doc 06 §8.6 (estado `ready`).
 - 2026-09-24 · Ajuste pre-implementación: `help.uri` → `helpUri` (propiedad directa del descriptor) y `help.text` solo cuando hay `fix` — conformidad SARIF.
 - 2026-09-24 · M5.1: `formatSarif`/`formatMarkdown`/`formatAnnotations` + CLI `--format sarif|markdown|annotations` → `implementada` (AC-SARIF.1–7, AC-MD.1–3, AC-ANN.1–3, AC-CLI.1–4, AC-RED.1, AC-INV.2 verdes).
+- 2026-09-25 · Fase 5 cerrada (action en `f5-action`) → `cerrada` tras `pnpm check` verde.

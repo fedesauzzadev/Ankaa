@@ -157,7 +157,7 @@ ApiGovScan/
 ├── packages/
 │   ├── core/            # domain + engine + dsl + learn (sin I/O)
 │   ├── openapi/         # parseo/normalización OpenAPI → Spec
-│   ├── reporters/       # console, json, (sarif, markdown)
+│   ├── reporters/       # console, json, sarif, markdown, annotations
 │   ├── cli/             # bin apigovscan + MCP stdio embebido
 │   └── mcp/             # definición de tools compartida cli/worker
 ├── packs/
@@ -311,7 +311,7 @@ classDiagram
 | Validador OpenAPI | `@apidevtools/swagger-parser` vs validador propio + JSON Schema | Fase 1 (implícito en ADR-002) |
 | Motor de matchers | JSONPath-like propio vs CEL-lite vs zod-predicates declarativos | Fase 1–2 (detalle en 03) |
 | Canal de updates de packs | solo `pin manual` vs `stable` auto en minor | Fase 6 |
-| Lenguaje de UI findings | EN only vs EN+ES | Fase 5 |
+| Lenguaje de UI findings | EN only vs EN+ES | Fase 5 → **decidido en f5: EN only** (mensajes de findings en inglés, consumer CI global — AGENTS §4) |
 
 ---
 
