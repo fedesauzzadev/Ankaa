@@ -78,6 +78,8 @@ Licencia: `--license-key` · `APIGOVSCAN_LICENSE_KEY` · `license.key` en `apigo
 | `apigovscan skills promote <draftId>` | Activa un draft (`draft: false`) |
 | `apigovscan license [--key <AGS-...>]` | Valida la license key (customer + expiry) |
 | `apigovscan fix <path> [--fingerprint <fp>]` | Propone diffs unificados para findings con tu propio LLM (opcional; ver abajo) |
+| `apigovscan drift <dir> [--spec <file>]` | Detecta drift spec↔código y genera borradores (ver abajo) |
+| `apigovscan scan-org <dir> [--github <org>]` | Informe consolidado multi-repo con scores por repo (ver abajo) |
 | `apigovscan mcp [--help]` | Server MCP **stdio** local (tools FR-50 + `suggest_fix`, sandbox bajo cwd) |
 
 #### MCP (Claude / Cursor / opencode)
@@ -121,6 +123,24 @@ apigovscan rules import --from ./guideline.md --out team.yaml --force
 apigovscan drift ./mi-repo --spec ./openapi.yaml      # qué endpoints faltan/sobran/cambiaron
 apigovscan drift ./mi-repo --out openapi.draft.yaml   # genera borrador si no hay spec
 ```
+
+#### Batch audit (determinista, sin LLM)
+
+`scan-org` corre `analyze` en cada subdirectorio y consolida scores por repo, agrupados por dominio y rankeados de peor a mejor. Solo red en el paso explícito de `--github`; el análisis siempre es local.
+
+```bash
+apigovscan scan-org ./org                           # un subdir = un proyecto
+apigovscan scan-org ./org --group-by dominios.yaml  # repo: dominio
+apigovscan scan-org ./clones --github acme --format json --out informe.json
+```
+
+```yaml
+# dominios.yaml
+pagos-api: checkout
+tienda-api: checkout
+```
+
+Variables: `GITHUB_TOKEN` (obligatoria con `--github`). Spec: [`specs/f8-scan-org.md`](specs/f8-scan-org.md).
 
 Variables equivalentes: `APIGOVSCAN_LLM_BASE_URL` / `_API_KEY` / `_MODEL` (ganan sobre la config). Los prompts se redactan (FR-43) y los diffs inválidos se rechazan con error honesto. Spec: [`specs/f8-suggest-fix.md`](specs/f8-suggest-fix.md).
 
@@ -271,4 +291,5 @@ Ver [docs/SDD.md §7](docs/SDD.md).
 - **F4 (tag `v0.4.0-mcp`):** MCP stdio local ✅ — specs `f4-mcp-*` en estado `cerrada`.
 - **F5 (tag `v0.5.0-action`):** reporters SARIF/Markdown/annotations ✅ + GitHub Action ✅ — specs `f5-*` en estado `cerrada`.
 - **F6 (tag `v0.6.0-private`):** governance score ✅ (`f6-score`) · licencia offline + tarball/registry/Docker ✅ (`f6-distribution`) — fase cerrada.
+- **F8 (en progreso):** LLM opcional ✅ (`f8-suggest-fix`, `f8-rules-import`, `f8-drift`) · batch multi-repo ✅ (`f8-scan-org`) — specs en estado `cerrada`.
 - **F7 (backlog, `f7-enterprise` draft):** packs por cliente · self-host compose completo · edge Cloudflare (opcional) — todo lo pendiente en una única fase; se abre cuando se arranque.

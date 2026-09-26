@@ -473,3 +473,181 @@ export function parseDriftArgs(argv: readonly string[]): ParseDriftArgsResult {
 
   return { ok: true, args };
 }
+
+export type ScanOrgFormat = "console" | "json";
+
+export interface ScanOrgArgs {
+  dir: string;
+  github?: string;
+  groupBy?: string;
+  format: ScanOrgFormat;
+  out?: string;
+  config?: string;
+  licenseKey?: string;
+  force: boolean;
+  maxRepos: number;
+  workdir?: string;
+  apiBase: string;
+}
+
+export type ParseScanOrgArgsResult =
+  | { ok: true; args: ScanOrgArgs }
+  | { ok: false; error: string };
+
+const SCAN_ORG_FORMATS = new Set<ScanOrgFormat>(["console", "json"]);
+const SCAN_ORG_FORMAT_LIST = "console | json";
+const DEFAULT_MAX_REPOS = 100;
+const DEFAULT_API_BASE = "https://api.github.com";
+
+function parsePositiveInt(
+  value: string,
+  flag: string,
+): { ok: true; n: number } | { ok: false; error: string } {
+  if (!/^[1-9][0-9]*$/.test(value)) {
+    return { ok: false, error: `${flag} requires a positive integer` };
+  }
+  return { ok: true, n: Number(value) };
+}
+
+export function parseScanOrgArgs(
+  argv: readonly string[],
+): ParseScanOrgArgsResult {
+  const args: ScanOrgArgs = {
+    dir: "",
+    format: "console",
+    force: false,
+    maxRepos: DEFAULT_MAX_REPOS,
+    apiBase: DEFAULT_API_BASE,
+  };
+  let dirSeen = false;
+
+  for (let i = 0; i < argv.length; i++) {
+    const token = argv[i]!;
+
+    if (token === "--github") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--github requires an organization name" };
+      }
+      args.github = value;
+      continue;
+    }
+
+    if (token === "--group-by") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--group-by requires a file path" };
+      }
+      args.groupBy = value;
+      continue;
+    }
+
+    if (token === "--format") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return {
+          ok: false,
+          error: `--format requires a value (${SCAN_ORG_FORMAT_LIST})`,
+        };
+      }
+      if (!SCAN_ORG_FORMATS.has(value as ScanOrgFormat)) {
+        return {
+          ok: false,
+          error: `invalid --format "${value}" (expected ${SCAN_ORG_FORMAT_LIST})`,
+        };
+      }
+      args.format = value as ScanOrgFormat;
+      continue;
+    }
+
+    if (token === "--out") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--out requires a file path" };
+      }
+      args.out = value;
+      continue;
+    }
+
+    if (token === "--config") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--config requires a file path" };
+      }
+      args.config = value;
+      continue;
+    }
+
+    if (token === "--license-key") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--license-key requires a value" };
+      }
+      args.licenseKey = value;
+      continue;
+    }
+
+    if (token === "--force") {
+      args.force = true;
+      continue;
+    }
+
+    if (token === "--max-repos") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--max-repos requires a value" };
+      }
+      const parsed = parsePositiveInt(value, "--max-repos");
+      if (!parsed.ok) {
+        return parsed;
+      }
+      args.maxRepos = parsed.n;
+      continue;
+    }
+
+    if (token === "--workdir") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--workdir requires a directory path" };
+      }
+      args.workdir = value;
+      continue;
+    }
+
+    if (token === "--api-base") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--api-base requires a URL" };
+      }
+      args.apiBase = value;
+      continue;
+    }
+
+    if (token === "--no-color") {
+      continue;
+    }
+
+    if (token === "--help" || token === "-h" || token === "--version" || token === "-V") {
+      return { ok: false, error: `unexpected ${token} after scan-org` };
+    }
+
+    if (isFlag(token)) {
+      return { ok: false, error: `unknown option: ${token}` };
+    }
+
+    if (dirSeen) {
+      return { ok: false, error: `unexpected argument: ${token}` };
+    }
+    args.dir = token;
+    dirSeen = true;
+  }
+
+  if (!dirSeen) {
+    return {
+      ok: false,
+      error: "missing required argument <dir> (scan root directory)",
+    };
+  }
+
+  return { ok: true, args };
+}

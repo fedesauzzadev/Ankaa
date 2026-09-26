@@ -1,4 +1,12 @@
-import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
 import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import {
   explain,
@@ -10,6 +18,7 @@ import {
   parseDriftArgs,
   parseFixArgs,
   parseRulesArgs,
+  parseScanOrgArgs,
   type FailOn,
 } from "./args.js";
 import { analyzeUseCase } from "./analyze.js";
@@ -52,6 +61,13 @@ import {
   parseSweepResponse,
 } from "./drift.js";
 import { parseSpec } from "@apigovscan/openapi";
+import {
+  aggregateScans,
+  loadGroupMapping,
+  type RepoScan,
+  type SkippedRepo,
+} from "./scan.js";
+import { cloneRepo, listOrgRepos } from "./github.js";
 import { formatInitEntries, runInit } from "./init.js";
 import {
   collectCustomRules,
@@ -110,6 +126,7 @@ export function getHelp(): string {
     "  apigovscan license [--key <AGS-...>]",
     "  apigovscan fix <path> [--fingerprint <fp>]",
     "  apigovscan drift <dir> [--spec <file>]",
+    "  apigovscan scan-org <dir> [--github <org>]",
     "  apigovscan mcp [--help]",
     "  apigovscan --version",
     "  apigovscan --help",
@@ -159,6 +176,10 @@ export function getHelp(): string {
     "  Draft custom rules from an internal guideline using your own LLM.",
     "  apigovscan drift <dir> [--spec <file>]",
     "  Detect spec-code drift and draft missing specs; LLM optional for deep scan.",
+    "",
+    "Batch audit (deterministic, no LLM):",
+    "  apigovscan scan-org <dir> [--github <org>]",
+    "  Consolidated per-repo scores for a directory of projects or a GitHub org.",
     "  Configure llm.baseUrl in apigovscan.yaml (or APIGOVSCAN_LLM_BASE_URL).",
     "  The LLM only drafts text; it never analyzes, scores, or gates.",
     "",
@@ -1942,6 +1963,321 @@ async function runDriftCommand(
   return 0;
 }
 
+function formatScanConsole(
+  display: string,
+  report: {
+    groups: Array<{
+      name: string;
+      repos: Array<{
+        name: string;
+        specs: number;
+        findings: number;
+        errors: number;
+        warnings: number;
+        infos: number;
+        score: number;
+        grade: string;
+      }>;
+    }>;
+    totals: { repos: number; specs: number; findings: number; errors: number; warnings: number; infos: number };
+    avgScore: number;
+    skipped: Array<{ name: string; reason: string }>;
+  },
+): string {
+  const lines: string[] = [
+    `scan-org ${display} (${report.totals.repos} repos)`,
+    "",
+  ];
+  for (const group of report.groups) {
+    lines.push(`[${group.name}]`);
+    for (const repo of group.repos) {
+      lines.push(
+        `  ${repo.name}  ${repo.score} (${repo.grade})  ${repo.findings} findings ` +
+          `(${repo.errors}e ${repo.warnings}w ${repo.infos}i)  ${repo.specs} specs`,
+      );
+    }
+    lines.push("");
+  }
+  const t = report.totals;
+  lines.push(
+    `totals: ${t.repos} repos, ${t.specs} specs, ${t.findings} findings ` +
+      `(${t.errors}e ${t.warnings}w ${t.infos}i), avg score ${report.avgScore}`,
+  );
+  if (report.skipped.length > 0) {
+    lines.push(`skipped (${report.skipped.length}):`);
+    for (const s of report.skipped) {
+      lines.push(`  ${s.name}: ${s.reason}`);
+    }
+  }
+  return `${lines.join("\n")}\n`;
+}
+
+async function analyzeProjectDir(
+  repoDir: string,
+  config: AnalyzeConfig,
+): Promise<
+  | { ok: true; specs: number; summary: { error: number; warning: number; info: number; total: number }; score: { value: number; grade: string } }
+  | { ok: false; error: string }
+> {
+  const discovered = discoverSpecs(repoDir);
+  if (!discovered.ok) {
+    return { ok: false, error: "no specs found" };
+  }
+  const prepared = prepareAnalysis(repoDir, config, {
+    rulesFiles: [],
+    skillsDir: undefined,
+    baselineMode: config.baseline?.enabled === true ? "read" : "off",
+  });
+  if (!prepared.ok) {
+    return { ok: false, error: prepared.error };
+  }
+  const setup = prepared.setup;
+  const outcome = await analyzeUseCase(
+    {
+      loader: createFsSpecLoader(),
+      packs: createFsPackRepository(repoDir),
+      sink: {
+        async write() {},
+      },
+    },
+    {
+      inputs: discovered.paths.map((p) => resolve(repoDir, p)),
+      labelFor: (p) => normalizeLabel(p, repoDir),
+      failOn: "never",
+      customRules: setup.customRules,
+      disabledRuleIds: setup.disabledRuleIds,
+      severityOverrides: setup.severityOverrides,
+      toolVersion: packageVersion(),
+      baselineFingerprints: setup.baselineFingerprints,
+      skillsSuppressions: setup.skillsSuppressions,
+    },
+  );
+  if (!outcome.ok) {
+    return { ok: false, error: outcome.error };
+  }
+  return {
+    ok: true,
+    specs: discovered.paths.length,
+    summary: {
+      error: outcome.report.summary.error,
+      warning: outcome.report.summary.warning,
+      info: outcome.report.summary.info,
+      total: outcome.report.summary.total,
+    },
+    score: {
+      value: outcome.report.score.value,
+      grade: outcome.report.score.grade,
+    },
+  };
+}
+
+function loadRepoConfig(
+  repoDir: string,
+): { ok: true; config: AnalyzeConfig } | { ok: false; error: string } {
+  return loadConfig(repoDir, undefined);
+}
+
+async function runScanOrgCommand(
+  argv: readonly string[],
+  io: {
+    stdout: (text: string) => void;
+    stderr: (text: string) => void;
+    env: Record<string, string | undefined>;
+    cwd: string;
+  },
+): Promise<number> {
+  if (argv.includes("--help") || argv.includes("-h")) {
+    io.stdout(
+      "usage: apigovscan scan-org <dir> [--github <org>] [--group-by <file>] [--format console|json] [--out <file>] [--config <file>] [--license-key <key>] [--force] [--max-repos <n>] [--workdir <dir>] [--api-base <url>]\n",
+    );
+    return 0;
+  }
+  const parsedArgs = parseScanOrgArgs(argv);
+  if (!parsedArgs.ok) {
+    io.stderr(`error: ${parsedArgs.error}\n`);
+    return 2;
+  }
+  const args = parsedArgs.args;
+
+  const dirAbs = resolve(io.cwd, args.dir);
+  if (!existsSync(dirAbs)) {
+    io.stderr(`error: scan directory not found: ${args.dir}\n`);
+    return 2;
+  }
+  if (!statSync(dirAbs).isDirectory()) {
+    io.stderr(`error: scan target is not a directory: ${args.dir}\n`);
+    return 2;
+  }
+
+  const configResult = loadConfig(io.cwd, args.config);
+  if (!configResult.ok) {
+    io.stderr(`error: ${configResult.error}\n`);
+    return 2;
+  }
+  const config = configResult.config;
+
+  const license = checkLicense({
+    flag: args.licenseKey,
+    env: io.env.APIGOVSCAN_LICENSE_KEY,
+    config: config.license?.key,
+  });
+  if (!license.ok) {
+    io.stderr(`error: ${licenseErrorMessage(license)}\n`);
+    return 2;
+  }
+
+  let mapping: Record<string, string> | undefined;
+  if (args.groupBy !== undefined) {
+    const groupAbs = resolve(io.cwd, args.groupBy);
+    if (!existsSync(groupAbs)) {
+      io.stderr(`error: group file not found: ${args.groupBy}\n`);
+      return 2;
+    }
+    let groupText: string;
+    try {
+      groupText = readFileSync(groupAbs, "utf8");
+    } catch (err) {
+      io.stderr(
+        `error: group file ${args.groupBy}: ${err instanceof Error ? err.message : String(err)}\n`,
+      );
+      return 2;
+    }
+    const loaded = loadGroupMapping(groupText);
+    if (!loaded.ok) {
+      io.stderr(`error: ${loaded.error}\n`);
+      return 2;
+    }
+    mapping = loaded.mapping;
+  }
+
+  let scanRoot = dirAbs;
+  const skipped: SkippedRepo[] = [];
+  if (args.github !== undefined) {
+    const token = io.env.GITHUB_TOKEN;
+    if (token === undefined || token === "") {
+      io.stderr("error: --github requires GITHUB_TOKEN\n");
+      return 2;
+    }
+    const listed = await listOrgRepos(
+      args.apiBase,
+      args.github,
+      token,
+      args.maxRepos,
+    );
+    if (!listed.ok) {
+      io.stderr(`error: ${listed.error}\n`);
+      return 2;
+    }
+    if (listed.repos.length === args.maxRepos) {
+      io.stderr(
+        `note: repo list truncated at --max-repos ${args.maxRepos}\n`,
+      );
+    }
+    const workdir =
+      args.workdir !== undefined ? resolve(io.cwd, args.workdir) : mkdtempSync(join(tmpdir(), "apigovscan-scan-"));
+    if (args.workdir !== undefined && !existsSync(workdir)) {
+      io.stderr(`error: workdir not found: ${args.workdir}\n`);
+      return 2;
+    }
+    scanRoot = workdir;
+    for (const repo of listed.repos) {
+      const dest = join(workdir, repo.name);
+      if (existsSync(dest)) {
+        skipped.push({ name: repo.name, reason: "destination exists" });
+        continue;
+      }
+      const cloned = await cloneRepo(repo.cloneUrl, dest);
+      if (!cloned.ok) {
+        skipped.push({ name: repo.name, reason: cloned.error });
+      }
+    }
+  }
+
+  let entries: string[];
+  try {
+    entries = readdirSync(scanRoot).sort();
+  } catch (err) {
+    io.stderr(
+      `error: cannot read ${args.dir}: ${err instanceof Error ? err.message : String(err)}\n`,
+    );
+    return 2;
+  }
+  const scans: RepoScan[] = [];
+  for (const entry of entries) {
+    const projectDir = join(scanRoot, entry);
+    let isDir = false;
+    try {
+      isDir = statSync(projectDir).isDirectory();
+    } catch {
+      continue;
+    }
+    if (!isDir) {
+      continue;
+    }
+    const repoConfig = loadRepoConfig(projectDir);
+    if (!repoConfig.ok) {
+      skipped.push({ name: entry, reason: repoConfig.error });
+      continue;
+    }
+    const analyzed = await analyzeProjectDir(projectDir, repoConfig.config);
+    if (!analyzed.ok) {
+      skipped.push({ name: entry, reason: analyzed.error });
+      continue;
+    }
+    scans.push({
+      name: entry,
+      specs: analyzed.specs,
+      findings: analyzed.summary.total,
+      errors: analyzed.summary.error,
+      warnings: analyzed.summary.warning,
+      infos: analyzed.summary.info,
+      score: analyzed.score.value,
+      grade: analyzed.score.grade,
+    });
+  }
+  if (scans.length === 0) {
+    io.stderr(`error: no projects with specs found in ${args.dir}\n`);
+    return 2;
+  }
+
+  const report = aggregateScans(
+    scans,
+    mapping,
+    "apigovscan",
+    packageVersion(),
+    args.github ?? null,
+  );
+  report.skipped = [...skipped, ...report.skipped].sort((a, b) =>
+    a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
+  );
+
+  if (args.out !== undefined) {
+    const outAbs = resolve(io.cwd, args.out);
+    if (existsSync(outAbs) && !args.force) {
+      io.stderr(`error: output exists: ${args.out} (pass --force to overwrite)\n`);
+      return 2;
+    }
+    const text =
+      args.format === "json"
+        ? `${JSON.stringify(report, null, 2)}\n`
+        : formatScanConsole(args.dir, report);
+    try {
+      writeFileSync(outAbs, text, "utf8");
+    } catch (err) {
+      io.stderr(
+        `error: cannot write ${args.out}: ${err instanceof Error ? err.message : String(err)}\n`,
+      );
+      return 2;
+    }
+  }
+  if (args.format === "json") {
+    io.stdout(`${JSON.stringify(report, null, 2)}\n`);
+  } else {
+    io.stdout(formatScanConsole(args.dir, report));
+  }
+  return 0;
+}
+
 export async function run(
   argv: readonly string[],
   io?: RunIO,
@@ -1983,6 +2319,7 @@ export async function run(
     first === "license" ||
     first === "fix" ||
     first === "drift" ||
+    first === "scan-org" ||
     first === "mcp";
 
   if (
@@ -2058,6 +2395,14 @@ export async function run(
   }
   if (first === "drift") {
     return runDriftCommand(args.slice(1), {
+      stdout,
+      stderr,
+      env,
+      cwd,
+    });
+  }
+  if (first === "scan-org") {
+    return runScanOrgCommand(args.slice(1), {
       stdout,
       stderr,
       env,

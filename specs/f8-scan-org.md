@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | ready |
+| Estado | cerrada |
 | Fecha | 2026-09-26 |
 | Fase | 8 (M8.4 del umbrella `f8-oss-differentials`) |
 | Deriva de | `f8-oss-differentials` M8.4; `analyze.ts` (`analyzeUseCase`); `discovery.ts`; FR-51 (misma semántica CLI); INV-1/INV-2/INV-7 |
@@ -53,16 +53,16 @@ export function cloneRepo(cloneUrl: string, destDir: string): Promise<{ ok: true
 
 ## 4. Criterios de aceptación
 
-- [ ] **AC-SO.1** Scan local de 2+ repos agrega conteos y scores idénticos a correr `analyze` en cada uno (test de paridad).
-- [ ] **AC-SO.2** `--group-by` agrupa por dominio; sin mapeo → `ungrouped`; mapping no plano → exit 2.
-- [ ] **AC-SO.3** Ranking peor-primero determinista (score asc, errors desc, nombre asc); re-run byte-idéntico.
-- [ ] **AC-SO.4** Formatos console (tablas + totales legibles) y json (parsea con la forma del contrato).
-- [ ] **AC-SO.5** `--out` escribe el reporte; existe sin `--force` → exit 2 sin tocar nada.
-- [ ] **AC-SO.6** Sin license → exit 2 mensaje license (mismo string que `fix`).
-- [ ] **AC-SO.7** Flujo `--github` e2e con stub API (2 páginas) + clones `file://`: lista → clona → escanea; repo con clone roto → `skipped` con reason, exit 0.
-- [ ] **AC-SO.8** Sin `GITHUB_TOKEN` → exit 2 honesto; `--max-repos` trunca con nota a stderr.
-- [ ] **AC-SO.9** Boundary: `fetch` solo en `llm.ts` y `github.ts` (test extendido); `scan.ts` puro sin fs/red/LLM; `core` intacto; `analyze` sin llm byte-idéntico (suite existente).
-- [ ] **AC-SO.10** Dir sin subdirs con specs → exit 2 honesto (`no projects with specs found`).
+- [x] **AC-SO.1** Scan local de 2+ repos agrega conteos y scores idénticos a correr `analyze` en cada uno (test de paridad).
+- [x] **AC-SO.2** `--group-by` agrupa por dominio; sin mapeo → `ungrouped`; mapping no plano → exit 2.
+- [x] **AC-SO.3** Ranking peor-primero determinista (score asc, errors desc, nombre asc); re-run byte-idéntico.
+- [x] **AC-SO.4** Formatos console (tablas + totales legibles) y json (parsea con la forma del contrato).
+- [x] **AC-SO.5** `--out` escribe el reporte; existe sin `--force` → exit 2 sin tocar nada.
+- [x] **AC-SO.6** Sin license → exit 2 mensaje license (mismo string que `fix`).
+- [x] **AC-SO.7** Flujo `--github` e2e con stub API (2 páginas) + clones `file://`: lista → clona → escanea; repo con clone roto → `skipped` con reason, exit 0.
+- [x] **AC-SO.8** Sin `GITHUB_TOKEN` → exit 2 honesto; `--max-repos` trunca con nota a stderr.
+- [x] **AC-SO.9** Boundary: `fetch` solo en `llm.ts` y `github.ts` (test extendido); `scan.ts` puro sin fs/red/LLM; `core` intacto; `analyze` sin llm byte-idéntico (suite existente).
+- [x] **AC-SO.10** Dir sin subdirs con specs → exit 2 honesto (`no projects with specs found`).
 
 ## 5. Test plan
 
@@ -88,3 +88,4 @@ export function cloneRepo(cloneUrl: string, destDir: string): Promise<{ ok: true
 ## Changelog
 
 - 2026-09-26 · Spec creado en `ready` (cuarto milestone ejecutable de f8; handoff vía AGENTS.md + este spec).
+- 2026-09-26 · M8.4 implementado → `cerrada` (AC-SO.1–10 verdes; `pnpm check` verde).

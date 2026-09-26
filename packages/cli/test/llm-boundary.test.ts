@@ -48,14 +48,22 @@ describe("LLM boundary (AC-SF.9)", () => {
     }
   });
 
-  it("fetch is only used through the LLM adapter in cli sources", () => {
+  it("fetch is only used through the LLM adapter and the github fetcher in cli sources", () => {
     const withFetch = tsFiles(cliSrc).filter((f) => {
-      if (f === "llm.ts") {
+      if (f === "llm.ts" || f === "github.ts") {
         return false;
       }
       const text = readFileSync(join(cliSrc, f), "utf8");
       return /(^|[^A-Za-z_.])fetch\s*\(/.test(text);
     });
     expect(withFetch).toEqual([]);
+  });
+
+  it("scan aggregation never touches network or LLM clients (AC-SO.9)", () => {
+    const text = readFileSync(join(cliSrc, "scan.ts"), "utf8");
+    expect(text).not.toMatch(/from\s+['"][^'"]*llm(\.js)?['"]/);
+    expect(text).not.toMatch(/(^|[^A-Za-z_.])fetch\s*\(/);
+    expect(text).not.toMatch(/from\s+['"]\.\/github\.js['"]/);
+    expect(text).not.toMatch(/from\s+['"]\.\/analyze\.js['"]/);
   });
 });
