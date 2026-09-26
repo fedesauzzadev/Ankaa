@@ -23,3 +23,10 @@ baseline:
 
 # Reserved for skills (f3); parsed but not validated in f2
 skillsDir: .apigovscan/skills
+
+# Optional AI features (f8): your own OpenAI-compatible LLM endpoint.
+# Without llm.* the product works exactly as before (deterministic, no network).
+# llm:
+#   baseUrl: http://localhost:11434/v1
+#   apiKey: <optional>
+#   model: tu-modelo

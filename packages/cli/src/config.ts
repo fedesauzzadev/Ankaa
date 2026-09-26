@@ -18,6 +18,11 @@ export interface AnalyzeConfig {
   license?: {
     key?: string;
   };
+  llm?: {
+    baseUrl?: string;
+    apiKey?: string;
+    model?: string;
+  };
   /** Directory of the config file when one was loaded (for relative paths). */
   configDir?: string;
 }
@@ -36,6 +41,7 @@ const TOP_LEVEL_KEYS = new Set([
   "baseline",
   "skillsDir",
   "license",
+  "llm",
 ]);
 
 function parseStringList(
@@ -244,6 +250,39 @@ function parseConfigObject(raw: unknown, path: string): LoadConfigResult {
       }
       config.license = { key: license.key };
     }
+  }
+
+  if (obj.llm !== undefined) {
+    if (
+      obj.llm === null ||
+      typeof obj.llm !== "object" ||
+      Array.isArray(obj.llm)
+    ) {
+      return { ok: false, error: `config ${path}: llm must be a mapping` };
+    }
+    const llm = obj.llm as Record<string, unknown>;
+    for (const key of Object.keys(llm)) {
+      if (key !== "baseUrl" && key !== "apiKey" && key !== "model") {
+        return {
+          ok: false,
+          error: `config ${path}: llm: unknown key "${key}"`,
+        };
+      }
+    }
+    const out: { baseUrl?: string; apiKey?: string; model?: string } = {};
+    for (const key of ["baseUrl", "apiKey", "model"] as const) {
+      const value = llm[key];
+      if (value !== undefined) {
+        if (typeof value !== "string" || value.length === 0) {
+          return {
+            ok: false,
+            error: `config ${path}: llm.${key} must be a non-empty string`,
+          };
+        }
+        out[key] = value;
+      }
+    }
+    config.llm = out;
   }
 
   config.configDir = dirname(path);

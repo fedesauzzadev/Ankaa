@@ -293,3 +293,73 @@ export function parseRulesArgs(argv: readonly string[]): ParseRulesArgsResult {
 
   return { ok: true, args, rest };
 }
+
+export interface FixArgs {
+  path: string;
+  fingerprint?: string;
+  config?: string;
+  licenseKey?: string;
+}
+
+export type ParseFixArgsResult =
+  | { ok: true; args: FixArgs }
+  | { ok: false; error: string };
+
+export function parseFixArgs(argv: readonly string[]): ParseFixArgsResult {
+  const args: FixArgs = { path: "" };
+  let pathSeen = false;
+
+  for (let i = 0; i < argv.length; i++) {
+    const token = argv[i]!;
+
+    if (token === "--fingerprint") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--fingerprint requires a fingerprint value" };
+      }
+      args.fingerprint = value;
+      continue;
+    }
+
+    if (token === "--config") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--config requires a file path" };
+      }
+      args.config = value;
+      continue;
+    }
+
+    if (token === "--license-key") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--license-key requires a value" };
+      }
+      args.licenseKey = value;
+      continue;
+    }
+
+    if (token === "--help" || token === "-h" || token === "--version" || token === "-V") {
+      return { ok: false, error: `unexpected ${token} after fix` };
+    }
+
+    if (isFlag(token)) {
+      return { ok: false, error: `unknown option: ${token}` };
+    }
+
+    if (pathSeen) {
+      return { ok: false, error: `unexpected argument: ${token}` };
+    }
+    args.path = token;
+    pathSeen = true;
+  }
+
+  if (!pathSeen) {
+    return {
+      ok: false,
+      error: "missing required argument <path> (file or directory)",
+    };
+  }
+
+  return { ok: true, args };
+}

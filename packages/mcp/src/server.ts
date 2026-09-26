@@ -217,6 +217,48 @@ export function createMcpServer(
     },
   );
 
+  server.registerTool(
+    "suggest_fix",
+    {
+      title: "Suggest a fix",
+      description:
+        "Propose a unified-diff fix for a finding (from a JSON report on disk) using the configured LLM. Draft only; never applies changes. Requires llm.baseUrl in apigovscan.yaml.",
+      inputSchema: {
+        fingerprint: z
+          .string()
+          .describe("64-char hex finding fingerprint from the report"),
+        reportPath: z
+          .string()
+          .optional()
+          .describe(
+            "Path to a JSON report from analyze --format json (sandboxed). Required: save one with the CLI first.",
+          ),
+      },
+    },
+    async (args) => {
+      try {
+        if (args.reportPath === undefined) {
+          return textResult({
+            payload: {
+              ok: false,
+              error:
+                "suggest_fix requires reportPath: save a report with analyze --format json --output first",
+            },
+            isError: true,
+          });
+        }
+        const reportPath = resolveSandboxPath(cwd, args.reportPath);
+        const result = await handlers.suggestFix({
+          reportPath,
+          fingerprint: args.fingerprint,
+        });
+        return textResult(result);
+      } catch (err) {
+        return errorResult(err);
+      }
+    },
+  );
+
   return server;
 }
 

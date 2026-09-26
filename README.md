@@ -77,7 +77,8 @@ Licencia: `--license-key` · `APIGOVSCAN_LICENSE_KEY` · `license.key` en `apigo
 | `apigovscan skills list [--format json]` | Enumera suppressions, overrides y drafts |
 | `apigovscan skills promote <draftId>` | Activa un draft (`draft: false`) |
 | `apigovscan license [--key <AGS-...>]` | Valida la license key (customer + expiry) |
-| `apigovscan mcp [--help]` | Server MCP **stdio** local (tools FR-50, sandbox bajo cwd) |
+| `apigovscan fix <path> [--fingerprint <fp>]` | Propone diffs unificados para findings con tu propio LLM (opcional; ver abajo) |
+| `apigovscan mcp [--help]` | Server MCP **stdio** local (tools FR-50 + `suggest_fix`, sandbox bajo cwd) |
 
 #### MCP (Claude / Cursor / opencode)
 
@@ -98,8 +99,24 @@ npx @apigovscan/cli mcp
 }
 ```
 
-Tools: `analyze_spec`, `list_rules`, `explain_rule`, `validate_custom_rules`, `explain_finding`.  
+Tools: `analyze_spec`, `list_rules`, `explain_rule`, `validate_custom_rules`, `explain_finding`, `suggest_fix`.  
 Paths rechazados si escapan del cwd; `analyze_spec` trunca findings (top 20) — el CLI da el reporte completo. Misma semántica que el CLI (FR-51); **0 red** (INV-1).
+
+#### AI features (optional, f8)
+
+`fix` y la tool MCP `suggest_fix` proponen diffs unificados usando **tu propio LLM** (local o interno, API compatible OpenAI). Deterministas por diseño: el LLM solo redacta borradores; jamás analiza, puntúa ni cierra el gate (INV-1/INV-3).
+
+```bash
+# apigovscan.yaml
+llm:
+  baseUrl: http://localhost:11434/v1   # o tu servidor interno
+  model: tu-modelo
+
+apigovscan fix ./openapi.yaml                       # propuestas para todos los findings
+apigovscan fix ./openapi.yaml --fingerprint <fp>    # solo uno
+```
+
+Variables equivalentes: `APIGOVSCAN_LLM_BASE_URL` / `_API_KEY` / `_MODEL` (ganan sobre la config). Los prompts se redactan (FR-43) y los diffs inválidos se rechazan con error honesto. Spec: [`specs/f8-suggest-fix.md`](specs/f8-suggest-fix.md).
 
 #### GitHub Action (f5)
 
@@ -198,6 +215,9 @@ customRules:
   enabled: false
   path: .apigovscan/baseline.json
 skillsDir: .apigovscan/skills   # suppressions/severities/drafts (f3)
+llm:                            # AI features opcionales (f8); sin esto todo sigue igual
+  baseUrl: http://localhost:11434/v1
+  model: tu-modelo
 ```
 
 Búsqueda: `--config <file>` → `./apigovscan.yaml` → `./apigovscan.yml`. Precedencia: flag CLI > config > default.

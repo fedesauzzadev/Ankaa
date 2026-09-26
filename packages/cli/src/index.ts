@@ -1,29 +1,33 @@
-import { existsSync, statSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import {
   explain,
   packageVersion,
   type Rule,
-  type Severity,
 } from "@apigovscan/core";
 import {
   parseAnalyzeArgs,
+  parseFixArgs,
   parseRulesArgs,
   type FailOn,
 } from "./args.js";
 import { analyzeUseCase } from "./analyze.js";
+import { prepareAnalysis } from "./analyze-setup.js";
+import {
+  buildFixMessages,
+  extractSpecFragment,
+  parseFixResponse,
+  splitFindingTarget,
+} from "./fix.js";
+import { chatCompletion, loadLlmConfig } from "./llm.js";
 import {
   buildBaseline,
   checkInputHashes,
-  fingerprintSet,
-  loadBaselineFile,
   resolveBaselinePath,
   writeBaselineFile,
-  type BaselineFile,
 } from "./baseline.js";
 import {
   loadConfig,
-  resolveCustomRulePaths,
   type AnalyzeConfig,
 } from "./config.js";
 import { discoverSpecs } from "./discovery.js";
@@ -35,12 +39,8 @@ import {
   type RulesSource,
 } from "./custom-rules.js";
 import {
-  compileMatchRegexes,
   listSkills,
-  loadSkills,
-  mergeSeverityOverrides,
   promoteDraft,
-  resolveSkillsDir,
 } from "./skills.js";
 import {
   buildLearnPatch,
@@ -86,6 +86,7 @@ export function getHelp(): string {
     "  apigovscan skills list [--format json]",
     "  apigovscan skills promote <draftId>",
     "  apigovscan license [--key <AGS-...>]",
+    "  apigovscan fix <path> [--fingerprint <fp>]",
     "  apigovscan mcp [--help]",
     "  apigovscan --version",
     "  apigovscan --help",
@@ -113,6 +114,7 @@ export function getHelp(): string {
     "  --baseline-ignore-hash  silence inputHash mismatch warnings",
     "  --skills-dir      override skills directory (default: .apigovscan/skills)",
     "  --license-key     license key (also APIGOVSCAN_LICENSE_KEY or config license.key)",
+    "  --fingerprint     fix: limit proposals to one finding fingerprint",
     "  --report          learn: report JSON path",
     "  --feedback        learn: feedback JSON path",
     "  --dry-run         learn: print plan without writing",
@@ -124,15 +126,21 @@ export function getHelp(): string {
     "",
     "MCP (apigovscan mcp):",
     "  stdio server with tools analyze_spec, list_rules, explain_rule,",
-    "  validate_custom_rules, explain_finding (sandboxed under cwd).",
+    "  validate_custom_rules, explain_finding, suggest_fix (sandboxed under cwd).",
     '  Client: {"mcpServers":{"apigovscan":{"command":"npx","args":["-y","@apigovscan/cli","mcp"]}}}',
+    "",
+    "AI features (optional):",
+    "  apigovscan fix <path> [--fingerprint <fp>]",
+    "  Propose unified-diff fixes for findings using your own LLM.",
+    "  Configure llm.baseUrl in apigovscan.yaml (or APIGOVSCAN_LLM_BASE_URL).",
+    "  The LLM only drafts text; it never analyzes, scores, or gates.",
     "",
     "Exit codes:",
     "  0  no findings at or above --fail-on",
     "  1  findings at or above --fail-on",
     "  2  usage / parse / config / rule / baseline / skills / learn / init / mcp error",
     "",
-    "Docs: docs/SDD.md · specs/f1-analyze.md · specs/f2-*.md · specs/f3-*.md · specs/f4-mcp-*.md · specs/f5-*.md",
+    "Docs: docs/SDD.md · specs/f1-analyze.md · specs/f2-*.md · specs/f3-*.md · specs/f4-mcp-*.md · specs/f5-*.md · specs/f8-*",
   ].join("\n");
 }
 
@@ -149,21 +157,6 @@ function normalizeLabel(absPath: string, cwd: string): string {
   const rel = relative(cwd, absPath);
   const raw = rel && !rel.startsWith("..") && !isAbsolute(rel) ? rel : absPath;
   return sep === "\\" ? raw.split(sep).join("/") : raw;
-}
-
-function applyConfigRules(
-  config: AnalyzeConfig,
-): { disabled: Set<string>; overrides: Map<string, Severity> } {
-  const disabled = new Set<string>();
-  const overrides = new Map<string, Severity>();
-  for (const [ruleId, value] of Object.entries(config.rules ?? {})) {
-    if (value === "off") {
-      disabled.add(ruleId);
-    } else {
-      overrides.set(ruleId, value);
-    }
-  }
-  return { disabled, overrides };
 }
 
 function mergeFailOn(
@@ -263,108 +256,22 @@ async function runAnalyze(
     }
   }
 
-  // Load skills (f3): suppressions, severity overrides, active drafts.
-  const skillsDir = resolveSkillsDir(config, io.cwd, args.skillsDir);
-  const skillsResult = loadSkills(skillsDir, packageVersion());
-  if (!skillsResult.ok) {
-    io.stderr(`error: ${skillsResult.error}\n`);
+  // Load skills, custom rules, severity pipeline and baseline (read mode).
+  const prepared = prepareAnalysis(io.cwd, config, {
+    rulesFiles: args.rulesFiles,
+    ruleInline: args.ruleInline,
+    skillsDir: args.skillsDir,
+    baselinePath: args.baselinePath,
+    baselineMode: baselineMode === "read" ? "read" : "off",
+  });
+  if (!prepared.ok) {
+    io.stderr(`error: ${prepared.error}\n`);
     return 2;
   }
-  const skills = skillsResult.skills;
+  const setup = prepared.setup;
 
-  // Severity: config rules > skills severities > pack default.
-  const configRuleResult = applyConfigRules(config);
-  const severityOverrides = mergeSeverityOverrides(
-    skills.severities,
-    configRuleResult.overrides,
-  );
-  const disabled = configRuleResult.disabled;
-
-  let customRules: Rule[] | undefined;
-  try {
-    const sources: RulesSource[] = [];
-    const configRulePaths = resolveCustomRulePaths(config, io.cwd);
-    for (const path of configRulePaths) {
-      if (!existsSync(path)) {
-        io.stderr(
-          `error: config customRules not found: ${path}\n`,
-        );
-        return 2;
-      }
-      sources.push({ kind: "file", path });
-    }
-    for (const path of args.rulesFiles) {
-      sources.push({ kind: "file", path: resolve(io.cwd, path) });
-    }
-    if (args.ruleInline !== undefined) {
-      sources.push({ kind: "inline", json: args.ruleInline });
-    }
-    const dir = findElitePackDir(defaultPackSearchRoots(io.cwd));
-    const eliteIds = dir
-      ? packRuleIds(loadPackFromDir(dir))
-      : undefined;
-    let collectedRules: Rule[] = [];
-    if (sources.length > 0) {
-      const collected = collectCustomRules(sources, packageVersion(), {
-        eliteRuleIds: eliteIds,
-      });
-      if (!collected.ok) {
-        io.stderr(`error: ${collected.error}\n`);
-        return 2;
-      }
-      collectedRules = collected.rules;
-    }
-    // Active skill drafts: no id collision with config/--rules custom.
-    if (skills.activeDraftRules.length > 0) {
-      const seen = new Set(collectedRules.map((r) => r.id));
-      for (const draft of skills.activeDraftRules) {
-        if (seen.has(draft.id)) {
-          io.stderr(
-            `error: duplicate rule id ${draft.id} (skills draft and custom rules)\n`,
-          );
-          return 2;
-        }
-        if (eliteIds?.has(draft.id) === true) {
-          io.stderr(
-            `error: rule id ${draft.id} already exists in pack elite; use config rules: overrides or a new id\n`,
-          );
-          return 2;
-        }
-        seen.add(draft.id);
-        collectedRules.push(draft);
-      }
-    }
-    if (collectedRules.length > 0) {
-      customRules = collectedRules;
-    }
-  } catch (err) {
-    io.stderr(`error: ${err instanceof Error ? err.message : String(err)}\n`);
-    return 2;
-  }
-
-  let skillsMatchRegexes: Map<number, RegExp> | undefined;
-  if (skills.suppressions.length > 0) {
-    const compiled = compileMatchRegexes(skills.suppressions, skillsDir);
-    if (!compiled.ok) {
-      io.stderr(`error: ${compiled.error}\n`);
-      return 2;
-    }
-    skillsMatchRegexes = compiled.map;
-  }
-
-  // Load baseline early (read mode): missing/invalid → exit 2 before analyze
   // Write mode: refuse overwrite before analyze when file exists without --force
-  let baselineFingerprints: Set<string> | undefined;
-  let loadedBaseline: BaselineFile | undefined;
-  if (baselineMode === "read") {
-    const loaded = loadBaselineFile(baselinePath);
-    if (!loaded.ok) {
-      io.stderr(`error: ${loaded.error}\n`);
-      return 2;
-    }
-    loadedBaseline = loaded.baseline;
-    baselineFingerprints = fingerprintSet(loaded.baseline);
-  } else if (baselineMode === "write" && existsSync(baselinePath) && !args.force) {
+  if (baselineMode === "write" && existsSync(baselinePath) && !args.force) {
     io.stderr(
       `error: baseline already exists: ${baselinePath} (pass --force to overwrite)\n`,
     );
@@ -420,19 +327,13 @@ async function runAnalyze(
       inputs,
       labelFor: (p) => (p === "-" ? "<stdin>" : normalizeLabel(p, io.cwd)),
       failOn,
-      customRules,
-      disabledRuleIds: disabled,
-      severityOverrides,
+      customRules: setup.customRules,
+      disabledRuleIds: setup.disabledRuleIds,
+      severityOverrides: setup.severityOverrides,
       toolVersion: packageVersion(),
       debug,
-      baselineFingerprints,
-      skillsSuppressions:
-        skills.suppressions.length > 0 && skillsMatchRegexes !== undefined
-          ? {
-              suppressions: skills.suppressions,
-              matchRegexes: skillsMatchRegexes,
-            }
-          : undefined,
+      baselineFingerprints: setup.baselineFingerprints,
+      skillsSuppressions: setup.skillsSuppressions,
     },
   );
 
@@ -442,9 +343,9 @@ async function runAnalyze(
   }
 
   // Hash checks after we know report.input labels/sha256
-  if (baselineMode === "read" && loadedBaseline !== undefined) {
+  if (baselineMode === "read" && setup.loadedBaseline !== undefined) {
     const complaints = checkInputHashes(
-      loadedBaseline,
+      setup.loadedBaseline,
       outcome.report.input,
       hashMode,
     );
@@ -1259,8 +1160,9 @@ function getMcpHelp(): string {
     "  explain_rule(ruleId, rules?)",
     "  validate_custom_rules(files[])",
     "  explain_finding(reportPath, fingerprint)",
+    "  suggest_fix(reportPath, fingerprint) — LLM draft only, needs llm.baseUrl",
     "",
-    "Paths are sandboxed under the process cwd. analyze_spec output is truncated.",
+  "Paths are sandboxed under the process cwd. analyze_spec output is truncated.",
     "Same engine as the CLI; stateless between calls; zero network (INV-1).",
     "",
     "Client registration (Claude / Cursor / opencode):",
@@ -1365,6 +1267,218 @@ function runLicenseCommand(
   return 2;
 }
 
+async function runFixCommand(
+  argv: readonly string[],
+  io: {
+    stdout: (text: string) => void;
+    stderr: (text: string) => void;
+    env: Record<string, string | undefined>;
+    cwd: string;
+    readStdin: () => Promise<Uint8Array>;
+  },
+): Promise<number> {
+  if (argv.includes("--help") || argv.includes("-h")) {
+    io.stdout(
+      "usage: apigovscan fix <path> [--fingerprint <fp>] [--config <file>] [--license-key <key>]\n",
+    );
+    return 0;
+  }
+  const parsedArgs = parseFixArgs(argv);
+  if (!parsedArgs.ok) {
+    io.stderr(`error: ${parsedArgs.error}\n`);
+    return 2;
+  }
+  const args = parsedArgs.args;
+
+  if (
+    args.fingerprint !== undefined &&
+    !/^[0-9a-f]{64}$/.test(args.fingerprint)
+  ) {
+    io.stderr("error: invalid fingerprint (expected 64 hex chars)\n");
+    return 2;
+  }
+
+  const configResult = loadConfig(io.cwd, args.config);
+  if (!configResult.ok) {
+    io.stderr(`error: ${configResult.error}\n`);
+    return 2;
+  }
+  const config = configResult.config;
+
+  if (config.standards?.pack !== undefined && config.standards.pack !== "elite") {
+    io.stderr(
+      `error: unknown pack "${config.standards.pack}" (f1 ships only the embedded "elite" pack)\n`,
+    );
+    return 2;
+  }
+
+  // Same license gate as analyze: fix runs the full analysis in memory.
+  const license = checkLicense({
+    flag: args.licenseKey,
+    env: io.env.APIGOVSCAN_LICENSE_KEY,
+    config: config.license?.key,
+  });
+  if (!license.ok) {
+    io.stderr(`error: ${licenseErrorMessage(license)}\n`);
+    return 2;
+  }
+
+  const llmCfg = loadLlmConfig(config.llm, io.env);
+  if (llmCfg === undefined) {
+    io.stderr(
+      "error: llm not configured: set llm.baseUrl in apigovscan.yaml (AI features are optional)\n",
+    );
+    return 2;
+  }
+
+  let inputs: string[];
+  const inputPath = resolve(io.cwd, args.path);
+  if (args.path === "-") {
+    io.stderr("error: fix requires a file or directory (stdin is not supported)\n");
+    return 2;
+  } else if (!existsSync(inputPath)) {
+    io.stderr(`error: input not found: ${args.path}\n`);
+    return 2;
+  } else if (statSync(inputPath).isDirectory()) {
+    const discovered = discoverSpecs(inputPath);
+    if (!discovered.ok) {
+      io.stderr(`error: ${discovered.error}\n`);
+      return 2;
+    }
+    inputs = discovered.paths.map((p) => resolve(inputPath, p));
+  } else {
+    inputs = [inputPath];
+  }
+
+  const prepared = prepareAnalysis(io.cwd, config, {
+    rulesFiles: [],
+    skillsDir: undefined,
+    baselineMode: config.baseline?.enabled === true ? "read" : "off",
+  });
+  if (!prepared.ok) {
+    io.stderr(`error: ${prepared.error}\n`);
+    return 2;
+  }
+  const setup = prepared.setup;
+
+  const outcome = await analyzeUseCase(
+    {
+      loader: createFsSpecLoader(io.readStdin),
+      packs: createFsPackRepository(io.cwd),
+      sink: {
+        async write() {},
+      },
+    },
+    {
+      inputs,
+      labelFor: (p) => normalizeLabel(p, io.cwd),
+      failOn: "never",
+      customRules: setup.customRules,
+      disabledRuleIds: setup.disabledRuleIds,
+      severityOverrides: setup.severityOverrides,
+      toolVersion: packageVersion(),
+      baselineFingerprints: setup.baselineFingerprints,
+      skillsSuppressions: setup.skillsSuppressions,
+    },
+  );
+  if (!outcome.ok) {
+    io.stderr(`error: ${outcome.error}\n`);
+    return outcome.exitCode;
+  }
+
+  let findings = outcome.report.findings;
+  if (args.fingerprint !== undefined) {
+    findings = findings.filter((f) => f.fingerprint === args.fingerprint);
+    if (findings.length === 0) {
+      io.stderr(`error: finding not found: ${args.fingerprint}\n`);
+      return 2;
+    }
+  }
+  if (findings.length === 0) {
+    io.stdout("no fixable findings\n");
+    return 0;
+  }
+
+  const labels = outcome.report.input.map((i) => i.path);
+  for (let index = 0; index < findings.length; index++) {
+    const finding = findings[index]!;
+    const explanation = explain(setup.lookupRules, finding.ruleId);
+    if (explanation === undefined) {
+      io.stderr(`error: rule not found: ${finding.ruleId}\n`);
+      return 2;
+    }
+    const target = splitFindingTarget(finding.location, labels);
+    const specAbs =
+      target.label !== undefined
+        ? resolve(io.cwd, target.label)
+        : inputs.length === 1
+          ? inputs[0]!
+          : undefined;
+    if (specAbs === undefined || !existsSync(specAbs)) {
+      io.stderr(
+        `error: spec file not found: ${target.label ?? finding.location}\n`,
+      );
+      return 2;
+    }
+    const specText = readFileSync(specAbs, "utf8");
+    const { fragment } = extractSpecFragment(specText, target.pointer);
+    const fileLabel = target.label ?? normalizeLabel(specAbs, io.cwd);
+    let patch: string;
+    let explanationText: string;
+    let confidence: string;
+    try {
+      const text = await chatCompletion(
+        llmCfg,
+        buildFixMessages({
+          fileLabel,
+          ruleId: finding.ruleId,
+          severity: finding.severity,
+          message: finding.message,
+          location: finding.location,
+          ...(explanation.fix !== undefined ? { fixHint: explanation.fix } : {}),
+          ...(explanation.source !== undefined
+            ? {
+                source: {
+                  title: explanation.source.title,
+                  ...(explanation.source.url !== undefined
+                    ? { url: explanation.source.url }
+                    : {}),
+                },
+              }
+            : {}),
+          fragment,
+        }),
+      );
+      const parsed = parseFixResponse(text);
+      if (!parsed.ok) {
+        io.stderr(`error: ${parsed.error}\n`);
+        return 2;
+      }
+      patch = parsed.fix.patch;
+      explanationText = parsed.fix.explanation;
+      confidence = parsed.fix.confidence;
+    } catch (err) {
+      io.stderr(
+        `error: ${err instanceof Error ? err.message : String(err)}\n`,
+      );
+      return 2;
+    }
+    if (index > 0) {
+      io.stdout("\n");
+    }
+    io.stdout(
+      [
+        `fix  ${finding.ruleId}  ${finding.location}  (${finding.fingerprint.slice(0, 8)})`,
+        `explanation: ${explanationText}`,
+        `confidence: ${confidence} (LLM-declared)`,
+        "",
+        patch,
+      ].join("\n") + "\n",
+    );
+  }
+  return 0;
+}
+
 export async function run(
   argv: readonly string[],
   io?: RunIO,
@@ -1404,6 +1518,7 @@ export async function run(
     first === "learn" ||
     first === "skills" ||
     first === "license" ||
+    first === "fix" ||
     first === "mcp";
 
   if (
@@ -1465,6 +1580,15 @@ export async function run(
       stderr,
       env,
       cwd,
+    });
+  }
+  if (first === "fix") {
+    return runFixCommand(args.slice(1), {
+      stdout,
+      stderr,
+      env,
+      cwd,
+      readStdin,
     });
   }
   if (first === "mcp") {

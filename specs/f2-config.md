@@ -169,3 +169,4 @@ Resolución de rutas en config: **relativas al directorio del archivo de config*
 - 2026-09-24 · Spec creado desde SDD v1.0 §7 Fase 2 + FR-13.
 - 2026-09-24 · M2.2 implementado: schema estricto, customRules, baseline parseado, merge, ejemplo, tests AC-C.*; estado → `implementada`.
 - 2026-09-26 · F6: schema gana `license: { key?: string }` (obligatoria para `analyze`/`mcp` — contrato en `f6-distribution`).
+- 2026-09-26 · F8: schema gana `llm: { baseUrl?, apiKey?, model? }` (opcional; features de IA — contrato en `f8-suggest-fix`).

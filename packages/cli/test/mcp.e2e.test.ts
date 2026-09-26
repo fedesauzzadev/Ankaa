@@ -14,6 +14,7 @@ import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { createMcpServer } from "@apigovscan/mcp";
 import { run } from "../src/index.js";
 import { createCliMcpHandlers } from "../src/mcp.js";
+import { startLlmStub } from "./llm-stub.js";
 
 const repoRoot = join(
   dirname(fileURLToPath(import.meta.url)),
@@ -407,6 +408,161 @@ describe("MCP tools e2e (f4-mcp-tools)", () => {
       expect(source?.url).toMatch(/^https?:\/\//);
     } finally {
       await close();
+    }
+  });
+});
+
+describe("MCP suggest_fix (f8-suggest-fix)", () => {
+  function llmEnv(): Record<string, string | undefined> {
+    return {
+      APIGOVSCAN_LLM_BASE_URL: process.env.APIGOVSCAN_LLM_BASE_URL,
+      APIGOVSCAN_LLM_API_KEY: process.env.APIGOVSCAN_LLM_API_KEY,
+      APIGOVSCAN_LLM_MODEL: process.env.APIGOVSCAN_LLM_MODEL,
+    };
+  }
+
+  function clearLlmEnv(): void {
+    delete process.env.APIGOVSCAN_LLM_BASE_URL;
+    delete process.env.APIGOVSCAN_LLM_API_KEY;
+    delete process.env.APIGOVSCAN_LLM_MODEL;
+  }
+
+  function restoreLlmEnv(saved: Record<string, string | undefined>): void {
+    for (const [key, value] of Object.entries(saved)) {
+      if (value === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = value;
+      }
+    }
+  }
+
+  async function analyzeToReport(dir: string): Promise<string> {
+    const out = await runCapture(
+      ["analyze", "openapi.yaml", "--format", "json", "--output", "report.json"],
+      { cwd: dir },
+    );
+    expect([0, 1]).toContain(out.code);
+    const report = JSON.parse(
+      readFileSync(join(dir, "report.json"), "utf8"),
+    ) as { findings: Array<{ fingerprint: string }> };
+    expect(report.findings.length).toBeGreaterThan(0);
+    return report.findings[0]!.fingerprint;
+  }
+
+  it("AC-SF.8 suggest_fix returns patch, explanation and confidence", async () => {
+    const saved = llmEnv();
+    const dir = setupWorkspace();
+    const stub = await startLlmStub();
+    const { client, close } = await connectCli(dir);
+    try {
+      process.env.APIGOVSCAN_LLM_BASE_URL = stub.url;
+      process.env.APIGOVSCAN_LLM_MODEL = "stub";
+      const fp = await analyzeToReport(dir);
+      const payload = parseToolText(
+        await client.callTool({
+          name: "suggest_fix",
+          arguments: { reportPath: "report.json", fingerprint: fp },
+        }),
+      );
+      expect(payload.ok).toBe(true);
+      expect(payload.fingerprint).toBe(fp);
+      expect(String(payload.patch)).toContain("--- a/openapi.yaml");
+      expect(String(payload.patch)).toContain("+++ b/openapi.yaml");
+      expect(String(payload.explanation)).toBeTruthy();
+      expect(["low", "medium", "high"]).toContain(payload.confidence);
+    } finally {
+      restoreLlmEnv(saved);
+      await close();
+      await stub.close();
+    }
+  });
+
+  it("AC-SF.8 suggest_fix without LLM configured is an error", async () => {
+    const saved = llmEnv();
+    const dir = setupWorkspace();
+    const { client, close } = await connectCli(dir);
+    try {
+      clearLlmEnv();
+      const fp = await analyzeToReport(dir);
+      const result = await client.callTool({
+        name: "suggest_fix",
+        arguments: { reportPath: "report.json", fingerprint: fp },
+      });
+      expect(result).toHaveProperty("isError", true);
+      const payload = parseToolText(result);
+      expect(payload.ok).toBe(false);
+      expect(String(payload.error)).toContain("llm not configured");
+    } finally {
+      restoreLlmEnv(saved);
+      await close();
+    }
+  });
+
+  it("AC-SF.8 suggest_fix with invalid LLM output fails honestly", async () => {
+    const saved = llmEnv();
+    const dir = setupWorkspace();
+    const stub = await startLlmStub({
+      response: {
+        choices: [{ message: { content: "not a diff at all" } }],
+      },
+    });
+    const { client, close } = await connectCli(dir);
+    try {
+      process.env.APIGOVSCAN_LLM_BASE_URL = stub.url;
+      process.env.APIGOVSCAN_LLM_MODEL = "stub";
+      const fp = await analyzeToReport(dir);
+      const result = await client.callTool({
+        name: "suggest_fix",
+        arguments: { reportPath: "report.json", fingerprint: fp },
+      });
+      expect(result).toHaveProperty("isError", true);
+      const payload = parseToolText(result);
+      expect(payload.ok).toBe(false);
+      expect(String(payload.error)).toContain("could not produce a valid patch");
+    } finally {
+      restoreLlmEnv(saved);
+      await close();
+      await stub.close();
+    }
+  });
+
+  it("AC-SF.8 suggest_fix missing reportPath and bad fingerprints fail", async () => {
+    const saved = llmEnv();
+    const dir = setupWorkspace();
+    const stub = await startLlmStub();
+    const { client, close } = await connectCli(dir);
+    try {
+      process.env.APIGOVSCAN_LLM_BASE_URL = stub.url;
+      process.env.APIGOVSCAN_LLM_MODEL = "stub";
+      await analyzeToReport(dir);
+
+      const noReport = await client.callTool({
+        name: "suggest_fix",
+        arguments: { fingerprint: "a".repeat(64) },
+      });
+      expect(noReport).toHaveProperty("isError", true);
+      expect(String(parseToolText(noReport).error)).toContain("reportPath");
+
+      const missing = await client.callTool({
+        name: "suggest_fix",
+        arguments: { reportPath: "report.json", fingerprint: "a".repeat(64) },
+      });
+      expect(missing).toHaveProperty("isError", true);
+      expect(String(parseToolText(missing).error)).toContain("finding not found");
+
+      const malformed = await client.callTool({
+        name: "suggest_fix",
+        arguments: { reportPath: "report.json", fingerprint: "nope" },
+      });
+      expect(malformed).toHaveProperty("isError", true);
+      expect(String(parseToolText(malformed).error)).toContain(
+        "invalid fingerprint",
+      );
+    } finally {
+      restoreLlmEnv(saved);
+      await close();
+      await stub.close();
     }
   });
 });

@@ -65,4 +65,8 @@ export interface McpToolHandlers {
     reportPath: string;
     fingerprint: string;
   }): Promise<ToolResult>;
+  suggestFix(input: {
+    reportPath: string;
+    fingerprint: string;
+  }): Promise<ToolResult>;
 }

@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | ready |
+| Estado | cerrada |
 | Fecha | 2026-09-26 |
 | Fase | 8 (M8.1 del umbrella `f8-oss-differentials`) |
 | Deriva de | `f8-oss-differentials` M8.1; FR-43 (redacción); INV-1/INV-3; `f2-config` (schema strict) |
@@ -47,15 +47,15 @@ export async function chatCompletion(cfg: LlmConfig, messages: Array<{role: stri
 
 ## 4. Criterios de aceptación
 
-- [ ] **AC-SF.1** `loadLlmConfig`: env > config; strings no vacíos; sin config → `undefined` (no error).
-- [ ] **AC-SF.2** Config strict: `llm` aceptada; key desconocida (`llm.url`) → `config ...: llm: unknown key "url"`; `baseUrl` no-string → error.
-- [ ] **AC-SF.3** `analyze` SIN `llm` configurado se comporta byte a byte igual que hoy (reportHash y score idénticos; INV-1 test con fetch stubbed sigue verde).
-- [ ] **AC-SF.4** `fix` sin config LLM → exit 2 + mensaje con `llm.baseUrl`.
-- [ ] **AC-SF.5** `fix` con stub OpenAI-compatible (servidor http local en test): imprime `--- a/<file>` / `+++ b/<file>` unified diff; **no escribe** el spec (mtime/contenido iguales).
-- [ ] **AC-SF.6** `--fingerprint <fp>` limita a ese finding; fingerprint inexistente → exit 2 `finding not found`.
-- [ ] **AC-SF.7** Redacción: con un secret en el spec (PEM/AKIA…), el body del request al LLM NO contiene el secret (stub captura el body y lo aserta).
-- [ ] **AC-SF.8** MCP `suggest_fix`: payload con `patch`+`explanation`+`confidence`; sin LLM → `isError` con mensaje; el diff inválido del LLM → error honesto, nunca patch roto.
-- [ ] **AC-SF.9** INV-1: `packages/core` y el path de `analyze` no importan `llm.ts` (test de boundary por imports o grep en CI).
+- [x] **AC-SF.1** `loadLlmConfig`: env > config; strings no vacíos; sin config → `undefined` (no error).
+- [x] **AC-SF.2** Config strict: `llm` aceptada; key desconocida (`llm.url`) → `config ...: llm: unknown key "url"`; `baseUrl` no-string → error.
+- [x] **AC-SF.3** `analyze` SIN `llm` configurado se comporta byte a byte igual que hoy (reportHash y score idénticos; INV-1 test con fetch stubbed sigue verde).
+- [x] **AC-SF.4** `fix` sin config LLM → exit 2 + mensaje con `llm.baseUrl`.
+- [x] **AC-SF.5** `fix` con stub OpenAI-compatible (servidor http local en test): imprime `--- a/<file>` / `+++ b/<file>` unified diff; **no escribe** el spec (mtime/contenido iguales).
+- [x] **AC-SF.6** `--fingerprint <fp>` limita a ese finding; fingerprint inexistente → exit 2 `finding not found`.
+- [x] **AC-SF.7** Redacción: con un secret en el spec (PEM/AKIA…), el body del request al LLM NO contiene el secret (stub captura el body y lo aserta).
+- [x] **AC-SF.8** MCP `suggest_fix`: payload con `patch`+`explanation`+`confidence`; sin LLM → `isError` con mensaje; el diff inválido del LLM → error honesto, nunca patch roto.
+- [x] **AC-SF.9** INV-1: `packages/core` y el path de `analyze` no importan `llm.ts` (test de boundary por imports o grep en CI).
 
 ## 5. Test plan
 
@@ -81,3 +81,8 @@ export async function chatCompletion(cfg: LlmConfig, messages: Array<{role: stri
 ## Changelog
 
 - 2026-09-26 · Spec creado en `ready` (primer milestone ejecutable de f8; handoff a cualquier agente vía AGENTS.md + este spec).
+- 2026-09-26 · M8.1 implementado → `cerrada` (AC-SF.1–9 verdes; `pnpm check` verde). Decisiones de implementación:
+  - `fix` exige licencia (mismo gate que `analyze`: corre el análisis completo en memoria — dejarlo libre sería un bypass).
+  - El MCP usa el gate del arranque del server (ya existente); la tool no revalida.
+  - Respuesta del LLM: envelope JSON `{patch, explanation, confidence}` (parser tolerante a fences y a diffs crudos); `confidence` inválida → `"low"`.
+  - `reportPath` es opcional en el schema MCP pero obligatorio en la práctica → error guiado si falta.

@@ -21,3 +21,4 @@
 ## Changelog del plan
 
 - 2026-09-26 · Plan inicial (handoff: leer AGENTS.md del repo antes de arrancar).
+- 2026-09-26 · M8.1 implementado → DoD cumplido (`pnpm check` verde: lint + typecheck + tests + build + 16 invariants); refactor `prepareAnalysis` compartido analyze/fix sin cambios de comportamiento.

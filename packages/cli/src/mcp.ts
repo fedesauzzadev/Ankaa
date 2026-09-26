@@ -42,6 +42,13 @@ import {
   loadBaselineFile,
   resolveBaselinePath,
 } from "./baseline.js";
+import { chatCompletion, loadLlmConfig } from "./llm.js";
+import {
+  buildFixMessages,
+  extractSpecFragment,
+  parseFixResponse,
+  splitFindingTarget,
+} from "./fix.js";
 
 function loadElitePackOrThrow(cwd: string) {
   const dir = findElitePackDir(defaultPackSearchRoots(cwd));
@@ -365,7 +372,6 @@ export function createCliMcpHandlers(cwd: string): McpToolHandlers {
         return fail(err instanceof Error ? err.message : String(err));
       }
     },
-
     async explainFinding(input) {
       try {
         if (!existsSync(input.reportPath)) {
@@ -423,5 +429,145 @@ export function createCliMcpHandlers(cwd: string): McpToolHandlers {
         return fail(err instanceof Error ? err.message : String(err));
       }
     },
+    async suggestFix(input) {
+      try {
+        if (!existsSync(input.reportPath)) {
+          return fail(`report not found: ${input.reportPath}`);
+        }
+        if (!/^[0-9a-f]{64}$/.test(input.fingerprint)) {
+          return fail(
+            `invalid fingerprint (expected 64 hex chars): ${input.fingerprint}`,
+          );
+        }
+        let report: Report;
+        try {
+          report = JSON.parse(readFileSync(input.reportPath, "utf8")) as Report;
+        } catch (err) {
+          return fail(
+            `invalid report JSON: ${err instanceof Error ? err.message : String(err)}`,
+          );
+        }
+        const finding = report.findings?.find(
+          (f) => f.fingerprint === input.fingerprint,
+        );
+        if (finding === undefined) {
+          return fail(`finding not found: ${input.fingerprint}`);
+        }
+        const configResult = loadConfig(cwd, undefined);
+        if (!configResult.ok) {
+          return fail(configResult.error);
+        }
+        const llmCfg = loadLlmConfig(configResult.config.llm, process.env);
+        if (llmCfg === undefined) {
+          return fail(
+            "llm not configured: set llm.baseUrl in apigovscan.yaml (AI features are optional)",
+          );
+        }
+        const lookup = await loadSuggestLookup(cwd, configResult.config);
+        if (!lookup.ok) {
+          return fail(lookup.error);
+        }
+        const explanation = explain(lookup.rules, finding.ruleId);
+        if (explanation === undefined) {
+          return fail(`rule not found: ${finding.ruleId}`);
+        }
+        const target = splitFindingTarget(
+          finding.location,
+          report.input.map((i) => i.path),
+        );
+        if (target.label === "<stdin>") {
+          return fail(
+            "cannot suggest a fix for stdin input (analyze a file instead)",
+          );
+        }
+        let specPath: string | undefined;
+        if (target.label !== undefined) {
+          specPath = isAbsolute(target.label)
+            ? target.label
+            : resolve(cwd, target.label);
+        } else if (
+          report.input.length === 1 &&
+          report.input[0] !== undefined
+        ) {
+          const only = report.input[0].path;
+          specPath = isAbsolute(only) ? only : resolve(cwd, only);
+        }
+        if (specPath === undefined || !existsSync(specPath)) {
+          return fail(
+            `spec file not found: ${target.label ?? finding.location}`,
+          );
+        }
+        const { fragment } = extractSpecFragment(
+          readFileSync(specPath, "utf8"),
+          target.pointer,
+        );
+        const fileLabel = target.label ?? finding.location;
+        let text: string;
+        try {
+          text = await chatCompletion(
+            llmCfg,
+            buildFixMessages({
+              fileLabel,
+              ruleId: finding.ruleId,
+              severity: finding.severity,
+              message: finding.message,
+              location: finding.location,
+              ...(explanation.fix !== undefined
+                ? { fixHint: explanation.fix }
+                : {}),
+              ...(explanation.source !== undefined
+                ? {
+                    source: {
+                      title: explanation.source.title,
+                      ...(explanation.source.url !== undefined
+                        ? { url: explanation.source.url }
+                        : {}),
+                    },
+                  }
+                : {}),
+              fragment,
+            }),
+          );
+        } catch (err) {
+          return fail(err instanceof Error ? err.message : String(err));
+        }
+        const parsed = parseFixResponse(text);
+        if (!parsed.ok) {
+          return fail(parsed.error);
+        }
+        return ok({
+          ok: true,
+          fingerprint: finding.fingerprint,
+          patch: parsed.fix.patch,
+          explanation: parsed.fix.explanation,
+          confidence: parsed.fix.confidence,
+        });
+      } catch (err) {
+        return fail(err instanceof Error ? err.message : String(err));
+      }
+    },
   };
+}
+
+async function loadSuggestLookup(
+  cwd: string,
+  config: { customRules?: string[]; configDir?: string },
+): Promise<{ ok: true; rules: Rule[] } | { ok: false; error: string }> {
+  try {
+    const elite = loadElitePackOrThrow(cwd);
+    const customResult = await loadCustomForTools(
+      cwd,
+      config.customRules,
+      elite,
+    );
+    if (!customResult.ok) {
+      return { ok: false, error: customResult.error };
+    }
+    return { ok: true, rules: [...elite.rules, ...customResult.rules] };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
 }
