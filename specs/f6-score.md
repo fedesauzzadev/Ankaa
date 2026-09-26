@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | ready |
+| Estado | cerrada |
 | Fecha | 2026-09-26 |
 | Fase | 6 |
 | Deriva de | SDD §7 (re-priorización de producto 2026-09-26), FR-45; docs/01 §6.5; specs `f1-reporters`, `f5-reporters` |
@@ -59,14 +59,14 @@ export interface Report {
 
 ## 4. Criterios de aceptación
 
-- [ ] **AC-S.1** `buildReport` con 0 findings ⇒ `score = { value: 100, grade: "A" }`.
-- [ ] **AC-S.2** Fórmula exacta: `8E+3W+1I` de penalty, floor 0; `petstore-mini` (0E/6W/8I) ⇒ score 74 (C).
-- [ ] **AC-S.3** Grades en los cortes 90/75/60/40 (tests de borde).
-- [ ] **AC-S.4** `formatConsole` incluye `score 74 (C)` en el footer (con y sin color).
-- [ ] **AC-S.5** `formatMarkdown` incluye fila `| Score |`.
-- [ ] **AC-S.6** SARIF `runs[0].properties` con `apigovscan/score` y `apigovscan/grade`.
-- [ ] **AC-S.7** MCP `analyze_spec` devuelve `score` igual al JSON del CLI (paridad).
-- [ ] **AC-S.8** INV-2: score derivado de `summary`; mismo input ⇒ mismo score y `reportHash` estable entre runs.
+- [x] **AC-S.1** `buildReport` con 0 findings ⇒ `score = { value: 100, grade: "A" }`.
+- [x] **AC-S.2** Fórmula exacta: `8E+3W+1I` de penalty, floor 0; `petstore-mini` (0E/6W/8I) ⇒ score 74 (C).
+- [x] **AC-S.3** Grades en los cortes 90/75/60/40 (tests de borde).
+- [x] **AC-S.4** `formatConsole` incluye `score 74 (C)` en el footer (con y sin color).
+- [x] **AC-S.5** `formatMarkdown` incluye fila `| Score |`.
+- [x] **AC-S.6** SARIF `runs[0].properties` con `apigovscan/score` y `apigovscan/grade`.
+- [x] **AC-S.7** MCP `analyze_spec` devuelve `score` igual al JSON del CLI (paridad).
+- [x] **AC-S.8** INV-2: score derivado de `summary`; mismo input ⇒ mismo score y `reportHash` estable entre runs.
 
 ## 5. Test plan
 
@@ -92,3 +92,4 @@ export interface Report {
 ## Changelog
 
 - 2026-09-26 · Spec creado (re-priorización producto privado; estado `ready`).
+- 2026-09-26 · M6.1: `computeScore` en `buildReport` + console/markdown/SARIF/MCP + tests (AC-S.1–8 verdes) → `cerrada`. `petstore-mini` ⇒ 74 (C).

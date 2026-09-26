@@ -34,7 +34,7 @@ Especificaciones **spec-driven** derivadas del [SDD v1.0](../docs/SDD.md). El SD
 | [f4-mcp-tools](f4-mcp-tools.md) | 4 | Tools FR-50 con paridad CLI | cerrada |
 | [f5-reporters](f5-reporters.md) | 5 | Reportes SARIF + Markdown + annotations | cerrada |
 | [f5-action](f5-action.md) | 5 | GitHub Action oficial (composite) | cerrada |
-| [f6-score](f6-score.md) | 6 | Governance score 0-100 + grade A–F | ready |
+| [f6-score](f6-score.md) | 6 | Governance score 0-100 + grade A–F | cerrada |
 
 ## Orden de implementación sugerido
 

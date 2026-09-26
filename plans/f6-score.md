@@ -21,3 +21,4 @@
 ## Changelog del plan
 
 - 2026-09-26 · Plan inicial (re-priorización producto privado).
+- 2026-09-26 · M6.1 implementado y verificado (AC-S.1–8, INV-2, `pnpm check` verde); spec `f6-score` cerrada. La fase 6 sigue abierta (distribución privada: license/packs/self-host).
