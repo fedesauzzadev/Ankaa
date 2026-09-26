@@ -5,7 +5,7 @@
 | Producto | ApiGovScan — analizador local de API Governance |
 | Versión del documento | 1.0 |
 | Fecha | 2026-09-23 |
-| Estado | Borrador aprobado para Fase 0–1 |
+| Estado | Aprobado — Fases 0–5 implementadas (specs `f0-*`…`f5-*` cerradas; último tag `v0.5.0-action`); Fase 6+ pendiente |
 | Tipo de proyecto | Herramienta de developer productivity (local-first) |
 | Stack | TypeScript · pnpm workspaces · Node ≥ 20 · Cloudflare Workers (solo edge services) · Docker Compose (dev/self-host) |
 
@@ -144,4 +144,4 @@ El API governance roto no se manifiesta como un incidente: se manifiesta como **
 
 ---
 
-*Próximo paso sugerido: validar alcance e invariantes de este SDD y luego abrir la documentación spec-driven (specs/plans/tasks) de la Fase 0–1.*
+*Estado actual: Fases 0–5 cerradas (specs/plans/tasks en sus carpetas con changelogs). Próximo paso del roadmap: Fase 6 (Cloudflare, registry de packs, MCP remoto de consulta) — abrir sus specs cuando se arranque.*

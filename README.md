@@ -1,5 +1,8 @@
 # ApiGovScan
 
+[![CI](https://github.com/fedesauzzadev/ApiGovScan/actions/workflows/ci.yml/badge.svg)](https://github.com/fedesauzzadev/ApiGovScan/actions/workflows/ci.yml)
+[![ApiGovScan dogfood](https://github.com/fedesauzzadev/ApiGovScan/actions/workflows/apigovscan.yml/badge.svg)](https://github.com/fedesauzzadev/ApiGovScan/actions/workflows/apigovscan.yml)
+
 > Analizador local de **API Governance** para equipos y proyectos existentes.
 > Sin subir código ni specs a ningún lado, sin tokens de LLM en el camino: un motor determinista con estándares de élite, reglas propias al vuelo y una carpeta `skills/` que aprende de tu feedback.
 
