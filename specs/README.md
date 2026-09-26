@@ -36,6 +36,7 @@ Especificaciones **spec-driven** derivadas del [SDD v1.0](../docs/SDD.md). El SD
 | [f5-action](f5-action.md) | 5 | GitHub Action oficial (composite) | cerrada |
 | [f6-score](f6-score.md) | 6 | Governance score 0-100 + grade A–F | cerrada |
 | [f6-distribution](f6-distribution.md) | 6 | Licencia offline + tarball/registry/Docker privados | cerrada |
+| [f7-enterprise](f7-enterprise.md) | 7 | Packs por cliente + self-host completo + edge CF (todo lo pendiente, fase única) | draft |
 
 ## Orden de implementación sugerido
 
@@ -55,8 +56,9 @@ f0-foundation
 - **Fase 3 (SDD §7)** = specs `f3-*` (init, skills, learn) — cerrada en `v0.3.0-learning`.
 - **Fase 4 (SDD §7)** = specs `f4-*` (MCP stdio local) — cerrada en `v0.4.0-mcp`.
 - **Fase 5 (SDD §7)** = specs `f5-*` (SARIF/Markdown/annotations + GitHub Action) — cerrada en `v0.5.0-action`.
-- **Fase 6 (re-priorizada 2026-09-26)** = producto **privado instalable**: `f6-score` (métrica) y `f6-distribution` (licencia offline + tarball/registry/Docker) — **cerradas**; siguen abiertos specs futuros (packs por cliente, self-host completo). Cloudflare del SDD original pasa a fase posterior.
-- **Fases 7+** = specs futuros (Cloudflare/registry público, MCP remoto) — se abren cuando la fase anterior esté cerrada.
+- **Fase 6 (re-priorizada 2026-09-26)** = producto **privado instalable**: `f6-score` + `f6-distribution` — **cerradas en `v0.6.0-private`**.
+- **Fase 7** = todo lo pendiente consolidado en `f7-enterprise` (estado `draft`): packs por cliente, self-host compose completo, edge Cloudflare (opcional). Se abre cuando se arranque.
+- **Fases 8+** = specs futuros — se abren cuando la fase anterior esté cerrada.
 
 ## Plantilla de spec (para futuras)
 

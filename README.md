@@ -244,5 +244,5 @@ Ver [docs/SDD.md §7](docs/SDD.md).
 - **F3 (tag `v0.3.0-learning`):** skills, learn, init ✅ — specs `f3-*` en estado `cerrada`.
 - **F4 (tag `v0.4.0-mcp`):** MCP stdio local ✅ — specs `f4-mcp-*` en estado `cerrada`.
 - **F5 (tag `v0.5.0-action`):** reporters SARIF/Markdown/annotations ✅ + GitHub Action ✅ — specs `f5-*` en estado `cerrada`.
-- **F6 (en progreso):** governance score ✅ (`f6-score`) · licencia offline + tarball/registry/Docker ✅ (`f6-distribution`) · pendiente: packs internos por cliente, self-host completo.
-- **F7+:** Cloudflare (registry de packs, MCP remoto).
+- **F6 (tag `v0.6.0-private`):** governance score ✅ (`f6-score`) · licencia offline + tarball/registry/Docker ✅ (`f6-distribution`) — fase cerrada.
+- **F7 (backlog, `f7-enterprise` draft):** packs por cliente · self-host compose completo · edge Cloudflare (opcional) — todo lo pendiente en una única fase; se abre cuando se arranque.
