@@ -228,6 +228,7 @@ async function analyzeSpecHandler(
     toolVersion: outcome.report.tool.version,
     packs: outcome.report.packs,
     summary: outcome.report.summary,
+    score: outcome.report.score,
     reportHash: outcome.report.reportHash,
     findings: outcome.report.findings,
     totalFindings: outcome.report.findings.length,

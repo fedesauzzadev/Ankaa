@@ -254,6 +254,7 @@ describe("action e2e simulation (AC-ACT.2–4)", () => {
 
     expect(sim.summary.startsWith("# ApiGovScan report")).toBe(true);
     expect(sim.summary).toContain("reportHash");
+    expect(sim.summary).toContain("| Score |");
     expect(sim.summary).toContain("## Findings");
 
     // petstore-mini has 0 error findings => fail-on error passes

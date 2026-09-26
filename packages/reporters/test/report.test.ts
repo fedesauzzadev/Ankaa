@@ -170,6 +170,7 @@ describe("formatJson", () => {
       "input",
       "packs",
       "reportHash",
+      "score",
       "summary",
       "tool",
     ]);
@@ -177,6 +178,7 @@ describe("formatJson", () => {
       name: "apigovscan",
       version: "0.0.0-dev",
     });
+    expect(parsed.score).toEqual({ value: 92, grade: "A" });
   });
 
   it("pretty option indents", () => {
@@ -194,6 +196,7 @@ describe("formatConsole (AC-R.6, AC-R.9)", () => {
     expect(out).toContain("error");
     expect(out).toContain("NAMING-001");
     expect(out).toContain("reportHash");
+    expect(out).toContain("score 92 (A)");
   });
 
   it("color:true includes ANSI", () => {

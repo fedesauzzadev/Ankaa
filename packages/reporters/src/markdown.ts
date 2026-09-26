@@ -48,6 +48,7 @@ export function formatMarkdown(report: Report): string {
   lines.push(
     `| Findings | ${countsLine(report)}${suppressionNotes(report)} |`,
   );
+  lines.push(`| Score | **${report.score.value}/100 (${report.score.grade})** |`);
   lines.push(`| reportHash | \`${report.reportHash.slice(0, 8)}…\` |`);
   lines.push("");
   lines.push("## Findings");

@@ -29,6 +29,12 @@ export interface ReportSummary {
   skillsSuppressed?: number;
 }
 
+export interface ReportScore {
+  /** 0..100 (100 = no findings). */
+  value: number;
+  grade: "A" | "B" | "C" | "D" | "F";
+}
+
 export interface ReportMeta {
   durationMs?: number;
   startedAt?: string;
@@ -40,6 +46,7 @@ export interface Report {
   packs: ReportPack[];
   input: ReportInput[];
   summary: ReportSummary;
+  score: ReportScore;
   findings: Finding[];
   reportHash: string;
   meta?: ReportMeta;
@@ -58,6 +65,36 @@ export interface BuildReportInput {
 }
 
 const SEVERITIES: Severity[] = ["error", "warning", "info"];
+
+/** penalty weights: one error is worth ~3 warnings. */
+const SCORE_PENALTY: Record<Severity, number> = {
+  error: 8,
+  warning: 3,
+  info: 1,
+};
+
+export function computeScore(summary: {
+  error: number;
+  warning: number;
+  info: number;
+}): ReportScore {
+  const penalty =
+    SCORE_PENALTY.error * summary.error +
+    SCORE_PENALTY.warning * summary.warning +
+    SCORE_PENALTY.info * summary.info;
+  const value = Math.max(0, 100 - penalty);
+  const grade: ReportScore["grade"] =
+    value >= 90
+      ? "A"
+      : value >= 75
+        ? "B"
+        : value >= 60
+          ? "C"
+          : value >= 40
+            ? "D"
+            : "F";
+  return { value, grade };
+}
 
 function redactFinding(finding: Finding): Finding {
   return {
@@ -97,6 +134,7 @@ function hashPayload(report: Omit<Report, "reportHash" | "meta">): string {
     packs: report.packs,
     input: report.input,
     summary: report.summary,
+    score: report.score,
     findings: report.findings,
   });
   return createHash("sha256").update(canonical, "utf8").digest("hex");
@@ -122,6 +160,7 @@ export function buildReport(input: BuildReportInput): Report {
     packs,
     input: input.inputs,
     summary,
+    score: computeScore(summary),
     findings,
   };
   const reportHash = hashPayload(withoutHash);
@@ -139,6 +178,7 @@ export function computeReportHash(report: Report): string {
     packs: report.packs,
     input: report.input,
     summary: report.summary,
+    score: report.score,
     findings: report.findings,
   });
 }

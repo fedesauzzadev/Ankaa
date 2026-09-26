@@ -104,7 +104,9 @@ export function formatConsole(report: Report, opts: ConsoleOpts): string {
     skillsSuppressed !== undefined && skillsSuppressed > 0
       ? ` (skills: ${skillsSuppressed} suppressed)`
       : "";
-  lines.push(`${mark} ${counts}${suppressedNote}${skillsNote} · reportHash ${hash}`);
+  lines.push(
+    `${mark} ${counts}${suppressedNote}${skillsNote} · score ${report.score.value} (${report.score.grade}) · reportHash ${hash}`,
+  );
 
   if (
     opts.maxFindings !== undefined &&

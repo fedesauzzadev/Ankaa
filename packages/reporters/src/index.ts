@@ -7,11 +7,13 @@ export function reportersPackageId(): string {
 export {
   buildReport,
   computeReportHash,
+  computeScore,
   type BuildReportInput,
   type Report,
   type ReportInput,
   type ReportMeta,
   type ReportPack,
+  type ReportScore,
   type ReportSummary,
   type ReportTool,
 } from "./build.js";

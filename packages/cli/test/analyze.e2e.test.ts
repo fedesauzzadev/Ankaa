@@ -133,6 +133,7 @@ describe("analyze e2e (f1-analyze)", () => {
       "input",
       "packs",
       "reportHash",
+      "score",
       "summary",
       "tool",
     ]) {
@@ -142,6 +143,7 @@ describe("analyze e2e (f1-analyze)", () => {
     expect(Array.isArray(parsed!.findings)).toBe(true);
     expect(Array.isArray(parsed!.packs)).toBe(true);
     expect(Array.isArray(parsed!.input)).toBe(true);
+    expect(parsed!.score).toEqual({ value: 74, grade: "C" });
   });
 
   it("AC-A.5 --fail-on never always exits 0; --fail-on warning can exit 1", async () => {

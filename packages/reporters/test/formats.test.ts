@@ -33,6 +33,7 @@ interface SarifDoc {
   runs: Array<{
     tool: { driver: { name: string; version: string; rules: SarifRule[] } };
     results: SarifResult[];
+    properties?: Record<string, unknown>;
   }>;
 }
 
@@ -84,6 +85,14 @@ describe("formatSarif (AC-SARIF.*)", () => {
     expect(sarif.runs).toHaveLength(1);
     expect(sarif.runs[0].tool.driver.name).toBe("apigovscan");
     expect(sarif.runs[0].tool.driver.version).toBe("0.0.0-dev");
+  });
+
+  it("AC-S.6 carries governance score in run properties", () => {
+    const sarif = sarifOf(makeReport());
+    expect(sarif.runs[0].properties).toEqual({
+      "apigovscan/score": 92,
+      "apigovscan/grade": "A",
+    });
   });
 
   it("AC-SARIF.2 maps severities to error/warning/note", () => {
@@ -200,6 +209,7 @@ describe("formatMarkdown (AC-MD.*)", () => {
     expect(out).toContain("1 error · 0 warnings · 0 info");
     expect(out).toContain("reportHash");
     expect(out).toContain("| Tool | apigovscan 0.0.0-dev |");
+    expect(out).toContain("| Score | **92/100 (A)** |");
     expect(out.includes(String.fromCharCode(27))).toBe(false);
   });
 

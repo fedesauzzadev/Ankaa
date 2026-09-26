@@ -95,6 +95,10 @@ export function formatSarif(
           },
         },
         results: report.findings.map((finding) => toResult(report, finding)),
+        properties: {
+          "apigovscan/score": report.score.value,
+          "apigovscan/grade": report.score.grade,
+        },
       },
     ],
   };

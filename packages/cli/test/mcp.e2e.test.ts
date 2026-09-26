@@ -317,7 +317,7 @@ describe("MCP tools e2e (f4-mcp-tools)", () => {
       expect([0, 1]).toContain(cli.code);
       const cliReport = JSON.parse(
         readFileSync(join(dir, "cli.json"), "utf8"),
-      ) as { reportHash: string };
+      ) as { reportHash: string; score: { value: number; grade: string } };
 
       const payload = parseToolText(
         await client.callTool({
@@ -326,6 +326,7 @@ describe("MCP tools e2e (f4-mcp-tools)", () => {
         }),
       );
       expect(payload.reportHash).toBe(cliReport.reportHash);
+      expect(payload.score).toEqual(cliReport.score);
       expect(payload.summary).toEqual(
         (cliReport as unknown as { summary: unknown }).summary,
       );
