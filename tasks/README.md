@@ -20,3 +20,4 @@ Checklists ejecutables ligados a [plans](../plans/README.md) y [specs](../specs/
 | [f5-ci](f5-ci.md) | plans/f5-ci | specs/f5-* |
 | [f6-score](f6-score.md) | plans/f6-score | specs/f6-score |
 | [f8-llm](f8-llm.md) | plans/f8-llm | specs/f8-suggest-fix |
+| [f8-rules-import](f8-rules-import.md) | plans/f8-rules-import | specs/f8-rules-import |

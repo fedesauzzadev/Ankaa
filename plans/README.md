@@ -12,6 +12,7 @@ Planes de implementación derivados de los [specs](../specs/README.md). Un plan 
 | [f5-ci](f5-ci.md) | SARIF/Markdown/annotations + GitHub Action | f5-* |
 | [f6-score](f6-score.md) | Governance score 0-100 + grade | f6-score |
 | [f8-llm](f8-llm.md) | Feature LLM opcional: suggest_fix y siguientes | f8-* |
+| [f8-rules-import](f8-rules-import.md) | Guideline interna → reglas (M8.2) | f8-rules-import |
 
 ## Convención
 
