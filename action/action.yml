@@ -26,6 +26,9 @@ inputs:
   baseline:
     description: "Apply baseline findings filter (true|false)"
     default: "false"
+  license-key:
+    description: "License key (also via APIGOVSCAN_LICENSE_KEY env or config license.key)"
+    default: ""
 
 outputs:
   sarif-path:
@@ -49,6 +52,7 @@ runs:
         AG_RULES: ${{ inputs.rules }}
         AG_CONFIG: ${{ inputs.config }}
         AG_BASELINE: ${{ inputs.baseline }}
+        APIGOVSCAN_LICENSE_KEY: ${{ inputs.license-key }}
       run: |
         set -euo pipefail
         if [ "$AG_FORMAT" = "json" ]; then out="apigovscan.json"; else out="apigovscan.sarif"; fi
@@ -71,6 +75,7 @@ runs:
         AG_RULES: ${{ inputs.rules }}
         AG_CONFIG: ${{ inputs.config }}
         AG_BASELINE: ${{ inputs.baseline }}
+        APIGOVSCAN_LICENSE_KEY: ${{ inputs.license-key }}
       run: |
         set -euo pipefail
         flags=()
@@ -92,6 +97,7 @@ runs:
         AG_RULES: ${{ inputs.rules }}
         AG_CONFIG: ${{ inputs.config }}
         AG_BASELINE: ${{ inputs.baseline }}
+        APIGOVSCAN_LICENSE_KEY: ${{ inputs.license-key }}
       run: |
         set -uo pipefail
         flags=()

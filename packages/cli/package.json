@@ -2,10 +2,18 @@
   "name": "@apigovscan/cli",
   "version": "0.0.0-dev",
   "description": "ApiGovScan CLI — local-first API governance analyzer",
-  "license": "MIT",
+  "license": "UNLICENSED",
   "type": "module",
   "bin": {
     "apigovscan": "./bin/apigovscan.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fedesauzzadev/ApiGovScan.git",
+    "directory": "packages/cli"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   },
   "exports": {
     ".": {
@@ -18,10 +26,11 @@
   "files": [
     "dist",
     "bin",
-    "packs"
+    "packs",
+    "LICENSE.md"
   ],
   "scripts": {
-    "build": "tsc -b && node ./scripts/copy-packs.mjs",
+    "build": "tsc -b && node ./scripts/copy-packs.mjs && esbuild dist/index.js --bundle --platform=node --format=esm --target=node20 --outfile=dist/apigovscan.mjs --banner:js=\"import{createRequire}from'node:module';const require=createRequire(import.meta.url);\"",
     "test": "vitest run",
     "typecheck": "tsc -b --pretty"
   },
@@ -34,6 +43,7 @@
   },
   "devDependencies": {
     "@modelcontextprotocol/sdk": "1.30.1",
+    "esbuild": "^0.25.5",
     "vitest": "^2.1.8"
   },
   "engines": {

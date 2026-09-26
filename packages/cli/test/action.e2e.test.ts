@@ -146,6 +146,7 @@ describe("action/action.yml structure (f5-action)", () => {
       "config",
       "fail-on",
       "format",
+      "license-key",
       "path",
       "rules",
     ]);
@@ -166,6 +167,14 @@ describe("action/action.yml structure (f5-action)", () => {
     expect(ids).toContain("gate");
     for (const step of action.runs.steps) {
       expect(step.shell).toBe("bash");
+    }
+  });
+
+  it("AC-D.9 license-key input reaches every step as env", () => {
+    const action = loadAction();
+    expect(action.inputs["license-key"].default).toBe("");
+    for (const step of action.runs.steps) {
+      expect(step.env?.APIGOVSCAN_LICENSE_KEY).toContain("${{ inputs.license-key }}");
     }
   });
 

@@ -53,6 +53,8 @@ packages/
 action/        # GitHub Action composite (invoca al CLI; sin lógica propia)
 packs/elite/   # rule packs YAML versionados
 fixtures/      # specs de prueba y de ataque
+scripts/       # vendor: pack-cli / verify-pack / gen-license (no se publican)
+docker/        # imagen air-gap sobre el tarball
 docs/ specs/ plans/ tasks/
 ```
 

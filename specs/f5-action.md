@@ -161,3 +161,4 @@ jobs:
 
 - 2026-09-24 · Spec creado desde SDD v1.0 §7 Fase 5 + FR-42 + doc 05 §3 + doc 06 §8.6 (estado `ready`).
 - 2026-09-25 · M5.2: `action/action.yml` composite (3 pasos env-based), `action/README.md`, dogfood `.github/workflows/apigovscan.yml`, tests `action.e2e` (8) → `cerrada` (AC-ACT.1–9 verdes).
+- 2026-09-26 · F6: input `license-key` → `APIGOVSCAN_LICENSE_KEY` en los 3 pasos (contrato en `f6-distribution` AC-D.9).

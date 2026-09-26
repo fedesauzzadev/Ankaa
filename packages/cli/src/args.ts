@@ -23,6 +23,7 @@ export interface AnalyzeArgs {
   strictHash: boolean;
   baselineIgnoreHash: boolean;
   skillsDir?: string;
+  licenseKey?: string;
 }
 
 export type ParseArgsResult =
@@ -175,6 +176,15 @@ export function parseAnalyzeArgs(argv: readonly string[]): ParseArgsResult {
         return { ok: false, error: "--skills-dir requires a directory path" };
       }
       args.skillsDir = value;
+      continue;
+    }
+
+    if (token === "--license-key") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--license-key requires a value" };
+      }
+      args.licenseKey = value;
       continue;
     }
 

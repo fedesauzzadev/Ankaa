@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0-dev",
   "description": "Local-first API governance analyzer — OpenAPI rules engine with elite standards packs",
-  "license": "MIT",
+  "license": "UNLICENSED",
   "type": "module",
   "engines": {
     "node": ">=20"
@@ -18,7 +18,10 @@
     "typecheck": "tsc -b",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:invariants"
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:invariants",
+    "pack:cli": "node scripts/pack-cli.mjs",
+    "verify:pack": "node scripts/verify-pack.mjs",
+    "gen:license": "node scripts/gen-license.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

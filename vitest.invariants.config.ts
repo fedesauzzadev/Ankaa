@@ -17,5 +17,6 @@ export default defineConfig({
     include: ["tests/invariants/**/*.test.ts"],
     environment: "node",
     name: "invariants",
+    setupFiles: ["./tests/invariants/setup-license.ts"],
   },
 });

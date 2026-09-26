@@ -4,5 +4,6 @@ export default defineConfig({
   test: {
     include: ["test/**/*.test.ts", "src/**/*.test.ts"],
     environment: "node",
+    setupFiles: ["./test/setup-license.ts"],
   },
 });

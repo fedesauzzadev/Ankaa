@@ -59,6 +59,10 @@ import {
 import { createCliMcpHandlers } from "./mcp.js";
 import { createMcpServer, startStdioServer } from "@apigovscan/mcp";
 import {
+  checkLicense,
+  licenseErrorMessage,
+} from "./license.js";
+import {
   defaultPackSearchRoots,
   findElitePackDir,
   loadPackFromDir,
@@ -81,6 +85,7 @@ export function getHelp(): string {
     "  apigovscan learn --report <r.json> --feedback <f.json> [options]",
     "  apigovscan skills list [--format json]",
     "  apigovscan skills promote <draftId>",
+    "  apigovscan license [--key <AGS-...>]",
     "  apigovscan mcp [--help]",
     "  apigovscan --version",
     "  apigovscan --help",
@@ -107,6 +112,7 @@ export function getHelp(): string {
     "  --strict-hash     baseline inputHash mismatch is fatal (exit 2)",
     "  --baseline-ignore-hash  silence inputHash mismatch warnings",
     "  --skills-dir      override skills directory (default: .apigovscan/skills)",
+    "  --license-key     license key (also APIGOVSCAN_LICENSE_KEY or config license.key)",
     "  --report          learn: report JSON path",
     "  --feedback        learn: feedback JSON path",
     "  --dry-run         learn: print plan without writing",
@@ -203,6 +209,16 @@ async function runAnalyze(
     io.stderr(
       `error: unknown pack "${config.standards.pack}" (f1 ships only the embedded "elite" pack)\n`,
     );
+    return 2;
+  }
+
+  const license = checkLicense({
+    flag: args.licenseKey,
+    env: io.env.APIGOVSCAN_LICENSE_KEY,
+    config: config.license?.key,
+  });
+  if (!license.ok) {
+    io.stderr(`error: ${licenseErrorMessage(license)}\n`);
     return 2;
   }
 
@@ -1258,6 +1274,7 @@ async function runMcpCommand(
   io: {
     stdout: (text: string) => void;
     stderr: (text: string) => void;
+    env: Record<string, string | undefined>;
     cwd: string;
   },
 ): Promise<number> {
@@ -1268,6 +1285,19 @@ async function runMcpCommand(
   const unexpected = argv.find((a) => !a.startsWith("-"));
   if (unexpected !== undefined) {
     io.stderr(`error: unexpected argument: ${unexpected}\n`);
+    return 2;
+  }
+
+  const configResult = loadConfig(io.cwd, undefined);
+  const configKey = configResult.ok
+    ? configResult.config.license?.key
+    : undefined;
+  const license = checkLicense({
+    env: io.env.APIGOVSCAN_LICENSE_KEY,
+    config: configKey,
+  });
+  if (!license.ok) {
+    io.stderr(`error: ${licenseErrorMessage(license)}\n`);
     return 2;
   }
 
@@ -1286,6 +1316,53 @@ async function runMcpCommand(
     );
     return 2;
   }
+}
+
+function runLicenseCommand(
+  argv: readonly string[],
+  io: {
+    stdout: (text: string) => void;
+    stderr: (text: string) => void;
+    env: Record<string, string | undefined>;
+    cwd: string;
+  },
+): number {
+  let keyFlag: string | undefined;
+  for (let i = 0; i < argv.length; i++) {
+    const token = argv[i]!;
+    if (token === "--key") {
+      const value = argv[++i];
+      if (value === undefined || (value.startsWith("-") && value !== "-")) {
+        io.stderr("error: --key requires a value\n");
+        return 2;
+      }
+      keyFlag = value;
+      continue;
+    }
+    if (token === "--help" || token === "-h") {
+      io.stdout("usage: apigovscan license [--key <AGS-...>]\n");
+      return 0;
+    }
+    io.stderr(`error: unknown option: ${token}\n`);
+    return 2;
+  }
+  const configResult = loadConfig(io.cwd, undefined);
+  const configKey = configResult.ok
+    ? configResult.config.license?.key
+    : undefined;
+  const license = checkLicense({
+    flag: keyFlag,
+    env: io.env.APIGOVSCAN_LICENSE_KEY,
+    config: configKey,
+  });
+  if (license.ok) {
+    io.stdout(
+      `license valid · customer ${license.info.customer} · expires ${license.info.expiry}\n`,
+    );
+    return 0;
+  }
+  io.stderr(`error: ${licenseErrorMessage(license)}\n`);
+  return 2;
 }
 
 export async function run(
@@ -1326,6 +1403,7 @@ export async function run(
     first === "rules" ||
     first === "learn" ||
     first === "skills" ||
+    first === "license" ||
     first === "mcp";
 
   if (
@@ -1381,10 +1459,19 @@ export async function run(
       cwd,
     });
   }
+  if (first === "license") {
+    return runLicenseCommand(args.slice(1), {
+      stdout,
+      stderr,
+      env,
+      cwd,
+    });
+  }
   if (first === "mcp") {
     return runMcpCommand(args.slice(1), {
       stdout,
       stderr,
+      env,
       cwd,
     });
   }

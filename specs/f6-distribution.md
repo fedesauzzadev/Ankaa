@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | ready |
+| Estado | cerrada |
 | Fecha | 2026-09-26 |
 | Fase | 6 |
 | Deriva de | Re-priorización de producto 2026-09-26 ("privado, instalable, vendible"); FR-60; docs/05; specs `f2-config`, `f4-mcp-server` |
@@ -59,16 +59,16 @@ export function resolveLicenseKey(src: { flag?: string; env?: string; config?: s
 
 ## 4. Criterios de aceptación
 
-- [ ] **AC-D.1** `verifyLicenseKey`: key generada por `gen-license.mjs` → `{ok, info}`; firma alterada → `bad signature`; fecha < hoy → `expired`; formato roto → `malformed`.
-- [ ] **AC-D.2** Orden de resolución flag > env > config (test con las tres fuentes).
-- [ ] **AC-D.3** `analyze` sin licencia → exit 2 + mensaje; con env dev-key → exit 0/1 normal.
-- [ ] **AC-D.4** `mcp` sin licencia → exit 2 sin iniciar el server.
-- [ ] **AC-D.5** `license` cmd: valida y reporta customer/expiry; exit 0/2.
-- [ ] **AC-D.6** config `license.key` aceptada por schema strict; typos en `license.*` → error como el resto.
-- [ ] **AC-D.7** `pnpm --filter @apigovscan/cli pack` produce tgz con `dist/apigovscan.mjs` + `bin` + `packs` y **sin** `workspace:` en dependencies del manifest.
-- [ ] **AC-D.8** Instalación e2e del tarball en dir temporal: `npm i -g <tgz>` → `apigovscan analyze` corre offline con dev license (script `scripts/verify-pack.mjs`).
-- [ ] **AC-D.9** Action acepta `license-key` y lo pasa como env a los 3 pasos.
-- [ ] **AC-D.10** INV-1: la validación de licencia no hace red (test con fetch stubbed igual que AC-SRV.5).
+- [x] **AC-D.1** `verifyLicenseKey`: key generada por `gen-license.mjs` → `{ok, info}`; firma alterada → `bad signature`; fecha < hoy → `expired`; formato roto → `malformed`.
+- [x] **AC-D.2** Orden de resolución flag > env > config (test con las tres fuentes).
+- [x] **AC-D.3** `analyze` sin licencia → exit 2 + mensaje; con env dev-key → exit 0/1 normal.
+- [x] **AC-D.4** `mcp` sin licencia → exit 2 sin iniciar el server.
+- [x] **AC-D.5** `license` cmd: valida y reporta customer/expiry; exit 0/2.
+- [x] **AC-D.6** config `license.key` aceptada por schema strict; typos en `license.*` → error como el resto.
+- [x] **AC-D.7** `pnpm --filter @apigovscan/cli pack` produce tgz con `dist/apigovscan.mjs` + `bin` + `packs` y **sin** `workspace:` en dependencies del manifest.
+- [x] **AC-D.8** Instalación e2e del tarball en dir temporal: `npm i -g <tgz>` → `apigovscan analyze` corre offline con dev license (script `scripts/verify-pack.mjs`).
+- [x] **AC-D.9** Action acepta `license-key` y lo pasa como env a los 3 pasos.
+- [x] **AC-D.10** INV-1: la validación de licencia no hace red (test con fetch stubbed igual que AC-SRV.5).
 
 ## 5. Test plan
 
@@ -95,3 +95,4 @@ export function resolveLicenseKey(src: { flag?: string; env?: string; config?: s
 ## Changelog
 
 - 2026-09-26 · Spec creado (decisión de producto: distribución "ambos" — tarball/air-gap + registry privado; estado `ready`).
+- 2026-09-26 · M6.2: `license.ts` (HMAC offline) + gates analyze/mcp + cmd `license` + config `license.key` + esbuild bundle + `pack-cli`/`verify-pack` (instala offline y analiza) + Docker + workflow `release` + action `license-key`. AC-D.1–10 verdes → `cerrada`; tag `v0.6.0-private`. Nota: el flag `--license-key` aplica a `analyze`; `mcp` usa env/config.

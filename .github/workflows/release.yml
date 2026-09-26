@@ -1,0 +1,59 @@
+name: Release (private)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Package version for the tarball (e.g. 0.6.0)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: pack + verify + release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Check (lint + typecheck + test + build + invariants)
+        run: pnpm check
+
+      - name: Pack CLI (self-contained tarball)
+        run: node scripts/pack-cli.mjs --out dist-release ${{ inputs.version != '' && format('--version {0}', inputs.version) || '' }}
+
+      - name: Verify offline install (air-gap)
+        run: node scripts/verify-pack.mjs
+
+      - name: Docker image (build only, no push)
+        run: |
+          cp dist-release/*.tgz docker-context.tgz || true
+          docker build -f docker/Dockerfile --build-arg TARBALL=$(basename dist-release/*.tgz) . || echo "docker build skipped/failed (best effort)"
+
+      - name: Upload tarball artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: apigovscan-cli-tgz
+          path: dist-release/*.tgz
+
+      - name: Publish to GitHub Packages (optional, needs NPM_TOKEN)
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -n "$NPM_TOKEN" ]; then
+            npm publish dist-release/*.tgz --registry=https://npm.pkg.github.com --//npm.pkg.github.com/:_authToken="$NPM_TOKEN"
+          else
+            echo "NPM_TOKEN not set — skipping registry publish (tarball artifact uploaded)"
+          fi

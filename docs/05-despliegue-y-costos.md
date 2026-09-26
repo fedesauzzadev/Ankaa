@@ -93,6 +93,40 @@ jobs:
 - Inputs/outputs completos en [`action/README.md`](../action/README.md); dogfood en
   `.github/workflows/apigovscan.yml` (`uses: ./action`).
 
+### 3.1 Instalación privada del producto (f6-distribution)
+
+ApiGovScan se distribuye **privado** (licencia comercial por cliente; ver
+`packages/cli/LICENSE.md`). Dos canales, ambos offline-first:
+
+**a) Tarball self-contained (air-gap):**
+
+```bash
+# vendor (este repo): pack + verificación de instalación offline
+pnpm pack:cli          # -> dist-release/apigovscan-cli-<version>.tgz
+pnpm verify:pack       # npm i --offline en temp + analyze e2e
+
+# cliente (sin red):
+npm install -g ./apigovscan-cli-<version>.tgz
+APIGOVSCAN_LICENSE_KEY=AGS-<...> apigovscan analyze ./specs/
+```
+
+El tarball lleva el CLI **bundled** (esbuild, cero dependencies) + pack `elite`
+embebido — no requiere registry ni red para nada.
+
+**b) Registry privado (updates):** workflow `release` (manual) publica a
+GitHub Packages (`npm.pkg.github.com`) si hay `NPM_TOKEN`; el cliente configura
+ese registry con su token de org.
+
+**c) Docker (air-gap):** `docker/Dockerfile` sobre el tarball —
+`docker build --build-arg TARBALL=apigovscan-cli-<version>.tgz .`.
+
+**Licencias (offline, INV-1):** el vendor genera keys con
+`pnpm gen:license -- --customer acme --expiry 20270926` (HMAC embebido, sin
+phone-home). Se usan vía `--license-key`, `APIGOVSCAN_LICENSE_KEY` o
+`license.key` en `apigovscan.yaml`; `analyze` y `mcp` las exigen (exit 2).
+`apigovscan license` valida y muestra customer/expiry. Rotación de secret =
+nueva versión del CLI (ver riesgos en `specs/f6-distribution.md`).
+
 ## 4. Docker y Docker Compose
 
 ### 4.1 Imágenes

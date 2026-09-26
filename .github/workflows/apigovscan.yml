@@ -37,3 +37,4 @@ jobs:
           path: fixtures/petstore-mini.yaml
           cli: node packages/cli/bin/apigovscan.js
           fail-on: never
+          license-key: AGS-dev-20991231-2f6798197bf5

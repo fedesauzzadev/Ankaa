@@ -23,3 +23,4 @@
 ## Changelog del plan
 
 - 2026-09-26 · Plan inicial (decisión "ambos" canales).
+- 2026-09-26 · M6.2 implementado: licencia offline (gates + cmd), bundle esbuild self-contained, pack/verify offline verificados, Docker, release workflow, action `license-key`. `pnpm check` + `verify-pack` verdes; spec `cerrada`; tag `v0.6.0-private`. Fase 6 continúa abierta (packs por cliente / self-host completo).

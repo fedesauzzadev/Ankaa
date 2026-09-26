@@ -47,11 +47,22 @@ node packages/cli/bin/apigovscan.js rules validate ./team-rules.yaml
 node packages/cli/bin/apigovscan.js analyze ./openapi.yaml --rules ./team-rules.yaml
 ```
 
-Cuando el paquete esté publicado:
+## Instalación en una organización (privado)
+
+Producto **privado con licencia comercial por cliente** (`packages/cli/LICENSE.md`). El análisis corre 100% on-prem; la licencia se valida **offline** (sin phone-home).
+
+**Tarball self-contained (air-gap):**
 
 ```bash
-npx @apigovscan/cli analyze ./openapi.yaml
+npm install -g ./apigovscan-cli-<version>.tgz     # cero dependencies, pack elite embebido
+APIGOVSCAN_LICENSE_KEY=AGS-<...> apigovscan analyze ./specs/
 ```
+
+**Registry privado:** publicalo en GitHub Packages con el workflow `release` (manual) y el cliente hace `npm i -g @apigovscan/cli` con su token de org.
+
+**Docker (air-gap):** `docker build -f docker/Dockerfile --build-arg TARBALL=apigovscan-cli-<version>.tgz .`
+
+Licencia: `--license-key` · `APIGOVSCAN_LICENSE_KEY` · `license.key` en `apigovscan.yaml` (exigida por `analyze` y `mcp`; `apigovscan license` la valida). Detalles: [`docs/05 §3.1`](docs/05-despliegue-y-costos.md) y [`specs/f6-distribution.md`](specs/f6-distribution.md).
 
 ### Comandos (f1–f4)
 
@@ -65,6 +76,7 @@ npx @apigovscan/cli analyze ./openapi.yaml
 | `apigovscan learn --report <r> --feedback <f>` | Aplica feedback a `.apigovscan/skills` (idempotente, INV-5) |
 | `apigovscan skills list [--format json]` | Enumera suppressions, overrides y drafts |
 | `apigovscan skills promote <draftId>` | Activa un draft (`draft: false`) |
+| `apigovscan license [--key <AGS-...>]` | Valida la license key (customer + expiry) |
 | `apigovscan mcp [--help]` | Server MCP **stdio** local (tools FR-50, sandbox bajo cwd) |
 
 #### MCP (Claude / Cursor / opencode)
@@ -215,7 +227,7 @@ Búsqueda: `--config <file>` → `./apigovscan.yaml` → `./apigovscan.yml`. Pre
 
 ## Estado
 
-**Fase 0–5 implementada + F6 en progreso:** monorepo pnpm + TypeScript strict + ESLint/Prettier + Vitest + CI multi-OS + parser OpenAPI 3.x + rules engine + pack **elite ≥ 50 reglas (65 activas)** + `analyze` e2e + reporters console/JSON + suite de invariantes INV-1…7 + config strict + custom rules + baseline + **skills load/apply (M3.1)** + **learn/skills CLI (M3.2)** + **init scaffold + S4 e2e (M3.3)** + **MCP stdio local con 5 tools FR-50 + sandbox + paridad CLI (F4)** + **reporters SARIF/Markdown/annotations + GitHub Action (F5)** + **governance score 0-100 + grade A–F (f6-score)**. Specs `f0-*`…`f5-*` en `cerrada`; `f6-score` cerrada (fase 6 sigue: distribución privada). Tags: `v0.1.0-mvp`, `v0.2.0-governance`, `v0.3.0-learning`, `v0.4.0-mcp`, `v0.5.0-action`.
+**Fase 0–5 implementada + F6 en progreso:** monorepo pnpm + TypeScript strict + ESLint/Prettier + Vitest + CI multi-OS + parser OpenAPI 3.x + rules engine + pack **elite ≥ 50 reglas (65 activas)** + `analyze` e2e + reporters console/JSON + suite de invariantes INV-1…7 + config strict + custom rules + baseline + **skills load/apply (M3.1)** + **learn/skills CLI (M3.2)** + **init scaffold + S4 e2e (M3.3)** + **MCP stdio local con 5 tools FR-50 + sandbox + paridad CLI (F4)** + **reporters SARIF/Markdown/annotations + GitHub Action (F5)** + **governance score 0-100 + grade A–F (f6-score)** + **licencia offline + distribución privada tarball/registry/Docker (f6-distribution)**. Specs `f0-*`…`f5-*` y `f6-score`/`f6-distribution` en `cerrada`. Tags: `v0.1.0-mvp` … `v0.5.0-action`, `v0.6.0-private`.
 
 ```bash
 pnpm install
@@ -232,5 +244,5 @@ Ver [docs/SDD.md §7](docs/SDD.md).
 - **F3 (tag `v0.3.0-learning`):** skills, learn, init ✅ — specs `f3-*` en estado `cerrada`.
 - **F4 (tag `v0.4.0-mcp`):** MCP stdio local ✅ — specs `f4-mcp-*` en estado `cerrada`.
 - **F5 (tag `v0.5.0-action`):** reporters SARIF/Markdown/annotations ✅ + GitHub Action ✅ — specs `f5-*` en estado `cerrada`.
-- **F6 (en progreso):** governance score ✅ (`f6-score`) · distribución privada para organizaciones (packs internos, licencia, self-host) pendiente.
-- **F7+:** Cloudflare (registry de packs, MCP remoto), self-host completo.
+- **F6 (en progreso):** governance score ✅ (`f6-score`) · licencia offline + tarball/registry/Docker ✅ (`f6-distribution`) · pendiente: packs internos por cliente, self-host completo.
+- **F7+:** Cloudflare (registry de packs, MCP remoto).

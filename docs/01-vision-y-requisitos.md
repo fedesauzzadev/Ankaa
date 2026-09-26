@@ -114,6 +114,7 @@ El resultado: cada proyecto nuevo nace mal si el gobierno del anterior estaba ma
 | FR-42 | GitHub Action: `fail-on` configurable, output de annotations SARIF, resumen en job |
 | FR-43 | El reporte nunca incluye valores secretos de ejemplos del spec (redacción de patrones tipo token/clave) |
 | FR-45 | **Governance score** determinista `0-100` + grade `A-F` en console/JSON/markdown/SARIF/MCP, derivado de findings post-filtros; incluido en `reportHash` (fase 6 — spec `f6-score`) |
+| FR-64 | **Distribución privada**: tarball self-contained offline (air-gap) + registry privado (GitHub Packages) + Docker; `analyze`/`mcp` exigen **licencia offline** (`--license-key` / `APIGOVSCAN_LICENSE_KEY` / config `license.key`), validación sin red (fase 6 — spec `f6-distribution`) |
 
 ### 6.6 MCP
 

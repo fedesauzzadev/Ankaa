@@ -15,6 +15,9 @@ export interface AnalyzeConfig {
     strictHash?: boolean;
   };
   skillsDir?: string;
+  license?: {
+    key?: string;
+  };
   /** Directory of the config file when one was loaded (for relative paths). */
   configDir?: string;
 }
@@ -32,6 +35,7 @@ const TOP_LEVEL_KEYS = new Set([
   "customRules",
   "baseline",
   "skillsDir",
+  "license",
 ]);
 
 function parseStringList(
@@ -212,6 +216,34 @@ function parseConfigObject(raw: unknown, path: string): LoadConfigResult {
       };
     }
     config.skillsDir = obj.skillsDir;
+  }
+
+  if (obj.license !== undefined) {
+    if (
+      obj.license === null ||
+      typeof obj.license !== "object" ||
+      Array.isArray(obj.license)
+    ) {
+      return { ok: false, error: `config ${path}: license must be a mapping` };
+    }
+    const license = obj.license as Record<string, unknown>;
+    for (const key of Object.keys(license)) {
+      if (key !== "key") {
+        return {
+          ok: false,
+          error: `config ${path}: license: unknown key "${key}"`,
+        };
+      }
+    }
+    if (license.key !== undefined) {
+      if (typeof license.key !== "string" || license.key.length === 0) {
+        return {
+          ok: false,
+          error: `config ${path}: license.key must be a non-empty string`,
+        };
+      }
+      config.license = { key: license.key };
+    }
   }
 
   config.configDir = dirname(path);

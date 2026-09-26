@@ -44,6 +44,7 @@ antes del gate, así que el artefacto existe aunque el job falle.
 | `rules` | `""` | Rutas a reglas custom, separadas por espacios |
 | `config` | `""` | Ruta a `apigovscan.yaml` (opcional) |
 | `baseline` | `false` | Aplicar baseline (`true`/`false`) |
+| `license-key` | `""` | License key (también vía `APIGOVSCAN_LICENSE_KEY` o config `license.key`) |
 
 ## Outputs
 
