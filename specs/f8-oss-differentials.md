@@ -25,7 +25,10 @@ Convertir ApiGovScan en un **plano de governance multi-protocolo** con diferenci
 
 ### M8.3 — Drift spec↔código + generación
 
-- **Sin spec en el repo** → opción de **generar** el openapi.yaml: detección de rutas por framework (Express/Nest, Spring, FastAPI/Flask, .NET) + LLM que draftea → parser determinista valida → humano revisa.
+- **Sin spec en el repo** → opción de **generar** el openapi.yaml. Detección de rutas en **cualquier codebase** (moderno o legacy), por capas:
+  1. **Catálogo de firmas determinista** (precisión alta): patrones de routing de frameworks modernos Y legacy — Express/Nest/Fastify, Spring/JAX-RS, .NET (MVC/WebAPI/WCF/ashx), FastAPI/Flask/Django, Sinatra/Rails, Go (net/http, gorilla, gin, echo), PHP (Laravel/Symfony), y crece con cada uno que se agregue.
+  2. **Barrido LLM universal (fallback)**: para frameworks propios/no reconocidos, el LLM del cliente recorre los candidatos y devuelve endpoints normalizados **con nivel de confianza**.
+  3. Todo es **draft**: validador determinista de forma + revisión humana. Nunca escritura directa.
 - **Con spec** → **diff de superficie API** (no del código): "falta tal endpoint", "este endpoint ya no existe", "cambió la salida (response schema)".
   - Nivel endpoint/presenta: heurísticas deterministas (cheap, confiable).
   - Nivel shape (tipos de salida): asistido por LLM sobre DTOs/returns, marcado con nivel de confianza.
@@ -38,12 +41,23 @@ Convertir ApiGovScan en un **plano de governance multi-protocolo** con diferenci
 
 ### M8.5 — Elite pack 100+ reglas (paridad, no diferencial)
 
-### M8.6 — Multi-protocolo (un solo plano de governance)
+### M8.6 — Multi-protocolo PRE-LANUNCH (un solo plano de governance)
 
-- El motor ya es agnóstico del formato (parser → modelo `Spec` normalizado). Cada protocolo nuevo = **adapter + pack de reglas propio curado**.
-- Orden por demanda: **GraphQL SDL primero** (el "cagaste" más común; parser maduro), **AsyncAPI** después (evento, espacio menos poblado), **proto/gRPC** al final (buf es incumbente fuerte — evaluar antes de entrar).
-- Pitch: no "mejor linter de GraphQL" sino **"un solo score y un solo informe para TODA tu superficie de APIs"** (REST + GraphQL + eventos) — nadie lo tiene hoy.
-- Fuera: soportar todo a la vez; competir de frente con buf/Apollo en sus nichos.
+**Decisión 2026-09-26 (dueño de producto):** sin apuro de salida — el producto lanza con cobertura amplia de tipos de API, no solo OpenAPI. Se construye **uno por vez, en orden**, pero todos antes del lanzamiento. Objetivo: eliminar el "pero mi empresa usa X".
+
+El motor ya es agnóstico del formato (parser → modelo `Spec` normalizado). Cada protocolo = **adapter + pack de reglas curadas con fuentes de élite**:
+
+| Protocolo | Fuentes de élite (curación) | Orden |
+|---|---|---|
+| REST/OpenAPI (hecho, 65 reglas) | Google API Design Guide, Microsoft REST Guidelines, Zalando, PayPal, Atlassian, GDS (UK) → 100+ | 0 |
+| **GraphQL SDL** | Shopify GraphQL Design Tutorial, Apollo Principled GraphQL, GitHub GraphQL guidelines, PayPal GraphQL standards | 1 |
+| **gRPC/proto** | Google AIPs (aip.dev — el canon de diseño de APIs de Google), Buf style guide | 2 |
+| **AsyncAPI + eventos** | AsyncAPI official guidelines, CloudEvents (CNCF) | 3 |
+| **Webhooks** | Standard Webhooks (standardwebhooks.com) | 4 |
+| SOAP/WSDL | Solo detección + aviso claro (conversión = consultoría, no producto) | borde |
+
+- Pitch: **"un solo score y un solo informe para TODA tu superficie de APIs"** (REST + GraphQL + gRPC + eventos + webhooks) — nadie lo tiene hoy.
+- Fuera: competir de frente con buf/Apollo **en sus nichos**; nosotros somos el plano unificado.
 
 ## 3. Contrato (borrador — se detalla al abrir cada milestone)
 
@@ -68,11 +82,12 @@ Patrón por milestone: unit + e2e CLI + invariantes INV-1/2/7 (las features LLM 
 
 | Tema | Nota |
 |---|---|
-| Extracción de rutas por framework | Mantener tabla pequeña de frameworks soportados; fallback: "no pude detectar rutas" honesto. |
+| Extracción de rutas en código legacy | Catálogo de firmas + fallback LLM universal con confianza; nunca prometer 100% — prometer "funciona en cualquier codebase, con revisión humana". |
 | Calidad del shape-diff | Siempre con nivel de confianza; nunca bloquear gate solo por LLM. |
-| GraphQL | Curación de reglas = el costo real (no el parser). |
-| Hacer todo junto | Prohibido: un protocolo por vez, por demanda. |
+| GraphQL/gRPC/AsyncAPI | Curación de reglas = el costo real (no el parser); uno por vez. |
+| Alcance pre-launch amplio | Riesgo de demora eterna: mitigado por orden fijo y specs por protocolo (ready → build). |
 
 ## Changelog
 
 - 2026-09-26 · Spec creado consolidando los diferenciales acordados (suggest_fix, rules import, drift/generación, scan-org, elite 100+, multi-protocolo GraphQL-first). Ejecuta antes que f7 si se confirma el giro open source.
+- 2026-09-26 · Decisión del dueño: multi-protocolo pasa a ser **pre-launch** (GraphQL → gRPC → AsyncAPI → webhooks, con fuentes de élite por protocolo); detección de rutas rediseñada como catálogo de firmas + fallback LLM universal (cualquier codebase, incl. legacy).
