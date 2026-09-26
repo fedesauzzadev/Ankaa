@@ -25,3 +25,4 @@
 ## Changelog del plan
 
 - 2026-09-26 · Plan inicial (handoff).
+- 2026-09-26 · M8.3 implementado → DoD cumplido (`pnpm check` verde: AC-DR.1–10, INV-1/2/7; sin cambios de contrato ajeno).

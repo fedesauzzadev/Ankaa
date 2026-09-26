@@ -41,6 +41,13 @@ describe("LLM boundary (AC-SF.9)", () => {
     expect(text).not.toMatch(/from\s+['"]@apigovscan\/openapi['"]/);
   });
 
+  it("drift and route-signatures never import the analyze use-case (AC-DR.9)", () => {
+    for (const file of ["drift.ts", "route-signatures.ts"]) {
+      const text = readFileSync(join(cliSrc, file), "utf8");
+      expect(text).not.toMatch(/from\s+['"]\.\/analyze\.js['"]/);
+    }
+  });
+
   it("fetch is only used through the LLM adapter in cli sources", () => {
     const withFetch = tsFiles(cliSrc).filter((f) => {
       if (f === "llm.ts") {

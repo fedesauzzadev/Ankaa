@@ -7,6 +7,7 @@ import {
 } from "@apigovscan/core";
 import {
   parseAnalyzeArgs,
+  parseDriftArgs,
   parseFixArgs,
   parseRulesArgs,
   type FailOn,
@@ -39,6 +40,18 @@ import {
   type AnalyzeConfig,
 } from "./config.js";
 import { discoverSpecs } from "./discovery.js";
+import {
+  buildShapeMessages,
+  buildSpecSkeleton,
+  buildSweepMessages,
+  collectSourceFiles,
+  compareEndpoints,
+  MAX_FRAGMENT_CHARS,
+  MAX_SHAPE_PAIRS,
+  parseShapeResponse,
+  parseSweepResponse,
+} from "./drift.js";
+import { parseSpec } from "@apigovscan/openapi";
 import { formatInitEntries, runInit } from "./init.js";
 import {
   collectCustomRules,
@@ -96,6 +109,7 @@ export function getHelp(): string {
     "  apigovscan skills promote <draftId>",
     "  apigovscan license [--key <AGS-...>]",
     "  apigovscan fix <path> [--fingerprint <fp>]",
+    "  apigovscan drift <dir> [--spec <file>]",
     "  apigovscan mcp [--help]",
     "  apigovscan --version",
     "  apigovscan --help",
@@ -143,6 +157,8 @@ export function getHelp(): string {
     "  Propose unified-diff fixes for findings using your own LLM.",
     "  apigovscan rules import --from <doc> [--out <file>]",
     "  Draft custom rules from an internal guideline using your own LLM.",
+    "  apigovscan drift <dir> [--spec <file>]",
+    "  Detect spec-code drift and draft missing specs; LLM optional for deep scan.",
     "  Configure llm.baseUrl in apigovscan.yaml (or APIGOVSCAN_LLM_BASE_URL).",
     "  The LLM only drafts text; it never analyzes, scores, or gates.",
     "",
@@ -1672,6 +1688,260 @@ async function runFixCommand(
   return 0;
 }
 
+function formatDriftConsole(
+  dir: string,
+  spec: string | undefined,
+  report: {
+    missing: Array<{ method: string; path: string }>;
+    removed: Array<{ method: string; path: string }>;
+    changed: Array<{ path: string; specMethods: string[]; codeMethods: string[] }>;
+    shapeNotes: Array<{ op: string; outputChanged: boolean; confidence: string; note: string }>;
+  },
+): string {
+  const lines: string[] = [
+    spec !== undefined ? `drift ${dir} vs ${spec}` : `drift ${dir}`,
+    "",
+  ];
+  if (
+    report.missing.length === 0 &&
+    report.removed.length === 0 &&
+    report.changed.length === 0 &&
+    report.shapeNotes.length === 0
+  ) {
+    lines.push("no drift detected");
+    return `${lines.join("\n")}\n`;
+  }
+  lines.push(`missing (${report.missing.length}):`);
+  for (const e of report.missing) lines.push(`  ${e.method} ${e.path}`);
+  lines.push(`removed (${report.removed.length}):`);
+  for (const e of report.removed) lines.push(`  ${e.method} ${e.path}`);
+  lines.push(`changed (${report.changed.length}):`);
+  for (const c of report.changed) {
+    lines.push(`  ${c.path}  spec [${c.specMethods.join(", ")}]  code [${c.codeMethods.join(", ")}]`);
+  }
+  if (report.shapeNotes.length > 0) {
+    lines.push(`shape notes (${report.shapeNotes.length}):`);
+    for (const s of report.shapeNotes) {
+      const verdict = s.outputChanged ? "changed" : "unchanged";
+      lines.push(`  ${s.op}  ${verdict} (confidence ${s.confidence}): ${s.note}`);
+    }
+  }
+  return `${lines.join("\n")}\n`;
+}
+
+function codeFragmentAround(
+  fileAbs: string,
+  line: number | undefined,
+  radius = 20,
+): string {
+  let text: string;
+  try {
+    text = readFileSync(fileAbs, "utf8");
+  } catch {
+    return "(location unavailable)";
+  }
+  if (line === undefined) return "(location unavailable)";
+  const lines = text.split("\n");
+  const from = Math.max(0, line - 1 - radius);
+  const to = Math.min(lines.length, line + radius);
+  return lines.slice(from, to).join("\n");
+}
+
+async function runDriftCommand(
+  argv: readonly string[],
+  io: {
+    stdout: (text: string) => void;
+    stderr: (text: string) => void;
+    env: Record<string, string | undefined>;
+    cwd: string;
+  },
+): Promise<number> {
+  if (argv.includes("--help") || argv.includes("-h")) {
+    io.stdout(
+      "usage: apigovscan drift <dir> [--spec <file>] [--out <file>] [--format console|json] [--config <file>] [--license-key <key>] [--force]\n",
+    );
+    return 0;
+  }
+  const parsedArgs = parseDriftArgs(argv);
+  if (!parsedArgs.ok) {
+    io.stderr(`error: ${parsedArgs.error}\n`);
+    return 2;
+  }
+  const args = parsedArgs.args;
+
+  const dirAbs = resolve(io.cwd, args.dir);
+  if (!existsSync(dirAbs)) {
+    io.stderr(`error: drift directory not found: ${args.dir}\n`);
+    return 2;
+  }
+  if (!statSync(dirAbs).isDirectory()) {
+    io.stderr(`error: drift target is not a directory: ${args.dir}\n`);
+    return 2;
+  }
+
+  const configResult = loadConfig(io.cwd, args.config);
+  if (!configResult.ok) {
+    io.stderr(`error: ${configResult.error}\n`);
+    return 2;
+  }
+  const config = configResult.config;
+
+  const license = checkLicense({
+    flag: args.licenseKey,
+    env: io.env.APIGOVSCAN_LICENSE_KEY,
+    config: config.license?.key,
+  });
+  if (!license.ok) {
+    io.stderr(`error: ${licenseErrorMessage(license)}\n`);
+    return 2;
+  }
+
+  const llmCfg = loadLlmConfig(config.llm, io.env);
+
+  const collected = collectSourceFiles(dirAbs, (p) => {
+    try {
+      return readFileSync(p, "utf8");
+    } catch {
+      return undefined;
+    }
+  });
+  if (collected.truncated) {
+    io.stderr("note: source scan truncated (file/size caps); results may be partial\n");
+  }
+  if (collected.skippedUnreadable > 0) {
+    io.stderr(`note: skipped ${collected.skippedUnreadable} unreadable file(s)\n`);
+  }
+  let routes = collected.routes;
+  if (routes.length === 0 && llmCfg !== undefined) {
+    let text: string;
+    try {
+      text = await chatCompletion(llmCfg, buildSweepMessages(collected.files));
+    } catch (err) {
+      io.stderr(
+        `error: ${err instanceof Error ? err.message : String(err)}\n`,
+      );
+      return 2;
+    }
+    routes = parseSweepResponse(text);
+    if (routes.length === 0) {
+      io.stderr("note: sweep returned no routes\n");
+    }
+  }
+  if (routes.length === 0 && llmCfg === undefined) {
+    io.stderr("note: no routes detected (configure llm for deep scan)\n");
+  }
+
+  if (args.spec !== undefined) {
+    const specAbs = resolve(io.cwd, args.spec);
+    if (!existsSync(specAbs)) {
+      io.stderr(`error: spec file not found: ${args.spec}\n`);
+      return 2;
+    }
+    let specText: string;
+    try {
+      specText = readFileSync(specAbs, "utf8");
+    } catch (err) {
+      io.stderr(
+        `error: spec file ${args.spec}: ${err instanceof Error ? err.message : String(err)}\n`,
+      );
+      return 2;
+    }
+    const parsed = parseSpec(specText, { sourceLabel: args.spec });
+    if (!parsed.ok) {
+      const detail = parsed.errors
+        .map((e) =>
+          e.line !== undefined
+            ? `line ${e.line}: ${e.message}`
+            : e.jsonPointer !== undefined
+              ? `${e.jsonPointer}: ${e.message}`
+              : e.message,
+        )
+        .join("; ");
+      io.stderr(`error: spec parse error: ${detail}\n`);
+      return 2;
+    }
+    const specOps = parsed.spec.operations.map((o) => ({
+      method: o.method,
+      path: o.path,
+    }));
+    const compared = compareEndpoints(specOps, routes);
+    let shapeNotes: Array<{
+      op: string;
+      outputChanged: boolean;
+      confidence: string;
+      note: string;
+    }> = [];
+    if (llmCfg !== undefined) {
+      const matched = parsed.spec.operations
+        .filter((o) =>
+          routes.some((r) => r.path === o.path && (r.method === "*" || r.method === o.method.toUpperCase())),
+        )
+        .sort((a, b) =>
+          a.path < b.path ? -1 : a.path > b.path ? 1 : a.method < b.method ? -1 : 1,
+        )
+        .slice(0, MAX_SHAPE_PAIRS);
+      if (matched.length > 0) {
+        const pairs = matched.map((o) => {
+          const route = routes.find(
+            (r) => r.path === o.path && (r.method === "*" || r.method === o.method.toUpperCase()),
+          )!;
+          const codeFragment =
+            route.file === "unknown" || route.file.startsWith("<stdin>")
+              ? "(location unavailable)"
+              : codeFragmentAround(resolve(dirAbs, route.file), route.line);
+          return {
+            op: `${o.method.toUpperCase()} ${o.path}`,
+            specFragment: JSON.stringify(o).slice(0, MAX_FRAGMENT_CHARS),
+            codeFragment,
+          };
+        });
+        try {
+          const text = await chatCompletion(llmCfg, buildShapeMessages(pairs));
+          shapeNotes = parseShapeResponse(text);
+        } catch (err) {
+          io.stderr(
+            `note: shape analysis unavailable: ${err instanceof Error ? err.message : String(err)}\n`,
+          );
+        }
+      }
+    } else {
+      io.stderr("note: shape analysis requires llm (endpoint-level only)\n");
+    }
+    const report = { ...compared, shapeNotes };
+    if (args.format === "json") {
+      io.stdout(`${JSON.stringify(report, null, 2)}\n`);
+    } else {
+      io.stdout(formatDriftConsole(args.dir, args.spec, report));
+    }
+    return compared.missing.length + compared.removed.length + compared.changed.length > 0 ? 1 : 0;
+  }
+
+  if (routes.length === 0) {
+    io.stderr(`error: no routes detected in ${args.dir}\n`);
+    return 2;
+  }
+  const out = args.out ?? "openapi.draft.yaml";
+  const outAbs = resolve(io.cwd, out);
+  if (existsSync(outAbs) && !args.force) {
+    io.stderr(`error: output exists: ${out} (pass --force to overwrite)\n`);
+    return 2;
+  }
+  const skeleton = buildSpecSkeleton(routes, args.dir);
+  try {
+    writeFileSync(outAbs, skeleton, "utf8");
+  } catch (err) {
+    io.stderr(
+      `error: cannot write ${out}: ${err instanceof Error ? err.message : String(err)}\n`,
+    );
+    return 2;
+  }
+  const opCount = new Set(
+    routes.filter((r) => r.method !== "*").map((r) => `${r.method} ${r.path}`),
+  ).size;
+  io.stdout(`draft written: ${out} (${opCount} operations)\n`);
+  return 0;
+}
+
 export async function run(
   argv: readonly string[],
   io?: RunIO,
@@ -1712,6 +1982,7 @@ export async function run(
     first === "skills" ||
     first === "license" ||
     first === "fix" ||
+    first === "drift" ||
     first === "mcp";
 
   if (
@@ -1783,6 +2054,14 @@ export async function run(
       env,
       cwd,
       readStdin,
+    });
+  }
+  if (first === "drift") {
+    return runDriftCommand(args.slice(1), {
+      stdout,
+      stderr,
+      env,
+      cwd,
     });
   }
   if (first === "mcp") {

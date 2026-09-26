@@ -363,3 +363,113 @@ export function parseFixArgs(argv: readonly string[]): ParseFixArgsResult {
 
   return { ok: true, args };
 }
+
+export type DriftFormat = "console" | "json";
+
+export interface DriftArgs {
+  dir: string;
+  spec?: string;
+  out?: string;
+  format: DriftFormat;
+  config?: string;
+  licenseKey?: string;
+  force: boolean;
+}
+
+export type ParseDriftArgsResult =
+  | { ok: true; args: DriftArgs }
+  | { ok: false; error: string };
+
+const DRIFT_FORMATS = new Set<DriftFormat>(["console", "json"]);
+const DRIFT_FORMAT_LIST = "console | json";
+
+export function parseDriftArgs(argv: readonly string[]): ParseDriftArgsResult {
+  const args: DriftArgs = { dir: "", format: "console", force: false };
+  let dirSeen = false;
+
+  for (let i = 0; i < argv.length; i++) {
+    const token = argv[i]!;
+
+    if (token === "--spec") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--spec requires a file path" };
+      }
+      args.spec = value;
+      continue;
+    }
+
+    if (token === "--out") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--out requires a file path" };
+      }
+      args.out = value;
+      continue;
+    }
+
+    if (token === "--format") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return {
+          ok: false,
+          error: `--format requires a value (${DRIFT_FORMAT_LIST})`,
+        };
+      }
+      if (!DRIFT_FORMATS.has(value as DriftFormat)) {
+        return {
+          ok: false,
+          error: `invalid --format "${value}" (expected ${DRIFT_FORMAT_LIST})`,
+        };
+      }
+      args.format = value as DriftFormat;
+      continue;
+    }
+
+    if (token === "--config") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--config requires a file path" };
+      }
+      args.config = value;
+      continue;
+    }
+
+    if (token === "--license-key") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--license-key requires a value" };
+      }
+      args.licenseKey = value;
+      continue;
+    }
+
+    if (token === "--force") {
+      args.force = true;
+      continue;
+    }
+
+    if (token === "--help" || token === "-h" || token === "--version" || token === "-V") {
+      return { ok: false, error: `unexpected ${token} after drift` };
+    }
+
+    if (isFlag(token)) {
+      return { ok: false, error: `unknown option: ${token}` };
+    }
+
+    if (dirSeen) {
+      return { ok: false, error: `unexpected argument: ${token}` };
+    }
+    args.dir = token;
+    dirSeen = true;
+  }
+
+  if (!dirSeen) {
+    return {
+      ok: false,
+      error: "missing required argument <dir> (project directory)",
+    };
+  }
+
+  return { ok: true, args };
+}

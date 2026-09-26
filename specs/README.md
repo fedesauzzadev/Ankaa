@@ -40,7 +40,7 @@ Especificaciones **spec-driven** derivadas del [SDD v1.0](../docs/SDD.md). El SD
 | [f8-oss-differentials](f8-oss-differentials.md) | 8 | Diferenciales OSS: LLM opcional, drift/generación de spec, scan-org, multi-protocolo | draft |
 | [f8-suggest-fix](f8-suggest-fix.md) | 8 | M8.1: proponer arreglos con LLM del cliente (opcional) | cerrada |
 | [f8-rules-import](f8-rules-import.md) | 8 | M8.2: guideline interna → reglas (LLM propone, engine valida) | cerrada |
-| [f8-drift](f8-drift.md) | 8 | M8.3: drift spec↔código + generación de spec | ready |
+| [f8-drift](f8-drift.md) | 8 | M8.3: drift spec↔código + generación de spec | cerrada |
 
 ## Orden de implementación sugerido
 

@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | ready |
+| Estado | cerrada |
 | Fecha | 2026-09-26 |
 | Fase | 8 (M8.3 del umbrella `f8-oss-differentials`) |
 | Deriva de | `f8-oss-differentials` M8.3; `f8-suggest-fix` (adapter `llm.ts`, gates); parser `@apigovscan/openapi` (modelo `Spec`/`Operation`); FR-43 (redacción); INV-1/INV-2/INV-7 |
@@ -58,16 +58,16 @@ export function buildShapeMessages(pairs: Array<{ op: string; specFragment: stri
 
 ## 4. Criterios de aceptación
 
-- [ ] **AC-DR.1** Catálogo: cada familia (Express, Spring, .NET, FastAPI, Rails, Go, PHP) con test true (detecta método+path correctos) y false (no falsos positivos en código parecido).
-- [ ] **AC-DR.2** Normalización: `:id`, `{id}`, `<id>`, `<int:id>` → `{id}`; `get`/`GET` matchean.
-- [ ] **AC-DR.3** `drift` con fixture desactualizada reporta el endpoint faltante, el sobrante y el cambiado; exit 1; `--format json` parsea con esas tres listas.
-- [ ] **AC-DR.4** `drift` sin diferencias → exit 0 + mensaje de limpieza.
-- [ ] **AC-DR.5** Sweep LLM: con catálogo en cero + stub → rutas del stub aparecen; stub con basura → exit 2 honesto o reporte vacío con nota (no crash, no fruta).
-- [ ] **AC-DR.6** Sin LLM: endpoint-level completo; nota visible de que shape/sweep requieren LLM; exit codes iguales.
-- [ ] **AC-DR.7** Generación: `--out` escribe esqueleto válido; re-analyze del generado parsea ok; sin `--force` ante existente → exit 2 sin tocar nada.
-- [ ] **AC-DR.8** Gates: sin license → exit 2 mensaje license; e2e usan `DEV_LICENSE_KEY` como fix/import.
-- [ ] **AC-DR.9** Boundary: `drift`/`route-signatures` no importan `analyze.ts` ni core-LLM; solo escribe `--out` (INV-7); `analyze` sin llm byte-idéntico (suite existente).
-- [ ] **AC-DR.10** Determinismo: re-run → stdout/archivo byte-idénticos (órdenes estables, sin timestamps).
+- [x] **AC-DR.1** Catálogo: cada familia (Express, Spring, .NET, FastAPI, Rails, Go, PHP) con test true (detecta método+path correctos) y false (no falsos positivos en código parecido).
+- [x] **AC-DR.2** Normalización: `:id`, `{id}`, `<id>`, `<int:id>` → `{id}`; `get`/`GET` matchean.
+- [x] **AC-DR.3** `drift` con fixture desactualizada reporta el endpoint faltante, el sobrante y el cambiado; exit 1; `--format json` parsea con esas tres listas.
+- [x] **AC-DR.4** `drift` sin diferencias → exit 0 + mensaje de limpieza.
+- [x] **AC-DR.5** Sweep LLM: con catálogo en cero + stub → rutas del stub aparecen; stub con basura → exit 2 honesto o reporte vacío con nota (no crash, no fruta).
+- [x] **AC-DR.6** Sin LLM: endpoint-level completo; nota visible de que shape/sweep requieren LLM; exit codes iguales.
+- [x] **AC-DR.7** Generación: `--out` escribe esqueleto válido; re-analyze del generado parsea ok; sin `--force` ante existente → exit 2 sin tocar nada.
+- [x] **AC-DR.8** Gates: sin license → exit 2 mensaje license; e2e usan `DEV_LICENSE_KEY` como fix/import.
+- [x] **AC-DR.9** Boundary: `drift`/`route-signatures` no importan `analyze.ts` ni core-LLM; solo escribe `--out` (INV-7); `analyze` sin llm byte-idéntico (suite existente).
+- [x] **AC-DR.10** Determinismo: re-run → stdout/archivo byte-idénticos (órdenes estables, sin timestamps).
 
 ## 5. Test plan
 
@@ -94,3 +94,8 @@ export function buildShapeMessages(pairs: Array<{ op: string; specFragment: stri
 ## Changelog
 
 - 2026-09-26 · Spec creado en `ready` (tercer milestone ejecutable de f8; handoff vía AGENTS.md + este spec).
+- 2026-09-26 · M8.3 implementado → `cerrada` (AC-DR.1–10 verdes; `pnpm check` verde). Decisiones de implementación:
+  - `missing`/`removed` son a nivel de path (un path presente en ambos lados con métodos distintos es `changed`, no doble reporte).
+  - `DetectedRoute` gana `line?: number` opcional (fragmentos de shape); no rompe el contrato.
+  - Sweep con basura → reporte con nota honesta (no exit 2); request LLM fallida → exit 2.
+  - Fixture `drift-demo/app.js` en ESM (el linter prohíbe `require`).
