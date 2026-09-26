@@ -22,3 +22,4 @@ Checklists ejecutables ligados a [plans](../plans/README.md) y [specs](../specs/
 | [f8-llm](f8-llm.md) | plans/f8-llm | specs/f8-suggest-fix |
 | [f8-rules-import](f8-rules-import.md) | plans/f8-rules-import | specs/f8-rules-import |
 | [f8-drift](f8-drift.md) | plans/f8-drift | specs/f8-drift |
+| [f8-scan-org](f8-scan-org.md) | plans/f8-scan-org | specs/f8-scan-org |

@@ -14,6 +14,7 @@ Planes de implementación derivados de los [specs](../specs/README.md). Un plan 
 | [f8-llm](f8-llm.md) | Feature LLM opcional: suggest_fix y siguientes | f8-* |
 | [f8-rules-import](f8-rules-import.md) | Guideline interna → reglas (M8.2) | f8-rules-import |
 | [f8-drift](f8-drift.md) | Drift spec↔código + generación (M8.3) | f8-drift |
+| [f8-scan-org](f8-scan-org.md) | Informe consolidado multi-repo (M8.4) | f8-scan-org |
 
 ## Convención
 
