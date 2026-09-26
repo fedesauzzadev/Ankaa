@@ -37,6 +37,7 @@ Especificaciones **spec-driven** derivadas del [SDD v1.0](../docs/SDD.md). El SD
 | [f6-score](f6-score.md) | 6 | Governance score 0-100 + grade A–F | cerrada |
 | [f6-distribution](f6-distribution.md) | 6 | Licencia offline + tarball/registry/Docker privados | cerrada |
 | [f7-enterprise](f7-enterprise.md) | 7 | Packs por cliente + self-host completo + edge CF (todo lo pendiente, fase única) | draft |
+| [f8-oss-differentials](f8-oss-differentials.md) | 8 | Diferenciales OSS: LLM opcional, drift/generación de spec, scan-org, multi-protocolo | draft |
 
 ## Orden de implementación sugerido
 
