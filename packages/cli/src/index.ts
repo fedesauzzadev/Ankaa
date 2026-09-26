@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import {
   explain,
@@ -20,6 +20,14 @@ import {
   splitFindingTarget,
 } from "./fix.js";
 import { chatCompletion, loadLlmConfig } from "./llm.js";
+import {
+  buildImportMessages,
+  chunkGuideline,
+  extractText,
+  parseRulesEnvelope,
+  serializeRulesDrafts,
+  validateDrafts,
+} from "./rules-import.js";
 import {
   buildBaseline,
   checkInputHashes,
@@ -82,6 +90,7 @@ export function getHelp(): string {
     "  apigovscan rules validate <file...> [options]",
     "  apigovscan rules list [--rules <file>]",
     "  apigovscan rules explain <ruleId> [--rules <file>]",
+    "  apigovscan rules import --from <file> [--out <file>]",
     "  apigovscan learn --report <r.json> --feedback <f.json> [options]",
     "  apigovscan skills list [--format json]",
     "  apigovscan skills promote <draftId>",
@@ -132,6 +141,8 @@ export function getHelp(): string {
     "AI features (optional):",
     "  apigovscan fix <path> [--fingerprint <fp>]",
     "  Propose unified-diff fixes for findings using your own LLM.",
+    "  apigovscan rules import --from <doc> [--out <file>]",
+    "  Draft custom rules from an internal guideline using your own LLM.",
     "  Configure llm.baseUrl in apigovscan.yaml (or APIGOVSCAN_LLM_BASE_URL).",
     "  The LLM only drafts text; it never analyzes, scores, or gates.",
     "",
@@ -659,14 +670,191 @@ function runRulesExplain(
   return 0;
 }
 
-function runRulesCommand(
+async function runRulesImport(
   argv: readonly string[],
   io: {
     stdout: (text: string) => void;
     stderr: (text: string) => void;
+    env: Record<string, string | undefined>;
     cwd: string;
   },
-): number {
+): Promise<number> {
+  let from: string | undefined;
+  let out = "imported-rules.yaml";
+  let configPath: string | undefined;
+  let licenseKey: string | undefined;
+  let force = false;
+  for (let i = 0; i < argv.length; i++) {
+    const token = argv[i]!;
+    if (token === "--from") {
+      const v = argv[++i];
+      if (v === undefined || v.startsWith("-")) {
+        io.stderr("error: --from requires a file path\n");
+        return 2;
+      }
+      from = v;
+      continue;
+    }
+    if (token === "--out") {
+      const v = argv[++i];
+      if (v === undefined || v.startsWith("-")) {
+        io.stderr("error: --out requires a file path\n");
+        return 2;
+      }
+      out = v;
+      continue;
+    }
+    if (token === "--config") {
+      const v = argv[++i];
+      if (v === undefined || v.startsWith("-")) {
+        io.stderr("error: --config requires a file path\n");
+        return 2;
+      }
+      configPath = v;
+      continue;
+    }
+    if (token === "--license-key") {
+      const v = argv[++i];
+      if (v === undefined || v.startsWith("-")) {
+        io.stderr("error: --license-key requires a value\n");
+        return 2;
+      }
+      licenseKey = v;
+      continue;
+    }
+    if (token === "--force") {
+      force = true;
+      continue;
+    }
+    if (token === "--no-color") {
+      continue;
+    }
+    if (token.startsWith("-")) {
+      io.stderr(`error: unknown option: ${token}\n`);
+      return 2;
+    }
+    io.stderr(`error: unexpected argument: ${token}\n`);
+    return 2;
+  }
+  if (from === undefined) {
+    io.stderr("error: rules import requires --from <file>\n");
+    return 2;
+  }
+
+  const configResult = loadConfig(io.cwd, configPath);
+  if (!configResult.ok) {
+    io.stderr(`error: ${configResult.error}\n`);
+    return 2;
+  }
+  const config = configResult.config;
+
+  const license = checkLicense({
+    flag: licenseKey,
+    env: io.env.APIGOVSCAN_LICENSE_KEY,
+    config: config.license?.key,
+  });
+  if (!license.ok) {
+    io.stderr(`error: ${licenseErrorMessage(license)}\n`);
+    return 2;
+  }
+
+  const llmCfg = loadLlmConfig(config.llm, io.env);
+  if (llmCfg === undefined) {
+    io.stderr(
+      "error: llm not configured: set llm.baseUrl in apigovscan.yaml (AI features are optional)\n",
+    );
+    return 2;
+  }
+
+  const fromAbs = resolve(io.cwd, from);
+  if (!existsSync(fromAbs)) {
+    io.stderr(`error: import file not found: ${from}\n`);
+    return 2;
+  }
+  if (statSync(fromAbs).isDirectory()) {
+    io.stderr(`error: import file is a directory: ${from}\n`);
+    return 2;
+  }
+  let bytes: Buffer;
+  try {
+    bytes = readFileSync(fromAbs);
+  } catch (err) {
+    io.stderr(
+      `error: import file ${from}: ${err instanceof Error ? err.message : String(err)}\n`,
+    );
+    return 2;
+  }
+  const extracted = await extractText(fromAbs, bytes);
+  if (!extracted.ok) {
+    io.stderr(`error: ${extracted.error}\n`);
+    return 2;
+  }
+
+  const outAbs = resolve(io.cwd, out);
+  if (existsSync(outAbs) && !force) {
+    io.stderr(`error: output exists: ${out} (pass --force to overwrite)\n`);
+    return 2;
+  }
+
+  const chunks = chunkGuideline(extracted.text);
+  if (chunks.length > 1) {
+    io.stderr(`note: ${from} split into ${chunks.length} chunks (1 request each)\n`);
+  }
+  const entries: unknown[] = [];
+  for (const chunk of chunks) {
+    let text: string;
+    try {
+      text = await chatCompletion(llmCfg, buildImportMessages(chunk));
+    } catch (err) {
+      io.stderr(
+        `error: ${err instanceof Error ? err.message : String(err)}\n`,
+      );
+      return 2;
+    }
+    entries.push(...parseRulesEnvelope(text));
+  }
+
+  let eliteIds: ReadonlySet<string> = new Set();
+  try {
+    eliteIds = packRuleIds(loadElitePackOrThrow(io.cwd));
+  } catch {
+    // elite pack unavailable here: skip the elite duplicate check
+  }
+  const { valid, rejected } = validateDrafts(
+    entries,
+    packageVersion(),
+    eliteIds,
+  );
+  for (const r of rejected) {
+    io.stderr(`warning: rejected draft #${r.index}: ${r.issues.join("; ")}\n`);
+  }
+  if (valid.length === 0) {
+    io.stderr("error: no valid rules produced\n");
+    return 2;
+  }
+  try {
+    writeFileSync(outAbs, serializeRulesDrafts(valid), "utf8");
+  } catch (err) {
+    io.stderr(
+      `error: cannot write ${out}: ${err instanceof Error ? err.message : String(err)}\n`,
+    );
+    return 2;
+  }
+  io.stdout(
+    `${valid.length} imported, ${rejected.length} rejected — review ${out} and add it to customRules in apigovscan.yaml\n`,
+  );
+  return 0;
+}
+
+async function runRulesCommand(
+  argv: readonly string[],
+  io: {
+    stdout: (text: string) => void;
+    stderr: (text: string) => void;
+    env: Record<string, string | undefined>;
+    cwd: string;
+  },
+): Promise<number> {
   if (argv.includes("--help") || argv.includes("-h")) {
     io.stdout(
       [
@@ -674,10 +862,12 @@ function runRulesCommand(
         "  apigovscan rules validate <file...> [--format json]",
         "  apigovscan rules list [--rules <file>] [--format json]",
         "  apigovscan rules explain <ruleId> [--rules <file>]",
+        "  apigovscan rules import --from <file> [--out <file>] [--force] [--config <file>] [--license-key <key>]",
         "",
         "validate  Check custom rule files against the DSL (exit 0/2).",
         "list      List active pack rules (and custom rules when --rules is given).",
         "explain   Print message, fix, source URL, and pack version for a rule.",
+        "import    Draft custom rules from a guideline doc with your own LLM (exit 0/2).",
         "",
       ].join("\n"),
     );
@@ -695,8 +885,11 @@ function runRulesCommand(
   if (sub === "explain") {
     return runRulesExplain(rest, io);
   }
+  if (sub === "import") {
+    return runRulesImport(rest, io);
+  }
   io.stderr(
-    `error: unknown rules subcommand "${sub ?? ""}" (expected: validate | list | explain)\n`,
+    `error: unknown rules subcommand "${sub ?? ""}" (expected: validate | list | explain | import)\n`,
   );
   return 2;
 }
@@ -1557,6 +1750,7 @@ export async function run(
     return runRulesCommand(args.slice(1), {
       stdout,
       stderr,
+      env,
       cwd,
     });
   }

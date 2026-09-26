@@ -35,6 +35,12 @@ describe("LLM boundary (AC-SF.9)", () => {
     expect(hasLlmImport(join(cliSrc, "analyze.ts"))).toBe(false);
   });
 
+  it("rules import never touches the analyze use-case (AC-RI.11)", () => {
+    const text = readFileSync(join(cliSrc, "rules-import.ts"), "utf8");
+    expect(text).not.toMatch(/from\s+['"]\.\/analyze\.js['"]/);
+    expect(text).not.toMatch(/from\s+['"]@apigovscan\/openapi['"]/);
+  });
+
   it("fetch is only used through the LLM adapter in cli sources", () => {
     const withFetch = tsFiles(cliSrc).filter((f) => {
       if (f === "llm.ts") {

@@ -114,6 +114,9 @@ llm:
 
 apigovscan fix ./openapi.yaml                       # propuestas para todos los findings
 apigovscan fix ./openapi.yaml --fingerprint <fp>    # solo uno
+
+apigovscan rules import --from ./guideline.pdf       # draftea reglas custom desde tu guideline
+apigovscan rules import --from ./guideline.md --out team.yaml --force
 ```
 
 Variables equivalentes: `APIGOVSCAN_LLM_BASE_URL` / `_API_KEY` / `_MODEL` (ganan sobre la config). Los prompts se redactan (FR-43) y los diffs inválidos se rechazan con error honesto. Spec: [`specs/f8-suggest-fix.md`](specs/f8-suggest-fix.md).

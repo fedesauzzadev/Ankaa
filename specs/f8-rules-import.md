@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | ready |
+| Estado | cerrada |
 | Fecha | 2026-09-26 |
 | Fase | 8 (M8.2 del umbrella `f8-oss-differentials`) |
 | Deriva de | `f8-oss-differentials` M8.2; `f8-suggest-fix` (adapter `llm.ts`, gates); `f2-custom-rules` (validador determinista); FR-43 (redacción); INV-1/INV-3/INV-7 |
@@ -52,17 +52,17 @@ export function serializeRulesDrafts(rules: Rule[]): string;             // YAML
 
 ## 4. Criterios de aceptación
 
-- [ ] **AC-RI.1** Extracción md/txt/yaml: texto plano íntegro; extensión no soportada → exit 2 con lista.
-- [ ] **AC-RI.2** Redacción: un secret (AKIA/PEM) en el guideline NO aparece en ningún body enviado al stub.
-- [ ] **AC-RI.3** Chunking: doc > maxChars produce >1 request al stub; cada body ≤ maxChars (+ prompt).
-- [ ] **AC-RI.4** Envelope: array JSON (con fences) parsea; objetos inválidos se descartan sin tumbar los válidos; cero objetos → exit 2 `no valid rules produced`.
-- [ ] **AC-RI.5** Validación determinista: reglas inválidas del stub (severity mala, id mal formato, `when` con op inexistente) se rechazan con su error; solo las válidas se escriben.
-- [ ] **AC-RI.6** Salida: `imported-rules.yaml` es YAML válido con N reglas; `--out` alternativo funciona; sobreescribir existente sin `--force` → exit 2 (no crea/borra nada).
-- [ ] **AC-RI.7** Determinismo: re-run con mismo stub → archivo byte-idéntico (INV-2 friendly: sin timestamps).
-- [ ] **AC-RI.8** PDF: fixture `fixtures/guideline.pdf` extrae su texto y el flujo completo funciona e2e.
-- [ ] **AC-RI.9** DOCX: fixture `fixtures/guideline.docx` ídem.
-- [ ] **AC-RI.10** Gates: sin license → exit 2 mensaje license; sin llm → exit 2 mensaje `llm not configured` (los mismos strings que `fix`).
-- [ ] **AC-RI.11** Boundary: `rules import` no importa `analyze.ts`/core; solo escribe el `--out` (INV-7); `analyze` sin config llm sigue byte-idéntico.
+- [x] **AC-RI.1** Extracción md/txt/yaml: texto plano íntegro; extensión no soportada → exit 2 con lista.
+- [x] **AC-RI.2** Redacción: un secret (AKIA/PEM) en el guideline NO aparece en ningún body enviado al stub.
+- [x] **AC-RI.3** Chunking: doc > maxChars produce >1 request al stub; cada body ≤ maxChars (+ prompt).
+- [x] **AC-RI.4** Envelope: array JSON (con fences) parsea; objetos inválidos se descartan sin tumbar los válidos; cero objetos → exit 2 `no valid rules produced`.
+- [x] **AC-RI.5** Validación determinista: reglas inválidas del stub (severity mala, id mal formato, `when` con op inexistente) se rechazan con su error; solo las válidas se escriben.
+- [x] **AC-RI.6** Salida: `imported-rules.yaml` es YAML válido con N reglas; `--out` alternativo funciona; sobreescribir existente sin `--force` → exit 2 (no crea/borra nada).
+- [x] **AC-RI.7** Determinismo: re-run con mismo stub → archivo byte-idéntico (INV-2 friendly: sin timestamps).
+- [x] **AC-RI.8** PDF: fixture `fixtures/guideline.pdf` extrae su texto y el flujo completo funciona e2e.
+- [x] **AC-RI.9** DOCX: fixture `fixtures/guideline.docx` ídem.
+- [x] **AC-RI.10** Gates: sin license → exit 2 mensaje license; sin llm → exit 2 mensaje `llm not configured` (los mismos strings que `fix`).
+- [x] **AC-RI.11** Boundary: `rules import` no importa `analyze.ts`/core; solo escribe el `--out` (INV-7); `analyze` sin config llm sigue byte-idéntico.
 
 ## 5. Test plan
 
@@ -88,3 +88,9 @@ export function serializeRulesDrafts(rules: Rule[]): string;             // YAML
 ## Changelog
 
 - 2026-09-26 · Spec creado en `ready` (segundo milestone ejecutable de f8; handoff vía AGENTS.md + este spec).
+- 2026-09-26 · M8.2 implementado → `cerrada` (AC-RI.1–11 verdes; `pnpm check` verde). Desvíos registrados:
+  - `extractText` es async (el contrato decía sync): pdf-parse y mammoth son asíncronos.
+  - pdf-parse se carga vía `createRequire` (su self-test de import ESM rompe fuera de su cwd) y los bytes se copian a un `Uint8Array` fresco (los Buffer pooleados de `readFileSync` tienen byteOffset ≠ 0 y su pdf.js los lee como xref corrupto).
+  - Nota de chunking por stderr (no existe flag `--debug` en este comando).
+  - Falla de extracción → stderr `error: ...` + exit 2 (el contrato no fijaba formato).
+  - Sin cambios al contrato del validador (`f2-custom-rules` intacto).

@@ -25,3 +25,4 @@
 ## Changelog del plan
 
 - 2026-09-26 · Plan inicial (handoff desde revisión de M8.1).
+- 2026-09-26 · M8.2 implementado → DoD cumplido (`pnpm check` verde: AC-RI.1–11, INV-1/2/3/7; `analyze` sin llm byte-idéntico verificado por suite existente).
