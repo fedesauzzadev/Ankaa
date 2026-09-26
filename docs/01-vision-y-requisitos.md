@@ -113,6 +113,7 @@ El resultado: cada proyecto nuevo nace mal si el gobierno del anterior estaba ma
 | FR-41 | JSON estable para diffs; orden determinista (INV-2) |
 | FR-42 | GitHub Action: `fail-on` configurable, output de annotations SARIF, resumen en job |
 | FR-43 | El reporte nunca incluye valores secretos de ejemplos del spec (redacción de patrones tipo token/clave) |
+| FR-45 | **Governance score** determinista `0-100` + grade `A-F` en console/JSON/markdown/SARIF/MCP, derivado de findings post-filtros; incluido en `reportHash` (fase 6 — spec `f6-score`) |
 
 ### 6.6 MCP
 

@@ -10,6 +10,7 @@ Planes de implementación derivados de los [specs](../specs/README.md). Un plan 
 | [f3-learning](f3-learning.md) | init + skills + learn | f3-* |
 | [f4-mcp](f4-mcp.md) | MCP stdio local | f4-mcp-* |
 | [f5-ci](f5-ci.md) | SARIF/Markdown/annotations + GitHub Action | f5-* |
+| [f6-score](f6-score.md) | Governance score 0-100 + grade | f6-score |
 
 ## Convención
 
