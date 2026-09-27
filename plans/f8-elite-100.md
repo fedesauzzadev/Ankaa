@@ -1,4 +1,4 @@
-# Plan · f8-elite-100 · Pack elite 100+ (M8.5)
+# Plan · f8-elite-100 · Pack elite 88 (M8.5 · cierre 2026-09-27; objetivo original 100+, techo honesto sin engine nuevo)
 
 | Campo | Valor |
 |---|---|
