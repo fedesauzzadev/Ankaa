@@ -45,6 +45,7 @@ Especificaciones **spec-driven** derivadas del [SDD v1.0](../docs/SDD.md). El SD
 | [f8-elite-100](f8-elite-100.md) | 8 | M8.5: pack elite 65 → 88 reglas curadas (cierre honesto) | cerrada |
 | [f8-graphql](f8-graphql.md) | 8 | M8.6: GraphQL SDL — adapter + pack 8 reglas (protocolo 1 de 4) | cerrada |
 | [f8-grpc](f8-grpc.md) | 8 | M8.7: proto/gRPC — parser propio + pack 7 reglas (protocolo 2 de 4) | cerrada |
+| [f8-asyncapi](f8-asyncapi.md) | 8 | M8.8: AsyncAPI/eventos v2+v3 — parser + pack (protocolo 3 de 4) | ready |
 
 ## Orden de implementación sugerido
 

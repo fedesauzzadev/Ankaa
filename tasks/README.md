@@ -26,3 +26,4 @@ Checklists ejecutables ligados a [plans](../plans/README.md) y [specs](../specs/
 | [f8-elite-100](f8-elite-100.md) | plans/f8-elite-100 | specs/f8-elite-100 |
 | [f8-graphql](f8-graphql.md) | plans/f8-graphql | specs/f8-graphql |
 | [f8-grpc](f8-grpc.md) | plans/f8-grpc | specs/f8-grpc |
+| [f8-asyncapi](f8-asyncapi.md) | plans/f8-asyncapi | specs/f8-asyncapi |

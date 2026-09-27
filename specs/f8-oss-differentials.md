@@ -93,3 +93,4 @@ Patrón por milestone: unit + e2e CLI + invariantes INV-1/2/7 (las features LLM 
 - 2026-09-26 · Decisión del dueño: multi-protocolo pasa a ser **pre-launch** (GraphQL → gRPC → AsyncAPI → webhooks, con fuentes de élite por protocolo); detección de rutas rediseñada como catálogo de firmas + fallback LLM universal (cualquier codebase, incl. legacy).
 - 2026-09-27 · M8.6 abierto como `f8-graphql` (protocolo 1): adapter SDL → Spec + pack graphql + CLI por extensión; gRPC/AsyncAPI/webhooks quedan para M8.7+.
 - 2026-09-27 · M8.7 abierto como `f8-grpc` (protocolo 2): parser proto propio (cero deps) + pack grpc + CLI por extensión.
+- 2026-09-27 · M8.8 abierto como `f8-asyncapi` (protocolo 3): parser v2+v3 con `yaml` existente + pack asyncapi + CLI por sniff.
