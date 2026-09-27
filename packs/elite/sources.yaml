@@ -19,3 +19,9 @@ sources:
   - id: rfc9457
     title: RFC 9457 Problem Details for HTTP APIs
     url: https://www.rfc-editor.org/rfc/rfc9457
+  - id: rfc8594
+    title: RFC 8594 Sunset HTTP Header
+    url: https://www.rfc-editor.org/rfc/rfc8594
+  - id: owasp-api
+    title: OWASP API Security Top 10
+    url: https://owasp.org/API-Security/

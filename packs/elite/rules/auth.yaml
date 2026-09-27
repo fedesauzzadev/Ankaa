@@ -58,3 +58,17 @@
     section: "API keys"
   when:
     op: apiKeySchemeInQuery
+
+- id: AUTH-006
+  category: security
+  severity: warning
+  message: "Query parameters must not carry credentials (passwords, secrets, keys)."
+  fix: "Move credentials to headers or body; never to the URL."
+  source:
+    title: OWASP API Security Top 10
+    url: https://owasp.org/API-Security/
+    section: "Sensitive data exposure"
+  when:
+    op: parameterNamingViolation
+    pattern: '^(?!(password|passwd|secret|client_secret|api[_-]?key|ssn)$).*$'
+    in: query

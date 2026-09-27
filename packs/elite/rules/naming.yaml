@@ -133,3 +133,16 @@
   when:
     op: pathMatches
     pattern: '/(create|update|delete|get|list|add|remove|insert|modify|save|fetch|find|search)(/|$)'
+
+- id: NAMING-011
+  category: naming
+  severity: warning
+  message: "Paths must not embed query strings; use parameters instead."
+  fix: "Move the query string into query parameters."
+  source:
+    title: OpenAPI Specification
+    url: https://spec.openapis.org/oas/v3.1.0
+    section: "Paths / query parameters"
+  when:
+    op: pathMatches
+    pattern: '[?]'

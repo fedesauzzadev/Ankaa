@@ -76,3 +76,32 @@
     section: "External Documentation Object"
   when:
     op: externalDocsMissingUrl
+
+- id: DOCS-007
+  category: docs
+  severity: info
+  message: "Operation descriptions must not contain TODO/FIXME placeholders."
+  fix: "Replace the placeholder with the real documentation."
+  source:
+    title: Microsoft REST API Guidelines
+    url: https://github.com/microsoft/api-guidelines
+    section: "Descriptions"
+  when:
+    op: descriptionMatches
+    target: description
+    pattern: 'TODO|FIXME|XXX|TBD'
+
+- id: DOCS-008
+  category: docs
+  severity: info
+  message: "Response descriptions should be meaningful (at least 10 characters)."
+  fix: "Expand the response description beyond a few words."
+  source:
+    title: Microsoft REST API Guidelines
+    url: https://github.com/microsoft/api-guidelines
+    section: "Response descriptions"
+  when:
+    not:
+      op: descriptionMinLength
+      target: response
+      min: 10

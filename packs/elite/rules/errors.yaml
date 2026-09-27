@@ -82,3 +82,60 @@
     section: "Problem Details members"
   when:
     op: errorSchemaMissingTitle
+
+- id: ERR-007
+  category: errors
+  severity: warning
+  message: "429 and 503 responses should document a Retry-After header."
+  fix: "Declare the Retry-After response header on throttled or unavailable responses."
+  source:
+    title: RFC 9110 HTTP Semantics
+    url: https://www.rfc-editor.org/rfc/rfc9110
+    section: "Retry-After"
+  when:
+    all:
+      - any:
+          - op: responsePresent
+            status: "429"
+          - op: responsePresent
+            status: "503"
+      - not:
+          op: headerRequired
+          name: Retry-After
+          in: response
+
+- id: ERR-008
+  category: errors
+  severity: warning
+  message: "401 responses must document a WWW-Authenticate header."
+  fix: "Declare the WWW-Authenticate response header describing the challenge."
+  source:
+    title: RFC 9110 HTTP Semantics
+    url: https://www.rfc-editor.org/rfc/rfc9110
+    section: "401 Unauthorized"
+  when:
+    all:
+      - op: responsePresent
+        status: "401"
+      - not:
+          op: headerRequired
+          name: WWW-Authenticate
+          in: response
+
+- id: ERR-009
+  category: errors
+  severity: warning
+  message: "407 responses must document a Proxy-Authenticate header."
+  fix: "Declare the Proxy-Authenticate response header describing the challenge."
+  source:
+    title: RFC 9110 HTTP Semantics
+    url: https://www.rfc-editor.org/rfc/rfc9110
+    section: "407 Proxy Authentication Required"
+  when:
+    all:
+      - op: responsePresent
+        status: "407"
+      - not:
+          op: headerRequired
+          name: Proxy-Authenticate
+          in: response

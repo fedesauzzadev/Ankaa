@@ -75,3 +75,16 @@
   when:
     op: schemaInlineDepthMax
     max: 4
+
+- id: STRUCT-007
+  category: structure
+  severity: info
+  message: "Prefer OpenAPI 3.1 over older 3.0 documents."
+  fix: "Upgrade the spec to OpenAPI 3.1."
+  source:
+    title: OpenAPI Specification
+    url: https://spec.openapis.org/
+    section: "Versions"
+  when:
+    op: openapiVersionMismatch
+    pattern: '^3[.]1[.]'

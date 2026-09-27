@@ -86,3 +86,31 @@
     op: parameterNamingViolation
     pattern: '^[a-z][a-z0-9-]*$'
     in: header
+
+- id: PARAM-008
+  category: parameters
+  severity: warning
+  message: "Path parameter names should be camelCase."
+  fix: "Rename path parameters to camelCase (petId)."
+  source:
+    title: Zalando RESTful API Guidelines
+    url: https://opensource.zalando.com/restful-api-guidelines/
+    section: "Parameters"
+  when:
+    op: parameterNamingViolation
+    pattern: '^[a-z][a-zA-Z0-9]*$'
+    in: path
+
+- id: PARAM-009
+  category: parameters
+  severity: warning
+  message: "Cookie parameter names should be camelCase."
+  fix: "Rename cookie parameters to camelCase (sessionId)."
+  source:
+    title: Zalando RESTful API Guidelines
+    url: https://opensource.zalando.com/restful-api-guidelines/
+    section: "Parameters"
+  when:
+    op: parameterNamingViolation
+    pattern: '^[a-z][a-zA-Z0-9]*$'
+    in: cookie

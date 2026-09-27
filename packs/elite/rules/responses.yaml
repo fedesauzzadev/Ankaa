@@ -65,3 +65,197 @@
     not:
       op: responsePresent
       status: default
+
+- id: RESP-006
+  category: structure
+  severity: warning
+  message: "GET operations must not define a request body."
+  fix: "Remove requestBody from the GET operation (use query parameters instead)."
+  source:
+    title: RFC 9110 HTTP Semantics
+    url: https://www.rfc-editor.org/rfc/rfc9110
+    section: "GET / content semantics"
+  when:
+    all:
+      - op: method
+        in: [get]
+      - op: presentField
+        field: requestBody
+
+- id: RESP-007
+  category: structure
+  severity: warning
+  message: "POST operations should document a 201 Created response."
+  fix: "Add a 201 response returning the created resource."
+  source:
+    title: Zalando RESTful API Guidelines
+    url: https://opensource.zalando.com/restful-api-guidelines/
+    section: "POST / resource creation"
+  when:
+    all:
+      - op: method
+        in: [post]
+      - not:
+          op: responsePresent
+          status: "201"
+
+- id: RESP-008
+  category: structure
+  severity: warning
+  message: "GET 200 responses should define response content."
+  fix: "Add a content schema to the 200 response."
+  source:
+    title: Zalando RESTful API Guidelines
+    url: https://opensource.zalando.com/restful-api-guidelines/
+    section: "Responses"
+  when:
+    all:
+      - op: method
+        in: [get]
+      - op: responsePresent
+        status: "200"
+      - not:
+          op: responseHasContent
+          status: "200"
+
+- id: RESP-009
+  category: structure
+  severity: warning
+  message: "PUT 200 responses should return the updated resource."
+  fix: "Add a content schema with the updated resource to the 200 response."
+  source:
+    title: Zalando RESTful API Guidelines
+    url: https://opensource.zalando.com/restful-api-guidelines/
+    section: "Responses"
+  when:
+    all:
+      - op: method
+        in: [put]
+      - op: responsePresent
+        status: "200"
+      - not:
+          op: responseHasContent
+          status: "200"
+
+- id: RESP-010
+  category: structure
+  severity: warning
+  message: "PUT, PATCH and DELETE operations should document a 404 response."
+  fix: "Add a 404 response for unknown resource identifiers."
+  source:
+    title: Zalando RESTful API Guidelines
+    url: https://opensource.zalando.com/restful-api-guidelines/
+    section: "Errors"
+  when:
+    all:
+      - op: method
+        in: [put, patch, delete]
+      - not:
+          op: responsePresent
+          status: "404"
+
+- id: RESP-011
+  category: structure
+  severity: warning
+  message: "405 responses must document an Allow header."
+  fix: "Declare the Allow response header listing supported methods."
+  source:
+    title: RFC 9110 HTTP Semantics
+    url: https://www.rfc-editor.org/rfc/rfc9110
+    section: "405 Method Not Allowed"
+  when:
+    all:
+      - op: responsePresent
+        status: "405"
+      - not:
+          op: headerRequired
+          name: Allow
+          in: response
+
+- id: RESP-012
+  category: structure
+  severity: warning
+  message: "202 Accepted responses should document a Location header."
+  fix: "Add a Location header pointing at the status monitor."
+  source:
+    title: Microsoft REST API Guidelines
+    url: https://github.com/microsoft/api-guidelines
+    section: "Long-running operations"
+  when:
+    all:
+      - op: responsePresent
+        status: "202"
+      - not:
+          op: headerRequired
+          name: Location
+          in: response
+
+- id: RESP-013
+  category: structure
+  severity: warning
+  message: "POST, PUT and PATCH operations with a body must document a 400 response."
+  fix: "Add a 400 response describing malformed input."
+  source:
+    title: Zalando RESTful API Guidelines
+    url: https://opensource.zalando.com/restful-api-guidelines/
+    section: "Errors"
+  when:
+    all:
+      - op: method
+        in: [post, put, patch]
+      - op: presentField
+        field: requestBody
+      - not:
+          op: responsePresent
+          status: "400"
+
+- id: RESP-014
+  category: structure
+  severity: warning
+  message: "POST 200 responses should return the resource with content."
+  fix: "Add a content schema to the 200 response or use 201/204."
+  source:
+    title: Microsoft REST API Guidelines
+    url: https://github.com/microsoft/api-guidelines
+    section: "POST responses"
+  when:
+    all:
+      - op: method
+        in: [post]
+      - op: responsePresent
+        status: "200"
+      - not:
+          op: responseHasContent
+          status: "200"
+
+- id: RESP-015
+  category: structure
+  severity: warning
+  message: "PUT and PATCH operations must define a request body."
+  fix: "Add a requestBody with the replacement or patch document."
+  source:
+    title: RFC 9110 HTTP Semantics
+    url: https://www.rfc-editor.org/rfc/rfc9110
+    section: "PUT / PATCH semantics"
+  when:
+    all:
+      - op: method
+        in: [put, patch]
+      - op: missingField
+        field: requestBody
+
+- id: RESP-016
+  category: structure
+  severity: warning
+  message: "HEAD and OPTIONS operations must not define a request body."
+  fix: "Remove requestBody from the HEAD/OPTIONS operation."
+  source:
+    title: RFC 9110 HTTP Semantics
+    url: https://www.rfc-editor.org/rfc/rfc9110
+    section: "HEAD / OPTIONS semantics"
+  when:
+    all:
+      - op: method
+        in: [head, options]
+      - op: presentField
+        field: requestBody

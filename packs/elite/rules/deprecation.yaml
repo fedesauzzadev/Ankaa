@@ -28,3 +28,25 @@
           op: descriptionMatches
           target: summary
           pattern: '^\[deprecated\]'
+
+- id: DEPR-003
+  category: deprecation
+  severity: warning
+  message: "Deprecated operations should send Sunset or Deprecation response headers."
+  fix: "Document Sunset or Deprecation headers on deprecated operations."
+  source:
+    title: RFC 8594 Sunset HTTP Header
+    url: https://www.rfc-editor.org/rfc/rfc8594
+    section: "Sunset and Deprecation headers"
+  when:
+    all:
+      - op: presentField
+        field: deprecated
+      - not:
+          any:
+            - op: headerRequired
+              name: Sunset
+              in: response
+            - op: headerRequired
+              name: Deprecation
+              in: response

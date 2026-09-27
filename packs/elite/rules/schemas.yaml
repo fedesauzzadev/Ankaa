@@ -58,3 +58,16 @@
     section: "Schema Object"
   when:
     op: additionalPropertiesAbsent
+
+- id: SCHEMA-006
+  category: schemas
+  severity: warning
+  message: "Avoid inline object nesting deeper than 3 levels; extract to components."
+  fix: "Extract nested shapes into components.schemas with $ref."
+  source:
+    title: Google API Design Guide
+    url: https://cloud.google.com/apis/design
+    section: "Schema definitions"
+  when:
+    op: schemaInlineDepthMax
+    max: 3
