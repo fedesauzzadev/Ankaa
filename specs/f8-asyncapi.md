@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | ready |
+| Estado | cerrada |
 | Fecha | 2026-09-27 |
 | Fase | 8 (M8.8 del umbrella `f8-oss-differentials`: GraphQL ✓ → gRPC ✓ → AsyncAPI → webhooks) |
 | Deriva de | `f8-oss-differentials` M8.8; `f8-graphql`/`f8-grpc` (patrón adapter + pack + CLI); `f1-engine` (sin cambios) |
@@ -78,3 +78,4 @@ Unit parser (v2+v3) + pack + e2e CLI + MCP + boundary + invariantes. Ojo AC-AS.5
 ## Changelog
 
 - 2026-09-27 · Spec creado en `ready` (M8.8, protocolo 3 de 4; handoff vía AGENTS.md + este spec).
+- 2026-09-27 · Cerrada con 6 reglas: parser v2+v3 con `yaml` existente (payload→body/data según dirección, headers→parameters, $ref locales, servers v2+v3), sniff conservador con regresión OpenAPI, refs `#/components/schemas/`. Fixture v2 baseline 3 findings, v3 limpio. `pnpm check` verde.

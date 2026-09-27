@@ -26,3 +26,4 @@
 ## Changelog del plan
 
 - 2026-09-27 · Plan inicial (handoff).
+- 2026-09-27 · M8.8 implementado + DoD cumplido (`pnpm check` verde: AC-AS.1—7, INV-1/2/7; suites REST/GraphQL/gRPC intactas).
