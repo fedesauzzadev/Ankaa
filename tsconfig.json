@@ -3,6 +3,7 @@
   "references": [
     { "path": "packages/core" },
     { "path": "packages/graphql" },
+    { "path": "packages/grpc" },
     { "path": "packages/openapi" },
     { "path": "packages/reporters" },
     { "path": "packages/mcp" },

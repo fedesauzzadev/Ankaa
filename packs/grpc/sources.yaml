@@ -1,0 +1,9 @@
+# Snapshot of primary sources for the grpc pack.
+# Each rule also carries its own source.url (strictSource: true).
+sources:
+  - id: google-aips
+    title: Google API Improvement Proposals
+    url: https://google.aip.dev/
+  - id: buf-style
+    title: Buf style guide
+    url: https://buf.build/docs/style-guide

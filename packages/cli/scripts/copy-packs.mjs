@@ -7,7 +7,7 @@ const repoRoot = dirname(dirname(packageRoot));
 
 rmSync(join(packageRoot, "packs"), { recursive: true, force: true });
 mkdirSync(packageRoot, { recursive: true });
-for (const pack of ["elite", "graphql"]) {
+for (const pack of ["elite", "graphql", "grpc"]) {
   const source = join(repoRoot, "packs", pack);
   const target = join(packageRoot, "packs", pack);
   cpSync(source, target, { recursive: true });

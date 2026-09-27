@@ -9,6 +9,7 @@
   "references": [
     { "path": "../core" },
     { "path": "../graphql" },
+    { "path": "../grpc" },
     { "path": "../mcp" },
     { "path": "../openapi" },
     { "path": "../reporters" }

@@ -102,7 +102,7 @@ import {
 import {
   defaultPackSearchRoots,
   findElitePackDir,
-  findGraphqlPackDir,
+  findPackDir,
   loadPackFromDir,
 } from "./pack-fs.js";
 
@@ -469,10 +469,15 @@ function loadElitePackOrThrow(cwd: string) {
   return loadPackFromDir(dir);
 }
 
-function loadGraphqlPackOrUndefined(cwd: string) {
-  const dir = findGraphqlPackDir(defaultPackSearchRoots(cwd));
-  if (!dir) return undefined;
-  return loadPackFromDir(dir);
+const PROTOCOL_PACKS = ["graphql", "grpc"];
+
+function loadProtocolPacks(cwd: string): Rule[] {
+  const rules: Rule[] = [];
+  for (const id of PROTOCOL_PACKS) {
+    const dir = findPackDir(id, defaultPackSearchRoots(cwd));
+    if (dir) rules.push(...loadPackFromDir(dir).rules);
+  }
+  return rules;
 }
 
 function loadCustomRulesForRulesCmd(
@@ -692,10 +697,7 @@ function runRulesExplain(
   }
 
   let rulesForLookup: Array<Rule> = pack.rules;
-  const graphqlPack = loadGraphqlPackOrUndefined(io.cwd);
-  if (graphqlPack !== undefined) {
-    rulesForLookup = [...rulesForLookup, ...graphqlPack.rules];
-  }
+  rulesForLookup = [...rulesForLookup, ...loadProtocolPacks(io.cwd)];
   if (parsed.args.rulesFiles.length > 0) {
     const loaded = loadCustomRulesForRulesCmd(
       parsed.args.rulesFiles,

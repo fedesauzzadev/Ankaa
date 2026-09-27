@@ -1,0 +1,97 @@
+# rules/grpc.yaml · M8.7 initial inventory (existing DSL atoms only)
+- id: GRPC-001
+  category: naming
+  severity: warning
+  message: "Services and methods must be PascalCase (PetService.GetPet)."
+  fix: "Rename to PascalCase service and PascalCase method."
+  source:
+    title: Google API Improvement Proposals
+    url: https://google.aip.dev/
+    section: "AIP-122 names"
+  when:
+    not:
+      op: operationIdPattern
+      pattern: '^[A-Z][A-Za-z0-9]*[.][A-Z][A-Za-z0-9]*$'
+
+- id: GRPC-002
+  category: naming
+  severity: warning
+  message: "Field names must be snake_case."
+  fix: "Rename fields to snake_case (pet_id, page_size)."
+  source:
+    title: Buf style guide
+    url: https://buf.build/docs/style-guide
+    section: "Field names"
+  when:
+    op: propertyNamingViolation
+    pattern: '^[a-z][a-z0-9_]*$'
+
+- id: GRPC-003
+  category: docs
+  severity: warning
+  message: "RPCs must document a description (leading comments)."
+  fix: "Add a // comment above the rpc describing what it does."
+  source:
+    title: Google API Improvement Proposals
+    url: https://google.aip.dev/
+    section: "AIP-122 documentation"
+  when:
+    op: missingField
+    field: description
+
+- id: GRPC-004
+  category: docs
+  severity: info
+  message: "RPC descriptions should be meaningful (at least 20 characters)."
+  fix: "Expand the leading comment beyond a few words."
+  source:
+    title: Buf style guide
+    url: https://buf.build/docs/style-guide
+    section: "Documentation"
+  when:
+    not:
+      op: descriptionMinLength
+      target: description
+      min: 20
+
+- id: GRPC-005
+  category: docs
+  severity: info
+  message: "RPC descriptions must not contain TODO/FIXME placeholders."
+  fix: "Replace the placeholder with the real documentation."
+  source:
+    title: Buf style guide
+    url: https://buf.build/docs/style-guide
+    section: "Documentation"
+  when:
+    op: descriptionMatches
+    target: description
+    pattern: 'TODO|FIXME|XXX|TBD'
+
+- id: GRPC-006
+  category: naming
+  severity: info
+  message: "Prefer standard methods (Get/List/Create/Update/Delete) over custom verbs."
+  fix: "Use a standard method when the operation fits; keep custom verbs for the rest."
+  source:
+    title: Google API Improvement Proposals
+    url: https://google.aip.dev/
+    section: "AIP-131/132/133/134/135 standard methods"
+  when:
+    not:
+      op: operationIdPattern
+      pattern: '^[A-Z][A-Za-z0-9]*[.](Get|List|Create|Update|Delete|BatchGet|BatchCreate|BatchUpdate|BatchDelete)[A-Za-z0-9]*$'
+
+- id: GRPC-007
+  category: structure
+  severity: warning
+  message: "Proto files should declare a package."
+  fix: "Add a package declaration (lowercase, e.g. package pet.v1)."
+  source:
+    title: Google API Improvement Proposals
+    url: https://google.aip.dev/
+    section: "AIP-122 packages"
+  when:
+    not:
+      op: pathMatches
+      pattern: '^/[a-z0-9]'

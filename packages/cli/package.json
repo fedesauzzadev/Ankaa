@@ -37,6 +37,7 @@
   "dependencies": {
     "@apigovscan/core": "workspace:*",
     "@apigovscan/graphql": "workspace:*",
+    "@apigovscan/grpc": "workspace:*",
     "@apigovscan/mcp": "workspace:*",
     "@apigovscan/openapi": "workspace:*",
     "@apigovscan/reporters": "workspace:*",

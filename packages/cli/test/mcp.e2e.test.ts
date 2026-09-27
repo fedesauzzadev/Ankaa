@@ -183,6 +183,29 @@ describe("MCP tools e2e (f4-mcp-tools)", () => {
     }
   });
 
+  it("AC-GR.6 analyze_spec analyzes proto files with the grpc pack", async () => {
+    const dir = tempDir();
+    writeFileSync(
+      join(dir, "pet.proto"),
+      readFileSync(join(repoRoot, "fixtures", "grpc", "pet.proto"), "utf8"),
+      "utf8",
+    );
+    const { client, close } = await connectCli(dir);
+    try {
+      const payload = parseToolText(
+        await client.callTool({
+          name: "analyze_spec",
+          arguments: { path: "pet.proto" },
+        }),
+      );
+      expect(payload.ok).toBe(true);
+      const findings = payload.findings as Array<{ ruleId: string }>;
+      expect(findings.some((f) => f.ruleId === "GRPC-001")).toBe(true);
+    } finally {
+      await close();
+    }
+  });
+
   it("AC-T.3 analyze_spec fails on malformed spec with isError", async () => {
     const dir = tempDir();
     writeFileSync(join(dir, "bad.yaml"), readFileSync(malformed, "utf8"), "utf8");

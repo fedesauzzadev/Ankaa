@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package pet.v1;
+
+// Shared messages without any service.
+message Pet {
+  string pet_id = 1;
+  string name = 2;
+}

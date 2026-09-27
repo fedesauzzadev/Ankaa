@@ -8,6 +8,7 @@ import {
 } from "@apigovscan/core";
 import { parseSpec, type ParseError } from "@apigovscan/openapi";
 import { parseGraphQL } from "@apigovscan/graphql";
+import { parseProto } from "@apigovscan/grpc";
 import { buildReport, type Report } from "@apigovscan/reporters";
 import type { FailOn } from "./args.js";
 import type { PackRepository, ReportSink, SpecLoader } from "./ports.js";
@@ -90,6 +91,18 @@ export function isGraphqlInput(path: string): boolean {
   return lower.endsWith(".graphql") || lower.endsWith(".gql");
 }
 
+export function isGrpcInput(path: string): boolean {
+  return path.toLowerCase().endsWith(".proto");
+}
+
+type InputProtocol = "graphql" | "grpc" | null;
+
+function protocolForInput(path: string): InputProtocol {
+  if (isGraphqlInput(path)) return "graphql";
+  if (isGrpcInput(path)) return "grpc";
+  return null;
+}
+
 export async function analyzeUseCase(
   deps: {
     loader: SpecLoader;
@@ -121,11 +134,11 @@ export async function analyzeUseCase(
   const inputs: Array<{ path: string; sha256: string }> = [];
   const results: EvaluationResult[] = [];
   const usedPacks = new Map<string, string>();
-  let graphqlPack: RulePack | undefined;
+  const protocolPacks = new Map<string, RulePack>();
 
   for (const path of sortedInputs) {
     const label = opts.labelFor(path);
-    const graphql = isGraphqlInput(path);
+    const protocol = protocolForInput(path);
 
     let bytes: Uint8Array;
     try {
@@ -143,21 +156,28 @@ export async function analyzeUseCase(
     }
 
     const tParse = performance.now();
-    let parsed: ReturnType<typeof parseSpec> | ReturnType<typeof parseGraphQL>;
+    let parsed: ReturnType<typeof parseSpec> | ReturnType<typeof parseGraphQL> | ReturnType<typeof parseProto>;
     let activePacks = packList;
-    if (graphql) {
-      try {
-        graphqlPack ??= await deps.packs.loadProtocol("graphql");
-      } catch (err) {
-        return {
-          ok: false,
-          exitCode: 2,
-          error: err instanceof Error ? err.message : String(err),
-        };
+    if (protocol !== null) {
+      let protocolPack = protocolPacks.get(protocol);
+      if (protocolPack === undefined) {
+        try {
+          protocolPack = await deps.packs.loadProtocol(protocol);
+        } catch (err) {
+          return {
+            ok: false,
+            exitCode: 2,
+            error: err instanceof Error ? err.message : String(err),
+          };
+        }
+        protocolPacks.set(protocol, protocolPack);
       }
-      activePacks = [graphqlPack];
-      usedPacks.set(graphqlPack.id, graphqlPack.version);
-      parsed = parseGraphQL(bytes, { sourceLabel: label });
+      activePacks = [protocolPack];
+      usedPacks.set(protocolPack.id, protocolPack.version);
+      parsed =
+        protocol === "graphql"
+          ? parseGraphQL(bytes, { sourceLabel: label })
+          : parseProto(bytes, { sourceLabel: label });
     } else {
       for (const pack of packList) usedPacks.set(pack.id, pack.version);
       parsed = parseSpec(bytes, { sourceLabel: label });

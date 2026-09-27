@@ -61,6 +61,7 @@ export const DISCOVERY_PATTERNS = [
   "**/swagger.{yaml,yml,json}",
   "schema.{graphql,gql}",
   "**/schema.{graphql,gql}",
+  "**/*.proto",
 ];
 
 export function discoverSpecs(dir: string): DiscoverResult {
@@ -81,6 +82,14 @@ export function discoverSpecs(dir: string): DiscoverResult {
   collect(dir, dir, (name) => SWAGGER_NAMES.has(name), found, true);
 
   collect(dir, dir, (name) => GRAPHQL_NAMES.has(name), found, true);
+
+  collect(
+    dir,
+    dir,
+    (name) => name.endsWith(".proto"),
+    found,
+    true,
+  );
 
   const unique = [...new Set(found)].sort(cmp);
 

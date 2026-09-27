@@ -11,7 +11,10 @@ const repoRoot = join(
 );
 const cliSrc = join(repoRoot, "packages", "cli", "src");
 const coreSrc = join(repoRoot, "packages", "core", "src");
-const graphqlSrc = join(repoRoot, "packages", "graphql", "src");
+const purePackageSrcs = [
+  join(repoRoot, "packages", "graphql", "src"),
+  join(repoRoot, "packages", "grpc", "src"),
+];
 
 function tsFiles(dir: string): string[] {
   return readdirSync(dir).filter((f) => f.endsWith(".ts"));
@@ -68,14 +71,16 @@ describe("LLM boundary (AC-SF.9)", () => {
     expect(text).not.toMatch(/from\s+['"]\.\/analyze\.js['"]/);
   });
 
-  it("packages/graphql is pure: no fs, net, http or fetch (AC-GQL.7, INV-1)", () => {
-    const offenders = tsFiles(graphqlSrc).filter((f) => {
-      const text = readFileSync(join(graphqlSrc, f), "utf8");
-      return (
-        /from\s+['"]node:(fs|net|http)[^'"]*['"]/.test(text) ||
-        /(^|[^A-Za-z_.])fetch\s*\(/.test(text)
-      );
-    });
-    expect(offenders).toEqual([]);
+  it("protocol parsers are pure: no fs, net, http or fetch (AC-GQL.7, AC-GR.6, INV-1)", () => {
+    for (const src of purePackageSrcs) {
+      const offenders = tsFiles(src).filter((f) => {
+        const text = readFileSync(join(src, f), "utf8");
+        return (
+          /from\s+['"]node:(fs|net|http)[^'"]*['"]/.test(text) ||
+          /(^|[^A-Za-z_.])fetch\s*\(/.test(text)
+        );
+      });
+      expect(offenders).toEqual([]);
+    }
   });
 });

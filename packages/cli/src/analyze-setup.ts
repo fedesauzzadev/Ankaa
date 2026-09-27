@@ -26,7 +26,7 @@ import {
 import {
   defaultPackSearchRoots,
   findElitePackDir,
-  findGraphqlPackDir,
+  findPackDir,
   loadPackFromDir,
 } from "./pack-fs.js";
 
@@ -108,14 +108,15 @@ export function prepareAnalysis(
     const elitePack = dir !== null ? loadPackFromDir(dir) : undefined;
     const eliteIds =
       elitePack !== undefined ? packRuleIds(elitePack) : undefined;
-    const graphqlDir = findGraphqlPackDir(defaultPackSearchRoots(cwd));
+    const graphqlDir = findPackDir("graphql", defaultPackSearchRoots(cwd));
     const graphqlPack =
       graphqlDir !== null ? loadPackFromDir(graphqlDir) : undefined;
-    const graphqlIds =
-      graphqlPack !== undefined ? packRuleIds(graphqlPack) : undefined;
+    const grpcDir = findPackDir("grpc", defaultPackSearchRoots(cwd));
+    const grpcPack = grpcDir !== null ? loadPackFromDir(grpcDir) : undefined;
     const knownIds = new Set<string>([
       ...(eliteIds ?? []),
-      ...(graphqlIds ?? []),
+      ...(graphqlPack !== undefined ? packRuleIds(graphqlPack) : []),
+      ...(grpcPack !== undefined ? packRuleIds(grpcPack) : []),
     ]);
     const collectedRules: Rule[] = [];
     if (sources.length > 0) {
@@ -151,6 +152,7 @@ export function prepareAnalysis(
     lookupRules = [
       ...(elitePack?.rules ?? []),
       ...(graphqlPack?.rules ?? []),
+      ...(grpcPack?.rules ?? []),
       ...collectedRules,
     ];
   } catch (err) {

@@ -47,6 +47,9 @@ importers:
       '@apigovscan/graphql':
         specifier: workspace:*
         version: link:../graphql
+      '@apigovscan/grpc':
+        specifier: workspace:*
+        version: link:../grpc
       '@apigovscan/mcp':
         specifier: workspace:*
         version: link:../mcp
@@ -94,6 +97,19 @@ importers:
       graphql:
         specifier: ^16.14.2
         version: 16.14.2
+    devDependencies:
+      '@types/node':
+        specifier: 20.17.10
+        version: 20.17.10
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@20.17.10)
+
+  packages/grpc:
+    dependencies:
+      '@apigovscan/core':
+        specifier: workspace:*
+        version: link:../core
     devDependencies:
       '@types/node':
         specifier: 20.17.10
