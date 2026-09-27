@@ -4,6 +4,7 @@ import { join, relative, sep } from "node:path";
 const SKIP_DIRS = new Set(["node_modules", ".git", "dist", "coverage", ".pnpm-store"]);
 const OPENAPI_NAMES = new Set(["openapi.yaml", "openapi.yml", "openapi.json"]);
 const SWAGGER_NAMES = new Set(["swagger.yaml", "swagger.yml", "swagger.json"]);
+const GRAPHQL_NAMES = new Set(["schema.graphql", "schema.gql"]);
 
 function cmp(a: string, b: string): number {
   return a < b ? -1 : a > b ? 1 : 0;
@@ -58,6 +59,8 @@ export const DISCOVERY_PATTERNS = [
   "openapi.{yaml,yml,json}",
   "openapi/**/openapi.{yaml,yml,json}",
   "**/swagger.{yaml,yml,json}",
+  "schema.{graphql,gql}",
+  "**/schema.{graphql,gql}",
 ];
 
 export function discoverSpecs(dir: string): DiscoverResult {
@@ -77,13 +80,15 @@ export function discoverSpecs(dir: string): DiscoverResult {
 
   collect(dir, dir, (name) => SWAGGER_NAMES.has(name), found, true);
 
+  collect(dir, dir, (name) => GRAPHQL_NAMES.has(name), found, true);
+
   const unique = [...new Set(found)].sort(cmp);
 
   if (unique.length === 0) {
     return {
       ok: false,
       error: [
-        `no OpenAPI specs found in ${normalizePath(dir)}`,
+        `no API specs found in ${normalizePath(dir)}`,
         "searched patterns:",
         ...DISCOVERY_PATTERNS.map((p) => `  ${p}`),
       ].join("\n"),

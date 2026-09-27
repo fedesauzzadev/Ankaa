@@ -102,6 +102,7 @@ import {
 import {
   defaultPackSearchRoots,
   findElitePackDir,
+  findGraphqlPackDir,
   loadPackFromDir,
 } from "./pack-fs.js";
 
@@ -468,6 +469,12 @@ function loadElitePackOrThrow(cwd: string) {
   return loadPackFromDir(dir);
 }
 
+function loadGraphqlPackOrUndefined(cwd: string) {
+  const dir = findGraphqlPackDir(defaultPackSearchRoots(cwd));
+  if (!dir) return undefined;
+  return loadPackFromDir(dir);
+}
+
 function loadCustomRulesForRulesCmd(
   rulesFiles: readonly string[],
   cwd: string,
@@ -685,6 +692,10 @@ function runRulesExplain(
   }
 
   let rulesForLookup: Array<Rule> = pack.rules;
+  const graphqlPack = loadGraphqlPackOrUndefined(io.cwd);
+  if (graphqlPack !== undefined) {
+    rulesForLookup = [...rulesForLookup, ...graphqlPack.rules];
+  }
   if (parsed.args.rulesFiles.length > 0) {
     const loaded = loadCustomRulesForRulesCmd(
       parsed.args.rulesFiles,

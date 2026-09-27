@@ -26,6 +26,7 @@ import {
 import {
   defaultPackSearchRoots,
   findElitePackDir,
+  findGraphqlPackDir,
   loadPackFromDir,
 } from "./pack-fs.js";
 
@@ -107,10 +108,19 @@ export function prepareAnalysis(
     const elitePack = dir !== null ? loadPackFromDir(dir) : undefined;
     const eliteIds =
       elitePack !== undefined ? packRuleIds(elitePack) : undefined;
+    const graphqlDir = findGraphqlPackDir(defaultPackSearchRoots(cwd));
+    const graphqlPack =
+      graphqlDir !== null ? loadPackFromDir(graphqlDir) : undefined;
+    const graphqlIds =
+      graphqlPack !== undefined ? packRuleIds(graphqlPack) : undefined;
+    const knownIds = new Set<string>([
+      ...(eliteIds ?? []),
+      ...(graphqlIds ?? []),
+    ]);
     const collectedRules: Rule[] = [];
     if (sources.length > 0) {
       const collected = collectCustomRules(sources, packageVersion(), {
-        eliteRuleIds: eliteIds,
+        eliteRuleIds: knownIds,
       });
       if (!collected.ok) {
         return { ok: false, error: collected.error };
@@ -126,10 +136,10 @@ export function prepareAnalysis(
           error: `duplicate rule id ${draft.id} (skills draft and custom rules)`,
         };
       }
-      if (eliteIds?.has(draft.id) === true) {
+      if (knownIds.has(draft.id)) {
         return {
           ok: false,
-          error: `rule id ${draft.id} already exists in pack elite; use config rules: overrides or a new id`,
+          error: `rule id ${draft.id} already exists in a pack; use config rules: overrides or a new id`,
         };
       }
       seen.add(draft.id);
@@ -138,7 +148,11 @@ export function prepareAnalysis(
     if (collectedRules.length > 0) {
       customRules = collectedRules;
     }
-    lookupRules = [...(elitePack?.rules ?? []), ...collectedRules];
+    lookupRules = [
+      ...(elitePack?.rules ?? []),
+      ...(graphqlPack?.rules ?? []),
+      ...collectedRules,
+    ];
   } catch (err) {
     return {
       ok: false,

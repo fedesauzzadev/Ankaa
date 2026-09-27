@@ -155,6 +155,34 @@ describe("MCP tools e2e (f4-mcp-tools)", () => {
     }
   });
 
+  it("AC-GQL.7 analyze_spec analyzes GraphQL SDL with the graphql pack", async () => {
+    const dir = tempDir();
+    writeFileSync(
+      join(dir, "schema.graphql"),
+      readFileSync(join(repoRoot, "fixtures", "graphql", "schema.graphql"), "utf8"),
+      "utf8",
+    );
+    const { client, close } = await connectCli(dir);
+    try {
+      const payload = parseToolText(
+        await client.callTool({
+          name: "analyze_spec",
+          arguments: { path: "schema.graphql" },
+        }),
+      );
+      expect(payload.ok).toBe(true);
+      const findings = payload.findings as Array<{ ruleId: string }>;
+      expect(findings.map((f) => f.ruleId).sort()).toEqual([
+        "GQL-001",
+        "GQL-002",
+        "GQL-003",
+        "GQL-007",
+      ]);
+    } finally {
+      await close();
+    }
+  });
+
   it("AC-T.3 analyze_spec fails on malformed spec with isError", async () => {
     const dir = tempDir();
     writeFileSync(join(dir, "bad.yaml"), readFileSync(malformed, "utf8"), "utf8");

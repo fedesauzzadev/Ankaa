@@ -7,6 +7,7 @@ export interface SpecLoader {
 
 export interface PackRepository {
   loadActive(): Promise<RulePack[]>;
+  loadProtocol(id: string): Promise<RulePack>;
 }
 
 export interface ReportSink {

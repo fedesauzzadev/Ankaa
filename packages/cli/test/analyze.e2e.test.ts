@@ -259,7 +259,7 @@ describe("analyze e2e (f1-analyze)", () => {
     const dir = tempDir();
     const { code, stderr } = await runCapture(["analyze", dir]);
     expect(code).toBe(2);
-    expect(stderr).toContain("no OpenAPI specs found");
+    expect(stderr).toContain("no API specs found");
     expect(stderr).toContain("openapi.{yaml,yml,json}");
     expect(stderr).toContain("**/swagger.{yaml,yml,json}");
   });

@@ -1,0 +1,18 @@
+# Snapshot of primary sources for the graphql pack.
+# Each rule also carries its own source.url (strictSource: true).
+sources:
+  - id: shopify-graphql
+    title: Shopify GraphQL Design Tutorial
+    url: https://shopify.dev/docs/api/usage/graphql-design-tutorial
+  - id: apollo-principled
+    title: Apollo Principled GraphQL
+    url: https://principledgraphql.com/
+  - id: github-graphql
+    title: GitHub GraphQL API guidelines
+    url: https://docs.github.com/en/graphql
+  - id: paypal-graphql
+    title: PayPal GraphQL standards
+    url: https://github.com/paypal/graphql-standards
+  - id: graphql-spec
+    title: GraphQL Specification
+    url: https://spec.graphql.org/

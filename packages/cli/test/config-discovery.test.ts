@@ -96,8 +96,9 @@ describe("discoverSpecs", () => {
     const result = discoverSpecs(dir);
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.error).toContain("no OpenAPI specs found");
+    expect(result.error).toContain("no API specs found");
     expect(result.error).toContain("openapi.{yaml,yml,json}");
+    expect(result.error).toContain("schema.{graphql,gql}");
   });
 
   it("sorts results lexicographically (AC-A.13)", () => {

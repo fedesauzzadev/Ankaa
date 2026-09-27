@@ -8,7 +8,12 @@ import {
   formatSarif,
 } from "@apigovscan/reporters";
 import type { PackRepository, ReportSink, SpecLoader } from "./ports.js";
-import { defaultPackSearchRoots, findElitePackDir, loadPackFromDir } from "./pack-fs.js";
+import {
+  defaultPackSearchRoots,
+  findElitePackDir,
+  findPackDir,
+  loadPackFromDir,
+} from "./pack-fs.js";
 import type { OutputFormat } from "./args.js";
 
 export function createFsSpecLoader(stdinBytes?: () => Promise<Uint8Array>): SpecLoader {
@@ -36,6 +41,15 @@ export function createFsPackRepository(cwd: string): PackRepository {
         );
       }
       return [loadPackFromDir(dir)];
+    },
+    async loadProtocol(id: string) {
+      const dir = findPackDir(id, defaultPackSearchRoots(cwd));
+      if (!dir) {
+        throw new Error(
+          `pack "${id}" not found (searched for packs/${id}/pack.yaml from cwd and CLI install)`,
+        );
+      }
+      return loadPackFromDir(dir);
     },
   };
 }

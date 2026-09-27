@@ -52,11 +52,14 @@ export function loadPackFromDir(packDir: string): RulePack {
   return result.pack;
 }
 
-export function findElitePackDir(startDirs: readonly string[]): string | null {
+export function findPackDir(
+  packId: string,
+  startDirs: readonly string[],
+): string | null {
   for (const start of startDirs) {
     let dir = resolve(start);
     for (;;) {
-      const candidate = join(dir, "packs", "elite");
+      const candidate = join(dir, "packs", packId);
       if (existsSync(join(candidate, "pack.yaml"))) return candidate;
       const parent = dirname(dir);
       if (parent === dir) break;
@@ -64,6 +67,14 @@ export function findElitePackDir(startDirs: readonly string[]): string | null {
     }
   }
   return null;
+}
+
+export function findElitePackDir(startDirs: readonly string[]): string | null {
+  return findPackDir("elite", startDirs);
+}
+
+export function findGraphqlPackDir(startDirs: readonly string[]): string | null {
+  return findPackDir("graphql", startDirs);
 }
 
 export function defaultPackSearchRoots(cwd: string): string[] {

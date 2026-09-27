@@ -1,0 +1,6 @@
+id: graphql
+version: "2026.09.1"
+description: Curated GraphQL SDL rules from public GraphQL design guidelines
+license: MIT
+sourcesFile: sources.yaml
+strictSource: true

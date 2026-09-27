@@ -7,6 +7,7 @@ import {
   type Severity,
 } from "@apigovscan/core";
 import { parseSpec, type ParseError } from "@apigovscan/openapi";
+import { parseGraphQL } from "@apigovscan/graphql";
 import { buildReport, type Report } from "@apigovscan/reporters";
 import type { FailOn } from "./args.js";
 import type { PackRepository, ReportSink, SpecLoader } from "./ports.js";
@@ -84,6 +85,11 @@ function cmp(a: string, b: string): number {
   return a < b ? -1 : a > b ? 1 : 0;
 }
 
+export function isGraphqlInput(path: string): boolean {
+  const lower = path.toLowerCase();
+  return lower.endsWith(".graphql") || lower.endsWith(".gql");
+}
+
 export async function analyzeUseCase(
   deps: {
     loader: SpecLoader;
@@ -114,9 +120,12 @@ export async function analyzeUseCase(
   const multi = sortedInputs.length > 1;
   const inputs: Array<{ path: string; sha256: string }> = [];
   const results: EvaluationResult[] = [];
+  const usedPacks = new Map<string, string>();
+  let graphqlPack: RulePack | undefined;
 
   for (const path of sortedInputs) {
     const label = opts.labelFor(path);
+    const graphql = isGraphqlInput(path);
 
     let bytes: Uint8Array;
     try {
@@ -134,7 +143,25 @@ export async function analyzeUseCase(
     }
 
     const tParse = performance.now();
-    const parsed = parseSpec(bytes, { sourceLabel: label });
+    let parsed: ReturnType<typeof parseSpec> | ReturnType<typeof parseGraphQL>;
+    let activePacks = packList;
+    if (graphql) {
+      try {
+        graphqlPack ??= await deps.packs.loadProtocol("graphql");
+      } catch (err) {
+        return {
+          ok: false,
+          exitCode: 2,
+          error: err instanceof Error ? err.message : String(err),
+        };
+      }
+      activePacks = [graphqlPack];
+      usedPacks.set(graphqlPack.id, graphqlPack.version);
+      parsed = parseGraphQL(bytes, { sourceLabel: label });
+    } else {
+      for (const pack of packList) usedPacks.set(pack.id, pack.version);
+      parsed = parseSpec(bytes, { sourceLabel: label });
+    }
     if (!parsed.ok) {
       return {
         ok: false,
@@ -147,7 +174,7 @@ export async function analyzeUseCase(
     const tEval = performance.now();
     const result = evaluate({
       specs: [parsed.spec],
-      packs: packList,
+      packs: activePacks,
       customRules: opts.customRules as Rule[] | undefined,
       disabledRuleIds: opts.disabledRuleIds as Set<string> | undefined,
       severityOverrides: opts.severityOverrides as
@@ -210,7 +237,7 @@ export async function analyzeUseCase(
   const report = buildReport({
     results: filteredResults,
     inputs,
-    packs: packList.map((p) => ({ id: p.id, version: p.version })),
+    packs: [...usedPacks].map(([id, version]) => ({ id, version })),
     toolVersion: opts.toolVersion,
     meta: { durationMs: Math.round(performance.now() - started) },
     ...(opts.baselineFingerprints !== undefined

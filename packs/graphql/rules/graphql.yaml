@@ -1,0 +1,120 @@
+# rules/graphql.yaml · M8.6 initial inventory (existing DSL atoms only)
+- id: GQL-001
+  category: naming
+  severity: warning
+  message: "Fields must be Type.camelCase (PascalCase type, camelCase field)."
+  fix: "Rename to Type.fieldName shape (Query.pets, Mutation.createPet)."
+  source:
+    title: GraphQL Specification
+    url: https://spec.graphql.org/
+    section: "Names"
+  when:
+    not:
+      op: operationIdPattern
+      pattern: '^[A-Z][A-Za-z0-9]*[.][a-z][a-zA-Z0-9]*$'
+
+- id: GQL-002
+  category: docs
+  severity: warning
+  message: "Fields must document a description."
+  fix: "Add a description explaining what the field returns and its arguments."
+  source:
+    title: Apollo Principled GraphQL
+    url: https://principledgraphql.com/
+    section: "Documentation"
+  when:
+    op: missingField
+    field: description
+
+- id: GQL-003
+  category: docs
+  severity: info
+  message: "Field descriptions should be meaningful (at least 20 characters)."
+  fix: "Expand the description beyond a few words."
+  source:
+    title: Apollo Principled GraphQL
+    url: https://principledgraphql.com/
+    section: "Documentation"
+  when:
+    not:
+      op: descriptionMinLength
+      target: description
+      min: 20
+
+- id: GQL-004
+  category: deprecation
+  severity: warning
+  message: "@deprecated fields must carry a reason."
+  fix: "Add a reason to @deprecated so clients know what to use instead."
+  source:
+    title: Apollo Principled GraphQL
+    url: https://principledgraphql.com/
+    section: "Deprecation"
+  when:
+    all:
+      - op: presentField
+        field: deprecated
+      - not:
+          op: descriptionMatches
+          target: description
+          pattern: 'Deprecated:'
+
+- id: GQL-005
+  category: naming
+  severity: warning
+  message: "Mutations should start with a verb (create, update, delete, ...)."
+  fix: "Rename the mutation to verb-first shape (createPet, deletePet)."
+  source:
+    title: Shopify GraphQL Design Tutorial
+    url: https://shopify.dev/docs/api/usage/graphql-design-tutorial
+    section: "Mutations"
+  when:
+    all:
+      - op: method
+        in: [mutation]
+      - not:
+          op: operationIdPattern
+          pattern: '^[A-Z][A-Za-z0-9]*[.](create|update|delete|remove|add|publish|unpublish|archive|restore|send|invite|approve|reject|cancel|confirm|reset|resend)[A-Za-z0-9]*$'
+
+- id: GQL-006
+  category: naming
+  severity: warning
+  message: "Query fields should be nouns, not verbs (use get/list/fetch via method shape)."
+  fix: "Rename to a noun shape (pets, petById) instead of getPets/listPets."
+  source:
+    title: GitHub GraphQL API guidelines
+    url: https://docs.github.com/en/graphql
+    section: "Queries"
+  when:
+    all:
+      - op: method
+        in: [query]
+      - op: operationIdPattern
+        pattern: '^[A-Z][A-Za-z0-9]*[.](get|list|fetch|find|search|load|retrieve)[A-Za-z0-9]*$'
+
+- id: GQL-007
+  category: naming
+  severity: warning
+  message: "Argument names must be camelCase."
+  fix: "Rename arguments to camelCase (petId, first, status)."
+  source:
+    title: GraphQL Specification
+    url: https://spec.graphql.org/
+    section: "Names"
+  when:
+    op: propertyNamingViolation
+    pattern: '^[a-z][a-zA-Z0-9]*$'
+
+- id: GQL-008
+  category: docs
+  severity: info
+  message: "Field descriptions must not contain TODO/FIXME placeholders."
+  fix: "Replace the placeholder with the real documentation."
+  source:
+    title: Apollo Principled GraphQL
+    url: https://principledgraphql.com/
+    section: "Documentation"
+  when:
+    op: descriptionMatches
+    target: description
+    pattern: 'TODO|FIXME|XXX|TBD'
