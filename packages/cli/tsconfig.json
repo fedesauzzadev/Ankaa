@@ -8,6 +8,7 @@
   "exclude": ["src/**/*.test.ts", "dist"],
   "references": [
     { "path": "../core" },
+    { "path": "../asyncapi" },
     { "path": "../graphql" },
     { "path": "../grpc" },
     { "path": "../mcp" },

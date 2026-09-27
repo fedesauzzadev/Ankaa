@@ -206,6 +206,33 @@ describe("MCP tools e2e (f4-mcp-tools)", () => {
     }
   });
 
+  it("AC-AS.6 analyze_spec analyzes AsyncAPI with the asyncapi pack", async () => {
+    const dir = tempDir();
+    writeFileSync(
+      join(dir, "asyncapi.yaml"),
+      readFileSync(join(repoRoot, "fixtures", "asyncapi", "v2.yaml"), "utf8"),
+      "utf8",
+    );
+    const { client, close } = await connectCli(dir);
+    try {
+      const payload = parseToolText(
+        await client.callTool({
+          name: "analyze_spec",
+          arguments: { path: "asyncapi.yaml" },
+        }),
+      );
+      expect(payload.ok).toBe(true);
+      const findings = payload.findings as Array<{ ruleId: string }>;
+      expect(findings.map((f) => f.ruleId).sort()).toEqual([
+        "ASYNC-001",
+        "ASYNC-002",
+        "ASYNC-006",
+      ]);
+    } finally {
+      await close();
+    }
+  });
+
   it("AC-T.3 analyze_spec fails on malformed spec with isError", async () => {
     const dir = tempDir();
     writeFileSync(join(dir, "bad.yaml"), readFileSync(malformed, "utf8"), "utf8");

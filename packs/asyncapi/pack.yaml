@@ -1,0 +1,6 @@
+id: asyncapi
+version: "2026.09.1"
+description: Curated AsyncAPI rules from AsyncAPI docs and CloudEvents guidance
+license: MIT
+sourcesFile: sources.yaml
+strictSource: true

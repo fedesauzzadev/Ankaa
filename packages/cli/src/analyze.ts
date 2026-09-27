@@ -9,6 +9,7 @@ import {
 import { parseSpec, type ParseError } from "@apigovscan/openapi";
 import { parseGraphQL } from "@apigovscan/graphql";
 import { parseProto } from "@apigovscan/grpc";
+import { looksLikeAsyncApi, parseAsyncAPI } from "@apigovscan/asyncapi";
 import { buildReport, type Report } from "@apigovscan/reporters";
 import type { FailOn } from "./args.js";
 import type { PackRepository, ReportSink, SpecLoader } from "./ports.js";
@@ -95,11 +96,20 @@ export function isGrpcInput(path: string): boolean {
   return path.toLowerCase().endsWith(".proto");
 }
 
-type InputProtocol = "graphql" | "grpc" | null;
+type InputProtocol = "graphql" | "grpc" | "asyncapi" | null;
 
-function protocolForInput(path: string): InputProtocol {
+function protocolForInput(path: string, bytes: Uint8Array): InputProtocol {
   if (isGraphqlInput(path)) return "graphql";
   if (isGrpcInput(path)) return "grpc";
+  const lower = path.toLowerCase();
+  if (
+    path === "-" ||
+    lower.endsWith(".yaml") ||
+    lower.endsWith(".yml") ||
+    lower.endsWith(".json")
+  ) {
+    if (looksLikeAsyncApi(bytes)) return "asyncapi";
+  }
   return null;
 }
 
@@ -138,7 +148,6 @@ export async function analyzeUseCase(
 
   for (const path of sortedInputs) {
     const label = opts.labelFor(path);
-    const protocol = protocolForInput(path);
 
     let bytes: Uint8Array;
     try {
@@ -155,8 +164,13 @@ export async function analyzeUseCase(
       };
     }
 
+    const protocol = protocolForInput(path, bytes);
     const tParse = performance.now();
-    let parsed: ReturnType<typeof parseSpec> | ReturnType<typeof parseGraphQL> | ReturnType<typeof parseProto>;
+    let parsed:
+      | ReturnType<typeof parseSpec>
+      | ReturnType<typeof parseGraphQL>
+      | ReturnType<typeof parseProto>
+      | ReturnType<typeof parseAsyncAPI>;
     let activePacks = packList;
     if (protocol !== null) {
       let protocolPack = protocolPacks.get(protocol);
@@ -177,7 +191,9 @@ export async function analyzeUseCase(
       parsed =
         protocol === "graphql"
           ? parseGraphQL(bytes, { sourceLabel: label })
-          : parseProto(bytes, { sourceLabel: label });
+          : protocol === "grpc"
+            ? parseProto(bytes, { sourceLabel: label })
+            : parseAsyncAPI(bytes, { sourceLabel: label });
     } else {
       for (const pack of packList) usedPacks.set(pack.id, pack.version);
       parsed = parseSpec(bytes, { sourceLabel: label });

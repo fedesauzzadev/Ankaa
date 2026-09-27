@@ -113,10 +113,14 @@ export function prepareAnalysis(
       graphqlDir !== null ? loadPackFromDir(graphqlDir) : undefined;
     const grpcDir = findPackDir("grpc", defaultPackSearchRoots(cwd));
     const grpcPack = grpcDir !== null ? loadPackFromDir(grpcDir) : undefined;
+    const asyncapiDir = findPackDir("asyncapi", defaultPackSearchRoots(cwd));
+    const asyncapiPack =
+      asyncapiDir !== null ? loadPackFromDir(asyncapiDir) : undefined;
     const knownIds = new Set<string>([
       ...(eliteIds ?? []),
       ...(graphqlPack !== undefined ? packRuleIds(graphqlPack) : []),
       ...(grpcPack !== undefined ? packRuleIds(grpcPack) : []),
+      ...(asyncapiPack !== undefined ? packRuleIds(asyncapiPack) : []),
     ]);
     const collectedRules: Rule[] = [];
     if (sources.length > 0) {
@@ -153,6 +157,7 @@ export function prepareAnalysis(
       ...(elitePack?.rules ?? []),
       ...(graphqlPack?.rules ?? []),
       ...(grpcPack?.rules ?? []),
+      ...(asyncapiPack?.rules ?? []),
       ...collectedRules,
     ];
   } catch (err) {

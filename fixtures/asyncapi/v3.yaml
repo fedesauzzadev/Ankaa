@@ -1,0 +1,72 @@
+asyncapi: 3.0.0
+info:
+  title: Pet Events API
+  version: 1.0.0
+  description: Events emitted by the pet store for AsyncAPI adapter tests.
+servers:
+  production:
+    host: kafka.example.com:9092
+    protocol: kafka-secure
+    description: Production broker.
+channels:
+  petCreated:
+    address: pet/created
+    messages:
+      PetCreated:
+        $ref: '#/components/messages/PetCreated'
+    parameters:
+      shelterId:
+        description: Shelter that created the pet.
+        enum:
+          - north
+          - south
+  petAdopted:
+    address: pet/adopted
+    messages:
+      PetAdopted:
+        $ref: '#/components/messages/PetAdopted'
+operations:
+  sendPetCreated:
+    action: send
+    channel:
+      $ref: '#/channels/petCreated'
+    summary: Send pet created
+    description: Sends a pet-created event to the broker.
+    messages:
+      - $ref: '#/components/messages/PetCreated'
+  receivePetAdopted:
+    action: receive
+    channel:
+      $ref: '#/channels/petAdopted'
+    summary: Receive pet adopted
+    description: Receives pet-adopted events from the broker.
+    messages:
+      - $ref: '#/components/messages/PetAdopted'
+components:
+  messages:
+    PetCreated:
+      name: PetCreated
+      summary: A pet was created.
+      description: Event payload when a new pet enters the store.
+      payload:
+        type: object
+        required:
+          - petId
+        properties:
+          petId:
+            type: string
+            description: Identifier of the pet.
+    PetAdopted:
+      name: PetAdopted
+      summary: A pet was adopted.
+      description: Event payload when a pet leaves the store.
+      payload:
+        $ref: '#/components/schemas/Adoption'
+  schemas:
+    Adoption:
+      type: object
+      required:
+        - petId
+      properties:
+        petId:
+          type: string

@@ -14,6 +14,7 @@ const coreSrc = join(repoRoot, "packages", "core", "src");
 const purePackageSrcs = [
   join(repoRoot, "packages", "graphql", "src"),
   join(repoRoot, "packages", "grpc", "src"),
+  join(repoRoot, "packages", "asyncapi", "src"),
 ];
 
 function tsFiles(dir: string): string[] {

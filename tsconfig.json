@@ -2,6 +2,7 @@
   "files": [],
   "references": [
     { "path": "packages/core" },
+    { "path": "packages/asyncapi" },
     { "path": "packages/graphql" },
     { "path": "packages/grpc" },
     { "path": "packages/openapi" },

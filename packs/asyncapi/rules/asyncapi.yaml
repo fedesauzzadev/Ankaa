@@ -1,0 +1,82 @@
+# rules/asyncapi.yaml · M8.8 initial inventory (existing DSL atoms only)
+- id: ASYNC-001
+  category: naming
+  severity: warning
+  message: "Channel names should be lowercase."
+  fix: "Rename channels to lowercase with separators (pet/created)."
+  source:
+    title: AsyncAPI documentation
+    url: https://www.asyncapi.com/docs
+    section: "Channels"
+  when:
+    not:
+      op: pathMatches
+      pattern: '^/[a-z0-9]'
+
+- id: ASYNC-002
+  category: structure
+  severity: warning
+  message: "Channel operations must declare an operationId."
+  fix: "Add an operationId to the publish/subscribe/send/receive operation."
+  source:
+    title: AsyncAPI documentation
+    url: https://www.asyncapi.com/docs
+    section: "Operations"
+  when:
+    not:
+      op: operationIdRequired
+
+- id: ASYNC-003
+  category: docs
+  severity: warning
+  message: "Channel operations must document a description."
+  fix: "Add a description explaining the event and when it fires."
+  source:
+    title: AsyncAPI documentation
+    url: https://www.asyncapi.com/docs
+    section: "Operations"
+  when:
+    op: missingField
+    field: description
+
+- id: ASYNC-004
+  category: docs
+  severity: info
+  message: "Operation descriptions should be meaningful (at least 20 characters)."
+  fix: "Expand the description beyond a few words."
+  source:
+    title: AsyncAPI documentation
+    url: https://www.asyncapi.com/docs
+    section: "Operations"
+  when:
+    not:
+      op: descriptionMinLength
+      target: description
+      min: 20
+
+- id: ASYNC-005
+  category: docs
+  severity: info
+  message: "Operation descriptions must not contain TODO/FIXME placeholders."
+  fix: "Replace the placeholder with the real documentation."
+  source:
+    title: AsyncAPI documentation
+    url: https://www.asyncapi.com/docs
+    section: "Operations"
+  when:
+    op: descriptionMatches
+    target: description
+    pattern: 'TODO|FIXME|XXX|TBD'
+
+- id: ASYNC-006
+  category: naming
+  severity: warning
+  message: "Event payload property names must be camelCase."
+  fix: "Rename payload properties to camelCase (petId, eventType)."
+  source:
+    title: CloudEvents Specification
+    url: https://cloudevents.io/
+    section: "JSON event format"
+  when:
+    op: propertyNamingViolation
+    pattern: '^[a-z][a-zA-Z0-9]*$'

@@ -469,7 +469,7 @@ function loadElitePackOrThrow(cwd: string) {
   return loadPackFromDir(dir);
 }
 
-const PROTOCOL_PACKS = ["graphql", "grpc"];
+const PROTOCOL_PACKS = ["graphql", "grpc", "asyncapi"];
 
 function loadProtocolPacks(cwd: string): Rule[] {
   const rules: Rule[] = [];

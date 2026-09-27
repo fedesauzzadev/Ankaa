@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "@apigovscan/core": "workspace:*",
+    "@apigovscan/asyncapi": "workspace:*",
     "@apigovscan/graphql": "workspace:*",
     "@apigovscan/grpc": "workspace:*",
     "@apigovscan/mcp": "workspace:*",

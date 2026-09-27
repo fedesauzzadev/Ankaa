@@ -5,6 +5,7 @@ const SKIP_DIRS = new Set(["node_modules", ".git", "dist", "coverage", ".pnpm-st
 const OPENAPI_NAMES = new Set(["openapi.yaml", "openapi.yml", "openapi.json"]);
 const SWAGGER_NAMES = new Set(["swagger.yaml", "swagger.yml", "swagger.json"]);
 const GRAPHQL_NAMES = new Set(["schema.graphql", "schema.gql"]);
+const ASYNCAPI_NAMES = new Set(["asyncapi.yaml", "asyncapi.yml", "asyncapi.json"]);
 
 function cmp(a: string, b: string): number {
   return a < b ? -1 : a > b ? 1 : 0;
@@ -62,6 +63,8 @@ export const DISCOVERY_PATTERNS = [
   "schema.{graphql,gql}",
   "**/schema.{graphql,gql}",
   "**/*.proto",
+  "asyncapi.{yaml,yml,json}",
+  "**/asyncapi.{yaml,yml,json}",
 ];
 
 export function discoverSpecs(dir: string): DiscoverResult {
@@ -90,6 +93,8 @@ export function discoverSpecs(dir: string): DiscoverResult {
     found,
     true,
   );
+
+  collect(dir, dir, (name) => ASYNCAPI_NAMES.has(name), found, true);
 
   const unique = [...new Set(found)].sort(cmp);
 

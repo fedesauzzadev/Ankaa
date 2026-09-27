@@ -1,0 +1,9 @@
+# Snapshot of primary sources for the asyncapi pack.
+# Each rule also carries its own source.url (strictSource: true).
+sources:
+  - id: asyncapi-docs
+    title: AsyncAPI documentation
+    url: https://www.asyncapi.com/docs
+  - id: cloudevents
+    title: CloudEvents Specification
+    url: https://cloudevents.io/
