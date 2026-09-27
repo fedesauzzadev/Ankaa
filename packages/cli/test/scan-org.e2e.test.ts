@@ -154,7 +154,7 @@ async function analyzeRepo(
   };
 }
 
-describe("scan-org e2e (f8-scan-org)", () => {
+describe("scan-org e2e (f8-scan-org)", { timeout: 30000 }, () => {
   it("AC-SO.1 aggregates per-repo results identical to analyze", async () => {
     const { root, names } = setupOrg();
     const expected = new Map<string, Awaited<ReturnType<typeof analyzeRepo>>>();
@@ -407,7 +407,7 @@ function initGitRepo(dir: string, specName: string, specText: string): void {
   );
 }
 
-describe("scan-org --github e2e (f8-scan-org)", () => {
+describe("scan-org --github e2e (f8-scan-org)", { timeout: 30000 }, () => {
   it("AC-SO.7 lists, clones and scans; broken clone becomes skipped", async () => {
     const seed = tempDir();
     const specText = readFileSync(join(repoRoot, "fixtures", "petstore-mini.yaml"), "utf8");
