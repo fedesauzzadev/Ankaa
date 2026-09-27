@@ -8,7 +8,7 @@
 ## M8.6 — Adapter + pack + CLI
 
 1. `packages/graphql` (nuevo: `package.json` MIT, `tsconfig`, `src/parse.ts` + `src/index.ts`, `test/`): `parseGraphQL` SDL → `Spec` según mapeo del spec §2; `pnpm add graphql` en ese workspace; referencia en `tsconfig.json` raíz.
-2. `packs/graphql` (`pack.yaml` + `rules/*.yaml`): ~15 reglas curadas con átomos existentes + `sources.yaml` + `CHANGELOG.md`.
+2. `packs/graphql` (`pack.yaml` + `rules/*.yaml`): 8 reglas curadas con átomos existentes + `sources.yaml` + `CHANGELOG.md`.
 3. CLI: `analyze-setup` elige parser+pack por extensión; `discovery.ts` patrones `schema.{graphql,gql}`; sin flags nuevos.
 4. Fixtures `fixtures/graphql/` (schema válido con Query/Mutation/Subscription + `extend`, SDL inválido, sin-roots, fragmento cliente).
 5. Tests: unit adapter + `graphql-pack.test.ts` (true+false + conteo) + e2e analyze + boundary/INV-1/2/7.
@@ -26,3 +26,4 @@
 ## Changelog del plan
 
 - 2026-09-27 · Plan inicial (handoff).
+- 2026-09-27 · M8.6 implementado + DoD cumplido (`pnpm check` verde: AC-GQL.1—8 con pack sincerado a 8 reglas, INV-1/2/7; `analyze` OpenAPI sin cambios).
