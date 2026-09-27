@@ -69,7 +69,7 @@ Licencia: `--license-key` · `APIGOVSCAN_LICENSE_KEY` · `license.key` en `apigo
 | Comando | Descripción |
 |---|---|
 | `apigovscan init [dir]` | Scaffold `apigovscan.yaml` + `.apigovscan/skills/` (no pisa contenido del usuario) |
-| `apigovscan analyze <path>` | Analiza archivo, directorio o `-` (stdin): OpenAPI/Swagger con el pack `elite`, GraphQL SDL (`.graphql`/`.gql`) con el pack `graphql` |
+| `apigovscan analyze <path>` | Analiza archivo, directorio o `-` (stdin): OpenAPI/Swagger con el pack `elite`, GraphQL SDL (`.graphql`/`.gql`) con el pack `graphql`, proto/gRPC (`.proto`) con el pack `grpc` |
 | `apigovscan rules validate <file...>` | Valida reglas custom YAML/JSON contra el DSL (exit 0/2) |
 | `apigovscan rules list [--rules <file>]` | Lista reglas del pack (y custom si se pasa `--rules`) |
 | `apigovscan rules explain <ruleId> [--rules <file>]` | Muestra mensaje, fix, fuente y URL de una regla (`PREFIX-NNN`) |

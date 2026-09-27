@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | ready |
+| Estado | cerrada |
 | Fecha | 2026-09-27 |
 | Fase | 8 (M8.7 del umbrella `f8-oss-differentials`: GraphQL ✓ → gRPC → AsyncAPI → webhooks) |
 | Deriva de | `f8-oss-differentials` M8.7; `f8-graphql` (patrón adapter + pack + CLI por extensión); `f1-engine` (sin cambios) |
@@ -78,3 +78,4 @@ Unit parser + pack + e2e CLI + MCP + boundary + invariantes (patrón M8.6).
 ## Changelog
 
 - 2026-09-27 · Spec creado en `ready` (M8.7, protocolo 2 de 4; handoff vía AGENTS.md + este spec).
+- 2026-09-27 · Cerrada con 7 reglas: parser propio total (tokenizer + recursive descent, comentarios → descriptions, options agregadas toleradas), refs `#/components/schemas/`, streaming en extensions. Fixture baseline 10 findings. `pnpm check` verde.
