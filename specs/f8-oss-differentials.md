@@ -39,7 +39,7 @@ Convertir ApiGovScan en un **plano de governance multi-protocolo** con diferenci
 - `apigovscan scan-org --github <org> [--group-by dominio]`: acceso read-only, clona/descarga local, discovery de specs, **informe consolidado**: score por repo agrupado por dominio/área/CMDB, ranking de lo peor primero.
 - Es el entregable natural de una auditoría pagada.
 
-### M8.5 — Elite pack 100+ reglas (paridad, no diferencial)
+### M8.5 — Elite pack 88 reglas (paridad, no diferencial · cerrada 2026-09-27)
 
 ### M8.6 — Multi-protocolo PRE-LANUNCH (un solo plano de governance)
 
@@ -49,7 +49,7 @@ El motor ya es agnóstico del formato (parser → modelo `Spec` normalizado). Ca
 
 | Protocolo | Fuentes de élite (curación) | Orden |
 |---|---|---|
-| REST/OpenAPI (hecho, 65 reglas) | Google API Design Guide, Microsoft REST Guidelines, Zalando, PayPal, Atlassian, GDS (UK) → 100+ | 0 |
+| REST/OpenAPI (hecho, 88 reglas) | Google API Design Guide, Microsoft REST Guidelines, Zalando, PayPal, Atlassian, GDS (UK) → 88 (cierre honesto sin engine nuevo) | 0 |
 | **GraphQL SDL** | Shopify GraphQL Design Tutorial, Apollo Principled GraphQL, GitHub GraphQL guidelines, PayPal GraphQL standards | 1 |
 | **gRPC/proto** | Google AIPs (aip.dev — el canon de diseño de APIs de Google), Buf style guide | 2 |
 | **AsyncAPI + eventos** | AsyncAPI official guidelines, CloudEvents (CNCF) | 3 |

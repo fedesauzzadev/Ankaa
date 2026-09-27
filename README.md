@@ -273,7 +273,7 @@ Búsqueda: `--config <file>` → `./apigovscan.yaml` → `./apigovscan.yml`. Pre
 
 ## Estado
 
-**Fase 0–5 implementada + F6 en progreso:** monorepo pnpm + TypeScript strict + ESLint/Prettier + Vitest + CI multi-OS + parser OpenAPI 3.x + rules engine + pack **elite ≥ 50 reglas (65 activas)** + `analyze` e2e + reporters console/JSON + suite de invariantes INV-1…7 + config strict + custom rules + baseline + **skills load/apply (M3.1)** + **learn/skills CLI (M3.2)** + **init scaffold + S4 e2e (M3.3)** + **MCP stdio local con 5 tools FR-50 + sandbox + paridad CLI (F4)** + **reporters SARIF/Markdown/annotations + GitHub Action (F5)** + **governance score 0-100 + grade A–F (f6-score)** + **licencia offline + distribución privada tarball/registry/Docker (f6-distribution)**. Specs `f0-*`…`f5-*` y `f6-score`/`f6-distribution` en `cerrada`. Tags: `v0.1.0-mvp` … `v0.5.0-action`, `v0.6.0-private`.
+**Fase 0–5 implementada + F6 en progreso:** monorepo pnpm + TypeScript strict + ESLint/Prettier + Vitest + CI multi-OS + parser OpenAPI 3.x + rules engine + pack **elite = 88 reglas activas** + `analyze` e2e + reporters console/JSON + suite de invariantes INV-1…7 + config strict + custom rules + baseline + **skills load/apply (M3.1)** + **learn/skills CLI (M3.2)** + **init scaffold + S4 e2e (M3.3)** + **MCP stdio local con 5 tools FR-50 + sandbox + paridad CLI (F4)** + **reporters SARIF/Markdown/annotations + GitHub Action (F5)** + **governance score 0-100 + grade A–F (f6-score)** + **licencia offline + distribución privada tarball/registry/Docker (f6-distribution)**. Specs `f0-*`…`f5-*` y `f6-score`/`f6-distribution` en `cerrada`. Tags: `v0.1.0-mvp` … `v0.5.0-action`, `v0.6.0-private`.
 
 ```bash
 pnpm install

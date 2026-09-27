@@ -17,6 +17,7 @@ Nosotros no inventamos la excelencia de API: **la curamos, la versionamos y la c
 | **Zalando RESTful API Guidelines** | Consistencia, HTTP headers, errores HTTP problem+json, paginación, compatibilidad | Media | `zalando/restful-api-guidelines` |
 | **IETF RFCs (HTTP/API)** | RFC 9110 (HTTP semantics), 9112, 5789? (no), 6585, 7807/9457 (problem details), 8594? (Sunset — actually RFC 8594 is Sunset), 5988/8288 (Web Linking), 8941 (Field Values), 6570 (URI Templates), 9111 (HTTP caching) | Baja–media (RFCs nuevos poco frecuentes) | `ietf.org` datatracker |
 | **OpenAPI Specification** | Validez estructural del spec, extensiones `x-*`, security schemes | Media | `OAI/OpenAPI-Specification` |
+| **OWASP API Security** | Top 10 API: exposición de credenciales, auth, datos sensibles | Media | `owasp.org/API-Security` |
 | **APIs.guru / directory practices** | Señales de prácticas comunes en specs reales (uso de operationId, examples) | Baja | `apis-guru` |
 | **Swagger (SmartBear) API Design Guide** | Complemento práctico de naming y estructura OpenAPI | Baja | docs de SmartBear / Swagger |
 
