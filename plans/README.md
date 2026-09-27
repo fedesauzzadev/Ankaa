@@ -16,6 +16,7 @@ Planes de implementación derivados de los [specs](../specs/README.md). Un plan 
 | [f8-drift](f8-drift.md) | Drift spec↔código + generación (M8.3) | f8-drift |
 | [f8-scan-org](f8-scan-org.md) | Informe consolidado multi-repo (M8.4) | f8-scan-org |
 | [f8-elite-100](f8-elite-100.md) | Pack elite 88 reglas (M8.5 · cerrada) | f8-elite-100 |
+| [f8-graphql](f8-graphql.md) | GraphQL SDL adapter + pack (M8.6) | f8-graphql |
 
 ## Convención
 

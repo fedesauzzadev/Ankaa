@@ -43,6 +43,7 @@ Especificaciones **spec-driven** derivadas del [SDD v1.0](../docs/SDD.md). El SD
 | [f8-drift](f8-drift.md) | 8 | M8.3: drift spec↔código + generación de spec | cerrada |
 | [f8-scan-org](f8-scan-org.md) | 8 | M8.4: informe consolidado multi-repo (batch) | cerrada |
 | [f8-elite-100](f8-elite-100.md) | 8 | M8.5: pack elite 65 → 88 reglas curadas (cierre honesto) | cerrada |
+| [f8-graphql](f8-graphql.md) | 8 | M8.6: GraphQL SDL — adapter + pack (protocolo 1 de 4) | ready |
 
 ## Orden de implementación sugerido
 
