@@ -1,10 +1,5 @@
 export type FailOn = "error" | "warning" | "info" | "never";
-export type OutputFormat =
-  | "console"
-  | "json"
-  | "sarif"
-  | "markdown"
-  | "annotations";
+export type OutputFormat = "console" | "json" | "sarif" | "markdown" | "annotations";
 
 export interface AnalyzeArgs {
   path: string;
@@ -26,9 +21,7 @@ export interface AnalyzeArgs {
   licenseKey?: string;
 }
 
-export type ParseArgsResult =
-  | { ok: true; args: AnalyzeArgs }
-  | { ok: false; error: string };
+export type ParseArgsResult = { ok: true; args: AnalyzeArgs } | { ok: false; error: string };
 
 const ANALYZE_FORMATS = new Set<OutputFormat>([
   "console",
@@ -243,8 +236,7 @@ export interface RulesCommonArgs {
 }
 
 export type ParseRulesArgsResult =
-  | { ok: true; args: RulesCommonArgs; rest: string[] }
-  | { ok: false; error: string };
+  { ok: true; args: RulesCommonArgs; rest: string[] } | { ok: false; error: string };
 
 export function parseRulesArgs(argv: readonly string[]): ParseRulesArgsResult {
   const args: RulesCommonArgs = { format: "console", rulesFiles: [] };
@@ -301,9 +293,7 @@ export interface FixArgs {
   licenseKey?: string;
 }
 
-export type ParseFixArgsResult =
-  | { ok: true; args: FixArgs }
-  | { ok: false; error: string };
+export type ParseFixArgsResult = { ok: true; args: FixArgs } | { ok: false; error: string };
 
 export function parseFixArgs(argv: readonly string[]): ParseFixArgsResult {
   const args: FixArgs = { path: "" };
@@ -376,9 +366,7 @@ export interface DriftArgs {
   force: boolean;
 }
 
-export type ParseDriftArgsResult =
-  | { ok: true; args: DriftArgs }
-  | { ok: false; error: string };
+export type ParseDriftArgsResult = { ok: true; args: DriftArgs } | { ok: false; error: string };
 
 const DRIFT_FORMATS = new Set<DriftFormat>(["console", "json"]);
 const DRIFT_FORMAT_LIST = "console | json";
@@ -490,9 +478,7 @@ export interface ScanOrgArgs {
   apiBase: string;
 }
 
-export type ParseScanOrgArgsResult =
-  | { ok: true; args: ScanOrgArgs }
-  | { ok: false; error: string };
+export type ParseScanOrgArgsResult = { ok: true; args: ScanOrgArgs } | { ok: false; error: string };
 
 const SCAN_ORG_FORMATS = new Set<ScanOrgFormat>(["console", "json"]);
 const SCAN_ORG_FORMAT_LIST = "console | json";
@@ -509,9 +495,7 @@ function parsePositiveInt(
   return { ok: true, n: Number(value) };
 }
 
-export function parseScanOrgArgs(
-  argv: readonly string[],
-): ParseScanOrgArgsResult {
+export function parseScanOrgArgs(argv: readonly string[]): ParseScanOrgArgsResult {
   const args: ScanOrgArgs = {
     dir: "",
     format: "console",
@@ -646,6 +630,92 @@ export function parseScanOrgArgs(
     return {
       ok: false,
       error: "missing required argument <dir> (scan root directory)",
+    };
+  }
+
+  return { ok: true, args };
+}
+
+export interface DashboardArgs {
+  report: string;
+  port: number;
+  tracking?: string;
+  against?: string;
+  groupBy?: string;
+}
+
+export type ParseDashboardArgsResult =
+  { ok: true; args: DashboardArgs } | { ok: false; error: string };
+
+export function parseDashboardArgs(argv: readonly string[]): ParseDashboardArgsResult {
+  const args: DashboardArgs = { report: "", port: 0 };
+  let reportSeen = false;
+
+  for (let i = 0; i < argv.length; i++) {
+    const token = argv[i]!;
+
+    if (token === "--port") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--port requires a port number (0 for ephemeral)" };
+      }
+      if (!/^(0|[1-9][0-9]*)$/.test(value) || Number(value) > 65535) {
+        return { ok: false, error: `--port "${value}" is not a valid port (0-65535)` };
+      }
+      args.port = Number(value);
+      continue;
+    }
+
+    if (token === "--tracking") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--tracking requires a file path" };
+      }
+      args.tracking = value;
+      continue;
+    }
+
+    if (token === "--against") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--against requires a report path" };
+      }
+      args.against = value;
+      continue;
+    }
+
+    if (token === "--group-by") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--group-by requires a file path" };
+      }
+      args.groupBy = value;
+      continue;
+    }
+
+    if (token === "--no-color") {
+      continue;
+    }
+
+    if (token === "--help" || token === "-h" || token === "--version" || token === "-V") {
+      return { ok: false, error: `unexpected ${token} after dashboard` };
+    }
+
+    if (isFlag(token)) {
+      return { ok: false, error: `unknown option: ${token}` };
+    }
+
+    if (reportSeen) {
+      return { ok: false, error: `unexpected argument: ${token}` };
+    }
+    args.report = token;
+    reportSeen = true;
+  }
+
+  if (!reportSeen) {
+    return {
+      ok: false,
+      error: "missing required argument <report.json> (apigovscan report file)",
     };
   }
 

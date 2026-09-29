@@ -3,18 +3,14 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-const repoRoot = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "..",
-);
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const cliSrc = join(repoRoot, "packages", "cli", "src");
 const coreSrc = join(repoRoot, "packages", "core", "src");
 const purePackageSrcs = [
   join(repoRoot, "packages", "graphql", "src"),
   join(repoRoot, "packages", "grpc", "src"),
   join(repoRoot, "packages", "asyncapi", "src"),
+  join(repoRoot, "packages", "webhooks", "src"),
 ];
 
 function tsFiles(dir: string): string[] {
@@ -23,16 +19,12 @@ function tsFiles(dir: string): string[] {
 
 function hasLlmImport(file: string): boolean {
   const text = readFileSync(file, "utf8");
-  return text
-    .split("\n")
-    .some((line) => /from\s+['"][^'"]*llm(\.js)?['"]/.test(line));
+  return text.split("\n").some((line) => /from\s+['"][^'"]*llm(\.js)?['"]/.test(line));
 }
 
 describe("LLM boundary (AC-SF.9)", () => {
   it("packages/core never imports the LLM adapter (INV-3)", () => {
-    const offenders = tsFiles(coreSrc).filter((f) =>
-      hasLlmImport(join(coreSrc, f)),
-    );
+    const offenders = tsFiles(coreSrc).filter((f) => hasLlmImport(join(coreSrc, f)));
     expect(offenders).toEqual([]);
   });
 
@@ -58,10 +50,26 @@ describe("LLM boundary (AC-SF.9)", () => {
       if (f === "llm.ts" || f === "github.ts") {
         return false;
       }
+      if (f === "dashboard-page.ts") {
+        // AC-DB.5: browser-side same-origin calls (relative api/* URLs) inside
+        // the served HTML string; the Node side (dashboard.ts) never fetches.
+        const text = readFileSync(join(cliSrc, f), "utf8");
+        const hits = text.match(/(^|[^A-Za-z_.])fetch\s*\(/g) ?? [];
+        const relativeOnly = !/fetch\s*\(\s*["']https?:/.test(text);
+        if (relativeOnly) return false;
+        return hits.length > 0;
+      }
       const text = readFileSync(join(cliSrc, f), "utf8");
       return /(^|[^A-Za-z_.])fetch\s*\(/.test(text);
     });
     expect(withFetch).toEqual([]);
+  });
+
+  it("dashboard node side never fetches and binds loopback only (AC-DB.5)", () => {
+    const text = readFileSync(join(cliSrc, "dashboard.ts"), "utf8");
+    expect(text).not.toMatch(/(^|[^A-Za-z_.])fetch\s*\(/);
+    expect(text).toContain("127.0.0.1");
+    expect(text).not.toMatch(/0\.0\.0\.0/);
   });
 
   it("scan aggregation never touches network or LLM clients (AC-SO.9)", () => {

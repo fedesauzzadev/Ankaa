@@ -1,11 +1,11 @@
 # f1-invariants · Invariantes como gates de CI
 
-| Campo | Valor |
-|---|---|
-| Estado | implementada |
-| Fase | 1 (corre sobre todo el MVP) |
-| Deriva de | SDD §5 invariantes INV-1…INV-7, NFR-01/05/06/08 |
-| Cross-cutting | Sí |
+| Campo         | Valor                                           |
+| ------------- | ----------------------------------------------- |
+| Estado        | implementada                                    |
+| Fase          | 1 (corre sobre todo el MVP)                     |
+| Deriva de     | SDD §5 invariantes INV-1…INV-7, NFR-01/05/06/08 |
+| Cross-cutting | Sí                                              |
 
 ## 1. Objetivo
 
@@ -18,14 +18,14 @@ Convertir los invariantes del SDD en **tests y checks automáticos** que fallan 
 - Suite `test:invariants` ejecutada en CI en cada PR.
 - Cobertura mínima:
 
-| ID | Qué verificar en f1 |
-|---|---|
-| INV-1 | Cero red en analyze/parse/engine (stub global) |
-| INV-2 | Determinismo de report/findings |
-| INV-3 | `@apigovscan/core` sin dependencias/código LLM ni net |
-| INV-4 | No `eval`/`Function`/`vm`; DSL estricta |
-| INV-5 | Fingerprint estable (base de learn futuro); sort idempotente |
-| INV-6 | Todo reporte lleva `packs[].version` |
+| ID    | Qué verificar en f1                                           |
+| ----- | ------------------------------------------------------------- |
+| INV-1 | Cero red en analyze/parse/engine (stub global)                |
+| INV-2 | Determinismo de report/findings                               |
+| INV-3 | `@apigovscan/core` sin dependencias/código LLM ni net         |
+| INV-4 | No `eval`/`Function`/`vm`; DSL estricta                       |
+| INV-5 | Fingerprint estable (base de learn futuro); sort idempotente  |
+| INV-6 | Todo reporte lleva `packs[].version`                          |
 | INV-7 | Solo escrituras en rutas autorizadas (test de FS con tempdir) |
 
 ### Fuera
@@ -89,7 +89,7 @@ invariants/
 
 - `computeFingerprint` golden.
 - `sortFindings` idempotente: `sort(sort(x)) ≡ sort(x)` y shuffle in → mismo out.
-- *(f3 extiende: learn twice ⇒ same skills state.)*
+- _(f3 extiende: learn twice ⇒ same skills state.)_
 
 ### INV-6 · packs versionados
 
@@ -111,6 +111,7 @@ invariants/
 - [x] **AC-I.2** Un PR que introduzca `fetch` en core rompe CI (demostrado: test falla en rama de prueba o lint rule documentado).
 - [x] **AC-I.3** Cobertura lista INV-1..7 en f1 documentada arriba; gaps → issues con due date antes de cerrar fase.
 - [x] **AC-I.4** Runtime de suite invariants < 60 s en CI shared runners (si se excede, marcar heavy y justificar).
+- [x] **AC-I.5** Ningún archivo de `cli/src`/`core/src` importa dos símbolos distintos bajo el mismo nombre local (shadowing silencioso en el bundle; gate `no-duplicate-imports.test.ts`).
 
 ## 5. Test plan
 
@@ -125,13 +126,14 @@ invariants/
 
 ## 7. Riesgos y decisiones abiertas
 
-| Tema | Decisión |
-|---|---|
-| Stub de red en subprocess e2e | preload `--import` con stub + env `APIGOVSCAN_TEST_NO_NET=1` |
-| Falsos positivos de no-eval (deps) | aplicar solo a nuestro código, no a `node_modules` |
-| Windows | evitar bash-isms en scripts invariants |
+| Tema                               | Decisión                                                     |
+| ---------------------------------- | ------------------------------------------------------------ |
+| Stub de red en subprocess e2e      | preload `--import` con stub + env `APIGOVSCAN_TEST_NO_NET=1` |
+| Falsos positivos de no-eval (deps) | aplicar solo a nuestro código, no a `node_modules`           |
+| Windows                            | evitar bash-isms en scripts invariants                       |
 
 ## Changelog
 
 - 2026-09-23 · Spec creado desde SDD v1.0.
 - 2026-09-24 · M1.5: suite `tests/invariants/{full,fs-boundary}.test.ts` cubre INV-1…7 + pack embed; CI job `invariants` en matriz OS; AC-I.1…4 verdes. Estado → `implementada`.
+- 2026-09-28 · AC-I.5: gate contra shadowing silencioso de imports (un `loadReportFile` de `learn.js` tapaba al de `dashboard.js` en el bundle sin que `tsc`/eslint avisaran; detectado en M10.1).

@@ -6,15 +6,15 @@ ApiGovScan · SDD · v1.0
 
 ## 1. Principios de diseño
 
-| # | Principio | Traducción práctica |
-|---|---|---|
-| P1 | **Core puro, adaptadores al borde** | El motor no importa `fs`, `fetch`, `process` ni `@modelcontextprotocol/*`; los adaptadores (CLI, MCP, tests) inyectan I/O |
-| P2 | **Specs son datos, no código** | DSL declarativa con whitelist; `eval` prohibido; findings sobre un modelo normalizado, no sobre strings crudos |
-| P3 | **Determinismo antes que atajo** | Sin random, sin orden de hash no estables, sin "fecha" dentro del hash de findings |
-| P4 | **Cita o no existe** | Toda regla elite tiene `source`; el `explain` muestra de dónde salió |
-| P5 | **Privacidad por arquitectura** | No hay client HTTP en el path de análisis — es más fácil probar que no hay red que prometer que no la usamos |
-| P6 | **Aprendizaje = git diff** | Skills son archivos de texto; si no es mergeable, no es aprendizaje |
-| P7 | **Caro solo donde aporta** | LLM, cloud y dashboards fuera del critical path; el core vive sin ellos |
+| #   | Principio                           | Traducción práctica                                                                                                       |
+| --- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| P1  | **Core puro, adaptadores al borde** | El motor no importa `fs`, `fetch`, `process` ni `@modelcontextprotocol/*`; los adaptadores (CLI, MCP, tests) inyectan I/O |
+| P2  | **Specs son datos, no código**      | DSL declarativa con whitelist; `eval` prohibido; findings sobre un modelo normalizado, no sobre strings crudos            |
+| P3  | **Determinismo antes que atajo**    | Sin random, sin orden de hash no estables, sin "fecha" dentro del hash de findings                                        |
+| P4  | **Cita o no existe**                | Toda regla elite tiene `source`; el `explain` muestra de dónde salió                                                      |
+| P5  | **Privacidad por arquitectura**     | No hay client HTTP en el path de análisis — es más fácil probar que no hay red que prometer que no la usamos              |
+| P6  | **Aprendizaje = git diff**          | Skills son archivos de texto; si no es mergeable, no es aprendizaje                                                       |
+| P7  | **Caro solo donde aporta**          | LLM, cloud y dashboards fuera del critical path; el core vive sin ellos                                                   |
 
 ## 2. Contexto (C4 nivel 1)
 
@@ -257,6 +257,13 @@ Empieza con 6 packages; extraer más solo si hay un segundo consumidor real (rie
 **Consecuencias:** atomidad de cambios cross-package; releases independientes cuando haga falta.  
 **Estado:** aceptada.
 
+### ADR-013: Visor local de reportes (no es un portal)
+
+**Contexto:** los reportes JSON son ricos pero ilegibles; pedir un dashboard choca con el anti-alcance "no es un portal" del SDD §4.  
+**Decisión:** un script Node cross-OS (`apigovscan dashboard <reporte.json>`) levanta un visor **estático en loopback** (127.0.0.1, sin auth multi-usuario, sin estado remoto). Lee JSON explícitos; el tracking vive en un sidecar local junto al reporte. `analyze` no lo conoce ni lo necesita. Si el usuario hospeda el visor o conecta el JSON a Jira/ServiceNow/Slack, es su red, sus credenciales y su riesgo — nosotros entregamos el JSON con contrato estable, no las integraciones.  
+**Consecuencias:** SDD §4 enmendado con la excepción explícita; dashboard y export viven como paquetes/comandos separados del core; INV-1/INV-7 se verifican igual (el visor no toca `analyze`). Si el visor pidiera login multi-usuario o nube propia, esta ADR caduca y se reabre la discusión.  
+**Estado:** aceptada.
+
 ## 8. Modelo de dominio mínimo (glifo)
 
 ```mermaid
@@ -306,13 +313,13 @@ classDiagram
 
 ## 9. Decisiones explícitas pendientes (backlog de ADRs)
 
-| Tema | Opciones | Cuando decidir |
-|---|---|---|
-| Validador OpenAPI | `@apidevtools/swagger-parser` vs validador propio + JSON Schema | Fase 1 (implícito en ADR-002) |
-| Motor de matchers | JSONPath-like propio vs CEL-lite vs zod-predicates declarativos | Fase 1–2 (detalle en 03) |
-| Canal de updates de packs | solo `pin manual` vs `stable` auto en minor | Fase 6 |
-| Lenguaje de UI findings | EN only vs EN+ES | Fase 5 → **decidido en f5: EN only** (mensajes de findings en inglés, consumer CI global — AGENTS §4) |
+| Tema                      | Opciones                                                        | Cuando decidir                                                                                        |
+| ------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Validador OpenAPI         | `@apidevtools/swagger-parser` vs validador propio + JSON Schema | Fase 1 (implícito en ADR-002)                                                                         |
+| Motor de matchers         | JSONPath-like propio vs CEL-lite vs zod-predicates declarativos | Fase 1–2 (detalle en 03)                                                                              |
+| Canal de updates de packs | solo `pin manual` vs `stable` auto en minor                     | Fase 6                                                                                                |
+| Lenguaje de UI findings   | EN only vs EN+ES                                                | Fase 5 → **decidido en f5: EN only** (mensajes de findings en inglés, consumer CI global — AGENTS §4) |
 
 ---
 
-*Continuar: [03-motor-y-reglas.md](03-motor-y-reglas.md).*
+_Continuar: [03-motor-y-reglas.md](03-motor-y-reglas.md)._

@@ -1,0 +1,65 @@
+{
+  "tool": { "name": "apigovscan", "version": "0.0.0-dev" },
+  "packs": [
+    { "id": "elite", "version": "2026.09.1" },
+    { "id": "webhooks", "version": "2026.09.1" }
+  ],
+  "input": [
+    { "path": "specs/openapi.yaml", "sha256": "sha256:aaaa" },
+    { "path": "specs/webhooks.yaml", "sha256": "sha256:bbbb" }
+  ],
+  "summary": { "error": 1, "warning": 2, "info": 1, "total": 4 },
+  "score": { "value": 70, "grade": "C" },
+  "reportHash": "cafe0001",
+  "findings": [
+    {
+      "ruleId": "NAMING-001",
+      "severity": "error",
+      "category": "naming",
+      "message": "Resource path segments should be plural nouns.",
+      "location": "specs/openapi.yaml#/paths/~1Users/get",
+      "apiLocation": "GET /Users",
+      "fix": "Use plural nouns for resource paths.",
+      "source": {
+        "title": "Google API Design Guide",
+        "url": "https://cloud.google.com/apis/design/"
+      },
+      "packId": "elite",
+      "packVersion": "2026.09.1",
+      "fingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "ruleId": "DOCS-001",
+      "severity": "warning",
+      "category": "docs",
+      "message": "Operations should document a description.",
+      "location": "specs/openapi.yaml#/paths/~1Users/get",
+      "apiLocation": "GET /Users",
+      "packId": "elite",
+      "packVersion": "2026.09.1",
+      "fingerprint": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    {
+      "ruleId": "RESP-005",
+      "severity": "info",
+      "category": "errors",
+      "message": "Consider documenting a default response for unknown errors.",
+      "location": "specs/openapi.yaml#/paths/~1Orders/post",
+      "apiLocation": "POST /Orders",
+      "packId": "elite",
+      "packVersion": "2026.09.1",
+      "fingerprint": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    {
+      "ruleId": "WH-005",
+      "severity": "warning",
+      "category": "security",
+      "message": "Webhook events must declare the webhook-signature header.",
+      "location": "specs/webhooks.yaml#/webhooks/BadEvent",
+      "apiLocation": "POST /BadEvent",
+      "packId": "webhooks",
+      "packVersion": "2026.09.1",
+      "fingerprint": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    }
+  ]
+}

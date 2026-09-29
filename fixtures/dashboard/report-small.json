@@ -1,0 +1,81 @@
+{
+  "tool": { "name": "apigovscan", "version": "0.0.0-dev" },
+  "packs": [
+    { "id": "elite", "version": "2026.09.1" },
+    { "id": "webhooks", "version": "2026.09.1" }
+  ],
+  "input": [
+    { "path": "specs/openapi.yaml", "sha256": "sha256:aaaa" },
+    { "path": "specs/webhooks.yaml", "sha256": "sha256:bbbb" }
+  ],
+  "summary": { "error": 1, "warning": 3, "info": 1, "total": 5 },
+  "score": { "value": 61, "grade": "D" },
+  "reportHash": "deadbeef",
+  "findings": [
+    {
+      "ruleId": "NAMING-001",
+      "severity": "error",
+      "category": "naming",
+      "message": "Resource path segments should be plural nouns.",
+      "location": "specs/openapi.yaml#/paths/~1Users/get",
+      "apiLocation": "GET /Users",
+      "fix": "Use plural nouns for resource paths.",
+      "source": {
+        "title": "Google API Design Guide",
+        "url": "https://cloud.google.com/apis/design/"
+      },
+      "packId": "elite",
+      "packVersion": "2026.09.1",
+      "fingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "ruleId": "DOCS-001",
+      "severity": "warning",
+      "category": "docs",
+      "message": "Operations should document a description.",
+      "location": "specs/openapi.yaml#/paths/~1Users/get",
+      "apiLocation": "GET /Users",
+      "packId": "elite",
+      "packVersion": "2026.09.1",
+      "fingerprint": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    {
+      "ruleId": "AUTH-001",
+      "severity": "warning",
+      "category": "security",
+      "message": "Operations should declare security.",
+      "location": "specs/openapi.yaml#/paths/~1Orders/post",
+      "apiLocation": "POST /Orders",
+      "packId": "elite",
+      "packVersion": "2026.09.1",
+      "fingerprint": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    },
+    {
+      "ruleId": "RESP-005",
+      "severity": "info",
+      "category": "errors",
+      "message": "Consider documenting a default response for unknown errors.",
+      "location": "specs/openapi.yaml#/paths/~1Orders/post",
+      "apiLocation": "POST /Orders",
+      "packId": "elite",
+      "packVersion": "2026.09.1",
+      "fingerprint": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    {
+      "ruleId": "WH-001",
+      "severity": "warning",
+      "category": "naming",
+      "message": "Webhook event types should be lowercase dot-delimited.",
+      "location": "specs/webhooks.yaml#/webhooks/BadEvent",
+      "apiLocation": "POST /BadEvent",
+      "fix": "Rename the event type to lowercase dot-delimited (user.created).",
+      "source": {
+        "title": "Standard Webhooks specification",
+        "url": "https://www.standardwebhooks.com/"
+      },
+      "packId": "webhooks",
+      "packVersion": "2026.09.1",
+      "fingerprint": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    }
+  ]
+}
