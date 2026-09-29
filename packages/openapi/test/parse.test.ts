@@ -4,13 +4,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { parseSpec } from "../src/index.js";
 
-const fixturesDir = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "..",
-  "fixtures",
-);
+const fixturesDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..", "fixtures");
 
 function fixture(rel: string): string {
   return readFileSync(join(fixturesDir, rel), "utf8");
@@ -36,9 +30,7 @@ describe("parseSpec · AC-O.1 petstore mini 3.1", () => {
     ]);
     expect(result.spec.components.schemas).toEqual(["Error", "Pet", "Pets"]);
     expect(result.spec.components.securitySchemes).toEqual([]);
-    expect(result.spec.servers).toEqual([
-      { url: "https://api.example.com/v1" },
-    ]);
+    expect(result.spec.servers).toEqual([{ url: "https://api.example.com/v1" }]);
     expect(result.spec.inputHash).toMatch(/^[0-9a-f]{64}$/);
   });
 });
@@ -66,18 +58,8 @@ describe("parseSpec · AC-O.3 JSON equals YAML", () => {
     expect(yamlResult.ok).toBe(true);
     expect(jsonResult.ok).toBe(true);
     if (!yamlResult.ok || !jsonResult.ok) return;
-    const {
-      inputHash: _yh,
-      sourceLabel: _sl,
-      inputBytes: _yb,
-      ...yamlSpec
-    } = yamlResult.spec;
-    const {
-      inputHash: _jh,
-      sourceLabel: _jl,
-      inputBytes: _jb,
-      ...jsonSpec
-    } = jsonResult.spec;
+    const { inputHash: _yh, sourceLabel: _sl, inputBytes: _yb, ...yamlSpec } = yamlResult.spec;
+    const { inputHash: _jh, sourceLabel: _jl, inputBytes: _jb, ...jsonSpec } = jsonResult.spec;
     expect(jsonSpec).toEqual(yamlSpec);
   });
 });
@@ -90,14 +72,11 @@ describe("parseSpec · AC-O.4 YAML alias bomb", () => {
       "  title: Alias Bomb",
       "  version: 1.0.0",
       "x-seed: &seed value",
-      ...Array.from(
-        { length: 200 },
-        (_, i) => `x-pad-${i}: *seed`,
-      ),
+      ...Array.from({ length: 200 }, (_, i) => `x-pad-${i}: *seed`),
       "paths:",
       "  /bomb:",
       "    get:",
-      '      responses:',
+      "      responses:",
       '        "200":',
       "          description: OK",
     ].join("\n");
@@ -180,10 +159,7 @@ describe("parseSpec · AC-O.10 inputHash stability", () => {
     if (!r1.ok || !r2.ok) return;
     expect(r1.spec.inputHash).toBe(r2.spec.inputHash);
 
-    const modified = fixture("petstore-mini.yaml").replace(
-      "Petstore Mini",
-      "Petstore Mini2",
-    );
+    const modified = fixture("petstore-mini.yaml").replace("Petstore Mini", "Petstore Mini2");
     const r3 = parseSpec(modified, { sourceLabel: "c" });
     expect(r3.ok).toBe(true);
     if (!r3.ok) return;
@@ -207,13 +183,15 @@ describe("parseSpec · AC-O.11 deterministic operation order", () => {
 });
 
 describe("parseSpec · AC-O.12 Swagger 2.0", () => {
-  it("rejects with SWAGGER_20", () => {
+  it("converts best-effort with SWAGGER_CONVERTED (f8-legacy-convert)", () => {
     const result = parseSpec(fixture("swagger2-minimal.yaml"), {
       sourceLabel: "swagger2-minimal.yaml",
     });
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.errors[0]?.message).toContain("SWAGGER_20");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.spec.openapiVersion).toBe("3.0.0-converted");
+    expect(result.spec.operations.map((o) => `${o.method} ${o.path}`)).toEqual(["get /legacy"]);
+    expect(result.spec.parseWarnings.map((w) => w.code)).toContain("SWAGGER_CONVERTED");
   });
 });
 
@@ -302,9 +280,7 @@ describe("parseSpec · JSON pointer correctness", () => {
     });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    const op = result.spec.operations.find(
-      (o) => o.method === "get" && o.path === "/pets",
-    )!;
+    const op = result.spec.operations.find((o) => o.method === "get" && o.path === "/pets")!;
     expect(op.jsonPointer).toBe("/paths/~1pets/get");
   });
 });

@@ -13,17 +13,9 @@ import type {
 } from "@apigovscan/core";
 import { createHash } from "node:crypto";
 import { parse as parseYaml } from "yaml";
+import { convertSwagger1, convertSwagger2, isSwagger1Doc, isSwagger2Doc } from "./legacy.js";
 
-const HTTP_METHODS = new Set([
-  "get",
-  "put",
-  "post",
-  "delete",
-  "options",
-  "head",
-  "patch",
-  "trace",
-]);
+const HTTP_METHODS = new Set(["get", "put", "post", "delete", "options", "head", "patch", "trace"]);
 
 const PARAM_LOCATIONS = new Set(["path", "query", "header", "cookie"]);
 
@@ -39,9 +31,7 @@ export interface ParseError {
   line?: number;
 }
 
-export type ParseResult =
-  | { ok: true; spec: Spec }
-  | { ok: false; errors: ParseError[] };
+export type ParseResult = { ok: true; spec: Spec } | { ok: false; errors: ParseError[] };
 
 export interface ParseOptions {
   sourceLabel: string;
@@ -55,16 +45,12 @@ export const DEFAULT_LIMITS: ParseLimits = {
   maxAliases: 1000,
 };
 
-export function parseSpec(
-  input: Uint8Array | string,
-  opts: ParseOptions,
-): ParseResult {
+export function parseSpec(input: Uint8Array | string, opts: ParseOptions): ParseResult {
   const limits: ParseLimits = { ...DEFAULT_LIMITS, ...opts.limits };
   const errors: ParseError[] = [];
   const warnings: ParseWarning[] = [];
 
-  const bytes =
-    typeof input === "string" ? new TextEncoder().encode(input) : input;
+  const bytes = typeof input === "string" ? new TextEncoder().encode(input) : input;
   const inputHash = sha256Hex(bytes);
 
   if (bytes.byteLength > limits.maxBytes) {
@@ -110,13 +96,24 @@ export function parseSpec(
   if (!isRecord(raw)) {
     return {
       ok: false,
-      errors: [
-        { message: "NOT_AN_OBJECT: OpenAPI document must be an object" },
-      ],
+      errors: [{ message: "NOT_AN_OBJECT: OpenAPI document must be an object" }],
     };
   }
 
-  if (typeof raw.swagger === "string" && raw.swagger.startsWith("2.")) {
+  let working: Record<string, unknown> = raw;
+  let convertedFrom: string | undefined;
+  let droppedDetails: string[] = [];
+  if (isSwagger2Doc(raw)) {
+    const converted = convertSwagger2(raw);
+    working = converted.doc;
+    convertedFrom = converted.origin;
+    droppedDetails = converted.dropped;
+  } else if (isSwagger1Doc(raw)) {
+    const converted = convertSwagger1(raw);
+    working = converted.doc;
+    convertedFrom = converted.origin;
+    droppedDetails = converted.dropped;
+  } else if (typeof raw.swagger === "string" && raw.swagger.startsWith("2.")) {
     return {
       ok: false,
       errors: [
@@ -127,8 +124,7 @@ export function parseSpec(
     };
   }
 
-  const openapiVersion =
-    typeof raw.openapi === "string" ? raw.openapi : undefined;
+  const openapiVersion = typeof working.openapi === "string" ? working.openapi : undefined;
   if (!openapiVersion) {
     return {
       ok: false,
@@ -150,7 +146,7 @@ export function parseSpec(
     };
   }
 
-  const paths = raw.paths;
+  const paths = working.paths;
   if (paths !== undefined && !isRecord(paths)) {
     return {
       ok: false,
@@ -158,12 +154,23 @@ export function parseSpec(
     };
   }
 
-  errors.push(...validateRefs(raw));
+  errors.push(...validateRefs(working));
   if (errors.length > 0) {
     return { ok: false, errors };
   }
 
-  const infoRaw = isRecord(raw.info) ? raw.info : {};
+  if (convertedFrom !== undefined) {
+    const detail =
+      droppedDetails.length > 0
+        ? ` dropped: ${droppedDetails.slice(0, 8).join(", ")}${droppedDetails.length > 8 ? ", ..." : ""}`
+        : "";
+    warnings.push({
+      code: "SWAGGER_CONVERTED",
+      message: `Converted from ${convertedFrom} to OpenAPI 3 best-effort.${detail}`,
+    });
+  }
+
+  const infoRaw = isRecord(working.info) ? working.info : {};
   const info: Spec["info"] = {};
   if (typeof infoRaw.title === "string") info.title = infoRaw.title;
   if (typeof infoRaw.version === "string") info.version = infoRaw.version;
@@ -171,34 +178,33 @@ export function parseSpec(
     info.description = infoRaw.description;
   }
 
-  const operations = collectOperations(raw, warnings, errors);
+  const operations = collectOperations(working, warnings, errors);
   if (errors.length > 0) {
     return { ok: false, errors };
   }
 
-  detectRefCycles(raw, warnings);
+  detectRefCycles(working, warnings);
 
   operations.sort(compareOperations);
 
-  const components = buildComponentIndex(raw);
-  const servers = parseServers(raw.servers);
-  const extensions = pickExtensions(raw);
-  const rootTags = Array.isArray(raw.tags)
-    ? raw.tags
+  const components = buildComponentIndex(working);
+  const servers = parseServers(working.servers);
+  const extensions = pickExtensions(working);
+  const rootTags = Array.isArray(working.tags)
+    ? working.tags
         .filter((t): t is Record<string, unknown> => isRecord(t))
         .map((t) => (typeof t.name === "string" ? t.name : ""))
         .filter((n) => n.length > 0)
         .sort()
     : undefined;
-  const security =
-    raw.security !== undefined ? parseSecurity(raw.security) : undefined;
+  const security = working.security !== undefined ? parseSecurity(working.security) : undefined;
   const inputBytes = bytes.byteLength;
 
   return {
     ok: true,
     spec: {
       inputHash,
-      openapiVersion,
+      openapiVersion: convertedFrom !== undefined ? "3.0.0-converted" : openapiVersion,
       sourceLabel: opts.sourceLabel,
       info,
       operations,
@@ -213,9 +219,7 @@ export function parseSpec(
   };
 }
 
-function parseServers(
-  value: unknown,
-): Array<{ url: string; description?: string }> | undefined {
+function parseServers(value: unknown): Array<{ url: string; description?: string }> | undefined {
   if (!Array.isArray(value)) return undefined;
   const out: Array<{ url: string; description?: string }> = [];
   for (const item of value) {
@@ -229,11 +233,7 @@ function parseServers(
   return out.length > 0 ? out : undefined;
 }
 
-function parseDocumentToUnknown(
-  text: string,
-  limits: ParseLimits,
-  errors: ParseError[],
-): unknown {
+function parseDocumentToUnknown(text: string, limits: ParseLimits, errors: ParseError[]): unknown {
   const trimmed = text.replace(/^\uFEFF/, "").trimStart();
   const looksJson = trimmed.startsWith("{") || trimmed.startsWith("[");
 
@@ -323,11 +323,7 @@ function collectOperations(
       if (!HTTP_METHODS.has(key.toLowerCase())) continue;
       if (!isRecord(opRaw)) continue;
       const opBase = `/paths/${escapePointer(path)}/${key.toLowerCase()}`;
-      const opParams = parseParameters(
-        opRaw.parameters,
-        `${opBase}/parameters`,
-        errors,
-      );
+      const opParams = parseParameters(opRaw.parameters, `${opBase}/parameters`, errors);
       const merged = mergeParameters(pathLevelParams, opParams);
 
       const security: SecurityRequirement[] | undefined =
@@ -363,10 +359,7 @@ function collectOperations(
         }
       }
       if (isRecord(opRaw.requestBody)) {
-        operation.requestBody = parseRequestBody(
-          opRaw.requestBody,
-          `${opBase}/requestBody`,
-        );
+        operation.requestBody = parseRequestBody(opRaw.requestBody, `${opBase}/requestBody`);
       }
       operations.push(operation);
     }
@@ -392,11 +385,7 @@ function parseSecurity(value: unknown): SecurityRequirement[] | undefined {
   return out;
 }
 
-function parseParameters(
-  value: unknown,
-  pointer: string,
-  errors: ParseError[],
-): Parameter[] {
+function parseParameters(value: unknown, pointer: string, errors: ParseError[]): Parameter[] {
   if (value === undefined) return [];
   if (!Array.isArray(value)) {
     errors.push({
@@ -422,8 +411,7 @@ function parseParameters(
     const loc = typeof raw.in === "string" ? raw.in : undefined;
     if (!name || !loc || !PARAM_LOCATIONS.has(loc)) {
       errors.push({
-        message:
-          "INVALID_PARAMETER: requires name and in ∈ {path,query,header,cookie}",
+        message: "INVALID_PARAMETER: requires name and in ∈ {path,query,header,cookie}",
         jsonPointer: itemPointer,
       });
       return;
@@ -446,10 +434,7 @@ function parseParameters(
   return out;
 }
 
-function mergeParameters(
-  pathLevel: Parameter[],
-  opLevel: Parameter[],
-): Parameter[] {
+function mergeParameters(pathLevel: Parameter[], opLevel: Parameter[]): Parameter[] {
   const map = new Map<string, Parameter>();
   for (const p of pathLevel) map.set(`${p.in}:${p.name}`, p);
   for (const p of opLevel) map.set(`${p.in}:${p.name}`, p);
@@ -458,11 +443,7 @@ function mergeParameters(
   );
 }
 
-function parseResponses(
-  value: unknown,
-  pointer: string,
-  errors: ParseError[],
-): Response[] {
+function parseResponses(value: unknown, pointer: string, errors: ParseError[]): Response[] {
   if (!isRecord(value)) {
     errors.push({
       message: "INVALID_RESPONSES: responses must be an object",
@@ -499,10 +480,7 @@ function parseResponses(
   return out;
 }
 
-function parseRequestBody(
-  raw: Record<string, unknown>,
-  pointer: string,
-): RequestBody {
+function parseRequestBody(raw: Record<string, unknown>, pointer: string): RequestBody {
   const body: RequestBody = {
     required: raw.required === true,
     content: [],
@@ -515,10 +493,7 @@ function parseRequestBody(
   return body;
 }
 
-function parseContent(
-  value: Record<string, unknown>,
-  _pointer: string,
-): ContentMedia[] {
+function parseContent(value: Record<string, unknown>, _pointer: string): ContentMedia[] {
   const out: ContentMedia[] = [];
   for (const [mediaType, raw] of Object.entries(value)) {
     const media: ContentMedia = { mediaType };
@@ -580,12 +555,8 @@ function pickExtensions(raw: Record<string, unknown>): Record<string, unknown> {
 
 function buildComponentIndex(doc: Record<string, unknown>): ComponentIndex {
   const components = isRecord(doc.components) ? doc.components : {};
-  const schemas = isRecord(components.schemas)
-    ? Object.keys(components.schemas).sort()
-    : [];
-  const responses = isRecord(components.responses)
-    ? Object.keys(components.responses).sort()
-    : [];
+  const schemas = isRecord(components.schemas) ? Object.keys(components.schemas).sort() : [];
+  const responses = isRecord(components.responses) ? Object.keys(components.responses).sort() : [];
   const parameters = isRecord(components.parameters)
     ? Object.keys(components.parameters).sort()
     : [];
@@ -668,10 +639,7 @@ function walkRefs(value: unknown, pointer: string, errors: ParseError[]): void {
   }
 }
 
-function detectRefCycles(
-  doc: Record<string, unknown>,
-  warnings: ParseWarning[],
-): void {
+function detectRefCycles(doc: Record<string, unknown>, warnings: ParseWarning[]): void {
   const components = isRecord(doc.components) ? doc.components : {};
   const schemas = isRecord(components.schemas) ? components.schemas : {};
   const seen = new Set<string>();
@@ -708,9 +676,7 @@ function detectRefCycles(
     if (typeof node.$ref === "string") {
       const ref = node.$ref;
       if (ref.startsWith("#/components/schemas/")) {
-        const schemaName = decodeURIComponent(
-          ref.slice("#/components/schemas/".length),
-        );
+        const schemaName = decodeURIComponent(ref.slice("#/components/schemas/".length));
         onRef(schemaName, pointer);
       }
       return;
@@ -718,11 +684,7 @@ function detectRefCycles(
     if (isRecord(node.properties)) {
       for (const [key, prop] of Object.entries(node.properties)) {
         if (isRecord(prop)) {
-          walkSchemaRefs(
-            prop,
-            `${pointer}/properties/${escapePointer(key)}`,
-            onRef,
-          );
+          walkSchemaRefs(prop, `${pointer}/properties/${escapePointer(key)}`, onRef);
         }
       }
     }

@@ -7,6 +7,7 @@ export {
   type ParseResult,
   type ParseOptions,
 } from "./parse.js";
+export { convertSwagger1, convertSwagger2, isSwagger1Doc, isSwagger2Doc } from "./legacy.js";
 
 export const OPENAPI_PACKAGE = "@apigovscan/openapi";
 
