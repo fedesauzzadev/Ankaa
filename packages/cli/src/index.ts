@@ -2223,11 +2223,13 @@ async function runScanOrgCommand(
       const dest = join(workdir, repo.name);
       if (existsSync(dest)) {
         skipped.push({ name: repo.name, reason: "destination exists" });
+        io.stderr(`warning: skipped ${repo.name}: destination exists\n`);
         continue;
       }
       const cloned = await cloneRepo(repo.cloneUrl, dest);
       if (!cloned.ok) {
         skipped.push({ name: repo.name, reason: cloned.error });
+        io.stderr(`warning: skipped ${repo.name}: ${cloned.error}\n`);
       }
     }
   }
@@ -2256,11 +2258,13 @@ async function runScanOrgCommand(
     const repoConfig = loadRepoConfig(projectDir);
     if (!repoConfig.ok) {
       skipped.push({ name: entry, reason: repoConfig.error });
+      io.stderr(`warning: skipped ${entry}: ${repoConfig.error}\n`);
       continue;
     }
     const analyzed = await analyzeProjectDir(projectDir, repoConfig.config);
     if (!analyzed.ok) {
       skipped.push({ name: entry, reason: analyzed.error });
+      io.stderr(`warning: skipped ${entry}: ${analyzed.error}\n`);
       continue;
     }
     scans.push({
@@ -2273,6 +2277,9 @@ async function runScanOrgCommand(
       score: analyzed.score.value,
       grade: analyzed.score.grade,
     });
+    io.stderr(
+      `note: scanned ${entry} (${analyzed.specs} specs, ${analyzed.summary.total} findings, score ${analyzed.score.value})\n`,
+    );
   }
   if (scans.length === 0) {
     io.stderr(`error: no projects with specs found in ${args.dir}\n`);

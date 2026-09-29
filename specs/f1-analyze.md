@@ -27,6 +27,8 @@ Como **dev**, quiero correr un solo comando local y obtener un reporte de govern
 - Carga de config `apigovscan.yaml` (subconjunto f1: `failOn`, `rules` overrides, `standards.pack/version` pin local).
 - Integración: openapi → engine → reporters.
 - Flag `--format`, `--output`, `--fail-on`, `--rules`, `--rule`, `--debug`.
+- Inventario completo de errores en corridas multi-archivo (sigue con todos los inputs, exit 2, sin reporte parcial).
+- Guardia global en `bin` (throw inesperado ⇒ `error: internal failure`, exit 2, sin stack crudo).
 
 ### Fuera (explícito)
 
@@ -135,19 +137,24 @@ Ver SDD §02.5. Etapas y debug:
 - [ ] **AC-A.11** `--output r.json` escribe el archivo; stdout puede quedar vacío en modo file (o resumen corto en console+file — decisión: si `--output` y format=json ⇒ silencio stdout salvo `--debug`).
 - [ ] **AC-A.12** `--debug` no imprime valores de `example` ni bodies > 200 chars.
 - [ ] **AC-A.13** Multi-spec en directorio: orden estable de paths (sort lexicográfico normalizado).
+- [ ] **AC-A.14** Directorio con specs válidos e inválidos: analiza todos, junta todos los errores con su label en stderr, exit 2, no escribe reporte parcial (`--output` no se crea).
+- [ ] **AC-A.15** Un solo input roto: mensaje idéntico al actual (sin regresión de formato).
+- [ ] **AC-A.16** Throw inesperado fuera de paths conocidos (`bin`): `error: internal failure` en stderr, exit 2, sin stack crudo.
 
 ## 5. Test plan
 
-| Caso                      | Tipo                 | Nota                    |
-| ------------------------- | -------------------- | ----------------------- |
-| happy path fixture válida | e2e cli (execa)      | snapshot console + json |
-| determinismo double run   | e2e                  | reportHash equal        |
-| exit codes matrix         | e2e                  | 0/1/2                   |
-| config overrides          | unit (useCase) + e2e |                         |
-| custom rule inline        | e2e                  |                         |
-| directorio discovery      | e2e                  | fixtures dir            |
-| stdin                     | e2e                  |                         |
-| red fail-fast             | unit (invariant)     | ver f1-invariants       |
+| Caso                      | Tipo                            | Nota                                           |
+| ------------------------- | ------------------------------- | ---------------------------------------------- |
+| happy path fixture válida | e2e cli (execa)                 | snapshot console + json                        |
+| determinismo double run   | e2e                             | reportHash equal                               |
+| exit codes matrix         | e2e                             | 0/1/2                                          |
+| config overrides          | unit (useCase) + e2e            |                                                |
+| custom rule inline        | e2e                             |                                                |
+| directorio discovery      | e2e                             | fixtures dir                                   |
+| stdin                     | e2e                             |                                                |
+| red fail-fast             | unit (invariant)                | ver f1-invariants                              |
+| batch con errores         | e2e                             | todos los errores listados, exit 2, sin output |
+| guardia bin               | unit estático (estilo boundary) | try/catch + exit 2 + mensaje                   |
 
 ## 6. Dependencias
 
@@ -159,14 +166,15 @@ Ver SDD §02.5. Etapas y debug:
 
 ## 7. Riesgos y decisiones abiertas
 
-| Tema                                     | Decisión                                                                          |
-| ---------------------------------------- | --------------------------------------------------------------------------------- |
-| Múltiples errores de parse en directorio | Abort total (exit 2) vs parcial; **f1: abort** si algún input falla (CI-friendly) |
-| `failOn: never`                          | Permitido con advertencia en consola                                              |
-| Color                                    | `NO_COLOR` + `--no-color` + TTY detect                                            |
+| Tema                                     | Decisión                                                                                                                                                           |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Múltiples errores de parse en directorio | Se juntan todos (exit 2, sin reporte parcial); f1 abortaba al primero — cambiado 2026-09-29 por inventario completo estilo tsc (CI-friendly: arreglar todo de una) |
+| `failOn: never`                          | Permitido con advertencia en consola                                                                                                                               |
+| Color                                    | `NO_COLOR` + `--no-color` + TTY detect                                                                                                                             |
 
 ## Changelog
 
 - 2026-09-23 · Spec creado desde SDD v1.0.
 - 2026-09-23 · M1.4: implementada (AC-A.1…13 verdes; e2e en `packages/cli/test/analyze.e2e.test.ts`).
 - 2026-09-25 · F5: superficie `--format` ampliada a `sarif|markdown|annotations` (especificado en `f5-reporters` AC-CLI.*; ayuda actualizada arriba).
+- 2026-09-29 · Robustez batch: AC-A.14–16 (inventario de errores multi-archivo + guardia global en `bin`); cambia decisión §7 (abort al primero → juntar todos).

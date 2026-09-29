@@ -137,6 +137,10 @@ export async function analyzeUseCase(
   const results: EvaluationResult[] = [];
   const usedPacks = new Map<string, string>();
   const protocolPacks = new Map<string, RulePack>();
+  // AC-A.14: errores por input se juntan todos (orden estable); un solo
+  // input mantiene el mensaje exacto de siempre (AC-A.15).
+  const failures: string[] = [];
+  const single = sortedInputs.length === 1;
 
   for (const path of sortedInputs) {
     const label = opts.labelFor(path);
@@ -147,11 +151,9 @@ export async function analyzeUseCase(
       bytes = await deps.loader.load(path);
       debug(`load ${label} ${bytes.byteLength}B ${(performance.now() - t).toFixed(2)}ms`);
     } catch (err) {
-      return {
-        ok: false,
-        exitCode: 2,
-        error: err instanceof Error ? err.message : String(err),
-      };
+      const detail = err instanceof Error ? err.message : String(err);
+      failures.push(single ? detail : `failed to load ${label}: ${detail}`);
+      continue;
     }
 
     const protocol = protocolForInput(path, bytes);
@@ -192,11 +194,8 @@ export async function analyzeUseCase(
       parsed = parseSpec(bytes, { sourceLabel: label });
     }
     if (!parsed.ok) {
-      return {
-        ok: false,
-        exitCode: 2,
-        error: formatParseErrors(label, parsed.errors),
-      };
+      failures.push(formatParseErrors(label, parsed.errors));
+      continue;
     }
     debug(`parse ${label} ${(performance.now() - tParse).toFixed(2)}ms`);
 
@@ -212,11 +211,12 @@ export async function analyzeUseCase(
       const detail = result.errors
         .map((e) => `${e.ruleId ?? "(unknown)"}: ${e.issues.join("; ")}`)
         .join("; ");
-      return {
-        ok: false,
-        exitCode: 2,
-        error: `rule evaluation failed: ${detail}`,
-      };
+      failures.push(
+        single
+          ? `rule evaluation failed: ${detail}`
+          : `${label}: rule evaluation failed: ${detail}`,
+      );
+      continue;
     }
     debug(
       `evaluate ${label} ${(performance.now() - tEval).toFixed(2)}ms (${result.findings.length} findings)`,
@@ -224,6 +224,14 @@ export async function analyzeUseCase(
 
     inputs.push({ path: label, sha256: `sha256:${parsed.spec.inputHash}` });
     results.push(prefixFindings(result, label, multi));
+  }
+
+  if (failures.length > 0) {
+    return {
+      ok: false,
+      exitCode: 2,
+      error: single ? failures[0]! : failures.join("\n"),
+    };
   }
 
   const tReport = performance.now();

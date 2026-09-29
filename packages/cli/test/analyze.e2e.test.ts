@@ -1,4 +1,12 @@
-import { mkdtempSync, readFileSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
+import {
+  copyFileSync,
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  writeFileSync,
+  mkdirSync,
+  rmSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -346,5 +354,30 @@ describe("analyze e2e (f1-analyze)", () => {
     );
     const { code } = await runCapture(["analyze", badSpec, "--fail-on", "error", "--no-color"]);
     expect(code).toBe(1);
+  });
+
+  it("AC-A.14 directory with bad specs reports every error and writes no report", async () => {
+    const dir = tempDir();
+    copyFileSync(petstore, join(dir, "openapi.yaml"));
+    writeFileSync(join(dir, "swagger.yaml"), "this is: [broken\n", "utf8");
+    writeFileSync(join(dir, "asyncapi.yaml"), "not: [valid\n", "utf8");
+    const outPath = join(dir, "report.json");
+    const { code, stdout, stderr } = await runCapture([
+      "analyze",
+      dir,
+      "--format",
+      "json",
+      "--output",
+      outPath,
+      "--fail-on",
+      "never",
+      "--no-color",
+    ]);
+    expect(code).toBe(2);
+    expect(stderr).toContain("failed to parse");
+    expect(stderr).toContain("swagger.yaml");
+    expect(stderr).toContain("asyncapi.yaml");
+    expect(stdout).not.toContain("reportHash");
+    expect(existsSync(outPath)).toBe(false);
   });
 });

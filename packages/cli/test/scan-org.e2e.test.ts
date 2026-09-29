@@ -330,6 +330,20 @@ describe("scan-org e2e (f8-scan-org)", { timeout: 30000 }, () => {
     expect(noDir.code).toBe(2);
     expect(noDir.stderr).toContain("scan directory not found");
   });
+
+  it("AC-SO.11 stderr progress per repo keeps stdout JSON intact", async () => {
+    const { root } = setupOrg();
+    const out = await runCapture(["scan-org", ".", "--format", "json"], {
+      cwd: root,
+      env: licEnv(),
+    });
+    expect(out.code).toBe(0);
+    expect(out.stderr).toContain("note: scanned repo-a");
+    expect(out.stderr).toContain("note: scanned repo-b");
+    expect(out.stderr).toContain("note: scanned repo-c");
+    expect(out.stderr).toContain("warning: skipped repo-empty");
+    expect(() => JSON.parse(out.stdout)).not.toThrow();
+  });
 });
 
 interface StubPage {

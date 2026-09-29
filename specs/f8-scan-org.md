@@ -25,6 +25,7 @@ Como responsable de plataforma quiero `apigovscan scan-org <dir>` (o `--github <
 - **Reporte**: console humano (tablas por grupo + totales) + `--format json` (`{tool, version, org, groups[], totals, avgScore, skipped[]}`); orden estable, sin timestamps.
 - **Salida**: stdout por defecto; `--out` escribe el reporte (niega overwrite sin `--force`, precedente baseline/import).
 - **Gates**: license (strings idénticos a `fix`/`import`). Sin gates LLM (no hay LLM en este milestone).
+- **Progreso a stderr**: una línea `note: scanned <repo> (<specs> specs, <findings> findings, score <v>)` por repo escaneado y `warning: skipped <repo>: <razón>` por repo omitido; stdout queda limpio para JSON (determinismo intacto).
 - Exit codes: `0` reporte emitido (aunque haya findings — es informativo), `2` errores.
 
 ### Out
@@ -97,6 +98,7 @@ export function cloneRepo(
 - [x] **AC-SO.8** Sin `GITHUB_TOKEN` → exit 2 honesto; `--max-repos` trunca con nota a stderr.
 - [x] **AC-SO.9** Boundary: `fetch` solo en `llm.ts` y `github.ts` (test extendido); `scan.ts` puro sin fs/red/LLM; `core` intacto; `analyze` sin llm byte-idéntico (suite existente).
 - [x] **AC-SO.10** Dir sin subdirs con specs → exit 2 honesto (`no projects with specs found`).
+- [x] **AC-SO.11** Progreso a stderr: cada repo escaneado emite `note: scanned <repo> (…)` y cada omitido `warning: skipped <repo>: …`; stdout JSON byte-idéntico con y sin progreso.
 
 ## 5. Test plan
 
@@ -123,3 +125,4 @@ export function cloneRepo(
 
 - 2026-09-26 · Spec creado en `ready` (cuarto milestone ejecutable de f8; handoff vía AGENTS.md + este spec).
 - 2026-09-26 · M8.4 implementado → `cerrada` (AC-SO.1–10 verdes; `pnpm check` verde).
+- 2026-09-29 · Observabilidad local: AC-SO.11 (progreso por repo a stderr, stdout intacto).
