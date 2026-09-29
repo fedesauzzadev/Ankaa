@@ -1,7 +1,8 @@
 import type { AtomMatcher, Matcher, OperationField } from "./rule.js";
 import type { Operation, SchemaNode, Spec } from "./spec.js";
 
-function getPathSegments(op: Operation): string[] {
+function getPathSegments(op: Operation, cached?: string[]): string[] {
+  if (cached !== undefined) return cached;
   return op.path.split("/").filter((s) => s.length > 0);
 }
 
@@ -62,9 +63,7 @@ function getField(op: Operation, field: OperationField): unknown {
     case "deprecated":
       return op.deprecated ? true : undefined;
     case "extensions":
-      return Object.keys(op.extensions ?? {}).length > 0
-        ? op.extensions
-        : undefined;
+      return Object.keys(op.extensions ?? {}).length > 0 ? op.extensions : undefined;
   }
 }
 
@@ -92,19 +91,55 @@ function docFieldPresent(spec: Spec, field: string): boolean {
   return false;
 }
 
+// Flyweight: patterns are validated once in validateRule (≤200 chars, no
+// nested quantifiers), but evaluate() runs each pattern per operation × rule.
+// Compiling once per distinct pattern keeps the observable behavior identical
+// (patterns carry no flags, so cached RegExp.test is stateless here).
+const regexCache = new Map<string, RegExp | undefined>();
+
 function safeRegex(pattern: string): RegExp | undefined {
-  if (pattern.length > 200) return undefined;
+  const hit = regexCache.get(pattern);
+  if (hit !== undefined) return hit;
+  if (regexCache.has(pattern)) return undefined;
+  if (pattern.length > 200) {
+    regexCache.set(pattern, undefined);
+    return undefined;
+  }
   try {
-    return new RegExp(pattern);
+    const compiled = new RegExp(pattern);
+    regexCache.set(pattern, compiled);
+    return compiled;
   } catch {
+    regexCache.set(pattern, undefined);
     return undefined;
   }
 }
 
-function matchesParamIn(
-  p: { in: string },
-  wanted: string | undefined,
-): boolean {
+export interface OpEvalCache {
+  jsonText?: string;
+  segments?: string[];
+  source?: Operation;
+}
+
+export function buildOpCache(op: Operation): OpEvalCache {
+  return {
+    jsonText: undefined,
+    segments: op.path.split("/").filter((s) => s.length > 0),
+    source: op,
+  };
+}
+
+function opJsonText(cache: OpEvalCache | undefined, op: Operation): string {
+  if (cache !== undefined) {
+    if (cache.jsonText === undefined) {
+      cache.jsonText = JSON.stringify(cache.source ?? op);
+    }
+    return cache.jsonText;
+  }
+  return JSON.stringify(op);
+}
+
+function matchesParamIn(p: { in: string }, wanted: string | undefined): boolean {
   return wanted === undefined || wanted === "any" || p.in === wanted;
 }
 
@@ -158,8 +193,8 @@ function allDocSchemas(spec: Spec): Array<{ name: string; schema: SchemaNode }> 
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
-function isListCollectionPath(path: string): boolean {
-  const segs = getPathSegments({ path } as Operation);
+function isListCollectionPath(path: string, cached?: string[]): boolean {
+  const segs = cached ?? getPathSegments({ path } as Operation);
   if (segs.length === 0) return false;
   const last = segs[segs.length - 1]!;
   if (isTemplate(last)) return false;
@@ -169,7 +204,8 @@ function isListCollectionPath(path: string): boolean {
 const PAGINATION_PARAM_RE =
   /^(page|pageSize|per_page|perPage|limit|offset|cursor|start|after|before|size|max)$/i;
 const TOTAL_FIELD_RE = /^(total|totalCount|total_count|count|numberOfResults|totalItems)$/i;
-const SENSITIVE_FIELD_RE = /(password|passwd|secret|token|apiKey|api_key|creditCard|credit_card|ssn|privateKey)/i;
+const SENSITIVE_FIELD_RE =
+  /(password|passwd|secret|token|apiKey|api_key|creditCard|credit_card|ssn|privateKey)/i;
 const PROBLEM_MEDIA = "application/problem+json";
 
 function schemaHasTotal(spec: Spec, op: Operation): boolean {
@@ -302,9 +338,7 @@ function isInsecureServerUrl(url: string): boolean {
 
 function hasAnyExample(content: Array<{ schema?: SchemaNode }>): boolean {
   return content.some(
-    (c) =>
-      c.schema?.example !== undefined ||
-      (c as { example?: unknown }).example !== undefined,
+    (c) => c.schema?.example !== undefined || (c as { example?: unknown }).example !== undefined,
   );
 }
 
@@ -321,13 +355,16 @@ export function evaluateAtom(
   atom: AtomMatcher,
   op: Operation | undefined,
   spec: Spec,
+  cache?: OpEvalCache,
 ): boolean {
   if (atom.op === "docFieldMissing") {
     return !docFieldPresent(spec, atom.field);
   }
   if (atom.op === "openapiVersionMismatch") {
+    const re = safeRegex(atom.pattern);
+    if (!re) return false;
     try {
-      return !new RegExp(atom.pattern).test(spec.openapiVersion);
+      return !re.test(spec.openapiVersion);
     } catch {
       return false;
     }
@@ -343,20 +380,22 @@ export function evaluateAtom(
     case "pathHasPrefix":
       return op.path.startsWith(atom.prefix);
     case "pathMatches": {
-      const segments = getPathSegments(op);
+      const segments = getPathSegments(op, cache?.segments);
       const target =
         atom.segmentIndex !== undefined
           ? resolveSegmentIndex(segments, atom.segmentIndex)
           : op.path;
       if (target === undefined) return false;
+      const re = safeRegex(atom.pattern);
+      if (!re) return false;
       try {
-        return new RegExp(atom.pattern).test(target);
+        return re.test(target);
       } catch {
         return false;
       }
     }
     case "pathSegmentPlural": {
-      const segments = getPathSegments(op);
+      const segments = getPathSegments(op, cache?.segments);
       const target = resolveSegmentIndex(segments, atom.segmentIndex);
       if (target === undefined) return false;
       return isPlural(target);
@@ -377,8 +416,10 @@ export function evaluateAtom(
     case "descriptionMatches": {
       const text = atom.target === "summary" ? op.summary : op.description;
       if (text === undefined) return false;
+      const re = safeRegex(atom.pattern);
+      if (!re) return false;
       try {
-        return new RegExp(atom.pattern).test(text);
+        return re.test(text);
       } catch {
         return false;
       }
@@ -387,8 +428,10 @@ export function evaluateAtom(
       return op.operationId !== undefined && op.operationId.length > 0;
     case "operationIdPattern": {
       if (op.operationId === undefined) return false;
+      const re = safeRegex(atom.pattern);
+      if (!re) return false;
       try {
-        return new RegExp(atom.pattern).test(op.operationId);
+        return re.test(op.operationId);
       } catch {
         return false;
       }
@@ -397,12 +440,12 @@ export function evaluateAtom(
       return !op.security || op.security.length === 0;
     case "parameterNamingPattern": {
       const params = op.parameters.filter(
-        (p) =>
-          atom.in === undefined || atom.in === "any" || p.in === atom.in,
+        (p) => atom.in === undefined || atom.in === "any" || p.in === atom.in,
       );
       if (params.length === 0) return false;
+      const re = safeRegex(atom.pattern);
+      if (!re) return false;
       try {
-        const re = new RegExp(atom.pattern);
         return params.every((p) => re.test(p.name));
       } catch {
         return false;
@@ -423,10 +466,8 @@ export function evaluateAtom(
       return responses.every((r) => hasAnyExample(r.content));
     }
     case "sensitiveExample": {
-      const text = JSON.stringify(op);
-      return /(password|secret|token|api[_-]?key)\s*[:=]\s*["'][^"']+["']/i.test(
-        text,
-      );
+      const text = opJsonText(cache, op);
+      return /(password|secret|token|api[_-]?key)\s*[:=]\s*["'][^"']+["']/i.test(text);
     }
     case "deprecatedWithoutSunset": {
       if (!op.deprecated) return false;
@@ -434,14 +475,9 @@ export function evaluateAtom(
       return sunset === undefined;
     }
     case "specExtensionPresent":
-      return (
-        op.extensions?.[atom.name] !== undefined ||
-        spec.extensions?.[atom.name] !== undefined
-      );
+      return op.extensions?.[atom.name] !== undefined || spec.extensions?.[atom.name] !== undefined;
     case "schemaInlineDepthMax": {
-      const bodyDepth = op.requestBody
-        ? schemaDepth(op.requestBody.content[0]?.schema)
-        : 0;
+      const bodyDepth = op.requestBody ? schemaDepth(op.requestBody.content[0]?.schema) : 0;
       const respDepths = op.responses.map((r) =>
         r.content[0]?.schema ? schemaDepth(r.content[0].schema) : 0,
       );
@@ -450,23 +486,17 @@ export function evaluateAtom(
     case "headerRequired": {
       if (atom.in === "response") {
         return op.responses.some((r) =>
-          (r.headers ?? []).some(
-            (h) => h.toLowerCase() === atom.name.toLowerCase(),
-          ),
+          (r.headers ?? []).some((h) => h.toLowerCase() === atom.name.toLowerCase()),
         );
       }
       return op.parameters.some(
-        (p) =>
-          p.in === "header" &&
-          p.name.toLowerCase() === atom.name.toLowerCase(),
+        (p) => p.in === "header" && p.name.toLowerCase() === atom.name.toLowerCase(),
       );
     }
     case "pathParamUndeclared": {
       const names = getPathParamNames(op.path);
       if (names.length === 0) return false;
-      const declared = new Set(
-        op.parameters.filter((p) => p.in === "path").map((p) => p.name),
-      );
+      const declared = new Set(op.parameters.filter((p) => p.in === "path").map((p) => p.name));
       return names.some((n) => !declared.has(n));
     }
     case "pathParamNotRequired": {
@@ -475,17 +505,12 @@ export function evaluateAtom(
       return pathParams.some((p) => !p.required);
     }
     case "responseDescriptionMissing":
-      return op.responses.some(
-        (r) => r.description === undefined || r.description.length === 0,
-      );
+      return op.responses.some((r) => r.description === undefined || r.description.length === 0);
     case "operationIdDuplicate": {
       if (op.operationId === undefined || op.operationId.length === 0) {
         return false;
       }
-      return (
-        spec.operations.filter((o) => o.operationId === op.operationId)
-          .length > 1
-      );
+      return spec.operations.filter((o) => o.operationId === op.operationId).length > 1;
     }
     case "securitySchemeMissing": {
       if (!op.security || op.security.length === 0) return false;
@@ -519,8 +544,7 @@ export function evaluateAtom(
     case "arrayParamNotExploded": {
       return op.parameters.some((p) => {
         const t = p.schema?.type;
-        const isArray =
-          t === "array" || (Array.isArray(t) && t.includes("array"));
+        const isArray = t === "array" || (Array.isArray(t) && t.includes("array"));
         return isArray && p.explode === false;
       });
     }
@@ -529,19 +553,13 @@ export function evaluateAtom(
         if (p.in !== "query") return false;
         if (!PAGINATION_PARAM_RE.test(p.name)) return false;
         const schema = p.schema;
-        return (
-          schema !== undefined &&
-          schema.maximum === undefined &&
-          schema.ref === undefined
-        );
+        return schema !== undefined && schema.maximum === undefined && schema.ref === undefined;
       });
     }
     case "paginationParamMissing": {
       if (op.method !== "get") return false;
       if (!isListCollectionPath(op.path)) return false;
-      return !op.parameters.some(
-        (p) => p.in === "query" && PAGINATION_PARAM_RE.test(p.name),
-      );
+      return !op.parameters.some((p) => p.in === "query" && PAGINATION_PARAM_RE.test(p.name));
     }
     case "paginationTotalMissing": {
       if (op.method !== "get") return false;
@@ -570,17 +588,12 @@ export function evaluateAtom(
       return !ok;
     }
     case "responseHasContent": {
-      return op.responses.some(
-        (r) => matchesStatus(r.status, atom.status) && r.content.length > 0,
-      );
+      return op.responses.some((r) => matchesStatus(r.status, atom.status) && r.content.length > 0);
     }
     case "redirectMissingLocation": {
       const redirects = op.responses.filter((r) => /^3\d{2}$/.test(r.status));
       if (redirects.length === 0) return false;
-      return redirects.some(
-        (r) =>
-          !(r.headers ?? []).some((h) => h.toLowerCase() === "location"),
-      );
+      return redirects.some((r) => !(r.headers ?? []).some((h) => h.toLowerCase() === "location"));
     }
     case "securityEmptyOverride": {
       return Array.isArray(op.security) && op.security.length === 0;
@@ -653,9 +666,7 @@ export function evaluateAtom(
         if (!resolved) return false;
         if (isNonStandardDateTimeFormat(resolved)) return true;
         if (resolved.properties) {
-          return Object.values(resolved.properties).some(
-            isNonStandardDateTimeFormat,
-          );
+          return Object.values(resolved.properties).some(isNonStandardDateTimeFormat);
         }
         return false;
       });
@@ -709,17 +720,13 @@ function evaluateDocAtom(atom: AtomMatcher, spec: Spec): boolean {
     }
     case "missingAny5xx": {
       return !spec.operations.some((op) =>
-        op.responses.some(
-          (r) => /^5\d{2}$/.test(r.status) || r.status === "5xx",
-        ),
+        op.responses.some((r) => /^5\d{2}$/.test(r.status) || r.status === "5xx"),
       );
     }
     case "securityDeclaredNowhere": {
       const global = spec.security !== undefined && spec.security.length > 0;
       if (global) return false;
-      return !spec.operations.some(
-        (op) => op.security !== undefined && op.security.length > 0,
-      );
+      return !spec.operations.some((op) => op.security !== undefined && op.security.length > 0);
     }
     case "apiKeySchemeInQuery": {
       return (spec.components.securitySchemeDefs ?? []).some(
@@ -728,15 +735,11 @@ function evaluateDocAtom(atom: AtomMatcher, spec: Spec): boolean {
     }
     case "bearerSchemeWithoutAuthHeader": {
       const hasBearer = (spec.components.securitySchemeDefs ?? []).some(
-        (s) =>
-          s.type === "http" && (s.scheme ?? "").toLowerCase() === "bearer",
+        (s) => s.type === "http" && (s.scheme ?? "").toLowerCase() === "bearer",
       );
       if (!hasBearer) return false;
       return !spec.operations.some((op) =>
-        op.parameters.some(
-          (p) =>
-            p.in === "header" && p.name.toLowerCase() === "authorization",
-        ),
+        op.parameters.some((p) => p.in === "header" && p.name.toLowerCase() === "authorization"),
       );
     }
     case "versionStyleInconsistent": {
@@ -747,19 +750,10 @@ function evaluateDocAtom(atom: AtomMatcher, spec: Spec): boolean {
       }
       for (const op of spec.operations) {
         if (/(^|\/)v\d+/.test(op.path)) styles.add("path");
-        if (
-          op.parameters.some(
-            (p) => p.in === "header" && /api[-_]?version/i.test(p.name),
-          )
-        ) {
+        if (op.parameters.some((p) => p.in === "header" && /api[-_]?version/i.test(p.name))) {
           styles.add("header");
         }
-        if (
-          op.parameters.some(
-            (p) =>
-              p.in === "query" && /^(version|apiVersion)$/i.test(p.name),
-          )
-        ) {
+        if (op.parameters.some((p) => p.in === "query" && /^(version|apiVersion)$/i.test(p.name))) {
           styles.add("query");
         }
       }
@@ -768,12 +762,8 @@ function evaluateDocAtom(atom: AtomMatcher, spec: Spec): boolean {
     case "breakingChangePolicyUndocumented": {
       const desc = (spec.info.description ?? "").toLowerCase();
       const hasPolicy =
-        /breaking\s*change|deprecation\s*policy|compatibility\s*polic/.test(
-          desc,
-        ) ||
-        Object.keys(spec.extensions ?? {}).some((k) =>
-          /breaking|deprecat|versioning/i.test(k),
-        );
+        /breaking\s*change|deprecation\s*policy|compatibility\s*polic/.test(desc) ||
+        Object.keys(spec.extensions ?? {}).some((k) => /breaking|deprecat|versioning/i.test(k));
       return !hasPolicy;
     }
     case "infoVersionNotMatching": {
@@ -798,20 +788,14 @@ function evaluateDocAtom(atom: AtomMatcher, spec: Spec): boolean {
           const lower = p.name.toLowerCase().replace(/[_-]/g, "");
           if (/page|offset|cursor|after|before|start/.test(lower)) {
             families.add(
-              lower.includes("cursor")
-                ? "cursor"
-                : lower.includes("page")
-                  ? "page"
-                  : "offset",
+              lower.includes("cursor") ? "cursor" : lower.includes("page") ? "page" : "offset",
             );
           } else if (/limit|size|max/.test(lower)) {
             families.add("limit");
           }
         }
       }
-      const pagingFamilies = new Set(
-        [...families].filter((f) => f !== "limit"),
-      );
+      const pagingFamilies = new Set([...families].filter((f) => f !== "limit"));
       return pagingFamilies.size > 1;
     }
     default:
@@ -823,9 +807,10 @@ export function evaluateMatcher(
   m: Matcher,
   op: Operation | undefined,
   spec: Spec,
+  cache?: OpEvalCache,
 ): boolean {
-  if ("all" in m) return m.all.every((c) => evaluateMatcher(c, op, spec));
-  if ("any" in m) return m.any.some((c) => evaluateMatcher(c, op, spec));
-  if ("not" in m) return !evaluateMatcher(m.not, op, spec);
-  return evaluateAtom(m, op, spec);
+  if ("all" in m) return m.all.every((c) => evaluateMatcher(c, op, spec, cache));
+  if ("any" in m) return m.any.some((c) => evaluateMatcher(c, op, spec, cache));
+  if ("not" in m) return !evaluateMatcher(m.not, op, spec, cache);
+  return evaluateAtom(m, op, spec, cache);
 }

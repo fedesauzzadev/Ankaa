@@ -1,11 +1,11 @@
 # f1-engine · Rules engine + DSL + fingerprints
 
-| Campo | Valor |
-|---|---|
-| Estado | implementada |
-| Fase | 1 |
+| Campo     | Valor                                                               |
+| --------- | ------------------------------------------------------------------- |
+| Estado    | implementada                                                        |
+| Fase      | 1                                                                   |
 | Deriva de | SDD ADR-005, ADR-006, ADR-011, D5; doc 03 motor y reglas; INV-2/3/4 |
-| Package | `@apigovscan/core` |
+| Package   | `@apigovscan/core`                                                  |
 
 ## 1. Objetivo
 
@@ -44,29 +44,20 @@ interface SourceRef {
   section?: string;
 }
 
-type Matcher =
-  | { all: Matcher[] }
-  | { any: Matcher[] }
-  | { not: Matcher }
-  | AtomMatcher;
+type Matcher = { all: Matcher[] } | { any: Matcher[] } | { not: Matcher } | AtomMatcher;
 
 // Whitelist v1 — cada átomo declara op discriminante
 type DocField =
-  | "info.title"
-  | "info.version"
-  | "info.description"
-  | "servers"
-  | "tags"
-  | "components.schemas";
+  "info.title" | "info.version" | "info.description" | "servers" | "tags" | "components.schemas";
 
 type AtomMatcher =
   | { op: "method"; in: string[] }
   | { op: "pathMatches"; pattern: string; segmentIndex?: number | "last" }
   | { op: "pathSegmentPlural"; segmentIndex?: number | "last" }
   | { op: "pathHasPrefix"; prefix: string }
-  | { op: "presentField"; field: OperationField }      // union literales
+  | { op: "presentField"; field: OperationField } // union literales
   | { op: "missingField"; field: OperationField }
-  | { op: "responseMissing"; status: string }          // "404" | "4xx" | "5xx"
+  | { op: "responseMissing"; status: string } // "404" | "4xx" | "5xx"
   | { op: "responsePresent"; status: string }
   | { op: "descriptionMinLength"; target: "summary" | "description" | "response"; min: number }
   | { op: "descriptionMatches"; target: "summary" | "description"; pattern: string }
@@ -79,9 +70,9 @@ type AtomMatcher =
   | { op: "sensitiveExample" }
   | { op: "deprecatedWithoutSunset" }
   | { op: "docFieldMissing"; field: DocField }
-  | { op: "specExtensionPresent"; name: string }       // x-sunset etc.
-  | { op: "schemaInlineDepthMax"; max: number }        // hint PERF/SCHEMA
-  | { op: "pathParamUndeclared" }                      // M1.3 pack gap
+  | { op: "specExtensionPresent"; name: string } // x-sunset etc.
+  | { op: "schemaInlineDepthMax"; max: number } // hint PERF/SCHEMA
+  | { op: "pathParamUndeclared" } // M1.3 pack gap
   | { op: "pathParamNotRequired" }
   | { op: "responseDescriptionMissing" }
   | { op: "operationIdDuplicate" }
@@ -112,36 +103,36 @@ type AtomMatcher =
   | { op: "sensitiveFieldInResponse" }
   | { op: "propertyNamingViolation"; pattern: string }
   | { op: "externalDocsMissingUrl" }
-  | { op: "operationTagsWithoutRootTags" }             // doc scope
-  | { op: "schemaNameNotMatching"; pattern: string }   // doc scope
-  | { op: "errorMediaTypeInconsistent" }               // doc scope
-  | { op: "missingAny5xx" }                            // doc scope
-  | { op: "securityDeclaredNowhere" }                  // doc scope
-  | { op: "apiKeySchemeInQuery" }                      // doc scope
-  | { op: "bearerSchemeWithoutAuthHeader" }            // doc scope
-  | { op: "versionStyleInconsistent" }                 // doc scope
-  | { op: "breakingChangePolicyUndocumented" }         // doc scope
-  | { op: "infoVersionNotMatching"; pattern: string }  // doc scope
-  | { op: "inputSizeExceeds"; maxBytes: number }       // doc scope
-  | { op: "paginationNamingInconsistent" };            // doc scope
+  | { op: "operationTagsWithoutRootTags" } // doc scope
+  | { op: "schemaNameNotMatching"; pattern: string } // doc scope
+  | { op: "errorMediaTypeInconsistent" } // doc scope
+  | { op: "missingAny5xx" } // doc scope
+  | { op: "securityDeclaredNowhere" } // doc scope
+  | { op: "apiKeySchemeInQuery" } // doc scope
+  | { op: "bearerSchemeWithoutAuthHeader" } // doc scope
+  | { op: "versionStyleInconsistent" } // doc scope
+  | { op: "breakingChangePolicyUndocumented" } // doc scope
+  | { op: "infoVersionNotMatching"; pattern: string } // doc scope
+  | { op: "inputSizeExceeds"; maxBytes: number } // doc scope
+  | { op: "paginationNamingInconsistent" }; // doc scope
 
 interface Rule {
-  id: string;                      // /^[A-Z][A-Z0-9]*-\d{3}$/
-  category: Category;              // taxonomy cerrada SDD 03 §4
+  id: string; // /^[A-Z][A-Z0-9]*-\d{3}$/
+  category: Category; // taxonomy cerrada SDD 03 §4
   severity: Severity;
   message: string;
   when: Matcher;
-  source?: SourceRef;              // requerido si pack.vía "elite" | pack.strictSource
+  source?: SourceRef; // requerido si pack.vía "elite" | pack.strictSource
   fix?: string;
-  enabledByDefault?: boolean;      // default true
+  enabledByDefault?: boolean; // default true
   deprecated?: boolean;
   packId: string;
   packVersion: string;
 }
 
 interface RulePack {
-  id: string;                      // "elite"
-  version: string;                 // "2026.09.1"
+  id: string; // "elite"
+  version: string; // "2026.09.1"
   rules: Rule[];
 }
 ```
@@ -152,11 +143,11 @@ interface RulePack {
 interface Finding {
   fingerprint: string;
   ruleId: string;
-  severity: Severity;              // ya con overrides aplicados
+  severity: Severity; // ya con overrides aplicados
   category: Category;
   message: string;
-  location: string;                // JSON Pointer al doc fuente
-  apiLocation?: string;            // "GET /users/{id}"
+  location: string; // JSON Pointer al doc fuente
+  apiLocation?: string; // "GET /users/{id}"
   fix?: string;
   source?: SourceRef;
   packId: string;
@@ -177,9 +168,9 @@ sha256hex( ruleId + "|" + location + "|" + (apiLocation ?? "") + "|" + messageKe
 
 ```ts
 export interface EvaluateOptions {
-  specs: Spec[];                   // f1 típicamente 1; multi soportado
+  specs: Spec[]; // f1 típicamente 1; multi soportado
   packs: RulePack[];
-  customRules?: Rule[];            // de --rules / --rule (packId: "custom")
+  customRules?: Rule[]; // de --rules / --rule (packId: "custom")
   disabledRuleIds?: Set<string>;
   severityOverrides?: Map<string, Severity>;
 }
@@ -187,13 +178,15 @@ export interface EvaluateOptions {
 export function evaluate(opts: EvaluateOptions): EvaluationResult;
 
 export interface EvaluationResult {
-  findings: Finding[];             // orden estable
-  errors: RuleEvalError[];         // regla rota / no soportada
+  findings: Finding[]; // orden estable
+  errors: RuleEvalError[]; // regla rota / no soportada
 }
 
 export function sortFindings(findings: Finding[]): Finding[];
 export function computeFingerprint(f: Omit<Finding, "fingerprint">): string;
-export function validateRule(raw: unknown): { ok: true; rule: Rule } | { ok: false; issues: string[] };
+export function validateRule(
+  raw: unknown,
+): { ok: true; rule: Rule } | { ok: false; issues: string[] };
 export function validateMatcher(raw: unknown, path?: string): string[]; // issues
 ```
 
@@ -228,6 +221,14 @@ Comparar por:
 - Aplicados **después** de evaluate, **antes** de sort: `severity = overrides.get(ruleId) ?? rule.severity`.
 - `disabledRuleIds`: filtrar findings de esas reglas post-evaluate (o no evaluarlas — misma semántica f1).
 
+### Performance interna (M-perf, sin cambio de contrato)
+
+- `evaluate()` mantiene firma y semántica observable (mismos findings, orden, fingerprints, errors). Optimizaciones solo internas:
+  1. **Cache de RegExp** (flyweight): patrones compilados una vez por `evaluate`, reutilizados por operación × regla.
+  2. **Precompilación por regla**: `validateRule` + `detectScope` una vez por regla (no por spec).
+  3. **Cache por operación**: `JSON.stringify(op)`, segmentos de path y schemas colectados una vez por operación y reusados por todas las reglas (`OpEvalCache` opcional en `evaluateMatcher`; sin él se calcula como antes).
+- Prohibido: `Date.now()`/`Math.random()` en paths de hash/sort (INV-2); imports `node:*` en `core` (INV-3/AC-E.8).
+
 ## 4. Criterios de aceptación
 
 - [x] **AC-E.1** Fixture Spec + 1 regla atom true ⇒ exactamente 1 finding con fingerprint esperado (golden).
@@ -241,6 +242,7 @@ Comparar por:
 - [x] **AC-E.9** `all`/`any`/`not` anidados 3 niveles evalúan correctamente (tabla de verdad unitaria).
 - [x] **AC-E.10** Operación A true, B false ⇒ findings solo en A con `apiLocation` correcto.
 - [x] **AC-E.11** Performance smoke: 500 operaciones × 50 reglas < 500 ms en CI (medición orientativa, no flaky-hard).
+- [x] **AC-E.12** Perf slice: mismo input + packs ⇒ findings **byte-idénticos** antes/después (golden suites + bench 500/2000 ops con conteo idéntico); bench orientativo neutro en esta forma (techo: sha256 puro + validación, INV-3), sin flaky-hard.
 
 ## 5. Test plan
 
@@ -258,12 +260,12 @@ Comparar por:
 
 ## 7. Riesgos y decisiones abiertas
 
-| Tema | Decisión f1 |
-|---|---|
-| Validador de rule schema | zod estricto (rápido, TS-first) |
-| Átomos que crecen | whitelist versionada; atomos nuevos = minor del motor |
-| Multi-spec en evaluate | soportado en tipos; e2e multi entra en analyze |
-| Regex engine | validar patrones en load; evaluación con guard de length |
+| Tema                     | Decisión f1                                              |
+| ------------------------ | -------------------------------------------------------- |
+| Validador de rule schema | zod estricto (rápido, TS-first)                          |
+| Átomos que crecen        | whitelist versionada; atomos nuevos = minor del motor    |
+| Multi-spec en evaluate   | soportado en tipos; e2e multi entra en analyze           |
+| Regex engine             | validar patrones en load; evaluación con guard de length |
 
 ## Changelog
 
@@ -271,3 +273,5 @@ Comparar por:
 - 2026-09-23 · M1.2 implementado: AC-E.1…11 verdes; sha256 TS puro (AC-E.8); zod strict; whitelist de átomos.
 - 2026-09-23 · M1.3: átomos de gap del pack elite (`pathParamUndeclared`, `pathParamNotRequired`, `responseDescriptionMissing`, `operationIdDuplicate`, `securitySchemeMissing`, `openapiVersionMismatch`, `serverInsecure`); `Spec.components.securitySchemes` + `servers` en parser.
 - 2026-09-23 · M1.5: átomos de gap para pack ≥50 (operación + doc scope); `DocField` += `info.description`, `tags`; `Spec` += `rootTags?`, `security?`, `inputBytes?`; `Operation` += `externalDocs?`; `Parameter` += `style?`, `explode?`; `SchemaNode` += `description?`, `additionalProperties?`, `maximum?`, `items?`; `ComponentIndex` += `schemaNodes?`, `securitySchemeDefs?`.
+- 2026-09-28 · M-perf (spec primero): cache RegExp + precompilación por regla + cache por operación; `evaluate()` sin cambio de firma ni semántica observable; AC-E.12 equivalencia + bench.
+- 2026-09-28 · M-perf implementado: suites verdes (core 19, cli 437, invariantes 16); bench 2000 ops × elite antes ~357ms vs después ~420ms mediana (ruido-dominado, neutro); techo real: sha256 puro (INV-3) + validación zod por corrida.
