@@ -1,11 +1,11 @@
-# Plan · f10-export · Contrato JSON enterprise (M10.2)
+# Plan · f10-export · Contrato JSON enterprise (M7.4, ex-M10.2)
 
 | Campo        | Valor                                                                   |
 | ------------ | ----------------------------------------------------------------------- |
 | Specs        | f10-export                                                              |
 | Dependencias | Ninguna nueva; edición empresarial (gate por tier cuando F7 los defina) |
 
-## M10.2 — Comando export + ejemplos
+## M7.4 — Comando export + ejemplos
 
 1. CLI `export` (puro: agrupa por dueño, filtra por `--since`, escribe `--out`) + `src/export.ts`.
 2. `examples/integrations/` (jira/stub, slack, csv) como referencia.

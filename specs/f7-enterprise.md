@@ -35,10 +35,17 @@ Como organización con ApiGovScan instalado quiero (a) **mis propios packs de re
 - Distribución de packs vía R2/KV; MCP remoto **solo consulta** (`list_packs`, `explain_rule`, `get_pack` — FR-52, jamás analiza specs remotos).
 - Canales `stable`/`canary` (FR-63).
 
+### In — M7.4 Export enterprise (absorbido de ex-M10.2)
+
+- Comando `apigovscan export <reporte.json> [--group-by <file>] [--since <viejo.json>] [--out export.json]`: contrato `export.json` v1 ruteado por dueño, solo nuevos con `--since` (dedupe por fingerprint), determinista salvo `exportedAt`.
+- `examples/integrations/` (jira/stub, slack, csv) como referencia sin garantías.
+- Puro, sin red, sin LLM; el gate por tier se agrega cuando F7 los defina, sin cambiar el contrato.
+- Spec de detalle: `f10-export` (conserva el nombre por trazabilidad; su milestone es M7.4).
+
 ### Out
 
 - SaaS multi-tenant, telemetría, phone-home (INV-1 se mantiene).
-- Historial/tendencia de score con UI (candidato a M7.4 o fase 8 si el cliente lo pide).
+- Historial/tendencia de score con UI (candidato a M7.5 o fase 8 si el cliente lo pide).
 - Firma Ed25519 de licencias (queda el upgrade documentado en f6-distribution §7).
 
 ## 3. Contrato (borrador — se detalla al abrir cada milestone)
@@ -70,3 +77,4 @@ A definir por milestone (patrón: unit + e2e CLI + invariants INV-1/2/7).
 ## Changelog
 
 - 2026-09-26 · Spec creado consolidando el pendiente (packs por cliente, self-host, Cloudflare) en una única fase 7; F6 declarada cerrada en `v0.6.0-private`.
+- 2026-09-29 · Absorbe ex-M10.2 como M7.4 (export enterprise, spec `f10-export` en `ready`); tendencia con UI pasa a candidata M7.5.

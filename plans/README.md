@@ -23,7 +23,7 @@ Planes de implementación derivados de los [specs](../specs/README.md). Un plan 
 | [f8-legacy-convert](f8-legacy-convert.md) | Legacy Swagger 1.x/2.0 → Spec (M8.10)          | f8-legacy-convert |
 | [f9-launch-oss](f9-launch-oss.md)         | Papeles lanzamiento OSS, sin publicar (M9.1)   | f9-launch-oss     |
 | [f10-dashboard](f10-dashboard.md)         | Visor local + tracking OSS (M10.1)             | f10-dashboard     |
-| [f10-export](f10-export.md)               | Export enterprise sin red propia (M10.2)       | f10-export        |
+| [f10-export](f10-export.md)               | Export enterprise sin red propia (M7.4, F7)    | f10-export        |
 
 ## Convención
 

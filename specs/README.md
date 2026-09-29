@@ -50,7 +50,7 @@ Especificaciones **spec-driven** derivadas del [SDD v1.0](../docs/SDD.md). El SD
 | [f8-legacy-convert](f8-legacy-convert.md)       | 8    | Legacy Swagger 1.x/2.0 → Spec best-effort                                            | cerrada      |
 | [f9-launch-oss](f9-launch-oss.md)               | 9    | Lanzamiento OSS gratuito (papeles, sin publicar)                                     | cerrada      |
 | [f10-dashboard](f10-dashboard.md)               | 10   | Visor local de reportes + tracking, OSS para todos (loopback, sin nube)              | cerrada      |
-| [f10-export](f10-export.md)                     | 10   | Contrato JSON para integraciones, edición empresarial                                | ready        |
+| [f10-export](f10-export.md)                     | 7    | Contrato JSON para integraciones, edición empresarial (F7/M7.4)                      | ready        |
 
 ## Orden de implementación sugerido
 

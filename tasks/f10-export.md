@@ -2,7 +2,7 @@
 
 Plan: [plans/f10-export.md](../plans/f10-export.md) · Spec: [specs/f10-export.md](../specs/f10-export.md)
 
-## M10.2 — export enterprise (sin red propia)
+## M7.4 — export enterprise (sin red propia)
 
 - [ ] CLI `export` (ruteo por dueño, `--since`, `--out`) + contrato v1
 - [ ] `examples/integrations/` (jira stub, slack, csv)

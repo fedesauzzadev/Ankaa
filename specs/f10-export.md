@@ -4,7 +4,7 @@
 | --------- | ----------------------------------------------------------------------------------------- |
 | Estado    | ready                                                                                     |
 | Fecha     | 2026-09-28                                                                                |
-| Fase      | 10 (export; ver ADR-013)                                                                  |
+| Fase      | 7 (M7.4 export enterprise, absorbido de ex-M10.2; ver ADR-013)                            |
 | Deriva de | ADR-013; `f1-reporters` (reporte JSON); `f8-scan-org` (`--group-by` como ruteo por dueño) |
 
 ## 1. Objetivo / user story
@@ -69,3 +69,4 @@ Unit (ruteo, dedupe, tendencia) + e2e CLI + ejemplo Jira contra stub + invariant
 
 - 2026-09-28 · Spec creada en `draft` (handoff vía AGENTS.md + este spec).
 - 2026-09-28 · Revisada por el dueño → `ready`: edición empresarial (gate por tier cuando F7 los defina).
+- 2026-09-29 · Reubicada a F7 como M7.4 (ex-M10.2): el export enterprise es diferencial pago y vive con F7; el archivo conserva el nombre por trazabilidad.

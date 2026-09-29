@@ -5,7 +5,7 @@
 | Producto              | ApiGovScan — analizador local de API Governance                                                                                                                              |
 | Versión del documento | 1.0                                                                                                                                                                          |
 | Fecha                 | 2026-09-23                                                                                                                                                                   |
-| Estado                | Aprobado — Fases 0–6, 8, 9 y M10.1 cerradas (último: visor local `f10-dashboard`); pendientes F7 (enterprise) y M10.2 (export); publicar OSS pendiente de decisión del dueño |
+| Estado                | Aprobado — Fases 0–6, 8, 9 y 10 cerradas (último: visor local `f10-dashboard`); pendiente F7 (enterprise, incluye export M7.4); publicar OSS pendiente de decisión del dueño |
 | Tipo de proyecto      | Herramienta de developer productivity (local-first)                                                                                                                          |
 | Stack                 | TypeScript · pnpm workspaces · Node ≥ 20 · Cloudflare Workers (solo edge services) · Docker Compose (dev/self-host)                                                          |
 
@@ -145,4 +145,4 @@ El API governance roto no se manifiesta como un incidente: se manifiesta como **
 
 ---
 
-_Estado actual: Fases 0–6, 8, 9 y M10.1 cerradas (specs/plans/tasks en sus carpetas con changelogs). Pendientes: F7 (enterprise), M10.2 (export) y decisión del dueño para publicar OSS._
+_Estado actual: Fases 0–6, 8, 9 y 10 cerradas (specs/plans/tasks en sus carpetas con changelogs). Pendiente: F7 (enterprise, incluye export M7.4) y decisión del dueño para publicar OSS._

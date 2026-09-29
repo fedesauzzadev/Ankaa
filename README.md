@@ -319,5 +319,5 @@ Ver [docs/SDD.md §7](docs/SDD.md).
 - **F6 (tag `v0.6.0-private`):** governance score ✅ (`f6-score`) · licencia offline + tarball/registry/Docker ✅ (`f6-distribution`) — fase cerrada.
 - **F8 (cerrada):** LLM opcional ✅ (`f8-suggest-fix`, `f8-rules-import`, `f8-drift`) · batch multi-repo ✅ (`f8-scan-org`) · pack elite 88 ✅ (`f8-elite-100`) · multi-protocolo ✅ (`f8-graphql`, `f8-grpc`, `f8-asyncapi`, `f8-webhooks`) · legacy Swagger ✅ (`f8-legacy-convert`).
 - **F9 (cerrada, sin publicar):** papeles OSS ✅ (`f9-launch-oss`: Apache-2.0 + community key + marca).
-- **F10 (parcial):** visor local ✅ (`f10-dashboard`, OSS) · export enterprise (`f10-export`, `ready`, sin construir).
-- **F7 (backlog, `f7-enterprise` draft):** packs por cliente · self-host compose completo · edge Cloudflare (opcional) — todo lo pendiente en una única fase; se abre cuando se arranque.
+- **F10 (cerrada):** visor local ✅ (`f10-dashboard`, OSS).
+- **F7 (backlog, `f7-enterprise` draft):** packs por cliente · self-host compose completo · edge Cloudflare (opcional) · export enterprise (`f10-export` como M7.4, `ready`, sin construir) — todo lo pendiente en una única fase; se abre cuando se arranque.
