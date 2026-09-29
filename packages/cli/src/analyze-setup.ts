@@ -1,15 +1,8 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { packageVersion, type Rule, type Severity } from "@apigovscan/core";
-import {
-  type AnalyzeConfig,
-  resolveCustomRulePaths,
-} from "./config.js";
-import {
-  collectCustomRules,
-  packRuleIds,
-  type RulesSource,
-} from "./custom-rules.js";
+import { type AnalyzeConfig, resolveCustomRulePaths } from "./config.js";
+import { collectCustomRules, packRuleIds, type RulesSource } from "./custom-rules.js";
 import {
   compileMatchRegexes,
   loadSkills,
@@ -81,10 +74,7 @@ export function prepareAnalysis(
   const skills = skillsResult.skills;
 
   const configRuleResult = applyConfigRules(config);
-  const severityOverrides = mergeSeverityOverrides(
-    skills.severities,
-    configRuleResult.overrides,
-  );
+  const severityOverrides = mergeSeverityOverrides(skills.severities, configRuleResult.overrides);
   const disabled = configRuleResult.disabled;
 
   let customRules: Rule[] | undefined;
@@ -106,21 +96,21 @@ export function prepareAnalysis(
     }
     const dir = findElitePackDir(defaultPackSearchRoots(cwd));
     const elitePack = dir !== null ? loadPackFromDir(dir) : undefined;
-    const eliteIds =
-      elitePack !== undefined ? packRuleIds(elitePack) : undefined;
+    const eliteIds = elitePack !== undefined ? packRuleIds(elitePack) : undefined;
     const graphqlDir = findPackDir("graphql", defaultPackSearchRoots(cwd));
-    const graphqlPack =
-      graphqlDir !== null ? loadPackFromDir(graphqlDir) : undefined;
+    const graphqlPack = graphqlDir !== null ? loadPackFromDir(graphqlDir) : undefined;
     const grpcDir = findPackDir("grpc", defaultPackSearchRoots(cwd));
     const grpcPack = grpcDir !== null ? loadPackFromDir(grpcDir) : undefined;
     const asyncapiDir = findPackDir("asyncapi", defaultPackSearchRoots(cwd));
-    const asyncapiPack =
-      asyncapiDir !== null ? loadPackFromDir(asyncapiDir) : undefined;
+    const asyncapiPack = asyncapiDir !== null ? loadPackFromDir(asyncapiDir) : undefined;
+    const webhooksDir = findPackDir("webhooks", defaultPackSearchRoots(cwd));
+    const webhooksPack = webhooksDir !== null ? loadPackFromDir(webhooksDir) : undefined;
     const knownIds = new Set<string>([
       ...(eliteIds ?? []),
       ...(graphqlPack !== undefined ? packRuleIds(graphqlPack) : []),
       ...(grpcPack !== undefined ? packRuleIds(grpcPack) : []),
       ...(asyncapiPack !== undefined ? packRuleIds(asyncapiPack) : []),
+      ...(webhooksPack !== undefined ? packRuleIds(webhooksPack) : []),
     ]);
     const collectedRules: Rule[] = [];
     if (sources.length > 0) {
@@ -158,6 +148,7 @@ export function prepareAnalysis(
       ...(graphqlPack?.rules ?? []),
       ...(grpcPack?.rules ?? []),
       ...(asyncapiPack?.rules ?? []),
+      ...(webhooksPack?.rules ?? []),
       ...collectedRules,
     ];
   } catch (err) {
@@ -202,10 +193,7 @@ export function prepareAnalysis(
   if (customRules !== undefined) {
     setup.customRules = customRules;
   }
-  if (
-    skills.suppressions.length > 0 &&
-    skillsMatchRegexes !== undefined
-  ) {
+  if (skills.suppressions.length > 0 && skillsMatchRegexes !== undefined) {
     setup.skillsSuppressions = {
       suppressions: skills.suppressions,
       matchRegexes: skillsMatchRegexes,

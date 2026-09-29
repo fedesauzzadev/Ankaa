@@ -1,0 +1,84 @@
+# rules/webhooks.yaml · M8.9 initial inventory (existing DSL atoms only)
+- id: WH-001
+  category: naming
+  severity: warning
+  message: "Webhook event types should be lowercase dot-delimited."
+  fix: "Rename the event type to lowercase dot-delimited (user.created)."
+  source:
+    title: Standard Webhooks specification
+    url: https://www.standardwebhooks.com/
+    section: "Event types"
+  when:
+    not:
+      op: operationIdPattern
+      pattern: "^[a-z0-9_]+[.][a-z0-9_.]*$"
+
+- id: WH-002
+  category: docs
+  severity: warning
+  message: "Webhook events must document a description."
+  fix: "Add a description explaining the event and when it fires."
+  source:
+    title: Standard Webhooks specification
+    url: https://www.standardwebhooks.com/
+    section: "Payload structure"
+  when:
+    op: missingField
+    field: description
+
+- id: WH-003
+  category: docs
+  severity: info
+  message: "Webhook descriptions should be meaningful (at least 20 characters)."
+  fix: "Expand the description beyond a few words."
+  source:
+    title: Standard Webhooks specification
+    url: https://www.standardwebhooks.com/
+    section: "Payload structure"
+  when:
+    not:
+      op: descriptionMinLength
+      target: description
+      min: 20
+
+- id: WH-004
+  category: docs
+  severity: info
+  message: "Webhook descriptions must not contain TODO/FIXME placeholders."
+  fix: "Replace the placeholder with the real documentation."
+  source:
+    title: Standard Webhooks specification
+    url: https://www.standardwebhooks.com/
+    section: "Payload structure"
+  when:
+    op: descriptionMatches
+    target: description
+    pattern: "TODO|FIXME|XXX|TBD"
+
+- id: WH-005
+  category: security
+  severity: warning
+  message: "Webhook events must declare the webhook-signature header."
+  fix: "Declare the webhook-signature header so receivers can verify authenticity."
+  source:
+    title: Standard Webhooks specification
+    url: https://www.standardwebhooks.com/
+    section: "Webhook headers"
+  when:
+    not:
+      op: headerRequired
+      name: webhook-signature
+
+- id: WH-006
+  category: structure
+  severity: warning
+  message: "Webhook events must carry a payload in the body."
+  fix: "Add a payload schema describing the HTTP body."
+  source:
+    title: Standard Webhooks specification
+    url: https://www.standardwebhooks.com/
+    section: "Payload"
+  when:
+    not:
+      op: presentField
+      field: requestBody

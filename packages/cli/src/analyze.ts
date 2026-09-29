@@ -10,6 +10,7 @@ import { parseSpec, type ParseError } from "@apigovscan/openapi";
 import { parseGraphQL } from "@apigovscan/graphql";
 import { parseProto } from "@apigovscan/grpc";
 import { looksLikeAsyncApi, parseAsyncAPI } from "@apigovscan/asyncapi";
+import { looksLikeWebhooks, parseWebhooks } from "@apigovscan/webhooks";
 import { buildReport, type Report } from "@apigovscan/reporters";
 import type { FailOn } from "./args.js";
 import type { PackRepository, ReportSink, SpecLoader } from "./ports.js";
@@ -51,27 +52,17 @@ export type AnalyzeOutcome =
 function formatParseErrors(label: string, errors: ParseError[]): string {
   const lines = errors.map((e) => {
     const loc =
-      e.line !== undefined
-        ? `line ${e.line}`
-        : e.jsonPointer !== undefined
-          ? e.jsonPointer
-          : "";
+      e.line !== undefined ? `line ${e.line}` : e.jsonPointer !== undefined ? e.jsonPointer : "";
     return loc ? `  ${loc}: ${e.message}` : `  ${e.message}`;
   });
   return `failed to parse ${label}\n${lines.join("\n")}`;
 }
 
-function prefixFindings(
-  result: EvaluationResult,
-  label: string,
-  multi: boolean,
-): EvaluationResult {
+function prefixFindings(result: EvaluationResult, label: string, multi: boolean): EvaluationResult {
   if (!multi) return result;
   return {
     ...result,
-    findings: result.findings.map(
-      (f): Finding => ({ ...f, location: `${label}#${f.location}` }),
-    ),
+    findings: result.findings.map((f): Finding => ({ ...f, location: `${label}#${f.location}` })),
   };
 }
 
@@ -96,7 +87,7 @@ export function isGrpcInput(path: string): boolean {
   return path.toLowerCase().endsWith(".proto");
 }
 
-type InputProtocol = "graphql" | "grpc" | "asyncapi" | null;
+type InputProtocol = "graphql" | "grpc" | "asyncapi" | "webhooks" | null;
 
 function protocolForInput(path: string, bytes: Uint8Array): InputProtocol {
   if (isGraphqlInput(path)) return "graphql";
@@ -109,6 +100,7 @@ function protocolForInput(path: string, bytes: Uint8Array): InputProtocol {
     lower.endsWith(".json")
   ) {
     if (looksLikeAsyncApi(bytes)) return "asyncapi";
+    if (looksLikeWebhooks(bytes)) return "webhooks";
   }
   return null;
 }
@@ -153,9 +145,7 @@ export async function analyzeUseCase(
     try {
       const t = performance.now();
       bytes = await deps.loader.load(path);
-      debug(
-        `load ${label} ${bytes.byteLength}B ${(performance.now() - t).toFixed(2)}ms`,
-      );
+      debug(`load ${label} ${bytes.byteLength}B ${(performance.now() - t).toFixed(2)}ms`);
     } catch (err) {
       return {
         ok: false,
@@ -170,7 +160,8 @@ export async function analyzeUseCase(
       | ReturnType<typeof parseSpec>
       | ReturnType<typeof parseGraphQL>
       | ReturnType<typeof parseProto>
-      | ReturnType<typeof parseAsyncAPI>;
+      | ReturnType<typeof parseAsyncAPI>
+      | ReturnType<typeof parseWebhooks>;
     let activePacks = packList;
     if (protocol !== null) {
       let protocolPack = protocolPacks.get(protocol);
@@ -193,7 +184,9 @@ export async function analyzeUseCase(
           ? parseGraphQL(bytes, { sourceLabel: label })
           : protocol === "grpc"
             ? parseProto(bytes, { sourceLabel: label })
-            : parseAsyncAPI(bytes, { sourceLabel: label });
+            : protocol === "asyncapi"
+              ? parseAsyncAPI(bytes, { sourceLabel: label })
+              : parseWebhooks(bytes, { sourceLabel: label });
     } else {
       for (const pack of packList) usedPacks.set(pack.id, pack.version);
       parsed = parseSpec(bytes, { sourceLabel: label });
@@ -213,9 +206,7 @@ export async function analyzeUseCase(
       packs: activePacks,
       customRules: opts.customRules as Rule[] | undefined,
       disabledRuleIds: opts.disabledRuleIds as Set<string> | undefined,
-      severityOverrides: opts.severityOverrides as
-        | Map<string, Severity>
-        | undefined,
+      severityOverrides: opts.severityOverrides as Map<string, Severity> | undefined,
     });
     if (result.errors.length > 0) {
       const detail = result.errors
@@ -276,14 +267,10 @@ export async function analyzeUseCase(
     packs: [...usedPacks].map(([id, version]) => ({ id, version })),
     toolVersion: opts.toolVersion,
     meta: { durationMs: Math.round(performance.now() - started) },
-    ...(opts.baselineFingerprints !== undefined
-      ? { suppressed: suppressedCount }
-      : {}),
+    ...(opts.baselineFingerprints !== undefined ? { suppressed: suppressedCount } : {}),
     ...(skillsSuppressedCount > 0 ? { skillsSuppressed: skillsSuppressedCount } : {}),
   });
-  debug(
-    `report ${report.findings.length} findings ${Math.round(performance.now() - tReport)}ms`,
-  );
+  debug(`report ${report.findings.length} findings ${Math.round(performance.now() - tReport)}ms`);
 
   try {
     await deps.sink.write(report);

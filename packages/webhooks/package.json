@@ -1,0 +1,35 @@
+{
+  "name": "@apigovscan/webhooks",
+  "version": "0.0.0-dev",
+  "description": "Webhooks definition parser and normalizer for ApiGovScan (no network)",
+  "license": "Apache-2.0",
+  "author": "fedesauzzadev (https://github.com/fedesauzzadev)",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run",
+    "typecheck": "tsc -b --pretty"
+  },
+  "dependencies": {
+    "@apigovscan/core": "workspace:*",
+    "yaml": "^2.9.1"
+  },
+  "devDependencies": {
+    "@types/node": "20.17.10",
+    "vitest": "^2.1.8"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -8,13 +8,10 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { isAbsolute, join, relative, resolve, sep } from "node:path";
-import {
-  explain,
-  packageVersion,
-  type Rule,
-} from "@apigovscan/core";
+import { explain, packageVersion, type Rule } from "@apigovscan/core";
 import {
   parseAnalyzeArgs,
+  parseDashboardArgs,
   parseDriftArgs,
   parseFixArgs,
   parseRulesArgs,
@@ -44,10 +41,7 @@ import {
   resolveBaselinePath,
   writeBaselineFile,
 } from "./baseline.js";
-import {
-  loadConfig,
-  type AnalyzeConfig,
-} from "./config.js";
+import { loadConfig, type AnalyzeConfig } from "./config.js";
 import { discoverSpecs } from "./discovery.js";
 import {
   buildShapeMessages,
@@ -61,12 +55,18 @@ import {
   parseSweepResponse,
 } from "./drift.js";
 import { parseSpec } from "@apigovscan/openapi";
+import { aggregateScans, loadGroupMapping, type RepoScan, type SkippedRepo } from "./scan.js";
 import {
-  aggregateScans,
-  loadGroupMapping,
-  type RepoScan,
-  type SkippedRepo,
-} from "./scan.js";
+  compareReports,
+  dashboardHelp,
+  loadOwnerMapping,
+  loadReportFile as loadDashboardReportFile,
+  loadTrackingFile,
+  resolveDashboardPaths,
+  startDashboardServer,
+  type DashboardPayload,
+} from "./dashboard.js";
+import { renderDashboardPage } from "./dashboard-page.js";
 import { cloneRepo, listOrgRepos } from "./github.js";
 import { formatInitEntries, runInit } from "./init.js";
 import {
@@ -75,10 +75,7 @@ import {
   validateRulesFiles,
   type RulesSource,
 } from "./custom-rules.js";
-import {
-  listSkills,
-  promoteDraft,
-} from "./skills.js";
+import { listSkills, promoteDraft } from "./skills.js";
 import {
   buildLearnPatch,
   loadExistingSeverities,
@@ -88,17 +85,10 @@ import {
   resolveLearnSkillsDir,
   writeLearnPatch,
 } from "./learn.js";
-import {
-  createFsPackRepository,
-  createFsSpecLoader,
-  createReportSink,
-} from "./loaders.js";
+import { createFsPackRepository, createFsSpecLoader, createReportSink } from "./loaders.js";
 import { createCliMcpHandlers } from "./mcp.js";
 import { createMcpServer, startStdioServer } from "@apigovscan/mcp";
-import {
-  checkLicense,
-  licenseErrorMessage,
-} from "./license.js";
+import { checkLicense, licenseErrorMessage } from "./license.js";
 import {
   defaultPackSearchRoots,
   findElitePackDir,
@@ -128,6 +118,7 @@ export function getHelp(): string {
     "  apigovscan fix <path> [--fingerprint <fp>]",
     "  apigovscan drift <dir> [--spec <file>]",
     "  apigovscan scan-org <dir> [--github <org>]",
+    "  apigovscan dashboard <report.json> [--port <n>]",
     "  apigovscan mcp [--help]",
     "  apigovscan --version",
     "  apigovscan --help",
@@ -177,12 +168,16 @@ export function getHelp(): string {
     "  Draft custom rules from an internal guideline using your own LLM.",
     "  apigovscan drift <dir> [--spec <file>]",
     "  Detect spec-code drift and draft missing specs; LLM optional for deep scan.",
+    "  Configure llm.baseUrl in apigovscan.yaml (or APIGOVSCAN_LLM_BASE_URL).",
+    "  The LLM only drafts text; it never analyzes, scores, or gates.",
     "",
     "Batch audit (deterministic, no LLM):",
     "  apigovscan scan-org <dir> [--github <org>]",
     "  Consolidated per-repo scores for a directory of projects or a GitHub org.",
-    "  Configure llm.baseUrl in apigovscan.yaml (or APIGOVSCAN_LLM_BASE_URL).",
-    "  The LLM only drafts text; it never analyzes, scores, or gates.",
+    "",
+    "Local viewer (no analysis, no network beyond loopback):",
+    "  apigovscan dashboard <report.json> [--port <n>] [--against <old.json>]",
+    "  Serve finding cards with grouping and local tracking on 127.0.0.1.",
     "",
     "Exit codes:",
     "  0  no findings at or above --fail-on",
@@ -215,9 +210,7 @@ function mergeFailOn(
 ): FailOn {
   const failOn = flag ?? config.failOn ?? "error";
   if (failOn === "never") {
-    stderr(
-      "warning: failOn=never always exits 0; use only for exploration, not CI\n",
-    );
+    stderr("warning: failOn=never always exits 0; use only for exploration, not CI\n");
   }
   return failOn;
 }
@@ -286,10 +279,7 @@ async function runAnalyze(
       ? "strict"
       : "warn";
 
-  if (
-    config.standards?.version !== undefined &&
-    config.standards.version !== "0.0.0-dev"
-  ) {
+  if (config.standards?.version !== undefined && config.standards.version !== "0.0.0-dev") {
     const eliteDir = findElitePackDir(defaultPackSearchRoots(io.cwd));
     if (eliteDir) {
       try {
@@ -321,9 +311,7 @@ async function runAnalyze(
 
   // Write mode: refuse overwrite before analyze when file exists without --force
   if (baselineMode === "write" && existsSync(baselinePath) && !args.force) {
-    io.stderr(
-      `error: baseline already exists: ${baselinePath} (pass --force to overwrite)\n`,
-    );
+    io.stderr(`error: baseline already exists: ${baselinePath} (pass --force to overwrite)\n`);
     return 2;
   }
 
@@ -345,9 +333,7 @@ async function runAnalyze(
     inputs = [inputPath];
   }
 
-  const noColor =
-    args.noColor ||
-    (io.env.NO_COLOR !== undefined && io.env.NO_COLOR !== "");
+  const noColor = args.noColor || (io.env.NO_COLOR !== undefined && io.env.NO_COLOR !== "");
   const color = !noColor && io.isTTY;
   const pretty = args.format === "json" && io.isTTY && args.output === undefined;
 
@@ -361,16 +347,13 @@ async function runAnalyze(
     {
       loader: createFsSpecLoader(io.readStdin),
       packs: createFsPackRepository(io.cwd),
-        sink: createReportSink({
-          format: args.format,
-          color,
-          pretty,
-          output:
-            args.output !== undefined
-              ? resolve(io.cwd, args.output)
-              : undefined,
-          stdout: io.stdout,
-        }),
+      sink: createReportSink({
+        format: args.format,
+        color,
+        pretty,
+        output: args.output !== undefined ? resolve(io.cwd, args.output) : undefined,
+        stdout: io.stdout,
+      }),
     },
     {
       inputs,
@@ -393,11 +376,7 @@ async function runAnalyze(
 
   // Hash checks after we know report.input labels/sha256
   if (baselineMode === "read" && setup.loadedBaseline !== undefined) {
-    const complaints = checkInputHashes(
-      setup.loadedBaseline,
-      outcome.report.input,
-      hashMode,
-    );
+    const complaints = checkInputHashes(setup.loadedBaseline, outcome.report.input, hashMode);
     if (complaints.fatal !== undefined) {
       io.stderr(`error: ${complaints.fatal}\n`);
       return 2;
@@ -429,10 +408,7 @@ async function runAnalyze(
   return outcome.exitCode;
 }
 
-function formatExplain(
-  ruleId: string,
-  explanation: ReturnType<typeof explain>,
-): string {
+function formatExplain(ruleId: string, explanation: ReturnType<typeof explain>): string {
   if (explanation === undefined) {
     return `rule not found: ${ruleId}\n`;
   }
@@ -451,10 +427,7 @@ function formatExplain(
       lines.push(`section: ${explanation.source.section}`);
     }
   }
-  lines.push(
-    "",
-    `pack: ${explanation.packId}@${explanation.packVersion}`,
-  );
+  lines.push("", `pack: ${explanation.packId}@${explanation.packVersion}`);
   lines.push("");
   return lines.join("\n");
 }
@@ -469,7 +442,7 @@ function loadElitePackOrThrow(cwd: string) {
   return loadPackFromDir(dir);
 }
 
-const PROTOCOL_PACKS = ["graphql", "grpc", "asyncapi"];
+const PROTOCOL_PACKS = ["graphql", "grpc", "asyncapi", "webhooks"];
 
 function loadProtocolPacks(cwd: string): Rule[] {
   const rules: Rule[] = [];
@@ -537,9 +510,7 @@ function runRulesValidate(
         file: o.file,
         ok: o.ok && o.structuralError === undefined,
         ruleCount: o.ruleCount,
-        ...(o.structuralError !== undefined
-          ? { error: o.structuralError }
-          : {}),
+        ...(o.structuralError !== undefined ? { error: o.structuralError } : {}),
         errors: o.errors,
       })),
     };
@@ -559,9 +530,7 @@ function runRulesValidate(
       continue;
     }
     for (const e of o.errors) {
-      io.stderr(
-        `error: invalid custom rule in ${o.file} #${e.index}: ${e.issues.join("; ")}\n`,
-      );
+      io.stderr(`error: invalid custom rule in ${o.file} #${e.index}: ${e.issues.join("; ")}\n`);
     }
   }
   return 2;
@@ -595,11 +564,7 @@ function runRulesList(
 
   let custom: Rule[] = [];
   if (parsed.args.rulesFiles.length > 0) {
-    const loaded = loadCustomRulesForRulesCmd(
-      parsed.args.rulesFiles,
-      io.cwd,
-      elite,
-    );
+    const loaded = loadCustomRulesForRulesCmd(parsed.args.rulesFiles, io.cwd, elite);
     if (!loaded.ok) {
       io.stderr(`error: ${loaded.error}\n`);
       return 2;
@@ -607,12 +572,8 @@ function runRulesList(
     custom = loaded.rules;
   }
 
-  const eliteSorted = [...elite.rules].sort((a, b) =>
-    a.id < b.id ? -1 : a.id > b.id ? 1 : 0,
-  );
-  const customSorted = [...custom].sort((a, b) =>
-    a.id < b.id ? -1 : a.id > b.id ? 1 : 0,
-  );
+  const eliteSorted = [...elite.rules].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  const customSorted = [...custom].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 
   if (parsed.args.format === "json") {
     const rules = [...eliteSorted, ...customSorted].map((r) => ({
@@ -647,9 +608,7 @@ function runRulesList(
     return 0;
   }
 
-  const lines: string[] = [
-    `${elite.id}@${elite.version}  ${eliteSorted.length} rules`,
-  ];
+  const lines: string[] = [`${elite.id}@${elite.version}  ${eliteSorted.length} rules`];
   for (const r of eliteSorted) {
     lines.push(`  ${r.id}  [${r.severity}]  (${r.category})  ${r.message}`);
   }
@@ -699,11 +658,7 @@ function runRulesExplain(
   let rulesForLookup: Array<Rule> = pack.rules;
   rulesForLookup = [...rulesForLookup, ...loadProtocolPacks(io.cwd)];
   if (parsed.args.rulesFiles.length > 0) {
-    const loaded = loadCustomRulesForRulesCmd(
-      parsed.args.rulesFiles,
-      io.cwd,
-      pack,
-    );
+    const loaded = loadCustomRulesForRulesCmd(parsed.args.rulesFiles, io.cwd, pack);
     if (!loaded.ok) {
       io.stderr(`error: ${loaded.error}\n`);
       return 2;
@@ -829,9 +784,7 @@ async function runRulesImport(
   try {
     bytes = readFileSync(fromAbs);
   } catch (err) {
-    io.stderr(
-      `error: import file ${from}: ${err instanceof Error ? err.message : String(err)}\n`,
-    );
+    io.stderr(`error: import file ${from}: ${err instanceof Error ? err.message : String(err)}\n`);
     return 2;
   }
   const extracted = await extractText(fromAbs, bytes);
@@ -856,9 +809,7 @@ async function runRulesImport(
     try {
       text = await chatCompletion(llmCfg, buildImportMessages(chunk));
     } catch (err) {
-      io.stderr(
-        `error: ${err instanceof Error ? err.message : String(err)}\n`,
-      );
+      io.stderr(`error: ${err instanceof Error ? err.message : String(err)}\n`);
       return 2;
     }
     entries.push(...parseRulesEnvelope(text));
@@ -870,11 +821,7 @@ async function runRulesImport(
   } catch {
     // elite pack unavailable here: skip the elite duplicate check
   }
-  const { valid, rejected } = validateDrafts(
-    entries,
-    packageVersion(),
-    eliteIds,
-  );
+  const { valid, rejected } = validateDrafts(entries, packageVersion(), eliteIds);
   for (const r of rejected) {
     io.stderr(`warning: rejected draft #${r.index}: ${r.issues.join("; ")}\n`);
   }
@@ -885,9 +832,7 @@ async function runRulesImport(
   try {
     writeFileSync(outAbs, serializeRulesDrafts(valid), "utf8");
   } catch (err) {
-    io.stderr(
-      `error: cannot write ${out}: ${err instanceof Error ? err.message : String(err)}\n`,
-    );
+    io.stderr(`error: cannot write ${out}: ${err instanceof Error ? err.message : String(err)}\n`);
     return 2;
   }
   io.stdout(
@@ -1155,9 +1100,7 @@ function runLearn(
     typeof reportLoaded.report.reportHash === "string" &&
     feedbackLoaded.feedback.reportHash !== reportLoaded.report.reportHash
   ) {
-    io.stderr(
-      "warning: feedback reportHash differs from report (proceeding)\n",
-    );
+    io.stderr("warning: feedback reportHash differs from report (proceeding)\n");
   }
 
   const configResult = loadConfig(io.cwd, configPath);
@@ -1254,7 +1197,7 @@ function runSkillsCommand(
     if (token === "--format") {
       const v = rest[++i];
       if (v !== "console" && v !== "json") {
-        io.stderr('error: --format must be console | json\n');
+        io.stderr("error: --format must be console | json\n");
         return 2;
       }
       format = v;
@@ -1370,9 +1313,7 @@ function runSkillsCommand(
       return 2;
     }
     if (!/^[A-Z][A-Z0-9]*-\d{3}$/.test(draftId)) {
-      io.stderr(
-        `error: invalid draft id format "${draftId}" (expected PREFIX-NNN)\n`,
-      );
+      io.stderr(`error: invalid draft id format "${draftId}" (expected PREFIX-NNN)\n`);
       return 2;
     }
     const promoted = promoteDraft(skillsDir, draftId);
@@ -1384,9 +1325,7 @@ function runSkillsCommand(
     return 0;
   }
 
-  io.stderr(
-    `error: unknown skills subcommand "${sub ?? ""}" (expected: list | promote)\n`,
-  );
+  io.stderr(`error: unknown skills subcommand "${sub ?? ""}" (expected: list | promote)\n`);
   return 2;
 }
 
@@ -1405,7 +1344,7 @@ function getMcpHelp(): string {
     "  explain_finding(reportPath, fingerprint)",
     "  suggest_fix(reportPath, fingerprint) — LLM draft only, needs llm.baseUrl",
     "",
-  "Paths are sandboxed under the process cwd. analyze_spec output is truncated.",
+    "Paths are sandboxed under the process cwd. analyze_spec output is truncated.",
     "Same engine as the CLI; stateless between calls; zero network (INV-1).",
     "",
     "Client registration (Claude / Cursor / opencode):",
@@ -1434,9 +1373,7 @@ async function runMcpCommand(
   }
 
   const configResult = loadConfig(io.cwd, undefined);
-  const configKey = configResult.ok
-    ? configResult.config.license?.key
-    : undefined;
+  const configKey = configResult.ok ? configResult.config.license?.key : undefined;
   const license = checkLicense({
     env: io.env.APIGOVSCAN_LICENSE_KEY,
     config: configKey,
@@ -1456,9 +1393,7 @@ async function runMcpCommand(
     await startStdioServer(server);
     return 0;
   } catch (err) {
-    io.stderr(
-      `error: mcp server failed: ${err instanceof Error ? err.message : String(err)}\n`,
-    );
+    io.stderr(`error: mcp server failed: ${err instanceof Error ? err.message : String(err)}\n`);
     return 2;
   }
 }
@@ -1492,9 +1427,7 @@ function runLicenseCommand(
     return 2;
   }
   const configResult = loadConfig(io.cwd, undefined);
-  const configKey = configResult.ok
-    ? configResult.config.license?.key
-    : undefined;
+  const configKey = configResult.ok ? configResult.config.license?.key : undefined;
   const license = checkLicense({
     flag: keyFlag,
     env: io.env.APIGOVSCAN_LICENSE_KEY,
@@ -1533,10 +1466,7 @@ async function runFixCommand(
   }
   const args = parsedArgs.args;
 
-  if (
-    args.fingerprint !== undefined &&
-    !/^[0-9a-f]{64}$/.test(args.fingerprint)
-  ) {
+  if (args.fingerprint !== undefined && !/^[0-9a-f]{64}$/.test(args.fingerprint)) {
     io.stderr("error: invalid fingerprint (expected 64 hex chars)\n");
     return 2;
   }
@@ -1658,9 +1588,7 @@ async function runFixCommand(
           ? inputs[0]!
           : undefined;
     if (specAbs === undefined || !existsSync(specAbs)) {
-      io.stderr(
-        `error: spec file not found: ${target.label ?? finding.location}\n`,
-      );
+      io.stderr(`error: spec file not found: ${target.label ?? finding.location}\n`);
       return 2;
     }
     const specText = readFileSync(specAbs, "utf8");
@@ -1683,9 +1611,7 @@ async function runFixCommand(
             ? {
                 source: {
                   title: explanation.source.title,
-                  ...(explanation.source.url !== undefined
-                    ? { url: explanation.source.url }
-                    : {}),
+                  ...(explanation.source.url !== undefined ? { url: explanation.source.url } : {}),
                 },
               }
             : {}),
@@ -1701,9 +1627,7 @@ async function runFixCommand(
       explanationText = parsed.fix.explanation;
       confidence = parsed.fix.confidence;
     } catch (err) {
-      io.stderr(
-        `error: ${err instanceof Error ? err.message : String(err)}\n`,
-      );
+      io.stderr(`error: ${err instanceof Error ? err.message : String(err)}\n`);
       return 2;
     }
     if (index > 0) {
@@ -1732,10 +1656,7 @@ function formatDriftConsole(
     shapeNotes: Array<{ op: string; outputChanged: boolean; confidence: string; note: string }>;
   },
 ): string {
-  const lines: string[] = [
-    spec !== undefined ? `drift ${dir} vs ${spec}` : `drift ${dir}`,
-    "",
-  ];
+  const lines: string[] = [spec !== undefined ? `drift ${dir} vs ${spec}` : `drift ${dir}`, ""];
   if (
     report.missing.length === 0 &&
     report.removed.length === 0 &&
@@ -1751,7 +1672,9 @@ function formatDriftConsole(
   for (const e of report.removed) lines.push(`  ${e.method} ${e.path}`);
   lines.push(`changed (${report.changed.length}):`);
   for (const c of report.changed) {
-    lines.push(`  ${c.path}  spec [${c.specMethods.join(", ")}]  code [${c.codeMethods.join(", ")}]`);
+    lines.push(
+      `  ${c.path}  spec [${c.specMethods.join(", ")}]  code [${c.codeMethods.join(", ")}]`,
+    );
   }
   if (report.shapeNotes.length > 0) {
     lines.push(`shape notes (${report.shapeNotes.length}):`);
@@ -1763,11 +1686,7 @@ function formatDriftConsole(
   return `${lines.join("\n")}\n`;
 }
 
-function codeFragmentAround(
-  fileAbs: string,
-  line: number | undefined,
-  radius = 20,
-): string {
+function codeFragmentAround(fileAbs: string, line: number | undefined, radius = 20): string {
   let text: string;
   try {
     text = readFileSync(fileAbs, "utf8");
@@ -1851,9 +1770,7 @@ async function runDriftCommand(
     try {
       text = await chatCompletion(llmCfg, buildSweepMessages(collected.files));
     } catch (err) {
-      io.stderr(
-        `error: ${err instanceof Error ? err.message : String(err)}\n`,
-      );
+      io.stderr(`error: ${err instanceof Error ? err.message : String(err)}\n`);
       return 2;
     }
     routes = parseSweepResponse(text);
@@ -1908,11 +1825,11 @@ async function runDriftCommand(
     if (llmCfg !== undefined) {
       const matched = parsed.spec.operations
         .filter((o) =>
-          routes.some((r) => r.path === o.path && (r.method === "*" || r.method === o.method.toUpperCase())),
+          routes.some(
+            (r) => r.path === o.path && (r.method === "*" || r.method === o.method.toUpperCase()),
+          ),
         )
-        .sort((a, b) =>
-          a.path < b.path ? -1 : a.path > b.path ? 1 : a.method < b.method ? -1 : 1,
-        )
+        .sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : a.method < b.method ? -1 : 1))
         .slice(0, MAX_SHAPE_PAIRS);
       if (matched.length > 0) {
         const pairs = matched.map((o) => {
@@ -1964,9 +1881,7 @@ async function runDriftCommand(
   try {
     writeFileSync(outAbs, skeleton, "utf8");
   } catch (err) {
-    io.stderr(
-      `error: cannot write ${out}: ${err instanceof Error ? err.message : String(err)}\n`,
-    );
+    io.stderr(`error: cannot write ${out}: ${err instanceof Error ? err.message : String(err)}\n`);
     return 2;
   }
   const opCount = new Set(
@@ -1992,15 +1907,19 @@ function formatScanConsole(
         grade: string;
       }>;
     }>;
-    totals: { repos: number; specs: number; findings: number; errors: number; warnings: number; infos: number };
+    totals: {
+      repos: number;
+      specs: number;
+      findings: number;
+      errors: number;
+      warnings: number;
+      infos: number;
+    };
     avgScore: number;
     skipped: Array<{ name: string; reason: string }>;
   },
 ): string {
-  const lines: string[] = [
-    `scan-org ${display} (${report.totals.repos} repos)`,
-    "",
-  ];
+  const lines: string[] = [`scan-org ${display} (${report.totals.repos} repos)`, ""];
   for (const group of report.groups) {
     lines.push(`[${group.name}]`);
     for (const repo of group.repos) {
@@ -2029,7 +1948,12 @@ async function analyzeProjectDir(
   repoDir: string,
   config: AnalyzeConfig,
 ): Promise<
-  | { ok: true; specs: number; summary: { error: number; warning: number; info: number; total: number }; score: { value: number; grade: string } }
+  | {
+      ok: true;
+      specs: number;
+      summary: { error: number; warning: number; info: number; total: number };
+      score: { value: number; grade: string };
+    }
   | { ok: false; error: string }
 > {
   const discovered = discoverSpecs(repoDir);
@@ -2088,6 +2012,113 @@ function loadRepoConfig(
   repoDir: string,
 ): { ok: true; config: AnalyzeConfig } | { ok: false; error: string } {
   return loadConfig(repoDir, undefined);
+}
+
+async function runDashboardCommand(
+  argv: readonly string[],
+  io: {
+    stdout: (text: string) => void;
+    stderr: (text: string) => void;
+    cwd: string;
+  },
+): Promise<number> {
+  const parsed = parseDashboardArgs(argv);
+  if (!parsed.ok) {
+    io.stderr(`error: ${parsed.error}\n${dashboardHelp()}\n`);
+    return 2;
+  }
+  const args = parsed.args;
+  const { reportPath, trackingPath } = resolveDashboardPaths(io.cwd, args.report, args.tracking);
+
+  const loaded = loadDashboardReportFile(reportPath);
+  if (!loaded.ok) {
+    io.stderr(`error: ${loaded.error}\n`);
+    return 2;
+  }
+  const report = loaded.report;
+
+  const trackingLoaded = loadTrackingFile(trackingPath);
+  if (!trackingLoaded.ok) {
+    io.stderr(`error: ${trackingLoaded.error}\n`);
+    return 2;
+  }
+
+  let groups: Record<string, string> = {};
+  if (args.groupBy !== undefined) {
+    const groupAbs = resolve(io.cwd, args.groupBy);
+    if (!existsSync(groupAbs)) {
+      io.stderr(`error: group file not found: ${args.groupBy}\n`);
+      return 2;
+    }
+    let groupText: string;
+    try {
+      groupText = readFileSync(groupAbs, "utf8");
+    } catch (err) {
+      io.stderr(
+        `error: group file ${args.groupBy}: ${err instanceof Error ? err.message : String(err)}\n`,
+      );
+      return 2;
+    }
+    const mapping = loadOwnerMapping(groupText);
+    if (!mapping.ok) {
+      io.stderr(`error: ${mapping.error}\n`);
+      return 2;
+    }
+    groups = mapping.mapping;
+  }
+
+  let trends: DashboardPayload["trends"] = undefined;
+  if (args.against !== undefined) {
+    const againstAbs = resolve(io.cwd, args.against);
+    const against = loadDashboardReportFile(againstAbs);
+    if (!against.ok) {
+      io.stderr(`error: ${against.error}\n`);
+      return 2;
+    }
+    trends = compareReports(report, against.report);
+  }
+
+  const payload: DashboardPayload = {
+    report,
+    tracking: trackingLoaded.tracking,
+    groups,
+    trends,
+  };
+  const pageHtml = renderDashboardPage();
+
+  let server_: Awaited<ReturnType<typeof startDashboardServer>>;
+  try {
+    server_ = await startDashboardServer(
+      {
+        payload: () => {
+          const current = loadTrackingFile(trackingPath);
+          return {
+            ...payload,
+            tracking: current.ok ? current.tracking : payload.tracking,
+          };
+        },
+        trackingPath,
+        pageHtml,
+      },
+      args.port,
+    );
+  } catch (err) {
+    io.stderr(
+      `error: cannot start dashboard: ${err instanceof Error ? err.message : String(err)}\n`,
+    );
+    return 2;
+  }
+
+  io.stdout(`dashboard at ${server_.url} (local only, press Ctrl+C to stop)\n`);
+  await new Promise<void>((resolvePromise) => {
+    const onSigint = (): void => {
+      server_.server.close(() => resolvePromise());
+      process.removeListener("SIGINT", onSigint);
+      setTimeout(() => resolvePromise(), 1000).unref?.();
+    };
+    process.on("SIGINT", onSigint);
+  });
+  return 0;
 }
 
 async function runScanOrgCommand(
@@ -2171,23 +2202,18 @@ async function runScanOrgCommand(
       io.stderr("error: --github requires GITHUB_TOKEN\n");
       return 2;
     }
-    const listed = await listOrgRepos(
-      args.apiBase,
-      args.github,
-      token,
-      args.maxRepos,
-    );
+    const listed = await listOrgRepos(args.apiBase, args.github, token, args.maxRepos);
     if (!listed.ok) {
       io.stderr(`error: ${listed.error}\n`);
       return 2;
     }
     if (listed.repos.length === args.maxRepos) {
-      io.stderr(
-        `note: repo list truncated at --max-repos ${args.maxRepos}\n`,
-      );
+      io.stderr(`note: repo list truncated at --max-repos ${args.maxRepos}\n`);
     }
     const workdir =
-      args.workdir !== undefined ? resolve(io.cwd, args.workdir) : mkdtempSync(join(tmpdir(), "apigovscan-scan-"));
+      args.workdir !== undefined
+        ? resolve(io.cwd, args.workdir)
+        : mkdtempSync(join(tmpdir(), "apigovscan-scan-"));
     if (args.workdir !== undefined && !existsSync(workdir)) {
       io.stderr(`error: workdir not found: ${args.workdir}\n`);
       return 2;
@@ -2291,12 +2317,17 @@ async function runScanOrgCommand(
   return 0;
 }
 
-export async function run(
-  argv: readonly string[],
-  io?: RunIO,
-): Promise<number> {
-  const stdout = io?.stdout ?? ((text: string) => { process.stdout.write(text); });
-  const stderr = io?.stderr ?? ((text: string) => { process.stderr.write(text); });
+export async function run(argv: readonly string[], io?: RunIO): Promise<number> {
+  const stdout =
+    io?.stdout ??
+    ((text: string) => {
+      process.stdout.write(text);
+    });
+  const stderr =
+    io?.stderr ??
+    ((text: string) => {
+      process.stderr.write(text);
+    });
   const env = io?.env ?? process.env;
   const cwd = io?.cwd ?? process.cwd();
   const isTTY = io?.isTTY ?? process.stdout.isTTY === true;
@@ -2333,6 +2364,7 @@ export async function run(
     first === "fix" ||
     first === "drift" ||
     first === "scan-org" ||
+    first === "dashboard" ||
     first === "mcp";
 
   if (
@@ -2419,6 +2451,13 @@ export async function run(
       stdout,
       stderr,
       env,
+      cwd,
+    });
+  }
+  if (first === "dashboard") {
+    return runDashboardCommand(args.slice(1), {
+      stdout,
+      stderr,
       cwd,
     });
   }

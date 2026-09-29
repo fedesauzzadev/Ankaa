@@ -1,0 +1,25 @@
+openapi: 3.1.0
+info:
+  title: Petstore with callbacks
+  version: 1.0.0
+paths:
+  /pets:
+    get:
+      operationId: listPets
+      description: Lists pets in the store with enough detail.
+      responses:
+        "200":
+          description: A list of pets.
+webhooks:
+  newPet:
+    post:
+      operationId: newPetWebhook
+      description: Notifies about a new pet arrival in the store.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Acknowledged.

@@ -2,7 +2,8 @@
   "name": "@apigovscan/cli",
   "version": "0.0.0-dev",
   "description": "ApiGovScan CLI — local-first API governance analyzer",
-  "license": "UNLICENSED",
+  "license": "Apache-2.0",
+  "author": "fedesauzzadev (https://github.com/fedesauzzadev)",
   "type": "module",
   "bin": {
     "apigovscan": "./bin/apigovscan.js"
@@ -30,13 +31,14 @@
     "LICENSE.md"
   ],
   "scripts": {
-    "build": "tsc -b && node ./scripts/copy-packs.mjs && esbuild dist/index.js --bundle --platform=node --format=esm --target=node20 --outfile=dist/apigovscan.mjs --banner:js=\"import{createRequire}from'node:module';const require=createRequire(import.meta.url);\"",
+    "build": "tsc -b && node ./scripts/copy-packs.mjs && esbuild dist/index.js --bundle --platform=node --format=esm --target=node20 --outfile=dist/apigovscan.mjs --banner:js=\"import{createRequire as __apigovscanCreateRequire}from'node:module';const require=__apigovscanCreateRequire(import.meta.url);\"",
     "test": "vitest run",
     "typecheck": "tsc -b --pretty"
   },
   "dependencies": {
     "@apigovscan/core": "workspace:*",
     "@apigovscan/asyncapi": "workspace:*",
+    "@apigovscan/webhooks": "workspace:*",
     "@apigovscan/graphql": "workspace:*",
     "@apigovscan/grpc": "workspace:*",
     "@apigovscan/mcp": "workspace:*",

@@ -3,6 +3,7 @@
   "references": [
     { "path": "packages/core" },
     { "path": "packages/asyncapi" },
+    { "path": "packages/webhooks" },
     { "path": "packages/graphql" },
     { "path": "packages/grpc" },
     { "path": "packages/openapi" },

@@ -1,10 +1,10 @@
 # f8-oss-differentials · Diferenciales del producto open source (LLM opcional, drift, batch, multi-protocolo)
 
-| Campo | Valor |
-|---|---|
-| Estado | draft (backlog — se abre al arrancar el giro open source; ejecuta ANTES que f7 si se confirma) |
-| Fecha | 2026-09-26 |
-| Fase | 8 |
+| Campo     | Valor                                                                                                                                                         |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Estado    | cerrada (M8.1–M8.9 + legacy convertidos en specs hijas, todas cerradas)                                                                                       |
+| Fecha     | 2026-09-26                                                                                                                                                    |
+| Fase      | 8                                                                                                                                                             |
 | Deriva de | Re-priorización 2026-09-26 (open source "de chill"); specs `f6-distribution` (config LLM), `f1-openapi` (modelo Spec); SDD anti-alcance (no linter de código) |
 
 ## 1. Objetivo
@@ -47,14 +47,14 @@ Convertir ApiGovScan en un **plano de governance multi-protocolo** con diferenci
 
 El motor ya es agnóstico del formato (parser → modelo `Spec` normalizado). Cada protocolo = **adapter + pack de reglas curadas con fuentes de élite**:
 
-| Protocolo | Fuentes de élite (curación) | Orden |
-|---|---|---|
-| REST/OpenAPI (hecho, 88 reglas) | Google API Design Guide, Microsoft REST Guidelines, Zalando, PayPal, Atlassian, GDS (UK) → 88 (cierre honesto sin engine nuevo) | 0 |
-| **GraphQL SDL** | Shopify GraphQL Design Tutorial, Apollo Principled GraphQL, GitHub GraphQL guidelines, PayPal GraphQL standards | 1 |
-| **gRPC/proto** | Google AIPs (aip.dev — el canon de diseño de APIs de Google), Buf style guide | 2 |
-| **AsyncAPI + eventos** | AsyncAPI official guidelines, CloudEvents (CNCF) | 3 |
-| **Webhooks** | Standard Webhooks (standardwebhooks.com) | 4 |
-| SOAP/WSDL | Solo detección + aviso claro (conversión = consultoría, no producto) | borde |
+| Protocolo                       | Fuentes de élite (curación)                                                                                                     | Orden |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| REST/OpenAPI (hecho, 88 reglas) | Google API Design Guide, Microsoft REST Guidelines, Zalando, PayPal, Atlassian, GDS (UK) → 88 (cierre honesto sin engine nuevo) | 0     |
+| **GraphQL SDL**                 | Shopify GraphQL Design Tutorial, Apollo Principled GraphQL, GitHub GraphQL guidelines, PayPal GraphQL standards                 | 1     |
+| **gRPC/proto**                  | Google AIPs (aip.dev — el canon de diseño de APIs de Google), Buf style guide                                                   | 2     |
+| **AsyncAPI + eventos**          | AsyncAPI official guidelines, CloudEvents (CNCF)                                                                                | 3     |
+| **Webhooks**                    | Standard Webhooks (standardwebhooks.com)                                                                                        | 4     |
+| SOAP/WSDL                       | Solo detección + aviso claro (conversión = consultoría, no producto)                                                            | borde |
 
 - Pitch: **"un solo score y un solo informe para TODA tu superficie de APIs"** (REST + GraphQL + gRPC + eventos + webhooks) — nadie lo tiene hoy.
 - Fuera: competir de frente con buf/Apollo **en sus nichos**; nosotros somos el plano unificado.
@@ -80,17 +80,19 @@ Patrón por milestone: unit + e2e CLI + invariantes INV-1/2/7 (las features LLM 
 
 ## 7. Riesgos y decisiones abiertas
 
-| Tema | Nota |
-|---|---|
+| Tema                                 | Nota                                                                                                                                             |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Extracción de rutas en código legacy | Catálogo de firmas + fallback LLM universal con confianza; nunca prometer 100% — prometer "funciona en cualquier codebase, con revisión humana". |
-| Calidad del shape-diff | Siempre con nivel de confianza; nunca bloquear gate solo por LLM. |
-| GraphQL/gRPC/AsyncAPI | Curación de reglas = el costo real (no el parser); uno por vez. |
-| Alcance pre-launch amplio | Riesgo de demora eterna: mitigado por orden fijo y specs por protocolo (ready → build). |
+| Calidad del shape-diff               | Siempre con nivel de confianza; nunca bloquear gate solo por LLM.                                                                                |
+| GraphQL/gRPC/AsyncAPI                | Curación de reglas = el costo real (no el parser); uno por vez.                                                                                  |
+| Alcance pre-launch amplio            | Riesgo de demora eterna: mitigado por orden fijo y specs por protocolo (ready → build).                                                          |
 
 ## Changelog
 
 - 2026-09-26 · Spec creado consolidando los diferenciales acordados (suggest_fix, rules import, drift/generación, scan-org, elite 100+, multi-protocolo GraphQL-first). Ejecuta antes que f7 si se confirma el giro open source.
 - 2026-09-26 · Decisión del dueño: multi-protocolo pasa a ser **pre-launch** (GraphQL → gRPC → AsyncAPI → webhooks, con fuentes de élite por protocolo); detección de rutas rediseñada como catálogo de firmas + fallback LLM universal (cualquier codebase, incl. legacy).
+- 2026-09-28 · Umbrella → `cerrada`: M8.1–M8.9 + `f8-legacy-convert` todas `cerrada`; el giro open source vive ahora en `f9-launch-oss`.
 - 2026-09-27 · M8.6 abierto como `f8-graphql` (protocolo 1): adapter SDL → Spec + pack graphql + CLI por extensión; gRPC/AsyncAPI/webhooks quedan para M8.7+.
 - 2026-09-27 · M8.7 abierto como `f8-grpc` (protocolo 2): parser proto propio (cero deps) + pack grpc + CLI por extensión.
 - 2026-09-27 · M8.8 abierto como `f8-asyncapi` (protocolo 3): parser v2+v3 con `yaml` existente + pack asyncapi + CLI por sniff.
+- 2026-09-27 · M8.9 abierto como `f8-webhooks` (protocolo 4): parser standalone con `yaml` existente + pack webhooks + CLI por sniff conservador (OpenAPI 3.1 con `webhooks:` nativo sigue parser OpenAPI).

@@ -1,0 +1,6 @@
+# Snapshot of primary sources for the webhooks pack.
+# Each rule also carries its own source.url (strictSource: true).
+sources:
+  - id: standard-webhooks
+    title: Standard Webhooks specification
+    url: https://www.standardwebhooks.com/

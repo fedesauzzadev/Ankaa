@@ -78,6 +78,9 @@ importers:
       '@apigovscan/reporters':
         specifier: workspace:*
         version: link:../reporters
+      '@apigovscan/webhooks':
+        specifier: workspace:*
+        version: link:../webhooks
       mammoth:
         specifier: ^1.12.3
         version: 1.12.3
@@ -175,6 +178,22 @@ importers:
       vitest:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@25.9.8)
+
+  packages/webhooks:
+    dependencies:
+      '@apigovscan/core':
+        specifier: workspace:*
+        version: link:../core
+      yaml:
+        specifier: ^2.9.1
+        version: 2.9.1
+    devDependencies:
+      '@types/node':
+        specifier: 20.17.10
+        version: 20.17.10
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@20.17.10)
 
 packages:
 

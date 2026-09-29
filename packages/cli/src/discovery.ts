@@ -6,6 +6,7 @@ const OPENAPI_NAMES = new Set(["openapi.yaml", "openapi.yml", "openapi.json"]);
 const SWAGGER_NAMES = new Set(["swagger.yaml", "swagger.yml", "swagger.json"]);
 const GRAPHQL_NAMES = new Set(["schema.graphql", "schema.gql"]);
 const ASYNCAPI_NAMES = new Set(["asyncapi.yaml", "asyncapi.yml", "asyncapi.json"]);
+const WEBHOOKS_NAMES = new Set(["webhooks.yaml", "webhooks.yml", "webhooks.json"]);
 
 function cmp(a: string, b: string): number {
   return a < b ? -1 : a > b ? 1 : 0;
@@ -52,9 +53,7 @@ function collect(
   }
 }
 
-export type DiscoverResult =
-  | { ok: true; paths: string[] }
-  | { ok: false; error: string };
+export type DiscoverResult = { ok: true; paths: string[] } | { ok: false; error: string };
 
 export const DISCOVERY_PATTERNS = [
   "openapi.{yaml,yml,json}",
@@ -65,6 +64,8 @@ export const DISCOVERY_PATTERNS = [
   "**/*.proto",
   "asyncapi.{yaml,yml,json}",
   "**/asyncapi.{yaml,yml,json}",
+  "webhooks.{yaml,yml,json}",
+  "**/webhooks.{yaml,yml,json}",
 ];
 
 export function discoverSpecs(dir: string): DiscoverResult {
@@ -86,15 +87,11 @@ export function discoverSpecs(dir: string): DiscoverResult {
 
   collect(dir, dir, (name) => GRAPHQL_NAMES.has(name), found, true);
 
-  collect(
-    dir,
-    dir,
-    (name) => name.endsWith(".proto"),
-    found,
-    true,
-  );
+  collect(dir, dir, (name) => name.endsWith(".proto"), found, true);
 
   collect(dir, dir, (name) => ASYNCAPI_NAMES.has(name), found, true);
+
+  collect(dir, dir, (name) => WEBHOOKS_NAMES.has(name), found, true);
 
   const unique = [...new Set(found)].sort(cmp);
 

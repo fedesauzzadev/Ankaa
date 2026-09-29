@@ -1,0 +1,6 @@
+id: webhooks
+version: "2026.09.1"
+description: Curated webhooks rules from Standard Webhooks specification
+license: MIT
+sourcesFile: sources.yaml
+strictSource: true
