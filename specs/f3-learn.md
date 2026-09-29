@@ -22,6 +22,7 @@ Como **tech lead**, quiero transformar `report.json` + `feedback.json` en un pat
 ### Dentro
 
 - Comando `apigovscan learn --report <file> --feedback <file> [--skills-dir <path>] [--dry-run] [--force]`.
+- Comando `apigovscan suppress --report <r.json> --fingerprint <fp|prefijo> --decision false_positive|wontfix|severity_change [--severity <s>] [--reason "..."] [--skills-dir <p>] [--dry-run]`: atajo sin `feedback.json` a mano — arma el item en memoria y reusa `buildLearnPatch`/`writeLearnPatch` (misma idempotencia, mismos warnings, nunca guarda un prefijo). Sin gate de licencia (operación local como `learn`). `--severity` exigido solo con `severity_change`.
 - Schema de `feedback.json` (doc 03 §9).
 - Mapeo decision → skills:
 
@@ -84,7 +85,7 @@ Como **tech lead**, quiero transformar `report.json` + `feedback.json` en un pat
 ```
 
 - `items` array no vacío (vacío ⇒ exit 0 con `ok: no feedback items` o exit 2? → exit 0 no-op).
-- Cada item: `fingerprint` (64 hex) + `decision` del enum.
+- Cada item: `fingerprint` (64 hex completos **o prefijo único de 8+ chars**, resuelto contra el report; lo guardado en skills siempre es el fingerprint completo) + `decision` del enum.
 - `severity_change` exige `severity` ∈ error|warning|info; se resuelve `ruleId` **desde el report** (finding con ese fingerprint). Fingerprint ausente del report ⇒ exit 2 para severity_change (necesita ruleId); para FP/wontfix ⇒ warning + aplica.
 - `suggest_rule` exige `draft.id` formato `PREFIX-NNN` + `when` + `message` + `category`; validado con `validateRule` de core (`strictSource: false`); `source` opcional se rellena `{ title: "Derived from feedback (learn)", url: "" }`.
 - `reportHash` si difiere del report file ⇒ warning.
@@ -93,6 +94,7 @@ Como **tech lead**, quiero transformar `report.json` + `feedback.json` en un pat
 
 ```bash
 apigovscan learn --report <r.json> --feedback <f.json> [--skills-dir <p>] [--dry-run]
+apigovscan suppress --report <r.json> --fingerprint <fp|prefijo> --decision wontfix --reason "..." [--skills-dir <p>] [--dry-run]
 ```
 
 | Exit | Condición                                                                                               |
@@ -185,3 +187,4 @@ custom active:
 - 2026-09-24 · Spec creado desde SDD v1.0 §7 Fase 3 + FR-31/32 + INV-5 + doc 03 §9.
 - 2026-09-24 · M3.2 implementado: `learn.ts` + CLI `learn`/`skills list`/`skills promote` + tests AC-L.1…12 (INV-5 byte-idempotent).
 - 2026-09-24 · Cierre fase 3 con M3.3 (S4 e2e) → `cerrada`.
+- 2026-09-29 · `feedback.json` acepta prefijo único corto (8–64 hex): `buildLearnPatch` resuelve contra el report vía `resolveFingerprint` y guarda siempre el fingerprint completo. Prefijo inexistente/ambiguo ⇒ exit 2 (nunca se guarda un prefijo); 64 completos ausentes mantienen el warning + apply legacy.

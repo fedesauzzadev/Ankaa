@@ -215,6 +215,8 @@ export interface DashboardPayload {
   tracking: TrackingFile;
   groups: Record<string, string>;
   trends: TrendInfo | undefined;
+  /** Report path as typed on the CLI (for copy-pasteable suppress commands). */
+  reportFile?: string;
 }
 
 const MAX_BODY_BYTES = 256_000;

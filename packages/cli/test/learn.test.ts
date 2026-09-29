@@ -274,6 +274,86 @@ describe("learn unit (AC-L.*)", () => {
     expect(result.patch.suppressions[0]!.fingerprint).toBe("9".repeat(64));
   });
 
+  it("unique short prefixes resolve to full fingerprints before storing", () => {
+    const path = join(tempDir(), "fb-prefix.json");
+    writeJson(path, {
+      items: [{ fingerprint: "a".repeat(12), decision: "wontfix", comment: "hotfix" }],
+    });
+    const loaded = loadFeedbackFile(path);
+    expect(loaded.ok).toBe(true);
+    if (!loaded.ok) return;
+    const result = buildLearnPatch({
+      report: REPORT,
+      feedback: loaded.feedback,
+      existingSuppressions: [],
+      existingSeverities: [],
+      toolVersion: "0.0.0-dev",
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.patch.suppressions).toHaveLength(1);
+    expect(result.patch.suppressions[0]!.fingerprint).toBe("a".repeat(64));
+    expect(result.patch.suppressions[0]!.reason).toBe("hotfix");
+  });
+
+  it("unknown short prefixes fail honestly (a prefix must never be stored)", () => {
+    const path = join(tempDir(), "fb-prefix-missing.json");
+    writeJson(path, {
+      items: [{ fingerprint: "f".repeat(12), decision: "wontfix", comment: "stale" }],
+    });
+    const loaded = loadFeedbackFile(path);
+    expect(loaded.ok).toBe(true);
+    if (!loaded.ok) return;
+    const result = buildLearnPatch({
+      report: REPORT,
+      feedback: loaded.feedback,
+      existingSuppressions: [],
+      existingSeverities: [],
+      toolVersion: "0.0.0-dev",
+    });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error).toContain("finding not found");
+  });
+
+  it("ambiguous short prefixes fail honestly", () => {
+    const report = {
+      reportHash: "ambig",
+      findings: [
+        { ...REPORT.findings[0]!, fingerprint: `abcdef01${"0".repeat(56)}` },
+        { ...REPORT.findings[1]!, fingerprint: `abcdef01${"1".repeat(56)}` },
+      ],
+    };
+    const path = join(tempDir(), "fb-prefix-ambig.json");
+    writeJson(path, {
+      items: [{ fingerprint: "abcdef01", decision: "wontfix", comment: "x" }],
+    });
+    const loaded = loadFeedbackFile(path);
+    expect(loaded.ok).toBe(true);
+    if (!loaded.ok) return;
+    const result = buildLearnPatch({
+      report,
+      feedback: loaded.feedback,
+      existingSuppressions: [],
+      existingSeverities: [],
+      toolVersion: "0.0.0-dev",
+    });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error).toContain("ambiguous fingerprint prefix");
+  });
+
+  it("malformed fingerprints are still rejected at load", () => {
+    const path = join(tempDir(), "fb-malformed.json");
+    writeJson(path, {
+      items: [{ fingerprint: "nope", decision: "wontfix", comment: "x" }],
+    });
+    const loaded = loadFeedbackFile(path);
+    expect(loaded.ok).toBe(false);
+    if (loaded.ok) return;
+    expect(loaded.error).toContain("8-64 hex chars");
+  });
+
   it("AC-L.2 INV-5: same patch twice → same serialized bytes", () => {
     const dir = tempDir();
     const path = join(dir, "fb.json");
@@ -575,6 +655,102 @@ describe("learn + skills e2e (AC-L.8–12)", () => {
     // method put won't match GET /user — just ensure no crash and draft loaded
     const findings = report!.findings as Array<{ ruleId: string }>;
     expect(findings.some((f) => f.ruleId === "TEAM-007")).toBe(false);
+  });
+
+  it("suppress writes a suppression without feedback.json (short prefix ok)", async () => {
+    const dir = tempDir();
+    const reportPath = join(dir, "report.json");
+    writeJson(reportPath, REPORT);
+    const skills = join(dir, "skills");
+    const out = await runCapture(
+      [
+        "suppress",
+        "--report",
+        reportPath,
+        "--fingerprint",
+        "a".repeat(12),
+        "--decision",
+        "wontfix",
+        "--reason",
+        "hotfix",
+        "--skills-dir",
+        skills,
+      ],
+      { cwd: dir },
+    );
+    expect(out.code).toBe(0);
+    expect(out.stdout).toContain("suppress: 1 suppressions");
+    const yaml = readFileSync(join(skills, "suppressions.yaml"), "utf8");
+    expect(yaml).toContain("a".repeat(64));
+    expect(yaml).toContain("hotfix");
+  });
+
+  it("suppress --dry-run writes nothing and validates honestly", async () => {
+    const dir = tempDir();
+    const reportPath = join(dir, "report.json");
+    writeJson(reportPath, REPORT);
+    const skills = join(dir, "skills");
+    const dry = await runCapture(
+      [
+        "suppress",
+        "--report",
+        reportPath,
+        "--fingerprint",
+        "b".repeat(12),
+        "--decision",
+        "severity_change",
+        "--severity",
+        "info",
+        "--skills-dir",
+        skills,
+        "--dry-run",
+      ],
+      { cwd: dir },
+    );
+    expect(dry.code).toBe(0);
+    expect(dry.stdout).toContain("suppress(dry-run)");
+    expect(existsSync(skills)).toBe(false);
+
+    const missingDecision = await runCapture(
+      ["suppress", "--report", reportPath, "--fingerprint", "b".repeat(12)],
+      { cwd: dir },
+    );
+    expect(missingDecision.code).toBe(2);
+    expect(missingDecision.stderr).toContain("missing required option --decision");
+
+    const severityMismatch = await runCapture(
+      [
+        "suppress",
+        "--report",
+        reportPath,
+        "--fingerprint",
+        "b".repeat(12),
+        "--decision",
+        "wontfix",
+        "--severity",
+        "info",
+      ],
+      { cwd: dir },
+    );
+    expect(severityMismatch.code).toBe(2);
+    expect(severityMismatch.stderr).toContain("--severity only applies");
+
+    const unknown = await runCapture(
+      [
+        "suppress",
+        "--report",
+        reportPath,
+        "--fingerprint",
+        "f".repeat(12),
+        "--decision",
+        "wontfix",
+        "--reason",
+        "x",
+      ],
+      { cwd: dir },
+    );
+    expect(unknown.code).toBe(2);
+    expect(unknown.stderr).toContain("finding not found");
   });
 
   it("AC-L.12 learn does not write outside skillsDir (INV-7)", async () => {

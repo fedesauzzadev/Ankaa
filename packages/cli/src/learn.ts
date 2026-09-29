@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 import { validateRule, type Finding, type Severity } from "@apigovscan/core";
+import { resolveFingerprint } from "./fix.js";
 import {
   DEFAULT_SKILLS_DIR,
   SKILLS_SCHEMA_VERSION,
@@ -21,7 +22,7 @@ const DECISIONS = new Set<FeedbackDecision>([
 ]);
 
 const SEVERITIES = new Set<Severity>(["error", "warning", "info"]);
-const FINGERPRINT_RE = /^[0-9a-f]{64}$/;
+const FINGERPRINT_RE = /^[0-9a-f]{8,64}$/;
 
 export interface FeedbackItem {
   fingerprint: string;
@@ -111,7 +112,7 @@ export function loadFeedbackFile(path: string): LoadFeedbackResult {
     if (typeof entry.fingerprint !== "string" || !FINGERPRINT_RE.test(entry.fingerprint)) {
       return {
         ok: false,
-        error: `feedback ${path}: items[${i}].fingerprint must be 64 hex chars`,
+        error: `feedback ${path}: items[${i}].fingerprint must be 8-64 hex chars (a unique prefix is enough)`,
       };
     }
     if (typeof entry.decision !== "string" || !DECISIONS.has(entry.decision as FeedbackDecision)) {
@@ -284,9 +285,22 @@ export function buildLearnPatch(input: {
   severities.forEach((s, i) => sevIndex.set(s.ruleId, i));
 
   for (const item of input.feedback.items) {
-    const finding = findingsByFp.get(item.fingerprint);
+    // Short prefixes resolve against the report; files always store the full
+    // fingerprint. A full fingerprint absent from the report keeps the legacy
+    // behavior (warning + apply); an unresolvable prefix is an honest error
+    // (a prefix can never match at analyze time, so storing it would be a lie).
+    const resolved = resolveFingerprint([...findingsByFp.keys()], item.fingerprint);
+    let fingerprint: string;
+    if (resolved.ok) {
+      fingerprint = resolved.fingerprint;
+    } else if (item.fingerprint.length === 64) {
+      fingerprint = item.fingerprint;
+    } else {
+      return { ok: false, error: resolved.error };
+    }
+    const finding = findingsByFp.get(fingerprint);
     if (finding === undefined) {
-      warnings.push(`fingerprint ${item.fingerprint} not in report (possible stale feedback)`);
+      warnings.push(`fingerprint ${fingerprint} not in report (possible stale feedback)`);
     }
 
     if (item.decision === "confirm") {
@@ -301,10 +315,10 @@ export function buildLearnPatch(input: {
           : item.decision === "false_positive"
             ? "false_positive"
             : "wontfix";
-      const key = `fp:${item.fingerprint}`;
+      const key = `fp:${fingerprint}`;
       const existing = supIndex.get(key);
       const entry: SuppressionEntry = {
-        fingerprint: item.fingerprint,
+        fingerprint,
         reason,
       };
       if (existing !== undefined) {
@@ -320,7 +334,7 @@ export function buildLearnPatch(input: {
       if (finding === undefined) {
         return {
           ok: false,
-          error: `severity_change requires fingerprint present in report (unknown ruleId): ${item.fingerprint}`,
+          error: `severity_change requires fingerprint present in report (unknown ruleId): ${fingerprint}`,
         };
       }
       if (item.severity === undefined) {

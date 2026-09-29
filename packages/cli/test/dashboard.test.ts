@@ -95,6 +95,9 @@ describe("dashboard helpers (f10-dashboard)", () => {
     expect(html).toContain("Findings dashboard");
     expect(html).not.toMatch(/src="http|href="http/);
     expect(html).toContain("Group by");
+    expect(html).toContain("Copy prompt for LLM");
+    expect(html).toContain("Copy fix command");
+    expect(html).toContain("Copy suppress command");
   });
 });
 

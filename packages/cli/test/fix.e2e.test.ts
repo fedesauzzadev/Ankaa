@@ -184,6 +184,22 @@ describe("fix command e2e (f8-suggest-fix)", () => {
     }
   });
 
+  it("a unique fingerprint prefix is enough (dashboard shows 12 chars)", async () => {
+    const dir = licensedDir();
+    const stub = await startLlmStub();
+    try {
+      const fp = await firstFingerprint(dir);
+      const out = await runCapture(["fix", "openapi.yaml", "--fingerprint", fp.slice(0, 12)], {
+        cwd: dir,
+        env: licEnv(stub.url),
+      });
+      expect(out.code).toBe(0);
+      expect(out.stdout).toContain(fp.slice(0, 8));
+    } finally {
+      await stub.close();
+    }
+  });
+
   it("fix on a clean spec reports no fixable findings", async () => {
     const dir = tempDir();
     writeFileSync(

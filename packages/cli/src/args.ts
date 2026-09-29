@@ -354,6 +354,112 @@ export function parseFixArgs(argv: readonly string[]): ParseFixArgsResult {
   return { ok: true, args };
 }
 
+export type SuppressDecision = "false_positive" | "wontfix" | "severity_change";
+
+const SUPPRESS_DECISIONS = new Set<SuppressDecision>([
+  "false_positive",
+  "wontfix",
+  "severity_change",
+]);
+
+export interface SuppressArgs {
+  report?: string;
+  fingerprint?: string;
+  decision?: SuppressDecision;
+  severity?: "error" | "warning" | "info";
+  reason?: string;
+  skillsDir?: string;
+  config?: string;
+  dryRun: boolean;
+}
+
+export type ParseSuppressArgsResult =
+  | { ok: true; args: SuppressArgs }
+  | { ok: false; error: string };
+
+function takeValue(
+  argv: readonly string[],
+  i: number,
+  flag: string,
+): { ok: true; value: string; next: number } | { ok: false; error: string } {
+  const value = argv[i + 1];
+  if (value === undefined || isFlag(value)) {
+    return { ok: false, error: `${flag} requires a value` };
+  }
+  return { ok: true, value, next: i + 1 };
+}
+
+export function parseSuppressArgs(argv: readonly string[]): ParseSuppressArgsResult {
+  const args: SuppressArgs = { dryRun: false };
+
+  for (let i = 0; i < argv.length; i++) {
+    const token = argv[i]!;
+
+    if (token === "--report" || token === "--fingerprint" || token === "--decision" ||
+        token === "--severity" || token === "--reason" || token === "--skills-dir" ||
+        token === "--config") {
+      const taken = takeValue(argv, i, token);
+      if (!taken.ok) return taken;
+      i = taken.next;
+      if (token === "--report") args.report = taken.value;
+      else if (token === "--fingerprint") args.fingerprint = taken.value;
+      else if (token === "--decision") {
+        if (!SUPPRESS_DECISIONS.has(taken.value as SuppressDecision)) {
+          return {
+            ok: false,
+            error: "--decision must be false_positive | wontfix | severity_change",
+          };
+        }
+        args.decision = taken.value as SuppressDecision;
+      } else if (token === "--severity") {
+        if (taken.value !== "error" && taken.value !== "warning" && taken.value !== "info") {
+          return { ok: false, error: "--severity must be error | warning | info" };
+        }
+        args.severity = taken.value;
+      }
+      else if (token === "--reason") args.reason = taken.value;
+      else if (token === "--skills-dir") args.skillsDir = taken.value;
+      else args.config = taken.value;
+      continue;
+    }
+
+    if (token === "--dry-run") {
+      args.dryRun = true;
+      continue;
+    }
+
+    if (token === "--help" || token === "-h" || token === "--version" || token === "-V") {
+      return { ok: false, error: `unexpected ${token} after suppress` };
+    }
+
+    if (isFlag(token)) {
+      return { ok: false, error: `unknown option: ${token}` };
+    }
+
+    return { ok: false, error: `unexpected argument: ${token}` };
+  }
+
+  if (args.report === undefined) {
+    return { ok: false, error: "missing required option --report <r.json>" };
+  }
+  if (args.fingerprint === undefined) {
+    return { ok: false, error: "missing required option --fingerprint <fp>" };
+  }
+  if (args.decision === undefined) {
+    return {
+      ok: false,
+      error: "missing required option --decision false_positive|wontfix|severity_change",
+    };
+  }
+  if (args.decision === "severity_change" && args.severity === undefined) {
+    return { ok: false, error: "--decision severity_change requires --severity <level>" };
+  }
+  if (args.decision !== "severity_change" && args.severity !== undefined) {
+    return { ok: false, error: "--severity only applies to --decision severity_change" };
+  }
+  return { ok: true, args };
+}
+
 export type DriftFormat = "console" | "json";
 
 export interface DriftArgs {

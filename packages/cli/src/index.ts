@@ -12,6 +12,7 @@ import { explain, packageVersion, type Rule } from "@apigovscan/core";
 import {
   parseAnalyzeArgs,
   parseDashboardArgs,
+  parseSuppressArgs,
   parseDriftArgs,
   parseFixArgs,
   parseRulesArgs,
@@ -24,6 +25,7 @@ import {
   buildFixMessages,
   extractSpecFragment,
   parseFixResponse,
+  resolveFingerprint,
   splitFindingTarget,
 } from "./fix.js";
 import { chatCompletion, loadLlmConfig } from "./llm.js";
@@ -112,6 +114,7 @@ export function getHelp(): string {
     "  apigovscan rules explain <ruleId> [--rules <file>]",
     "  apigovscan rules import --from <file> [--out <file>]",
     "  apigovscan learn --report <r.json> --feedback <f.json> [options]",
+    "  apigovscan suppress --report <r.json> --fingerprint <fp> --decision <d> [--reason ...]",
     "  apigovscan skills list [--format json]",
     "  apigovscan skills promote <draftId>",
     "  apigovscan license [--key <AGS-...>]",
@@ -146,7 +149,7 @@ export function getHelp(): string {
     "  --baseline-ignore-hash  silence inputHash mismatch warnings",
     "  --skills-dir      override skills directory (default: .apigovscan/skills)",
     "  --license-key     license key (also APIGOVSCAN_LICENSE_KEY or config license.key)",
-    "  --fingerprint     fix: limit proposals to one finding fingerprint",
+    "  --fingerprint     fix: limit proposals to one finding (full fingerprint or unique prefix)",
     "  --report          learn: report JSON path",
     "  --feedback        learn: feedback JSON path",
     "  --dry-run         learn: print plan without writing",
@@ -1161,6 +1164,89 @@ function runLearn(
   return 0;
 }
 
+async function runSuppressCommand(
+  argv: readonly string[],
+  io: {
+    stdout: (text: string) => void;
+    stderr: (text: string) => void;
+    cwd: string;
+  },
+): Promise<number> {
+  if (argv.includes("--help") || argv.includes("-h")) {
+    io.stdout(
+      "usage: apigovscan suppress --report <r.json> --fingerprint <fp> --decision false_positive|wontfix|severity_change [--severity <level>] [--reason \"...\"] [--skills-dir <dir>] [--config <file>] [--dry-run]\n",
+    );
+    return 0;
+  }
+  const parsedArgs = parseSuppressArgs(argv);
+  if (!parsedArgs.ok) {
+    io.stderr(`error: ${parsedArgs.error}\n`);
+    return 2;
+  }
+  const args = parsedArgs.args;
+
+  const reportAbs = resolve(io.cwd, args.report as string);
+  const reportLoaded = loadReportFile(reportAbs);
+  if (!reportLoaded.ok) {
+    io.stderr(`error: ${reportLoaded.error}\n`);
+    return 2;
+  }
+  const configResult = loadConfig(io.cwd, args.config);
+  if (!configResult.ok) {
+    io.stderr(`error: ${configResult.error}\n`);
+    return 2;
+  }
+  const skillsDir = resolveLearnSkillsDir(
+    args.skillsDir,
+    configResult.config.skillsDir,
+    configResult.config.configDir,
+    io.cwd,
+  );
+
+  const patched = buildLearnPatch({
+    report: reportLoaded.report,
+    feedback: {
+      items: [
+        {
+          fingerprint: args.fingerprint as string,
+          decision: args.decision as "false_positive" | "wontfix" | "severity_change",
+          ...(args.reason !== undefined ? { comment: args.reason } : {}),
+          ...(args.severity !== undefined ? { severity: args.severity } : {}),
+        },
+      ],
+    },
+    existingSuppressions: loadExistingSuppressions(join(skillsDir, "suppressions.yaml")),
+    existingSeverities: loadExistingSeverities(join(skillsDir, "severities.yaml")),
+    toolVersion: packageVersion(),
+  });
+  if (!patched.ok) {
+    io.stderr(`error: ${patched.error}\n`);
+    return 2;
+  }
+
+  for (const w of patched.patch.warnings) {
+    io.stderr(`warning: ${w}\n`);
+  }
+
+  const supCount = patched.patch.suppressions.length;
+  const sevCount = patched.patch.severities.length;
+
+  if (args.dryRun) {
+    io.stdout(`suppress(dry-run): ${supCount} suppressions, ${sevCount} severity overrides\n`);
+    for (const p of writeLearnPatch(skillsDir, patched.patch, true).written) {
+      io.stdout(`  would write: ${p}\n`);
+    }
+    return 0;
+  }
+
+  const written = writeLearnPatch(skillsDir, patched.patch, false);
+  io.stdout(`suppress: ${supCount} suppressions, ${sevCount} severity overrides\n`);
+  for (const p of written.written) {
+    io.stdout(`  wrote: ${p}\n`);
+  }
+  return 0;
+}
+
 function runSkillsCommand(
   argv: readonly string[],
   io: {
@@ -1466,8 +1552,8 @@ async function runFixCommand(
   }
   const args = parsedArgs.args;
 
-  if (args.fingerprint !== undefined && !/^[0-9a-f]{64}$/.test(args.fingerprint)) {
-    io.stderr("error: invalid fingerprint (expected 64 hex chars)\n");
+  if (args.fingerprint !== undefined && !/^[0-9a-f]{8,64}$/.test(args.fingerprint)) {
+    io.stderr("error: invalid fingerprint (expected 8-64 hex chars; a unique prefix is enough)\n");
     return 2;
   }
 
@@ -1561,11 +1647,15 @@ async function runFixCommand(
 
   let findings = outcome.report.findings;
   if (args.fingerprint !== undefined) {
-    findings = findings.filter((f) => f.fingerprint === args.fingerprint);
-    if (findings.length === 0) {
-      io.stderr(`error: finding not found: ${args.fingerprint}\n`);
+    const resolved = resolveFingerprint(
+      findings.map((f) => f.fingerprint),
+      args.fingerprint,
+    );
+    if (!resolved.ok) {
+      io.stderr(`error: ${resolved.error}\n`);
       return 2;
     }
+    findings = findings.filter((f) => f.fingerprint === resolved.fingerprint);
   }
   if (findings.length === 0) {
     io.stdout("no fixable findings\n");
@@ -2083,6 +2173,7 @@ async function runDashboardCommand(
     tracking: trackingLoaded.tracking,
     groups,
     trends,
+    reportFile: args.report,
   };
   const pageHtml = renderDashboardPage();
 
@@ -2366,6 +2457,7 @@ export async function run(argv: readonly string[], io?: RunIO): Promise<number> 
     first === "analyze" ||
     first === "rules" ||
     first === "learn" ||
+    first === "suppress" ||
     first === "skills" ||
     first === "license" ||
     first === "fix" ||
@@ -2416,6 +2508,13 @@ export async function run(argv: readonly string[], io?: RunIO): Promise<number> 
   }
   if (first === "learn") {
     return runLearn(args.slice(1), {
+      stdout,
+      stderr,
+      cwd,
+    });
+  }
+  if (first === "suppress") {
+    return runSuppressCommand(args.slice(1), {
       stdout,
       stderr,
       cwd,

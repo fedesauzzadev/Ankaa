@@ -12,3 +12,28 @@ Plan: [plans/f8-elite-100.md](../plans/f8-elite-100.md) · Spec: [specs/f8-elite
 - [x] CHANGELOG pack + README/docs + índices
 - [x] `pnpm check` verde
 - [x] Spec `f8-elite-100` → `cerrada` + índices
+
+## M8.6 — backlog de curaduría priorizado (2026-09-30, investigación web)
+
+Fuente: comparativa Spectral/Vacuum/Redocly/Zally/oasdiff + serie 2026 de API Evangelist. Estado real: elite 88 reglas (flacos: performance 1; consistency/deprecation/pagination/security/versioning 3 c/u). Marca [AHORA] = próximos 4; el resto es backlog con criterio de entrada.
+
+### Golpes rápidos (días/semanas, casi puro YAML)
+
+- [ ] [AHORA] Ejemplos bueno/malo por regla (`examples: {bad, good}` en el schema): alimenta docs, prompts LLM y fixtures de un tiro
+- [ ] Higiene de contrato: componentes sin usar, paths ambiguos/duplicados, trailing slash, ejemplos vs schema, enums duplicados, scopes OAuth indefinidos, URLs example.com olvidadas
+- [ ] Niveles de estabilidad (`x-stability-level: draft/beta/stable`): las estrictas no muerden endpoints en draft (ideal antes de sumar reglas estrictas nuevas)
+- [ ] Engordar dominios flacos (PERF/CONS/DEPR/PAG/SEC/VER) con joyas baratas de los catálogos rivales, con medición de ruido por fixture (playbook f8-elite-100)
+
+### Estructurales (un mes+ c/u; spec primero por AGENTS.md)
+
+- [ ] [AHORA] Breaking-change spec-vs-spec (`diff base..head`: paths/ops eliminadas, required agregados, narrowing, sunsets): requiere átomos cross-document en el engine; es el feature enterprise más vendible (hueco dejado por Optic)
+- [ ] [AHORA] Waivers con expiración (`expires` + `owner` en suppressions + aviso de waiver huérfano)
+- [ ] [AHORA] Métrica de cobertura de gobernanza (% de la spec que mira alguna regla) en dashboard/scan-org
+- [ ] Agent Rule Export: pack → bloque AGENTS.md (error=MUST, warning=SHOULD, info=MAY) + pack de prompts de remediación (casi un reporter nuevo; reusa `explain` + `buildFixMessages`)
+
+### Estratégicas (apuestas; spike o historia de consumidor antes de codear)
+
+- [ ] Auditoría OWASP API Top 10 2023 regla por regla, publicada como tabla (artefacto de confianza enterprise, no código)
+- [ ] Import de rulesets Spectral (heredar miles de reglas; caro: segundo DSL, choca con whitelist — spike de diseño primero)
+- [ ] Certificación tamper-evident (`certify` sobre reportHash+score+pack; falta historia de quién verifica del lado consumidor)
+- [ ] Presupuesto de falsos positivos por regla (auto-flag si se suprime >X%; requiere datos de uso primero)

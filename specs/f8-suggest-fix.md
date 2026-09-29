@@ -92,6 +92,8 @@ export async function chatCompletion(
 ## Changelog
 
 - 2026-09-26 · Spec creado en `ready` (primer milestone ejecutable de f8; handoff a cualquier agente vía AGENTS.md + este spec).
+- 2026-09-29 · `--fingerprint` acepta prefijo único corto (8–64 hex; el dashboard muestra 12): `resolveFingerprint` con error honesto si ambiguo o inexistente. Sin `--fingerprint` ya procesaba todos los findings (forma simple).
+- 2026-09-29 · MCP alineado: `explain_finding` y `suggest_fix` aceptan el mismo prefijo único (descripciones del schema actualizadas); `fix` CLI sin cambios extra.
 - 2026-09-26 · M8.1 implementado → `cerrada` (AC-SF.1–9 verdes; `pnpm check` verde). Decisiones de implementación:
   - `fix` exige licencia (mismo gate que `analyze`: corre el análisis completo en memoria — dejarlo libre sería un bypass).
   - El MCP usa el gate del arranque del server (ya existente); la tool no revalida.

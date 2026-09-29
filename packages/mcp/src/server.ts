@@ -191,7 +191,9 @@ export function createMcpServer(
         reportPath: z
           .string()
           .describe("Path to a JSON report from analyze --format json (sandboxed)"),
-        fingerprint: z.string().describe("64-char hex finding fingerprint from the report"),
+        fingerprint: z
+          .string()
+          .describe("Full finding fingerprint or a unique prefix (8+ hex chars) from the report"),
       },
     },
     async (args) => {
@@ -215,7 +217,9 @@ export function createMcpServer(
       description:
         "Propose a unified-diff fix for a finding (from a JSON report on disk) using the configured LLM. Draft only; never applies changes. Requires llm.baseUrl in apigovscan.yaml.",
       inputSchema: {
-        fingerprint: z.string().describe("64-char hex finding fingerprint from the report"),
+        fingerprint: z
+          .string()
+          .describe("Full finding fingerprint or a unique prefix (8+ hex chars) from the report"),
         reportPath: z
           .string()
           .optional()

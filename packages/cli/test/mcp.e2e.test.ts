@@ -351,6 +351,15 @@ describe("MCP tools e2e (f4-mcp-tools)", () => {
       expect(finding.fingerprint).toBe(fp);
       expect(payload.explanation).toBeTruthy();
 
+      const prefixed = parseToolText(
+        await client.callTool({
+          name: "explain_finding",
+          arguments: { reportPath: "report.json", fingerprint: fp.slice(0, 12) },
+        }),
+      );
+      expect(prefixed.ok).toBe(true);
+      expect((prefixed.finding as { fingerprint: string }).fingerprint).toBe(fp);
+
       const missing = await client.callTool({
         name: "explain_finding",
         arguments: {
@@ -591,7 +600,16 @@ describe("MCP suggest_fix (f8-suggest-fix)", () => {
     try {
       process.env.APIGOVSCAN_LLM_BASE_URL = stub.url;
       process.env.APIGOVSCAN_LLM_MODEL = "stub";
-      await analyzeToReport(dir);
+      const fp = await analyzeToReport(dir);
+
+      const prefixed = parseToolText(
+        await client.callTool({
+          name: "suggest_fix",
+          arguments: { reportPath: "report.json", fingerprint: fp.slice(0, 12) },
+        }),
+      );
+      expect(prefixed.ok).toBe(true);
+      expect(prefixed.fingerprint).toBe(fp);
 
       const noReport = await client.callTool({
         name: "suggest_fix",

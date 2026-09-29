@@ -33,6 +33,7 @@ import {
   buildFixMessages,
   extractSpecFragment,
   parseFixResponse,
+  resolveFingerprint,
   splitFindingTarget,
 } from "./fix.js";
 
@@ -350,8 +351,10 @@ export function createCliMcpHandlers(cwd: string): McpToolHandlers {
         if (!existsSync(input.reportPath)) {
           return fail(`report not found: ${input.reportPath}`);
         }
-        if (!/^[0-9a-f]{64}$/.test(input.fingerprint)) {
-          return fail(`invalid fingerprint (expected 64 hex chars): ${input.fingerprint}`);
+        if (!/^[0-9a-f]{8,64}$/.test(input.fingerprint)) {
+          return fail(
+            `invalid fingerprint (expected 8-64 hex chars; a unique prefix is enough): ${input.fingerprint}`,
+          );
         }
         let report: Report;
         try {
@@ -359,7 +362,14 @@ export function createCliMcpHandlers(cwd: string): McpToolHandlers {
         } catch (err) {
           return fail(`invalid report JSON: ${err instanceof Error ? err.message : String(err)}`);
         }
-        const finding = report.findings?.find((f) => f.fingerprint === input.fingerprint);
+        const resolved = resolveFingerprint(
+          (report.findings ?? []).map((f) => f.fingerprint),
+          input.fingerprint,
+        );
+        if (!resolved.ok) {
+          return fail(resolved.error);
+        }
+        const finding = report.findings?.find((f) => f.fingerprint === resolved.fingerprint);
         if (finding === undefined) {
           return fail(`finding not found: ${input.fingerprint}`);
         }
@@ -397,8 +407,10 @@ export function createCliMcpHandlers(cwd: string): McpToolHandlers {
         if (!existsSync(input.reportPath)) {
           return fail(`report not found: ${input.reportPath}`);
         }
-        if (!/^[0-9a-f]{64}$/.test(input.fingerprint)) {
-          return fail(`invalid fingerprint (expected 64 hex chars): ${input.fingerprint}`);
+        if (!/^[0-9a-f]{8,64}$/.test(input.fingerprint)) {
+          return fail(
+            `invalid fingerprint (expected 8-64 hex chars; a unique prefix is enough): ${input.fingerprint}`,
+          );
         }
         let report: Report;
         try {
@@ -406,7 +418,14 @@ export function createCliMcpHandlers(cwd: string): McpToolHandlers {
         } catch (err) {
           return fail(`invalid report JSON: ${err instanceof Error ? err.message : String(err)}`);
         }
-        const finding = report.findings?.find((f) => f.fingerprint === input.fingerprint);
+        const resolved = resolveFingerprint(
+          (report.findings ?? []).map((f) => f.fingerprint),
+          input.fingerprint,
+        );
+        if (!resolved.ok) {
+          return fail(resolved.error);
+        }
+        const finding = report.findings?.find((f) => f.fingerprint === resolved.fingerprint);
         if (finding === undefined) {
           return fail(`finding not found: ${input.fingerprint}`);
         }

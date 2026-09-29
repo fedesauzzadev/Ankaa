@@ -71,6 +71,21 @@ export function parseFixResponse(
   return { ok: false, error: "could not produce a valid patch" };
 }
 
+export function resolveFingerprint(
+  fingerprints: readonly string[],
+  input: string,
+): { ok: true; fingerprint: string } | { ok: false; error: string } {
+  const exact = fingerprints.find((f) => f === input);
+  if (exact !== undefined) return { ok: true, fingerprint: exact };
+  const prefixed = fingerprints.filter((f) => f.startsWith(input));
+  if (prefixed.length === 1) return { ok: true, fingerprint: prefixed[0]! };
+  if (prefixed.length === 0) return { ok: false, error: `finding not found: ${input}` };
+  return {
+    ok: false,
+    error: `ambiguous fingerprint prefix "${input}" (matches ${prefixed.length} findings; use more chars)`,
+  };
+}
+
 export function splitFindingTarget(location: string, labels: readonly string[]): FixTarget {
   const hash = location.indexOf("#");
   if (hash >= 0) {
