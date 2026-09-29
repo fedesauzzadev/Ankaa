@@ -10,3 +10,4 @@ Plan: [plans/f10-dashboard.md](../plans/f10-dashboard.md) · Spec: [specs/f10-da
 - [x] README + índices + revisión visual con disaster real
 - [x] `pnpm check` verde
 - [x] Spec `f10-dashboard` → `cerrada` + índices
+- [x] Hint de puerto ocupado con sugerencia a `--port 0` (AC-DB.8) + test e2e

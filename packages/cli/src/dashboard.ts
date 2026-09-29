@@ -261,7 +261,17 @@ export function startDashboardServer(
     });
   });
   return new Promise((resolvePromise, rejectPromise) => {
-    server.once("error", rejectPromise);
+    server.once("error", (err: unknown) => {
+      const code =
+        typeof err === "object" && err !== null ? (err as { code?: unknown }).code : undefined;
+      if (code === "EADDRINUSE") {
+        rejectPromise(
+          new Error(`port ${port} is already in use (try --port 0 for an ephemeral port)`),
+        );
+        return;
+      }
+      rejectPromise(err);
+    });
     server.listen(port, "127.0.0.1", () => {
       const address = server.address();
       const actual = typeof address === "object" && address !== null ? address.port : port;

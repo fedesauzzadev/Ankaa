@@ -1,4 +1,5 @@
 import { mkdtempSync, readdirSync, rmSync } from "node:fs";
+import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -63,6 +64,31 @@ describe("dashboard server e2e (f10-dashboard)", () => {
       expect(html).toContain("Findings dashboard");
     } finally {
       await new Promise<void>((resolvePromise) => started.server.close(() => resolvePromise()));
+    }
+  });
+
+  it("AC-DB.8 occupied fixed port fails with a hint to --port 0", async () => {
+    const squatter = createServer((_req, res) => {
+      res.end("busy");
+    });
+    await new Promise<void>((resolve) => squatter.listen(0, "127.0.0.1", resolve));
+    const address = squatter.address();
+    const busy = typeof address === "object" && address !== null ? address.port : 0;
+    expect(busy).toBeGreaterThan(0);
+    try {
+      const dir = tempDir();
+      await expect(
+        startDashboardServer(
+          {
+            payload: () => payloadFor(join(dir, "t.json")),
+            trackingPath: join(dir, "t.json"),
+            pageHtml: renderDashboardPage(),
+          },
+          busy,
+        ),
+      ).rejects.toThrow(/port \d+ is already in use.*--port 0/);
+    } finally {
+      await new Promise<void>((resolvePromise) => squatter.close(() => resolvePromise()));
     }
   });
 

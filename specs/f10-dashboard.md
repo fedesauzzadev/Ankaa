@@ -55,6 +55,7 @@ Como responsable de APIs con un `report.json` de 112 findings quiero `apigovscan
 - [ ] AC-DB.5: no escucha en interfaces externas (bind 127.0.0.1); el HTML no pide red (test: sin CDN, todo inline).
 - [ ] AC-DB.6: INV-7 (solo escribe sidecar); `pnpm check` verde; spec `cerrada` + índices.
 - [ ] AC-DB.7: revisión visual manual (checklist): sentence case en chrome, paleta por severidad consistente, contraste legible, 112 findings del disaster sin tirones al filtrar/paginar.
+- [ ] AC-DB.8: `--port` fijo ocupado ⇒ exit 2 con hint a `--port 0` (sin stack crudo).
 
 ## 5. Test plan
 
@@ -70,10 +71,11 @@ E2E CLI (server efímero + fetch a `/` y `/api/*`) + unit del comparador por fin
 | -------------------------------- | -------------------------------------------------------------------------------------------------------- |
 | XSS desde mensajes de reglas     | Todo texto se escapa al renderizar (los mensajes son nuestros, pero el sidecar trae `note` del usuario). |
 | Reportes gigantes (10k findings) | Paginación/filtros en cliente; el server no pagina (slice 1).                                            |
-| Puerto ocupado                   | `--port 0` = efímero + imprime la URL; si el fijo está ocupado, error honesto.                           |
+| Puerto ocupado                   | `--port 0` = efímero + imprime la URL; si el fijo está ocupado, error honesto que sugiere `--port 0`.    |
 
 ## Changelog
 
 - 2026-09-28 · Spec creada en `draft` (handoff vía AGENTS.md + este spec).
 - 2026-09-28 · Revisada por el dueño → `ready`: edición OSS para todos + requisitos de diseño visual (AC-DB.7).
 - 2026-09-28 · M10.1 implementado → `cerrada` (AC-DB.1–7 verdes; demo en vivo con disaster-report 112 findings; `pnpm check` verde). Notas: `ownerOf` con match por prefijo/basename/inputs; `loadReportFile` aliased en `index.ts` (colisión silenciosa con `learn.ts` en el bundle — verificado); boundary ampliado para el `fetch` same-origin del HTML.
+- 2026-09-29 · Hint amable en puerto ocupado (AC-DB.8): el error sugiere `--port 0`.
