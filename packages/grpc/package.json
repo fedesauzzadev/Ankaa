@@ -2,7 +2,8 @@
   "name": "@apigovscan/grpc",
   "version": "0.0.0-dev",
   "description": "Protocol Buffers IDL parser and normalizer for ApiGovScan (no network, no dependencies)",
-  "license": "MIT",
+  "license": "Apache-2.0",
+  "author": "fedesauzzadev (https://github.com/fedesauzzadev)",
   "type": "module",
   "exports": {
     ".": {

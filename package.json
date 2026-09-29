@@ -3,7 +3,8 @@
   "private": true,
   "version": "0.0.0-dev",
   "description": "Local-first API governance analyzer — OpenAPI rules engine with elite standards packs",
-  "license": "UNLICENSED",
+  "license": "Apache-2.0",
+  "author": "fedesauzzadev (https://github.com/fedesauzzadev)",
   "type": "module",
   "engines": {
     "node": ">=20"

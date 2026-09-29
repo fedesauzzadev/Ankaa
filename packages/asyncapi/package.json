@@ -2,7 +2,8 @@
   "name": "@apigovscan/asyncapi",
   "version": "0.0.0-dev",
   "description": "AsyncAPI parser and normalizer for ApiGovScan (no network)",
-  "license": "MIT",
+  "license": "Apache-2.0",
+  "author": "fedesauzzadev (https://github.com/fedesauzzadev)",
   "type": "module",
   "exports": {
     ".": {

@@ -2,7 +2,8 @@
   "name": "@apigovscan/mcp",
   "version": "0.0.0-dev",
   "description": "MCP stdio server for ApiGovScan (analyze_spec, list_rules, explain_rule, validate_custom_rules, explain_finding)",
-  "license": "MIT",
+  "license": "Apache-2.0",
+  "author": "fedesauzzadev (https://github.com/fedesauzzadev)",
   "type": "module",
   "exports": {
     ".": {

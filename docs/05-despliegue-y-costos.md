@@ -6,12 +6,12 @@ ApiGovScan · SDD · v1.0
 
 ## 1. Superficie de despliegue
 
-| Superficie | Para qué | Requisito del usuario | Costo usuario |
-|---|---|---|---|
-| **CLI npm (npx)** | Análisis, learn, baseline, MCP stdio | Node ≥ 20 | $0 |
-| **GitHub Action** | Gate en PR | repo GitHub | $0 (minutes del repo) |
-| **Docker image + Compose** | Self-host de servicios de borde / CI containers / dev | Docker | $0 |
-| **Cloudflare Workers** | Distribución de packs, MCP remoto de consulta, cron de fuentes | cuenta CF free | $0 (free tier) |
+| Superficie                 | Para qué                                                       | Requisito del usuario | Costo usuario         |
+| -------------------------- | -------------------------------------------------------------- | --------------------- | --------------------- |
+| **CLI npm (npx)**          | Análisis, learn, baseline, MCP stdio                           | Node ≥ 20             | $0                    |
+| **GitHub Action**          | Gate en PR                                                     | repo GitHub           | $0 (minutes del repo) |
+| **Docker image + Compose** | Self-host de servicios de borde / CI containers / dev          | Docker                | $0                    |
+| **Cloudflare Workers**     | Distribución de packs, MCP remoto de consulta, cron de fuentes | cuenta CF free        | $0 (free tier)        |
 
 **Principio:** el camino core (analizar un spec) **no depende de ninguna de las superficies 3–4**.
 
@@ -26,7 +26,7 @@ ApiGovScan · SDD · v1.0
   "type": "module",
   "bin": { "apigovscan": "./dist/bin.js" },
   "engines": { "node": ">=20" },
-  "files": ["dist", "packs/elite"]  // pack embebido para 0 red
+  "files": ["dist", "packs/elite"], // pack embebido para 0 red
 }
 ```
 
@@ -40,21 +40,21 @@ npm i -g @apigovscan/cli && apigovscan analyze .
 
 ### Comandos v1
 
-| Comando | Descripción |
-|---|---|
-| `analyze <path>` | Analiza spec(s); options: `--format`, `--rules`, `--rule`, `--baseline`, `--write-baseline`, `--fail-on`, `--output` |
-| `init` | Crea `.apigovscan/` + `apigovscan.yaml` de ejemplo |
-| `rules list` / `explain <id>` / `validate <file>` | Gestión de reglas |
-| `learn --report --feedback` | Aplica feedback (INV-5) |
-| `skills list` / `promote <id>` | Drafts y suppressions |
-| `standards list` / `info` / `pin` / `update` | Packs (update es opt-in explícito) |
-| `mcp` | Server MCP stdio |
+| Comando                                           | Descripción                                                                                                          |
+| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `analyze <path>`                                  | Analiza spec(s); options: `--format`, `--rules`, `--rule`, `--baseline`, `--write-baseline`, `--fail-on`, `--output` |
+| `init`                                            | Crea `.apigovscan/` + `apigovscan.yaml` de ejemplo                                                                   |
+| `rules list` / `explain <id>` / `validate <file>` | Gestión de reglas                                                                                                    |
+| `learn --report --feedback`                       | Aplica feedback (INV-5)                                                                                              |
+| `skills list` / `promote <id>`                    | Drafts y suppressions                                                                                                |
+| `standards list` / `info` / `pin` / `update`      | Packs (update es opt-in explícito)                                                                                   |
+| `mcp`                                             | Server MCP stdio                                                                                                     |
 
 ### Empaquetado
 
 - Bundle con `tsup` (o equivalente) a ESM + dependencias mínimas externas.
 - Pack `elite` **dentro** del tarball → `analyze` 100% offline (INV-1).
-- Opcional `standards update` descarga packs *adicionales* del registry (nunca implicit durante analyze).
+- Opcional `standards update` descarga packs _adicionales_ del registry (nunca implicit durante analyze).
 - Source maps publicados; tipos `d.ts` para consumo programático de `core`.
 
 ### Release
@@ -72,7 +72,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ./action            # hoy in-repo; <owner>/<repo>@v1 al publicarse
+      - uses: ./action # hoy in-repo; <owner>/<repo>@v1 al publicarse
         id: apigovscan
         with:
           path: specs/
@@ -95,7 +95,7 @@ jobs:
 
 ### 3.1 Instalación privada del producto (f6-distribution)
 
-ApiGovScan se distribuye **privado** (licencia comercial por cliente; ver
+La edición empresarial se distribuye **privada** (licencia comercial por cliente; ver
 `packages/cli/LICENSE.md`). Dos canales, ambos offline-first:
 
 **a) Tarball self-contained (air-gap):**
@@ -127,15 +127,22 @@ phone-home). Se usan vía `--license-key`, `APIGOVSCAN_LICENSE_KEY` o
 `apigovscan license` valida y muestra customer/expiry. Rotación de secret =
 nueva versión del CLI (ver riesgos en `specs/f6-distribution.md`).
 
+### 3.2 Edición community (f9-launch-oss)
+
+Mismo CLI y motor bajo Apache-2.0, con community key pública
+(`AGS-community-20300101-ba8a91370cc7`, verificable offline). Instalación
+idéntica al tarball de 3.1; la única diferencia es la licencia y la ausencia de
+canales privados. Detalles y split OSS/pago en `specs/f9-launch-oss.md`.
+
 ## 4. Docker y Docker Compose
 
 ### 4.1 Imágenes
 
-| Imagen | Uso |
-|---|---|
-| `ghcr.io/apigovscan/cli:<tag>` | CLI en CI sin Node del host; `docker run --rm -v $PWD:/work ghcr.io/apigovscan/cli analyze /work/specs` |
-| `ghcr.io/apigovscan/standards-sync:<tag>` | Job que replica fuentes → packs (self-host) |
-| `ghcr.io/apigovscan/registry:<tag>` (o nginx+caddy) | Sirve packs versionados estáticos |
+| Imagen                                              | Uso                                                                                                     |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `ghcr.io/apigovscan/cli:<tag>`                      | CLI en CI sin Node del host; `docker run --rm -v $PWD:/work ghcr.io/apigovscan/cli analyze /work/specs` |
+| `ghcr.io/apigovscan/standards-sync:<tag>`           | Job que replica fuentes → packs (self-host)                                                             |
+| `ghcr.io/apigovscan/registry:<tag>` (o nginx+caddy) | Sirve packs versionados estáticos                                                                       |
 
 ### 4.2 `docker-compose.yml` (self-host / dev)
 
@@ -150,12 +157,12 @@ services:
   standards-sync:
     image: ghcr.io/apigovscan/standards-sync:latest
     environment:
-      MODE: draft-local        # genera draft en volumen; no publish solo
+      MODE: draft-local # genera draft en volumen; no publish solo
       SOURCES_FILE: /app/sources.yaml
     volumes:
       - ./packs-mirror:/out
     # schedule via cron del host o `restart` + interval en tooling
-  miniflare:                   # dev del worker CF, no producción
+  miniflare: # dev del worker CF, no producción
     image: node:20
     working_dir: /app
     command: sh -c "pnpm i && pnpm dev:worker"
@@ -185,10 +192,10 @@ ENTRYPOINT ["apigovscan"]
 
 ### 5.1 Qué corre ahí
 
-| Worker | Trigger | Función |
-|---|---|---|
-| `apigovscan-standards` | Cron semanal + HTTP | Sync de fuentes, servir `GET /packs*`, MCP remoto de consulta |
-| (futuro) `apigovscan-api` | HTTP | Solo si aparece necesidad real (no en v1) |
+| Worker                    | Trigger             | Función                                                       |
+| ------------------------- | ------------------- | ------------------------------------------------------------- |
+| `apigovscan-standards`    | Cron semanal + HTTP | Sync de fuentes, servir `GET /packs*`, MCP remoto de consulta |
+| (futuro) `apigovscan-api` | HTTP                | Solo si aparece necesidad real (no en v1)                     |
 
 Storage:
 
@@ -197,15 +204,15 @@ Storage:
 
 ### 5.2 Límites verificados (free tier, sept 2026)
 
-| Limite | Free | Implicación para ApiGovScan |
-|---|---|---|
-| Requests | 100.000/día | Sobrado para distribución de packs + MCP consulta |
-| CPU / request | **10 ms** | Sirve JSON/YAML pre-armados; **no** parsea specs de usuarios (correcto por diseño) |
-| Memory | 128 MB | Packs pequeños OK |
-| Subrequests | 50/req | Sync con caching/ETag OK en cron (cron CPU: 10 ms free — el sync real puede necesitar paid o aprtarse a Actions) |
-| Cron triggers | 5/cuenta | 1 basta |
-| KV reads | 100.000/día | Manifiestos OK |
-| R2 | 10 GB-mes storage free | Packs de texto:_MB total → mesas en free por años |
+| Limite        | Free                   | Implicación para ApiGovScan                                                                                      |
+| ------------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Requests      | 100.000/día            | Sobrado para distribución de packs + MCP consulta                                                                |
+| CPU / request | **10 ms**              | Sirve JSON/YAML pre-armados; **no** parsea specs de usuarios (correcto por diseño)                               |
+| Memory        | 128 MB                 | Packs pequeños OK                                                                                                |
+| Subrequests   | 50/req                 | Sync con caching/ETag OK en cron (cron CPU: 10 ms free — el sync real puede necesitar paid o aprtarse a Actions) |
+| Cron triggers | 5/cuenta               | 1 basta                                                                                                          |
+| KV reads      | 100.000/día            | Manifiestos OK                                                                                                   |
+| R2            | 10 GB-mes storage free | Packs de texto:_MB total → mesas en free por años                                                                |
 
 **Nota de diseño:** el cron de sync puede exceder 10 ms CPU en free. Estrategia: hacer el diff barato en worker y el parseo/pesado en **GitHub Actions** del repo de estándares (gratis para repos públicos), publicando artifacts a R2 via OIDC/token. El worker solo publica manifiestos y sirve lecturas. Esto mantiene **$0**.
 
@@ -247,12 +254,12 @@ Registro ejemplo (Claude/Cursor/opencode):
 
 ## 7. Entornos
 
-| Entorno | Qué | Dónde |
-|---|---|---|
-| `local` | CLI + fixtures + miniflare | laptop dev |
-| `ci` | tests, INV-1..5, matriz OS | GitHub Actions |
-| `staging` | worker + canal canary | CF workers.dev / namespace separado |
-| `prod` | worker stable + R2/KV | CF dominio propio (después) o workers.dev |
+| Entorno   | Qué                        | Dónde                                     |
+| --------- | -------------------------- | ----------------------------------------- |
+| `local`   | CLI + fixtures + miniflare | laptop dev                                |
+| `ci`      | tests, INV-1..5, matriz OS | GitHub Actions                            |
+| `staging` | worker + canal canary      | CF workers.dev / namespace separado       |
+| `prod`    | worker stable + R2/KV      | CF dominio propio (después) o workers.dev |
 
 No hay entorno "analysis-hosted" — no existe por diseño (ADR-003).
 
@@ -260,31 +267,31 @@ No hay entorno "analysis-hosted" — no existe por diseño (ADR-003).
 
 ### Usuario final (caso típico)
 
-| Ítem | Costo |
-|---|---|
-| CLI + pack elite embebido | $0 |
-| Specs locales / CI | $0 (minutos del repo) |
-| MCP stdio | $0 |
-| **Total** | **$0** |
+| Ítem                      | Costo                 |
+| ------------------------- | --------------------- |
+| CLI + pack elite embebido | $0                    |
+| Specs locales / CI        | $0 (minutos del repo) |
+| MCP stdio                 | $0                    |
+| **Total**                 | **$0**                |
 
 ### Operador del proyecto (ApiGovScan OSS / internamente)
 
-| Ítem | Plan | Costo |
-|---|---|---|
-| Cloudflare Workers + KV + R2 (packs) | Free | $0 |
-| GitHub (repo + Actions para sync/publish) | Free / Free | $0 |
-| Dominio (si se sale de workers.dev) | opcional | ~$10/año (aceptable; no bloquea) |
-| npm registry | public | $0 |
-| Telemetría de uso | **no existe** (by design) | $0 |
-| **Total operador** | | **$0** (+ dominio opcional) |
+| Ítem                                      | Plan                      | Costo                            |
+| ----------------------------------------- | ------------------------- | -------------------------------- |
+| Cloudflare Workers + KV + R2 (packs)      | Free                      | $0                               |
+| GitHub (repo + Actions para sync/publish) | Free / Free               | $0                               |
+| Dominio (si se sale de workers.dev)       | opcional                  | ~$10/año (aceptable; no bloquea) |
+| npm registry                              | public                    | $0                               |
+| Telemetría de uso                         | **no existe** (by design) | $0                               |
+| **Total operador**                        |                           | **$0** (+ dominio opcional)      |
 
 ### Si crece (señales de upgrade, no inevitables)
 
-| Señal | Upgrade | Costo aprox. |
-|---|---|---|
-| Sync pesado + PRs automation | CF Workers Paid o más Actions minutes | $5/mo |
-| MCP remoto con auth + volumen | CF Access / Workers Paid | $0–5/mo |
-| Registry multi-tenant (orgs) | R2 más operación | ~$0 hasta GBs |
+| Señal                              | Upgrade                               | Costo aprox.   |
+| ---------------------------------- | ------------------------------------- | -------------- |
+| Sync pesado + PRs automation       | CF Workers Paid o más Actions minutes | $5/mo          |
+| MCP remoto con auth + volumen      | CF Access / Workers Paid              | $0–5/mo        |
+| Registry multi-tenant (orgs)       | R2 más operación                      | ~$0 hasta GBs  |
 | Soporte comercial / SaaS dashboard | producto aparte (fuera de alcance v1) | pricing futuro |
 
 ## 9. CI del propio monorepo
@@ -303,7 +310,7 @@ jobs:
         with: { node-version: 20, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint && pnpm typecheck && pnpm test
-      - run: pnpm test:invariants   # INV-1..INV-5
+      - run: pnpm test:invariants # INV-1..INV-5
   pack-validate:
     steps: [...valida packs/elite contra schema + fixtures de ruido...]
   release:
@@ -319,16 +326,16 @@ jobs:
 
 ## 11. Matriz de criticidad vs superficie
 
-| Capa | Si cae… | El usuario… |
-|---|---|---|
-| CLI local | n/a | no aplica |
-| Registry de packs | | sigue con packs embebidos + pin local |
-| MCP remoto CF | | sigue con MCP stdio + CLI |
-| Cron de fuentes | | packs se desactualizan (changelog quieto), análisis sigue |
-| GitHub Action repo | | puede correr CLI en su propio CI |
+| Capa               | Si cae… | El usuario…                                               |
+| ------------------ | ------- | --------------------------------------------------------- |
+| CLI local          | n/a     | no aplica                                                 |
+| Registry de packs  |         | sigue con packs embebidos + pin local                     |
+| MCP remoto CF      |         | sigue con MCP stdio + CLI                                 |
+| Cron de fuentes    |         | packs se desactualizan (changelog quieto), análisis sigue |
+| GitHub Action repo |         | puede correr CLI en su propio CI                          |
 
 **Ningún outage de infraestructura de ApiGovScan detiene `analyze` local** — salvo que el usuario dependiera de `standards update` ese día (y aun así tiene el último pack cacheado).
 
 ---
 
-*Continuar: [06-seguridad.md](06-seguridad.md).*
+_Continuar: [06-seguridad.md](06-seguridad.md)._

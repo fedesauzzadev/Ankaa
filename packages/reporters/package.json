@@ -2,7 +2,8 @@
   "name": "@apigovscan/reporters",
   "version": "0.0.0-dev",
   "description": "Console and JSON reporters for ApiGovScan",
-  "license": "MIT",
+  "license": "Apache-2.0",
+  "author": "fedesauzzadev (https://github.com/fedesauzzadev)",
   "type": "module",
   "exports": {
     ".": {

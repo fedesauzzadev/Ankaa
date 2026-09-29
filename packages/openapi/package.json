@@ -2,7 +2,8 @@
   "name": "@apigovscan/openapi",
   "version": "0.0.0-dev",
   "description": "OpenAPI parser and normalizer for ApiGovScan (no network)",
-  "license": "MIT",
+  "license": "Apache-2.0",
+  "author": "fedesauzzadev (https://github.com/fedesauzzadev)",
   "type": "module",
   "exports": {
     ".": {
