@@ -1,8 +1,8 @@
 # Plan · f8-asyncapi · Soporte AsyncAPI/eventos (M8.8, protocolo 3)
 
-| Campo | Valor |
-|---|---|
-| Specs | f8-asyncapi |
+| Campo        | Valor                                                             |
+| ------------ | ----------------------------------------------------------------- |
+| Specs        | f8-asyncapi                                                       |
 | Dependencias | `f8-grpc` cerrado (plantilla); `yaml` existente; cero deps nuevas |
 
 ## M8.8 — Parser v2+v3 + pack + CLI por sniff

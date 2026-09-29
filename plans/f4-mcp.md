@@ -1,11 +1,11 @@
 # Plan · f4-mcp · MCP stdio local
 
-| Campo | Valor |
-|---|---|
-| Specs | f4-mcp-server, f4-mcp-tools |
+| Campo             | Valor                                  |
+| ----------------- | -------------------------------------- |
+| Specs             | f4-mcp-server, f4-mcp-tools            |
 | Esfuerzo estimado | 1 semana (1 dev full-time equivalente) |
-| Dependencias | f3 cerrado (`v0.3.0-learning`) |
-| Milestones | M4.1–M4.2 |
+| Dependencias      | f3 cerrado (`v0.3.0-learning`)         |
+| Milestones        | M4.1–M4.2                              |
 
 ## Estrategia
 
@@ -52,15 +52,15 @@ Pasos:
 
 ## Riesgos del plan
 
-| Riesgo | Impacto | Mitigación |
-|---|---|---|
-| SDK API cambia / peer deps | Build roto | Pin versión; smoke test initialize |
-| Ciclo cli↔mcp | Arquitectura | Solo cli → mcp; handlers inyectados |
-| Core contaminado con SDK | INV roto | Gate tests ya existen; review package.json |
-| Output gigante en contexto LLM | UX/seguridad | Truncación top-N + nota CLI |
-| Path escape | Seguridad | Sandbox + tests `..` y absolute |
-| Paridad CLI vs handlers divergente | FR-51 | Reusar analyzeUseCase, no reimplementar |
-| Nombres SDD vs FR-50 | Confusión | Canónicos FR-50 en schemas |
+| Riesgo                             | Impacto      | Mitigación                                 |
+| ---------------------------------- | ------------ | ------------------------------------------ |
+| SDK API cambia / peer deps         | Build roto   | Pin versión; smoke test initialize         |
+| Ciclo cli↔mcp                      | Arquitectura | Solo cli → mcp; handlers inyectados        |
+| Core contaminado con SDK           | INV roto     | Gate tests ya existen; review package.json |
+| Output gigante en contexto LLM     | UX/seguridad | Truncación top-N + nota CLI                |
+| Path escape                        | Seguridad    | Sandbox + tests `..` y absolute            |
+| Paridad CLI vs handlers divergente | FR-51        | Reusar analyzeUseCase, no reimplementar    |
+| Nombres SDD vs FR-50               | Confusión    | Canónicos FR-50 en schemas                 |
 
 ## Definition of Done (fase 4 completa)
 

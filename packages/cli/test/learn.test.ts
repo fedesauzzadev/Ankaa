@@ -1,11 +1,4 @@
-import {
-  existsSync,
-  mkdirSync,
-  mkdtempSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -18,12 +11,7 @@ import {
   writeLearnPatch,
 } from "../src/learn.js";
 
-const repoRoot = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "..",
-);
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 
 const tempRoots: string[] = [];
 
@@ -167,9 +155,7 @@ describe("learn unit (AC-L.*)", () => {
       fingerprint: "a".repeat(64),
       reason: "internal only",
     });
-    expect(result.patch.severities).toEqual([
-      { ruleId: "PAGINATION-001", severity: "info" },
-    ]);
+    expect(result.patch.severities).toEqual([{ ruleId: "PAGINATION-001", severity: "info" }]);
     expect(result.patch.draftsToWrite).toHaveLength(1);
     expect(result.patch.draftsToWrite[0]!.id).toBe("TEAM-008");
   });
@@ -194,18 +180,13 @@ describe("learn unit (AC-L.*)", () => {
     });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.patch.suppressions.map((s) => s.reason)).toEqual([
-      "false_positive",
-      "wontfix",
-    ]);
+    expect(result.patch.suppressions.map((s) => s.reason)).toEqual(["false_positive", "wontfix"]);
   });
 
   it("AC-L.4 unknown decision → load error", () => {
     const path = join(tempDir(), "bad.json");
     writeJson(path, {
-      items: [
-        { fingerprint: "e".repeat(64), decision: "explode" },
-      ],
+      items: [{ fingerprint: "e".repeat(64), decision: "explode" }],
     });
     const loaded = loadFeedbackFile(path);
     expect(loaded.ok).toBe(false);
@@ -274,9 +255,7 @@ describe("learn unit (AC-L.*)", () => {
   it("AC-L.5 fingerprint not in report → warning but applies FP", () => {
     const path = join(tempDir(), "fb4.json");
     writeJson(path, {
-      items: [
-        { fingerprint: "9".repeat(64), decision: "false_positive", comment: "stale" },
-      ],
+      items: [{ fingerprint: "9".repeat(64), decision: "false_positive", comment: "stale" }],
     });
     const loaded = loadFeedbackFile(path);
     expect(loaded.ok).toBe(true);
@@ -342,9 +321,7 @@ describe("learn unit (AC-L.*)", () => {
     );
 
     // Re-apply on top of existing → still idempotent
-    const existingSup = [
-      { fingerprint: "a".repeat(64), reason: "x" },
-    ];
+    const existingSup = [{ fingerprint: "a".repeat(64), reason: "x" }];
     const existingSev = [{ ruleId: "PAGINATION-001", severity: "info" as const }];
     const reapply = buildLearnPatch({
       report: REPORT,
@@ -418,20 +395,11 @@ describe("learn + skills e2e (AC-L.8–12)", () => {
     });
 
     const learn1 = await runCapture(
-      [
-        "learn",
-        "--report",
-        reportPath,
-        "--feedback",
-        feedbackPath,
-        "--no-color",
-      ],
+      ["learn", "--report", reportPath, "--feedback", feedbackPath, "--no-color"],
       { cwd: dir },
     );
     expect(learn1.code).toBe(0);
-    expect(existsSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"))).toBe(
-      true,
-    );
+    expect(existsSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"))).toBe(true);
 
     const after = await analyzeJson(dir);
     const afterFindings = after.report!.findings as Array<{
@@ -463,31 +431,13 @@ describe("learn + skills e2e (AC-L.8–12)", () => {
       ],
     });
 
-    await runCapture(
-      ["learn", "--report", reportPath, "--feedback", feedbackPath],
-      { cwd: dir },
-    );
-    const sup1 = readFileSync(
-      join(dir, ".apigovscan", "skills", "suppressions.yaml"),
-      "utf8",
-    );
-    const sev1 = readFileSync(
-      join(dir, ".apigovscan", "skills", "severities.yaml"),
-      "utf8",
-    );
+    await runCapture(["learn", "--report", reportPath, "--feedback", feedbackPath], { cwd: dir });
+    const sup1 = readFileSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"), "utf8");
+    const sev1 = readFileSync(join(dir, ".apigovscan", "skills", "severities.yaml"), "utf8");
 
-    await runCapture(
-      ["learn", "--report", reportPath, "--feedback", feedbackPath],
-      { cwd: dir },
-    );
-    const sup2 = readFileSync(
-      join(dir, ".apigovscan", "skills", "suppressions.yaml"),
-      "utf8",
-    );
-    const sev2 = readFileSync(
-      join(dir, ".apigovscan", "skills", "severities.yaml"),
-      "utf8",
-    );
+    await runCapture(["learn", "--report", reportPath, "--feedback", feedbackPath], { cwd: dir });
+    const sup2 = readFileSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"), "utf8");
+    const sev2 = readFileSync(join(dir, ".apigovscan", "skills", "severities.yaml"), "utf8");
     expect(sup2).toBe(sup1);
     expect(sev2).toBe(sev1);
   });
@@ -511,28 +461,18 @@ describe("learn + skills e2e (AC-L.8–12)", () => {
     });
 
     const { code, stdout } = await runCapture(
-      [
-        "learn",
-        "--report",
-        reportPath,
-        "--feedback",
-        feedbackPath,
-        "--dry-run",
-      ],
+      ["learn", "--report", reportPath, "--feedback", feedbackPath, "--dry-run"],
       { cwd: dir },
     );
     expect(code).toBe(0);
     expect(stdout).toContain("dry-run");
-    expect(existsSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"))).toBe(
-      false,
-    );
+    expect(existsSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"))).toBe(false);
   });
 
   it("AC-L.4 missing --report → exit 2", async () => {
-    const { code, stderr } = await runCapture(
-      ["learn", "--feedback", "x.json"],
-      { cwd: tempDir() },
-    );
+    const { code, stderr } = await runCapture(["learn", "--feedback", "x.json"], {
+      cwd: tempDir(),
+    });
     expect(code).toBe(2);
     expect(stderr).toContain("--report");
   });
@@ -553,13 +493,9 @@ describe("learn + skills e2e (AC-L.8–12)", () => {
     );
     writeFileSync(
       join(dir, ".apigovscan", "skills", "severities.yaml"),
-      [
-        "version: 1",
-        "overrides:",
-        "  - ruleId: PAGINATION-001",
-        "    severity: info",
-        "",
-      ].join("\n"),
+      ["version: 1", "overrides:", "  - ruleId: PAGINATION-001", "    severity: info", ""].join(
+        "\n",
+      ),
       "utf8",
     );
     writeFileSync(
@@ -585,10 +521,7 @@ describe("learn + skills e2e (AC-L.8–12)", () => {
     expect(list.stdout).toContain("TEAM-001");
     expect(list.stdout).toContain("[draft]");
 
-    const json = await runCapture(
-      ["skills", "list", "--format", "json"],
-      { cwd: dir },
-    );
+    const json = await runCapture(["skills", "list", "--format", "json"], { cwd: dir });
     expect(json.code).toBe(0);
     const parsed = JSON.parse(json.stdout) as {
       suppressions: unknown[];
@@ -621,24 +554,15 @@ describe("learn + skills e2e (AC-L.8–12)", () => {
       "utf8",
     );
 
-    const missing = await runCapture(
-      ["skills", "promote", "TEAM-999"],
-      { cwd: dir },
-    );
+    const missing = await runCapture(["skills", "promote", "TEAM-999"], { cwd: dir });
     expect(missing.code).toBe(2);
     expect(missing.stderr).toContain("draft not found");
 
-    const badId = await runCapture(
-      ["skills", "promote", "lowercase"],
-      { cwd: dir },
-    );
+    const badId = await runCapture(["skills", "promote", "lowercase"], { cwd: dir });
     expect(badId.code).toBe(2);
     expect(badId.stderr).toContain("PREFIX-NNN");
 
-    const ok = await runCapture(
-      ["skills", "promote", "TEAM-007"],
-      { cwd: dir },
-    );
+    const ok = await runCapture(["skills", "promote", "TEAM-007"], { cwd: dir });
     expect(ok.code).toBe(0);
     expect(ok.stdout).toContain("promoted");
     const content = readFileSync(draftPath, "utf8");
@@ -678,8 +602,6 @@ describe("learn + skills e2e (AC-L.8–12)", () => {
     expect(code).toBe(0);
     // only skills tree was created under .apigovscan (no baseline)
     expect(existsSync(join(dir, ".apigovscan", "baseline.json"))).toBe(false);
-    expect(
-      existsSync(join(dir, ".apigovscan", "skills", "suppressions.yaml")),
-    ).toBe(true);
+    expect(existsSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"))).toBe(true);
   });
 });

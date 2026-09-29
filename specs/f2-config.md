@@ -1,11 +1,11 @@
 # f2-config · Configuración completa `apigovscan.yaml`
 
-| Campo | Valor |
-|---|---|
-| Estado | cerrada |
-| Fase | 2 |
+| Campo     | Valor                                                                                                      |
+| --------- | ---------------------------------------------------------------------------------------------------------- |
+| Estado    | cerrada                                                                                                    |
+| Fase      | 2                                                                                                          |
 | Deriva de | SDD FR-13, doc 01 §6.2, doc 03 §5, doc 03 §8 (skills dir placeholder); specs `f1-analyze` (subconjunto f1) |
-| Roadmap | Fase 2 — Config + custom rules + baseline |
+| Roadmap   | Fase 2 — Config + custom rules + baseline                                                                  |
 
 ## 1. Objetivo
 
@@ -48,10 +48,10 @@ Como **tech lead**, quiero un `apigovscan.yaml` completo y versionable en git, p
 
 ```yaml
 # apigovscan.yaml — ejemplo mínimo
-failOn: error                    # error | warning | info | never
+failOn: error # error | warning | info | never
 
 standards:
-  pack: elite                    # f2: solo "elite" (embebido); otros → exit 2
+  pack: elite # f2: solo "elite" (embebido); otros → exit 2
   # version: "2026.09.1"        # se valida contra embed cuando aplique; warning si difiere
 
 rules:
@@ -66,8 +66,8 @@ rules:
     # - ./more-rules.json
 
 baseline:
-  enabled: true                  # equivale a --baseline (si path existe)
-  path: .apigovscan/baseline.json  # default si enabled y path omitido
+  enabled: true # equivale a --baseline (si path existe)
+  path: .apigovscan/baseline.json # default si enabled y path omitido
   # strictHash: false            # equivale a --strict-hash
 
 # Reservado f3 — parseado como string opcional, sin validar contenido en f2
@@ -88,28 +88,28 @@ customRules:
 
 ### Precedencia (merge)
 
-| setting | orden |
-|---|---|
-| `failOn` | flag `--fail-on` > config > `error` |
-| `standards.pack` | config > `elite` (flag no existe aún) |
-| severity overrides / off | config `rules:` (ids) — CLI no tiene flag de override en f2 |
-| custom rules set | union de: config `customRules[]` + `--rules` + `--rule` (orden estable: config files → `--rules` → inline `--rule`) |
-| baseline path/enabled | flags `--baseline`/`--write-baseline`/`--baseline-path` > config `baseline` > off |
-| `strictHash` | flag `--strict-hash` > config > false |
+| setting                  | orden                                                                                                               |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| `failOn`                 | flag `--fail-on` > config > `error`                                                                                 |
+| `standards.pack`         | config > `elite` (flag no existe aún)                                                                               |
+| severity overrides / off | config `rules:` (ids) — CLI no tiene flag de override en f2                                                         |
+| custom rules set         | union de: config `customRules[]` + `--rules` + `--rule` (orden estable: config files → `--rules` → inline `--rule`) |
+| baseline path/enabled    | flags `--baseline`/`--write-baseline`/`--baseline-path` > config `baseline` > off                                   |
+| `strictHash`             | flag `--strict-hash` > config > false                                                                               |
 
 Conflictos de **ids de reglas custom** (mismo `id` en dos fuentes): **exit 2** con mensaje citando ambas fuentes (no merge silencioso). Override de regla **del pack** por custom con mismo id: **exit 2** (usar config `rules:` para severidad/off; no redefinir elite).
 
 ### Errores de config
 
-| condición | exit | mensaje (EN) |
-|---|---|---|
-| YAML inválido | 2 | `config <path>: <parse error>` |
-| root no mapping | 2 | `config <path>: root must be a mapping` |
-| `failOn` inválido | 2 | ya en f1 |
-| unknown top-level key | 2 | `config <path>: unknown key "x"` (strict — catch typos) |
-| `customRules` path inexistente | 2 | `config <path>: customRules[0] not found: ...` |
-| `baseline.path` no existe con `enabled: true` | 2 en analyze con baseline on | `baseline not found: ... (run --write-baseline)` |
-| `standards.pack` ≠ elite | 2 | ya en f1 |
+| condición                                     | exit                         | mensaje (EN)                                            |
+| --------------------------------------------- | ---------------------------- | ------------------------------------------------------- |
+| YAML inválido                                 | 2                            | `config <path>: <parse error>`                          |
+| root no mapping                               | 2                            | `config <path>: root must be a mapping`                 |
+| `failOn` inválido                             | 2                            | ya en f1                                                |
+| unknown top-level key                         | 2                            | `config <path>: unknown key "x"` (strict — catch typos) |
+| `customRules` path inexistente                | 2                            | `config <path>: customRules[0] not found: ...`          |
+| `baseline.path` no existe con `enabled: true` | 2 en analyze con baseline on | `baseline not found: ... (run --write-baseline)`        |
+| `standards.pack` ≠ elite                      | 2                            | ya en f1                                                |
 
 **Decisión:** unknown top-level keys → error (strict). Keys de f3 (`skillsDir`) se **allowlistean** desde f2 (parseadas, no validadas a fondo).
 
@@ -120,7 +120,7 @@ interface AnalyzeConfig {
   failOn?: FailOn;
   standards?: { pack?: string; version?: string };
   rules?: Record<string, Severity | "off">;
-  customRules?: string[];          // rutas resueltas relative al config dir o cwd
+  customRules?: string[]; // rutas resueltas relative al config dir o cwd
   baseline?: { enabled?: boolean; path?: string; strictHash?: boolean };
   skillsDir?: string;
 }
@@ -142,13 +142,13 @@ Resolución de rutas en config: **relativas al directorio del archivo de config*
 
 ## 5. Test plan
 
-| Caso | Tipo |
-|---|---|
+| Caso                                      | Tipo                  |
+| ----------------------------------------- | --------------------- |
 | schema parse ok / unknown key / bad types | unit `config.test.ts` |
-| customRules load + e2e analyze | e2e cli |
-| precedence failOn | unit + e2e |
-| relative path resolution | unit |
-| no-regresión config f1 | e2e existente + unit |
+| customRules load + e2e analyze            | e2e cli               |
+| precedence failOn                         | unit + e2e            |
+| relative path resolution                  | unit                  |
+| no-regresión config f1                    | e2e existente + unit  |
 
 ## 6. Dependencias
 
@@ -157,12 +157,12 @@ Resolución de rutas en config: **relativas al directorio del archivo de config*
 
 ## 7. Riesgos y decisiones abiertas
 
-| Tema | Decisión |
-|---|---|
+| Tema                                     | Decisión                                                                   |
+| ---------------------------------------- | -------------------------------------------------------------------------- |
 | `rules.files` vs `customRules` top-level | **`customRules` top-level** (ids de reglas no colisionan con reserved key) |
-| Unknown keys strict | Sí, exit 2 (typos en CI) |
-| Pin `standards.version` | Se parsea; mismatch con embed → warning en f2 (no falla hasta registry f6) |
-| skillsDir | Allowlist + string; validación f3 |
+| Unknown keys strict                      | Sí, exit 2 (typos en CI)                                                   |
+| Pin `standards.version`                  | Se parsea; mismatch con embed → warning en f2 (no falla hasta registry f6) |
+| skillsDir                                | Allowlist + string; validación f3                                          |
 
 ## Changelog
 

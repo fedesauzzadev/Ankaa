@@ -12,14 +12,9 @@ export interface PackLoadIssue {
   issues: string[];
 }
 
-export type PackLoadResult =
-  | { ok: true; pack: RulePack }
-  | { ok: false; errors: PackLoadIssue[] };
+export type PackLoadResult = { ok: true; pack: RulePack } | { ok: false; errors: PackLoadIssue[] };
 
-export function loadPack(
-  meta: PackMeta,
-  rawRules: readonly unknown[],
-): PackLoadResult {
+export function loadPack(meta: PackMeta, rawRules: readonly unknown[]): PackLoadResult {
   const errors: PackLoadIssue[] = [];
   const rules: Rule[] = [];
   const seen = new Set<string>();
@@ -82,9 +77,7 @@ export function explainRule(
   pack: RulePack | readonly Rule[],
   ruleId: string,
 ): RuleExplanation | undefined {
-  const rules = Array.isArray(pack)
-    ? (pack as readonly Rule[])
-    : (pack as RulePack).rules;
+  const rules = Array.isArray(pack) ? (pack as readonly Rule[]) : (pack as RulePack).rules;
   const rule = rules.find((r) => r.id === ruleId);
   if (!rule) return undefined;
   return {

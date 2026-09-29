@@ -1,10 +1,10 @@
 # f7-enterprise · Packs por cliente, self-host completo y edge (Cloudflare)
 
-| Campo | Valor |
-|---|---|
-| Estado | draft (backlog guardado — se abre cuando se arranque) |
-| Fecha | 2026-09-26 |
-| Fase | 7 (consolida todo lo pendiente de F6 + el Cloudflare del SDD original) |
+| Campo     | Valor                                                                                                          |
+| --------- | -------------------------------------------------------------------------------------------------------------- |
+| Estado    | draft (backlog guardado — se abre cuando se arranque)                                                          |
+| Fecha     | 2026-09-26                                                                                                     |
+| Fase      | 7 (consolida todo lo pendiente de F6 + el Cloudflare del SDD original)                                         |
 | Deriva de | SDD §7 fases 6–7 originales; re-priorización 2026-09-26; FR-52, FR-61/62/63; specs `f6-distribution` (cerrada) |
 
 ## 1. Objetivo / user story
@@ -61,11 +61,11 @@ A definir por milestone (patrón: unit + e2e CLI + invariants INV-1/2/7).
 
 ## 7. Riesgos y decisiones abiertas
 
-| Tema | Nota |
-|---|---|
-| Red en `analyze` | Sigue prohibida (INV-1): packs se cachean local; update es explícito. |
-| Dedupe de ruleIds entre packs | Error de pack (mismo criterio que custom rules vs elite). |
-| CF opcional | M7.3 se puede postergar sin romper M7.1/M7.2. |
+| Tema                          | Nota                                                                  |
+| ----------------------------- | --------------------------------------------------------------------- |
+| Red en `analyze`              | Sigue prohibida (INV-1): packs se cachean local; update es explícito. |
+| Dedupe de ruleIds entre packs | Error de pack (mismo criterio que custom rules vs elite).             |
+| CF opcional                   | M7.3 se puede postergar sin romper M7.1/M7.2.                         |
 
 ## Changelog
 

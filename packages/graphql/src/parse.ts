@@ -32,9 +32,7 @@ export interface ParseError {
   line?: number;
 }
 
-export type ParseResult =
-  | { ok: true; spec: Spec }
-  | { ok: false; errors: ParseError[] };
+export type ParseResult = { ok: true; spec: Spec } | { ok: false; errors: ParseError[] };
 
 export interface ParseOptions {
   sourceLabel: string;
@@ -55,13 +53,7 @@ const SCALAR_MAP: Record<string, string> = {
   Boolean: "boolean",
 };
 
-const BUILTIN_DIRECTIVES = new Set([
-  "deprecated",
-  "skip",
-  "include",
-  "specifiedBy",
-  "oneOf",
-]);
+const BUILTIN_DIRECTIVES = new Set(["deprecated", "skip", "include", "specifiedBy", "oneOf"]);
 
 const ROOT_OPERATIONS = ["query", "mutation", "subscription"] as const;
 type RootOperation = (typeof ROOT_OPERATIONS)[number];
@@ -75,15 +67,14 @@ function sha256Hex(bytes: Uint8Array): string {
   return createHash("sha256").update(bytes).digest("hex");
 }
 
-function descriptionOf(
-  node: { description?: { value: string } | undefined },
-): string | undefined {
+function descriptionOf(node: { description?: { value: string } | undefined }): string | undefined {
   return node.description?.value;
 }
 
-function deprecationOf(
-  directives: ReadonlyArray<DirectiveNode> | undefined,
-): { deprecated: boolean; reason?: string } {
+function deprecationOf(directives: ReadonlyArray<DirectiveNode> | undefined): {
+  deprecated: boolean;
+  reason?: string;
+} {
   const directive = directives?.find((d) => d.name.value === "deprecated");
   if (!directive) return { deprecated: false };
   const reason = directive.arguments?.find((a) => a.name.value === "reason");
@@ -114,9 +105,7 @@ interface NamedDescribedTyped {
   readonly type: TypeNode;
 }
 
-function fieldLikesOf(
-  fields: ReadonlyArray<NamedDescribedTyped> | undefined,
-): FieldLike[] {
+function fieldLikesOf(fields: ReadonlyArray<NamedDescribedTyped> | undefined): FieldLike[] {
   return (fields ?? []).map((f) => ({
     name: f.name.value,
     description: descriptionOf(f),
@@ -185,9 +174,7 @@ function collectTypes(doc: DocumentNode): TypeContext {
   return ctx;
 }
 
-function resolveRoots(
-  doc: DocumentNode,
-): Record<RootOperation, string | undefined> {
+function resolveRoots(doc: DocumentNode): Record<RootOperation, string | undefined> {
   const roots: Record<RootOperation, string | undefined> = {
     query: "Query",
     mutation: "Mutation",
@@ -217,10 +204,7 @@ function namedSchema(name: string, ctx: TypeContext): SchemaNode {
   return refOf(name);
 }
 
-function typeToSchema(
-  type: TypeNode,
-  ctx: TypeContext,
-): { node: SchemaNode; required: boolean } {
+function typeToSchema(type: TypeNode, ctx: TypeContext): { node: SchemaNode; required: boolean } {
   if (type.kind === Kind.NON_NULL_TYPE) {
     const inner = typeToSchema(type.type, ctx);
     return { node: inner.node, required: true };
@@ -241,7 +225,7 @@ function buildSchemaNodes(ctx: TypeContext): Record<string, SchemaNode> {
     const bucket = ctx.objects.get(name);
     const fields: FieldLike[] = [
       ...fieldLikesOf(bucket?.definition?.fields),
-      ...bucket?.extensions.flatMap((e) => fieldLikesOf(e.fields)) ?? [],
+      ...(bucket?.extensions.flatMap((e) => fieldLikesOf(e.fields)) ?? []),
     ];
     if (bucket !== undefined && fields.length > 0) {
       const properties: Record<string, SchemaNode> = {};
@@ -305,9 +289,11 @@ function ignoredDirectives(doc: DocumentNode): string[] {
     fields:
       | ReadonlyArray<{
           readonly directives?: ReadonlyArray<DirectiveNode> | undefined;
-          readonly arguments?: ReadonlyArray<{
-            readonly directives?: ReadonlyArray<DirectiveNode> | undefined;
-          }> | undefined;
+          readonly arguments?:
+            | ReadonlyArray<{
+                readonly directives?: ReadonlyArray<DirectiveNode> | undefined;
+              }>
+            | undefined;
         }>
       | undefined,
   ): void => {
@@ -394,14 +380,10 @@ function operationFromField(
   return operation;
 }
 
-export function parseGraphQL(
-  input: Uint8Array | string,
-  opts: ParseOptions,
-): ParseResult {
+export function parseGraphQL(input: Uint8Array | string, opts: ParseOptions): ParseResult {
   const limits: ParseLimits = { ...DEFAULT_LIMITS, ...opts.limits };
   const warnings: ParseWarning[] = [];
-  const bytes =
-    typeof input === "string" ? new TextEncoder().encode(input) : input;
+  const bytes = typeof input === "string" ? new TextEncoder().encode(input) : input;
   const inputHash = sha256Hex(bytes);
   if (bytes.byteLength > limits.maxBytes) {
     return {
@@ -421,9 +403,7 @@ export function parseGraphQL(
       const line = error.locations?.[0]?.line;
       return {
         ok: false,
-        errors: [
-          { message: `SYNTAX: ${error.message}`, ...(line === undefined ? {} : { line }) },
-        ],
+        errors: [{ message: `SYNTAX: ${error.message}`, ...(line === undefined ? {} : { line }) }],
       };
     }
     throw error;
@@ -490,4 +470,3 @@ export function parseGraphQL(
     },
   };
 }
-

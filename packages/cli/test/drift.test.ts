@@ -40,10 +40,7 @@ describe("compareEndpoints (AC-DR.3 parcial)", () => {
   });
 
   it("wildcard code methods match any spec method", () => {
-    const report = compareEndpoints(
-      [{ method: "get", path: "/pets" }],
-      [route("*", "/pets")],
-    );
+    const report = compareEndpoints([{ method: "get", path: "/pets" }], [route("*", "/pets")]);
     expect(report.missing).toEqual([]);
     expect(report.removed).toEqual([]);
     expect(report.changed).toEqual([]);

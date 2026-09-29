@@ -3,19 +3,10 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
 import { describe, expect, it } from "vitest";
-import {
-  evaluate,
-  flattenRuleLists,
-  loadPack,
-} from "@apigovscan/core";
+import { evaluate, flattenRuleLists, loadPack } from "@apigovscan/core";
 import { parseAsyncAPI } from "@apigovscan/asyncapi";
 
-const repoRoot = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "..",
-);
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const packDir = join(repoRoot, "packs", "asyncapi");
 
 function loadAsyncapiPack() {
@@ -89,9 +80,9 @@ describe("asyncapi pack inventory (M8.8)", () => {
   });
 
   it("ASYNC-001 fires on uppercase channels", () => {
-    expect(fires("ASYNC-001", v2doc(v2op("      message:\n        payload:\n          type: object")))).toBe(
-      false,
-    );
+    expect(
+      fires("ASYNC-001", v2doc(v2op("      message:\n        payload:\n          type: object"))),
+    ).toBe(false);
     expect(
       fires(
         "ASYNC-001",
@@ -121,12 +112,7 @@ describe("asyncapi pack inventory (M8.8)", () => {
       fires("ASYNC-003", v2doc(v2op("      message:\n        payload:\n          type: object"))),
     ).toBe(false);
     expect(
-      fires(
-        "ASYNC-003",
-        v2doc(
-          "  test/channel:\n    publish:\n      operationId: testOp\n",
-        ),
-      ),
+      fires("ASYNC-003", v2doc("  test/channel:\n    publish:\n      operationId: testOp\n")),
     ).toBe(true);
   });
 

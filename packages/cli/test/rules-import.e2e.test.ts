@@ -14,12 +14,7 @@ import { run } from "../src/index.js";
 import { DEV_LICENSE_KEY } from "../src/license.js";
 import { startLlmStub } from "./llm-stub.js";
 
-const repoRoot = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "..",
-);
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const fixtureDir = join(repoRoot, "fixtures");
 
 const tempRoots: string[] = [];
@@ -108,10 +103,7 @@ function rulesResponse(entries: unknown[]): { response: unknown } {
 
 function setupGuideline(ext: "md" | "pdf" | "docx" = "md"): string {
   const dir = tempDir();
-  copyFileSync(
-    join(fixtureDir, `guideline.${ext}`),
-    join(dir, `guideline.${ext}`),
-  );
+  copyFileSync(join(fixtureDir, `guideline.${ext}`), join(dir, `guideline.${ext}`));
   return dir;
 }
 
@@ -120,10 +112,10 @@ describe("rules import e2e (f8-rules-import)", () => {
     const dir = setupGuideline();
     const stub = await startLlmStub(rulesResponse(MIXED_RESPONSE));
     try {
-      const out = await runCapture(
-        ["rules", "import", "--from", "guideline.md"],
-        { cwd: dir, env: licEnv(stub.url) },
-      );
+      const out = await runCapture(["rules", "import", "--from", "guideline.md"], {
+        cwd: dir,
+        env: licEnv(stub.url),
+      });
       expect(out.code).toBe(0);
       expect(out.stdout).toContain("2 imported, 2 rejected");
       expect(out.stdout).toContain("imported-rules.yaml");
@@ -144,10 +136,10 @@ describe("rules import e2e (f8-rules-import)", () => {
     const dir = setupGuideline();
     const stub = await startLlmStub(rulesResponse([VALID_A]));
     try {
-      const out = await runCapture(
-        ["rules", "import", "--from", "guideline.md"],
-        { cwd: dir, env: licEnv(stub.url) },
-      );
+      const out = await runCapture(["rules", "import", "--from", "guideline.md"], {
+        cwd: dir,
+        env: licEnv(stub.url),
+      });
       expect(out.code).toBe(0);
       expect(stub.requests.length).toBeGreaterThan(0);
       for (const req of stub.requests) {
@@ -197,10 +189,10 @@ describe("rules import e2e (f8-rules-import)", () => {
       });
       expect(first.code).toBe(0);
       const a = readFileSync(join(dir, "imported-rules.yaml"), "utf8");
-      const second = await runCapture(
-        ["rules", "import", "--from", "guideline.md", "--force"],
-        { cwd: dir, env },
-      );
+      const second = await runCapture(["rules", "import", "--from", "guideline.md", "--force"], {
+        cwd: dir,
+        env,
+      });
       expect(second.code).toBe(0);
       const b = readFileSync(join(dir, "imported-rules.yaml"), "utf8");
       expect(b).toBe(a);
@@ -275,7 +267,11 @@ describe("rules import e2e (f8-rules-import)", () => {
 
   it("AC-RI.1 unsupported extension and missing file", async () => {
     const dir = setupGuideline();
-    const llmOnly = { ...licEnv(), APIGOVSCAN_LLM_BASE_URL: "http://127.0.0.1:9", APIGOVSCAN_LLM_MODEL: "stub" };
+    const llmOnly = {
+      ...licEnv(),
+      APIGOVSCAN_LLM_BASE_URL: "http://127.0.0.1:9",
+      APIGOVSCAN_LLM_MODEL: "stub",
+    };
     writeFileSync(join(dir, "notes.exe"), "MZ fake binary", "utf8");
     const bad = await runCapture(["rules", "import", "--from", "notes.exe"], {
       cwd: dir,
@@ -342,5 +338,3 @@ describe("rules import e2e (f8-rules-import)", () => {
     }
   });
 });
-
-

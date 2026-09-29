@@ -3,19 +3,10 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
 import { describe, expect, it } from "vitest";
-import {
-  evaluate,
-  flattenRuleLists,
-  loadPack,
-} from "@apigovscan/core";
+import { evaluate, flattenRuleLists, loadPack } from "@apigovscan/core";
 import { parseGraphQL } from "@apigovscan/graphql";
 
-const repoRoot = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "..",
-);
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const packDir = join(repoRoot, "packs", "graphql");
 
 function loadGraphqlPack() {
@@ -92,19 +83,21 @@ describe("graphql pack inventory (M8.6)", () => {
   });
 
   it("GQL-002 fires on missing descriptions", () => {
-    expect(fires("GQL-002", `type Query { "Long enough description here." a: String }`)).toBe(false);
+    expect(fires("GQL-002", `type Query { "Long enough description here." a: String }`)).toBe(
+      false,
+    );
     expect(fires("GQL-002", `type Query { b: String }`)).toBe(true);
   });
 
   it("GQL-003 fires on short descriptions", () => {
-    expect(fires("GQL-003", `type Query { "A sufficiently long description." a: String }`)).toBe(false);
+    expect(fires("GQL-003", `type Query { "A sufficiently long description." a: String }`)).toBe(
+      false,
+    );
     expect(fires("GQL-003", `type Query { "Too short." b: String }`)).toBe(true);
   });
 
   it("GQL-004 fires on @deprecated without reason", () => {
-    expect(
-      fires("GQL-004", `type Query { a: String @deprecated(reason: "Use b.") }`),
-    ).toBe(false);
+    expect(fires("GQL-004", `type Query { a: String @deprecated(reason: "Use b.") }`)).toBe(false);
     expect(fires("GQL-004", `type Query { b: String @deprecated }`)).toBe(true);
   });
 
@@ -116,12 +109,10 @@ describe("graphql pack inventory (M8.6)", () => {
   });
 
   it("GQL-006 fires on verb-first queries", () => {
-    expect(
-      fires("GQL-006", `type Query { "List all the pets now." pets: String }`),
-    ).toBe(false);
-    expect(
-      fires("GQL-006", `type Query { "Fetch all the pets now here." getPets: String }`),
-    ).toBe(true);
+    expect(fires("GQL-006", `type Query { "List all the pets now." pets: String }`)).toBe(false);
+    expect(fires("GQL-006", `type Query { "Fetch all the pets now here." getPets: String }`)).toBe(
+      true,
+    );
   });
 
   it("GQL-007 fires on snake_case arguments", () => {
@@ -134,11 +125,7 @@ describe("graphql pack inventory (M8.6)", () => {
   });
 
   it("GQL-008 fires on TODO placeholders", () => {
-    expect(
-      fires("GQL-008", `type Query { "A proper description here." a: String }`),
-    ).toBe(false);
-    expect(
-      fires("GQL-008", `type Query { "TODO: document this field." b: String }`),
-    ).toBe(true);
+    expect(fires("GQL-008", `type Query { "A proper description here." a: String }`)).toBe(false);
+    expect(fires("GQL-008", `type Query { "TODO: document this field." b: String }`)).toBe(true);
   });
 });

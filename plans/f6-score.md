@@ -1,8 +1,8 @@
 # Plan · f6-score · Governance score
 
-| Campo | Valor |
-|---|---|
-| Specs | f6-score |
+| Campo        | Valor                         |
+| ------------ | ----------------------------- |
+| Specs        | f6-score                      |
 | Dependencias | f1/f5 reporters implementados |
 
 **Un milestone**: el score es un cambio de contrato chico pero transversal (build + 4 formatos + MCP + tests). Se implementa entero y se cierra.

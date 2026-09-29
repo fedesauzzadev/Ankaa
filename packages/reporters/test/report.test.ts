@@ -33,9 +33,7 @@ function result(findings: Finding[]): EvaluationResult {
   return { findings, errors: [] };
 }
 
-function makeReport(
-  overrides: Partial<Parameters<typeof buildReport>[0]> = {},
-) {
+function makeReport(overrides: Partial<Parameters<typeof buildReport>[0]> = {}) {
   return buildReport({
     results: [result([finding()])],
     inputs: [{ path: "openapi.yaml", sha256: "sha256:9f3a" }],
@@ -109,8 +107,7 @@ describe("buildReport (AC-R.5, AC-R.10)", () => {
       results: [
         result([
           finding({
-            message:
-              "Example leaks: -----BEGIN PRIVATE KEY-----\nabc\n-----END PRIVATE KEY-----",
+            message: "Example leaks: -----BEGIN PRIVATE KEY-----\nabc\n-----END PRIVATE KEY-----",
           }),
         ]),
       ],
@@ -222,8 +219,7 @@ describe("formatConsole (AC-R.6, AC-R.9)", () => {
 
 describe("redactText (AC-R.8)", () => {
   it("redacts PEM blocks", () => {
-    const input =
-      "key=-----BEGIN PRIVATE KEY-----\nsecretmaterial\n-----END PRIVATE KEY-----";
+    const input = "key=-----BEGIN PRIVATE KEY-----\nsecretmaterial\n-----END PRIVATE KEY-----";
     const out = redactText(input);
     expect(out).not.toContain("secretmaterial");
     expect(out).toContain("***REDACTED***");

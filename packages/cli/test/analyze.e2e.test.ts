@@ -5,12 +5,7 @@ import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
 import { run } from "../src/index.js";
 
-const repoRoot = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "..",
-);
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const fixtures = join(repoRoot, "fixtures");
 const petstore = join(fixtures, "petstore-mini.yaml");
 const malformed = join(fixtures, "malformed.yaml");
@@ -67,11 +62,7 @@ function extractJson(stdout: string): Record<string, unknown> | null {
 
 describe("analyze e2e (f1-analyze)", () => {
   it("AC-A.1 happy path on petstore-mini exits 0 or 1 without crashing", async () => {
-    const { code, stdout, stderr } = await runCapture([
-      "analyze",
-      petstore,
-      "--no-color",
-    ]);
+    const { code, stdout, stderr } = await runCapture(["analyze", petstore, "--no-color"]);
     expect([0, 1]).toContain(code);
     expect(stdout).toContain("ApiGovScan");
     expect(stdout).toContain("reportHash");
@@ -79,20 +70,8 @@ describe("analyze e2e (f1-analyze)", () => {
   });
 
   it("AC-A.2 double run yields identical reportHash (INV-2)", async () => {
-    const first = await runCapture([
-      "analyze",
-      petstore,
-      "--format",
-      "json",
-      "--no-color",
-    ]);
-    const second = await runCapture([
-      "analyze",
-      petstore,
-      "--format",
-      "json",
-      "--no-color",
-    ]);
+    const first = await runCapture(["analyze", petstore, "--format", "json", "--no-color"]);
+    const second = await runCapture(["analyze", petstore, "--format", "json", "--no-color"]);
     expect(first.code).toBe(second.code);
     const a = extractJson(first.stdout);
     const b = extractJson(second.stdout);
@@ -118,13 +97,7 @@ describe("analyze e2e (f1-analyze)", () => {
   });
 
   it("AC-A.4 --format json produces schema with required keys", async () => {
-    const { stdout } = await runCapture([
-      "analyze",
-      petstore,
-      "--format",
-      "json",
-      "--no-color",
-    ]);
+    const { stdout } = await runCapture(["analyze", petstore, "--format", "json", "--no-color"]);
     const parsed = extractJson(stdout);
     expect(parsed).not.toBeNull();
     const keys = Object.keys(parsed!).sort();
@@ -147,13 +120,7 @@ describe("analyze e2e (f1-analyze)", () => {
   });
 
   it("AC-A.5 --fail-on never always exits 0; --fail-on warning can exit 1", async () => {
-    const never = await runCapture([
-      "analyze",
-      petstore,
-      "--fail-on",
-      "never",
-      "--no-color",
-    ]);
+    const never = await runCapture(["analyze", petstore, "--fail-on", "never", "--no-color"]);
     expect(never.code).toBe(0);
     expect(never.stderr).toContain("failOn=never");
 
@@ -182,12 +149,7 @@ describe("analyze e2e (f1-analyze)", () => {
   });
 
   it("AC-A.7 --rule with invalid JSON exits 2 without analyzing", async () => {
-    const { code, stderr } = await runCapture([
-      "analyze",
-      petstore,
-      "--rule",
-      "{not json",
-    ]);
+    const { code, stderr } = await runCapture(["analyze", petstore, "--rule", "{not json"]);
     expect(code).toBe(2);
     expect(stderr).toContain("--rule is not valid JSON");
   });
@@ -231,17 +193,10 @@ describe("analyze e2e (f1-analyze)", () => {
       "utf8",
     );
 
-    const baseline = await runCapture([
-      "analyze",
-      badSpec,
-      "--format",
-      "json",
-      "--no-color",
-    ]);
-    const withConfig = await runCapture(
-      ["analyze", badSpec, "--format", "json", "--no-color"],
-      { cwd: dir },
-    );
+    const baseline = await runCapture(["analyze", badSpec, "--format", "json", "--no-color"]);
+    const withConfig = await runCapture(["analyze", badSpec, "--format", "json", "--no-color"], {
+      cwd: dir,
+    });
 
     const baseJson = extractJson(baseline.stdout);
     const configJson = extractJson(withConfig.stdout);
@@ -296,10 +251,7 @@ describe("analyze e2e (f1-analyze)", () => {
     ]);
     expect([0, 1]).toContain(code);
     expect(stdout).toBe("");
-    const written = JSON.parse(readFileSync(outPath, "utf8")) as Record<
-      string,
-      unknown
-    >;
+    const written = JSON.parse(readFileSync(outPath, "utf8")) as Record<string, unknown>;
     expect(written.reportHash).toMatch(/^[0-9a-f]{64}$/);
   });
 
@@ -322,12 +274,7 @@ describe("analyze e2e (f1-analyze)", () => {
   });
 
   it("AC-A.12 --debug prints stage timings without spec bodies", async () => {
-    const { code, stderr } = await runCapture([
-      "analyze",
-      petstore,
-      "--debug",
-      "--no-color",
-    ]);
+    const { code, stderr } = await runCapture(["analyze", petstore, "--debug", "--no-color"]);
     expect([0, 1]).toContain(code);
     expect(stderr).toContain("debug:");
     expect(stderr).toMatch(/debug: parse/);
@@ -353,20 +300,8 @@ describe("analyze e2e (f1-analyze)", () => {
       "utf8",
     );
 
-    const first = await runCapture([
-      "analyze",
-      dir,
-      "--format",
-      "json",
-      "--no-color",
-    ]);
-    const second = await runCapture([
-      "analyze",
-      dir,
-      "--format",
-      "json",
-      "--no-color",
-    ]);
+    const first = await runCapture(["analyze", dir, "--format", "json", "--no-color"]);
+    const second = await runCapture(["analyze", dir, "--format", "json", "--no-color"]);
 
     const a = extractJson(first.stdout);
     const b = extractJson(second.stdout);
@@ -409,13 +344,7 @@ describe("analyze e2e (f1-analyze)", () => {
       ].join("\n"),
       "utf8",
     );
-    const { code } = await runCapture([
-      "analyze",
-      badSpec,
-      "--fail-on",
-      "error",
-      "--no-color",
-    ]);
+    const { code } = await runCapture(["analyze", badSpec, "--fail-on", "error", "--no-color"]);
     expect(code).toBe(1);
   });
 });

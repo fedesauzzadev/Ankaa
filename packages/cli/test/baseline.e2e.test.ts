@@ -13,12 +13,7 @@ import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
 import { run } from "../src/index.js";
 
-const repoRoot = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "..",
-);
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const petstore = join(repoRoot, "fixtures", "petstore-mini.yaml");
 
 const tempRoots: string[] = [];
@@ -86,7 +81,7 @@ const SPEC_WITH_DEBT = [
 // Same as above but with a new operation that also trips NAMING-001 (+ more)
 const SPEC_WITH_NEW_DEBT = SPEC_WITH_DEBT.replace(
   "paths:\n  /user:",
-  "paths:\n  /item:\n    get:\n      summary: Get item\n      description: Returns a single item record for the given id.\n      responses:\n        \"200\":\n          description: ok\n  /user:",
+  'paths:\n  /item:\n    get:\n      summary: Get item\n      description: Returns a single item record for the given id.\n      responses:\n        "200":\n          description: ok\n  /user:',
 );
 
 describe("baseline e2e (AC-B.*)", () => {
@@ -343,11 +338,7 @@ describe("baseline e2e (AC-B.*)", () => {
   it("AC-B.7 version 99 → exit 2", async () => {
     const dir = tempDir();
     const blPath = join(dir, "b.json");
-    writeFileSync(
-      blPath,
-      JSON.stringify({ version: 99, fingerprints: [] }),
-      "utf8",
-    );
+    writeFileSync(blPath, JSON.stringify({ version: 99, fingerprints: [] }), "utf8");
     const { code, stderr } = await runCapture([
       "analyze",
       petstore,
@@ -428,9 +419,7 @@ describe("baseline e2e (AC-B.*)", () => {
     const second = JSON.parse(readFileSync(blPath, "utf8")) as typeof first;
 
     expect(second.fingerprints).toEqual(first.fingerprints);
-    expect(second.inputs.map((i) => i.sha256)).toEqual(
-      first.inputs.map((i) => i.sha256),
-    );
+    expect(second.inputs.map((i) => i.sha256)).toEqual(first.inputs.map((i) => i.sha256));
     // createdAt may differ
     void second.createdAt;
     void first.createdAt;
@@ -500,13 +489,10 @@ describe("baseline e2e (AC-B.*)", () => {
       "utf8",
     );
 
-    const { code, stdout, stderr } = await runCapture([
-      "analyze",
-      spec,
-      "--format",
-      "json",
-      "--no-color",
-    ], { cwd: dir });
+    const { code, stdout, stderr } = await runCapture(
+      ["analyze", spec, "--format", "json", "--no-color"],
+      { cwd: dir },
+    );
     expect(stderr).not.toContain("unknown key");
     const parsed = extractJson(stdout);
     expect(parsed).not.toBeNull();
@@ -584,16 +570,8 @@ describe("baseline e2e (AC-B.*)", () => {
     const dir = tempDir();
     mkdirSync(join(dir, "openapi", "svc-a"), { recursive: true });
     mkdirSync(join(dir, "openapi", "svc-b"), { recursive: true });
-    writeFileSync(
-      join(dir, "openapi", "svc-a", "openapi.yaml"),
-      SPEC_WITH_DEBT,
-      "utf8",
-    );
-    writeFileSync(
-      join(dir, "openapi", "svc-b", "openapi.yaml"),
-      SPEC_WITH_DEBT,
-      "utf8",
-    );
+    writeFileSync(join(dir, "openapi", "svc-a", "openapi.yaml"), SPEC_WITH_DEBT, "utf8");
+    writeFileSync(join(dir, "openapi", "svc-b", "openapi.yaml"), SPEC_WITH_DEBT, "utf8");
     const blPath = join(dir, "baseline.json");
 
     const { code, stderr } = await runCapture(

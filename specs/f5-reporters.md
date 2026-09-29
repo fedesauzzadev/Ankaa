@@ -1,12 +1,12 @@
 # f5-reporters · Reportes SARIF + Markdown + annotations
 
-| Campo | Valor |
-|---|---|
-| Estado | cerrada |
-| Fase | 5 |
+| Campo     | Valor                                                            |
+| --------- | ---------------------------------------------------------------- |
+| Estado    | cerrada                                                          |
+| Fase      | 5                                                                |
 | Deriva de | SDD FR-40/41/43, SDD §7 fila 5; doc 06 §8.6; spec `f1-reporters` |
-| Package | `@apigovscan/reporters` + CLI (`f1-analyze`) |
-| Roadmap | Fase 5 — Reporters SARIF + Markdown + GitHub Action |
+| Package   | `@apigovscan/reporters` + CLI (`f1-analyze`)                     |
+| Roadmap   | Fase 5 — Reporters SARIF + Markdown + GitHub Action              |
 
 ## 1. Objetivo
 
@@ -56,16 +56,18 @@ export function formatAnnotations(report: Report): string;
 {
   "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
   "version": "2.1.0",
-  "runs": [{
-    "tool": {
-      "driver": {
-        "name": "apigovscan",
-        "version": "<report.tool.version>",
-        "rules": [ /* dedupe por ruleId, sort alfabético */ ]
-      }
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "apigovscan",
+          "version": "<report.tool.version>",
+          "rules": [/* dedupe por ruleId, sort alfabético */],
+        },
+      },
+      "results": [/* un result por finding, orden del report */],
     },
-    "results": [ /* un result por finding, orden del report */ ]
-  }]
+  ],
 }
 ```
 
@@ -84,21 +86,21 @@ export function formatAnnotations(report: Report): string;
 ```markdown
 # ApiGovScan report
 
-| | |
-|---|---|
-| Tool | apigovscan 1.0.0 |
-| Packs | elite@2026.09.1 |
-| Inputs | 1 file(s) |
-| Findings | 2 errors · 14 warnings · 3 info |
-| reportHash | `6c1e…` |
+|            |                                 |
+| ---------- | ------------------------------- |
+| Tool       | apigovscan 1.0.0                |
+| Packs      | elite@2026.09.1                 |
+| Inputs     | 1 file(s)                       |
+| Findings   | 2 errors · 14 warnings · 3 info |
+| reportHash | `6c1e…`                         |
 
 ## Findings
 
 ### error
 
-| Rule | Location | Message | Fix |
-|---|---|---|---|
-| NAMING-001 | `GET /user/{id}` | … | … |
+| Rule       | Location         | Message | Fix |
+| ---------- | ---------------- | ------- | --- |
+| NAMING-001 | `GET /user/{id}` | …       | …   |
 
 (faltantes → "_(none)_")
 ```
@@ -127,16 +129,16 @@ Una línea por finding:
 ```ts
 export type OutputFormat = "console" | "json" | "sarif" | "markdown" | "annotations";
 const ANALYZE_FORMATS = new Set(["console", "json", "sarif", "markdown", "annotations"]);
-const RULES_FORMATS  = new Set(["console", "json"]);   // rules list/validate/explain no cambian
+const RULES_FORMATS = new Set(["console", "json"]); // rules list/validate/explain no cambian
 ```
 
 - `parseAnalyzeArgs` usa `ANALYZE_FORMATS`; mensaje de error: `invalid --format "<v>" (expected console | json | sarif | markdown | annotations)`.
 - `parseRulesArgs` usa `RULES_FORMATS` (separado; el error de rules sigue siendo `console | json`).
 - `createReportSink` despacha por formato:
 
-| `--output` | Comportamiento |
-|---|---|
-| sin `--output` | string completo a stdout (igual que json/console) |
+| `--output`     | Comportamiento                                                                                                                                    |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| sin `--output` | string completo a stdout (igual que json/console)                                                                                                 |
 | con `--output` | escribe el archivo (UTF-8, `\n` final) y **no** emite el formato a stdout; con `format: console` conserva `shortSummary` a stdout (AC-A.11 de f1) |
 
 - `annotations` + `--output`: válido (archivo con los comandos); el gate `--fail-on` no cambia (exit 0/1/2 por `computeExitCode`, f1-analyze).
@@ -167,16 +169,16 @@ const RULES_FORMATS  = new Set(["console", "json"]);   // rules list/validate/ex
 
 ## 5. Test plan
 
-| Caso | Tipo |
-|---|---|
-| SARIF schema/level/uri/dedupe/fingerprints | unit en `packages/reporters/test` |
-| SARIF determinismo (2× mismo report) | unit |
-| Markdown conteos + escape `|` + determinismo | unit |
-| Annotations escaping + niveles + vacío | unit |
-| Redacción en formatos nuevos | unit (report con patrón PEM) |
-| `--format` acepta/valida/rechaza + rules separado | e2e CLI (`runCapture`, patrón `analyze.e2e`) |
-| `--output` silencia stdout en sarif | e2e CLI |
-| Snapshot sarif/markdown petstore | snapshot en reporters (sin timestamps que rompan) |
+| Caso                                              | Tipo                                              |
+| ------------------------------------------------- | ------------------------------------------------- |
+| SARIF schema/level/uri/dedupe/fingerprints        | unit en `packages/reporters/test`                 |
+| SARIF determinismo (2× mismo report)              | unit                                              |
+| Markdown conteos + escape `                       | ` + determinismo                                  | unit |
+| Annotations escaping + niveles + vacío            | unit                                              |
+| Redacción en formatos nuevos                      | unit (report con patrón PEM)                      |
+| `--format` acepta/valida/rechaza + rules separado | e2e CLI (`runCapture`, patrón `analyze.e2e`)      |
+| `--output` silencia stdout en sarif               | e2e CLI                                           |
+| Snapshot sarif/markdown petstore                  | snapshot en reporters (sin timestamps que rompan) |
 
 ## 6. Dependencias
 
@@ -186,15 +188,15 @@ const RULES_FORMATS  = new Set(["console", "json"]);   // rules list/validate/ex
 
 ## 7. Riesgos y decisiones abiertas
 
-| Tema | Decisión f5 |
-|---|---|
+| Tema                                                                          | Decisión f5                                                                                                                                                                                                                |
+| ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Formato nuevo `annotations` fuera de FR-40 (`console\|json\|sarif\|markdown`) | **Se agrega** `--format annotations`: necesario para el criterio salida SDD ("PR check publica annotations") sin necesidad de subir SARIF. Se registra en este changelog y se amplía la fila FR-40 de `docs/01` al cierre. |
-| Sin líneas ⇒ sin `region` SARIF | Correcto: `Finding.location` es JSON pointer; GitHub muestra el archivo entero. Aceptar en v1; líneas vendrían si el modelo las gana. |
-| `informationUri`/URLs del driver | **No inventar**: solo `help.uri` si `source.url` existe. |
-| Reglas con severidad distinta entre findings | Gana la primera aparición estable; los `results` conservan su `level` individual. |
-| `sarif` pretty vs compact | Pretty (2 spaces) por defecto; determinismo se mantiene. |
-| `rules` con formatos nuevos | Excluidos: `RULES_FORMATS = console\|json` (no son reportes). |
-| Markdown como `--format markdown` vs solo en Action | CLI directo: permite `apigovscan analyze . --format markdown >> resumen` sin Action. |
+| Sin líneas ⇒ sin `region` SARIF                                               | Correcto: `Finding.location` es JSON pointer; GitHub muestra el archivo entero. Aceptar en v1; líneas vendrían si el modelo las gana.                                                                                      |
+| `informationUri`/URLs del driver                                              | **No inventar**: solo `help.uri` si `source.url` existe.                                                                                                                                                                   |
+| Reglas con severidad distinta entre findings                                  | Gana la primera aparición estable; los `results` conservan su `level` individual.                                                                                                                                          |
+| `sarif` pretty vs compact                                                     | Pretty (2 spaces) por defecto; determinismo se mantiene.                                                                                                                                                                   |
+| `rules` con formatos nuevos                                                   | Excluidos: `RULES_FORMATS = console\|json` (no son reportes).                                                                                                                                                              |
+| Markdown como `--format markdown` vs solo en Action                           | CLI directo: permite `apigovscan analyze . --format markdown >> resumen` sin Action.                                                                                                                                       |
 
 ## Changelog
 

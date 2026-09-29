@@ -3,19 +3,10 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
 import { describe, expect, it } from "vitest";
-import {
-  evaluate,
-  flattenRuleLists,
-  loadPack,
-} from "@apigovscan/core";
+import { evaluate, flattenRuleLists, loadPack } from "@apigovscan/core";
 import { parseSpec } from "@apigovscan/openapi";
 
-const repoRoot = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "..",
-);
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const packDir = join(repoRoot, "packs", "elite");
 
 function loadElitePack() {
@@ -52,10 +43,7 @@ if (!loaded.ok) {
 
 type Json = Record<string, unknown>;
 
-function resp(
-  description: string,
-  extra: Json = {},
-): Json {
+function resp(description: string, extra: Json = {}): Json {
   return { description, ...extra };
 }
 
@@ -185,9 +173,7 @@ describe("RESP new rules", () => {
       },
     });
     expect(fires("RESP-009", bad)).toBe(true);
-    expect(
-      fires("RESP-009", doc({ "/pets/1": { put: opBase() } })),
-    ).toBe(false);
+    expect(fires("RESP-009", doc({ "/pets/1": { put: opBase() } }))).toBe(false);
   });
 
   it("RESP-010 fires on PUT without 404", () => {
@@ -307,9 +293,7 @@ describe("RESP new rules", () => {
       },
     });
     expect(fires("RESP-016", bad)).toBe(true);
-    expect(
-      fires("RESP-016", doc({ "/pets": { options: opBase() } })),
-    ).toBe(false);
+    expect(fires("RESP-016", doc({ "/pets": { options: opBase() } }))).toBe(false);
   });
 });
 
@@ -383,18 +367,14 @@ describe("AUTH/NAMING/PARAM new rules", () => {
     const bad = doc({
       "/pets": {
         get: opBase({
-          parameters: [
-            { name: "api_key", in: "query", schema: { type: "string" } },
-          ],
+          parameters: [{ name: "api_key", in: "query", schema: { type: "string" } }],
         }),
       },
     });
     const good = doc({
       "/pets": {
         get: opBase({
-          parameters: [
-            { name: "verbose", in: "query", schema: { type: "boolean" } },
-          ],
+          parameters: [{ name: "verbose", in: "query", schema: { type: "boolean" } }],
         }),
       },
     });
@@ -405,9 +385,7 @@ describe("AUTH/NAMING/PARAM new rules", () => {
   it("NAMING-011 fires on paths with query strings", () => {
     const bad = doc({ "/pets?active=true": { get: opBase() } });
     expect(fires("NAMING-011", bad)).toBe(true);
-    expect(fires("NAMING-011", doc({ "/pets": { get: opBase() } }))).toBe(
-      false,
-    );
+    expect(fires("NAMING-011", doc({ "/pets": { get: opBase() } }))).toBe(false);
   });
 
   it("PARAM-008 fires on snake_case path params", () => {
@@ -447,18 +425,14 @@ describe("AUTH/NAMING/PARAM new rules", () => {
     const bad = doc({
       "/pets": {
         get: opBase({
-          parameters: [
-            { name: "session_id", in: "cookie", schema: { type: "string" } },
-          ],
+          parameters: [{ name: "session_id", in: "cookie", schema: { type: "string" } }],
         }),
       },
     });
     const good = doc({
       "/pets": {
         get: opBase({
-          parameters: [
-            { name: "sessionId", in: "cookie", schema: { type: "string" } },
-          ],
+          parameters: [{ name: "sessionId", in: "cookie", schema: { type: "string" } }],
         }),
       },
     });
@@ -506,17 +480,13 @@ describe("DOCS/SCHEMA/STRUCT/DEPR new rules", () => {
       },
     });
     expect(fires("SCHEMA-006", bad)).toBe(true);
-    expect(fires("SCHEMA-006", doc({ "/pets": { get: opBase() } }))).toBe(
-      false,
-    );
+    expect(fires("SCHEMA-006", doc({ "/pets": { get: opBase() } }))).toBe(false);
   });
 
   it("STRUCT-007 fires on OpenAPI 3.0 documents", () => {
     const bad = doc({ "/pets": { get: opBase() } }, "3.0.3");
     expect(fires("STRUCT-007", bad)).toBe(true);
-    expect(
-      fires("STRUCT-007", doc({ "/pets": { get: opBase() } }, "3.1.0")),
-    ).toBe(false);
+    expect(fires("STRUCT-007", doc({ "/pets": { get: opBase() } }, "3.1.0"))).toBe(false);
   });
 
   it("DEPR-003 fires on deprecated ops without Sunset/Deprecation", () => {

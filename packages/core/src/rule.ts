@@ -38,12 +38,7 @@ export type OperationField =
 export type ParameterIn = "path" | "query" | "header" | "cookie";
 
 export type DocField =
-  | "info.title"
-  | "info.version"
-  | "info.description"
-  | "servers"
-  | "tags"
-  | "components.schemas";
+  "info.title" | "info.version" | "info.description" | "servers" | "tags" | "components.schemas";
 
 export type AtomMatcher =
   | { op: "method"; in: string[] }
@@ -134,11 +129,7 @@ export type AtomMatcher =
   | { op: "inputSizeExceeds"; maxBytes: number }
   | { op: "paginationNamingInconsistent" };
 
-export type Matcher =
-  | { all: Matcher[] }
-  | { any: Matcher[] }
-  | { not: Matcher }
-  | AtomMatcher;
+export type Matcher = { all: Matcher[] } | { any: Matcher[] } | { not: Matcher } | AtomMatcher;
 
 export interface Rule {
   id: string;

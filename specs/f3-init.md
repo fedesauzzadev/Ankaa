@@ -1,11 +1,11 @@
 # f3-init · Scaffold `.apigovscan/`
 
-| Campo | Valor |
-|---|---|
-| Estado | cerrada |
-| Fase | 3 |
+| Campo     | Valor                                                                                                                  |
+| --------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Estado    | cerrada                                                                                                                |
+| Fase      | 3                                                                                                                      |
 | Deriva de | SDD FR-30, doc 03 §8 (estructura skills), doc 01 §6.4; specs `f2-config` (schema), `f2-baseline` (path `.apigovscan/`) |
-| Roadmap | Fase 3 — init + skills + learn |
+| Roadmap   | Fase 3 — init + skills + learn                                                                                         |
 
 ## 1. Objetivo
 
@@ -47,13 +47,13 @@ Como **dev backend**, quiero un comando `init` que deje el repo listo para basel
 apigovscan init [dir] [--force] [--skills-dir <path>]
 ```
 
-| Condición | Exit | Mensaje (EN) |
-|---|---|---|
-| Todo creado | 0 | `created: …` por archivo; `ok: already present: …` para skip |
-| Archivo existe sin `--force` | 0 | skip (no es error) |
-| `--force` y existe uno de los scaffold files | 0 | sobrescribe **solo** scaffold files de init |
-| `dir` no existe / no es directorio | 2 | `init target is not a directory: <path>` |
-| Error de escritura | 2 | `init failed: …` |
+| Condición                                    | Exit | Mensaje (EN)                                                 |
+| -------------------------------------------- | ---- | ------------------------------------------------------------ |
+| Todo creado                                  | 0    | `created: …` por archivo; `ok: already present: …` para skip |
+| Archivo existe sin `--force`                 | 0    | skip (no es error)                                           |
+| `--force` y existe uno de los scaffold files | 0    | sobrescribe **solo** scaffold files de init                  |
+| `dir` no existe / no es directorio           | 2    | `init target is not a directory: <path>`                     |
+| Error de escritura                           | 2    | `init failed: …`                                             |
 
 ### Contenido scaffold
 
@@ -100,12 +100,12 @@ Directorios primero (`mkdir -p`), luego archivos. Determinista: mismo orden de "
 
 ## 5. Test plan
 
-| Caso | Tipo |
-|---|---|
-| scaffold fresh / second run / force | e2e |
-| skillsDir custom desde config | e2e |
-| target inválido | e2e |
-| contenido YAML mínimo válido | unit (parse de scaffold) |
+| Caso                                | Tipo                     |
+| ----------------------------------- | ------------------------ |
+| scaffold fresh / second run / force | e2e                      |
+| skillsDir custom desde config       | e2e                      |
+| target inválido                     | e2e                      |
+| contenido YAML mínimo válido        | unit (parse de scaffold) |
 
 ## 6. Dependencias
 
@@ -114,11 +114,11 @@ Directorios primero (`mkdir -p`), luego archivos. Determinista: mismo orden de "
 
 ## 7. Riesgos y decisiones abiertas
 
-| Tema | Decisión |
-|---|---|
+| Tema                        | Decisión                                                                                                                                                                                                                                                                                                                                                                               |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | force vs skills del usuario | **`--force` solo regenera archivos creados por init si siguen siendo el scaffold known** (o README siempre); suppressions/severities con entradas del usuario **nunca** se pisan con init. Decisión simplificada f3: force reescribe config + skills README + empties solo si el archivo matchea el scaffold exacto o no existe; si suppressions tiene entradas, se salta con warning. |
-| init crea baseline? | No — baseline es `--write-baseline`. |
-| `--skills-dir` flag | Sí, override de config para el path de creación. |
+| init crea baseline?         | No — baseline es `--write-baseline`.                                                                                                                                                                                                                                                                                                                                                   |
+| `--skills-dir` flag         | Sí, override de config para el path de creación.                                                                                                                                                                                                                                                                                                                                       |
 
 ## Changelog
 

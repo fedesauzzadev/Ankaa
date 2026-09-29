@@ -15,9 +15,7 @@ function clean(value: unknown): string | undefined {
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
-function readMapping(
-  config: unknown,
-): { baseUrl?: unknown; apiKey?: unknown; model?: unknown } {
+function readMapping(config: unknown): { baseUrl?: unknown; apiKey?: unknown; model?: unknown } {
   if (config === undefined) {
     return {};
   }
@@ -54,9 +52,7 @@ export async function chatCompletion(
   opts?: { timeoutMs?: number },
 ): Promise<string> {
   if (cfg.model === undefined) {
-    throw new Error(
-      "llm.model is not configured (set llm.model or APIGOVSCAN_LLM_MODEL)",
-    );
+    throw new Error("llm.model is not configured (set llm.model or APIGOVSCAN_LLM_MODEL)");
   }
   const url = `${cfg.baseUrl.replace(/\/+$/, "")}/chat/completions`;
   let res: Response;
@@ -65,17 +61,13 @@ export async function chatCompletion(
       method: "POST",
       headers: {
         "content-type": "application/json",
-        ...(cfg.apiKey !== undefined
-          ? { authorization: `Bearer ${cfg.apiKey}` }
-          : {}),
+        ...(cfg.apiKey !== undefined ? { authorization: `Bearer ${cfg.apiKey}` } : {}),
       },
       body: JSON.stringify({ model: cfg.model, messages }),
       signal: AbortSignal.timeout(opts?.timeoutMs ?? DEFAULT_TIMEOUT_MS),
     });
   } catch (err) {
-    throw new Error(
-      `llm request failed: ${err instanceof Error ? err.message : String(err)}`,
-    );
+    throw new Error(`llm request failed: ${err instanceof Error ? err.message : String(err)}`);
   }
   if (!res.ok) {
     throw new Error(`llm request failed: HTTP ${res.status}`);
@@ -87,9 +79,7 @@ export async function chatCompletion(
     throw new Error("invalid llm response: expected JSON");
   }
   const choices =
-    typeof body === "object" && body !== null
-      ? (body as { choices?: unknown }).choices
-      : undefined;
+    typeof body === "object" && body !== null ? (body as { choices?: unknown }).choices : undefined;
   const content =
     Array.isArray(choices) && choices.length > 0
       ? (choices[0] as { message?: { content?: unknown } })?.message?.content

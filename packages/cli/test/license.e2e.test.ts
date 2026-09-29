@@ -6,12 +6,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { run } from "../src/index.js";
 import { DEV_LICENSE_KEY, generateLicenseKey } from "../src/license.js";
 
-const repoRoot = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "..",
-);
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const petstore = join(repoRoot, "fixtures", "petstore-mini.yaml");
 
 const tempRoots: string[] = [];
@@ -58,10 +53,7 @@ describe("license gating e2e (f6-distribution)", () => {
   it("AC-D.3 analyze without license exits 2 with actionable message", async () => {
     const dir = tempDir();
     copyFileSync(petstore, join(dir, "openapi.yaml"));
-    const out = await runCapture(
-      ["analyze", "openapi.yaml"],
-      { cwd: dir, env: {} },
-    );
+    const out = await runCapture(["analyze", "openapi.yaml"], { cwd: dir, env: {} });
     expect(out.code).toBe(2);
     expect(out.stderr).toContain("missing license");
     expect(out.stderr).toContain("APIGOVSCAN_LICENSE_KEY");
@@ -92,11 +84,7 @@ describe("license gating e2e (f6-distribution)", () => {
   it("AC-D.2 config license.key is used when env is absent", async () => {
     const dir = tempDir();
     copyFileSync(petstore, join(dir, "openapi.yaml"));
-    writeFileSync(
-      join(dir, "apigovscan.yaml"),
-      `license:\n  key: "${DEV_LICENSE_KEY}"\n`,
-      "utf8",
-    );
+    writeFileSync(join(dir, "apigovscan.yaml"), `license:\n  key: "${DEV_LICENSE_KEY}"\n`, "utf8");
     const out = await runCapture(["analyze", "openapi.yaml"], {
       cwd: dir,
       env: {},
@@ -166,10 +154,10 @@ describe("license gating e2e (f6-distribution)", () => {
 
   it("gated commands keep exit 2 usage errors distinct (unknown flag)", async () => {
     const dir = tempDir();
-    const out = await runCapture(
-      ["analyze", "openapi.yaml", "--nope"],
-      { cwd: dir, env: { APIGOVSCAN_LICENSE_KEY: DEV_LICENSE_KEY } },
-    );
+    const out = await runCapture(["analyze", "openapi.yaml", "--nope"], {
+      cwd: dir,
+      env: { APIGOVSCAN_LICENSE_KEY: DEV_LICENSE_KEY },
+    });
     expect(out.code).toBe(2);
     expect(out.stderr).toContain("unknown option");
   });

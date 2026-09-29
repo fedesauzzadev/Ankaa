@@ -15,12 +15,7 @@ import { run } from "../src/index.js";
 import { DEV_LICENSE_KEY } from "../src/license.js";
 import { startLlmStub } from "./llm-stub.js";
 
-const repoRoot = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "..",
-);
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const demoRepo = join(repoRoot, "fixtures", "drift-demo");
 
 const tempRoots: string[] = [];
@@ -231,10 +226,10 @@ describe("drift command e2e (f8-drift)", () => {
     expect(text).toContain("getPets");
     expect(text).toContain("deleteExtra");
 
-    const reanalyze = await runCapture(
-      ["analyze", "gen.yaml", "--format", "json", "--no-color"],
-      { cwd: dir, env: licEnv() },
-    );
+    const reanalyze = await runCapture(["analyze", "gen.yaml", "--format", "json", "--no-color"], {
+      cwd: dir,
+      env: licEnv(),
+    });
     expect([0, 1]).toContain(reanalyze.code);
     const report = JSON.parse(reanalyze.stdout) as { operations: unknown };
     expect(report).toHaveProperty("reportHash");
@@ -247,10 +242,10 @@ describe("drift command e2e (f8-drift)", () => {
     expect(again.stderr).toContain("output exists");
     expect(again.stderr).toContain("--force");
 
-    const forced = await runCapture(
-      ["drift", "repo", "--out", "gen.yaml", "--force"],
-      { cwd: dir, env: licEnv() },
-    );
+    const forced = await runCapture(["drift", "repo", "--out", "gen.yaml", "--force"], {
+      cwd: dir,
+      env: licEnv(),
+    });
     expect(forced.code).toBe(0);
   });
 

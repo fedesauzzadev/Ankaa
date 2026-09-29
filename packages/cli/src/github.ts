@@ -6,9 +6,7 @@ export interface GithubRepo {
   cloneUrl: string;
 }
 
-export type ListReposResult =
-  | { ok: true; repos: GithubRepo[] }
-  | { ok: false; error: string };
+export type ListReposResult = { ok: true; repos: GithubRepo[] } | { ok: false; error: string };
 
 const FETCH_TIMEOUT_MS = 30000;
 const CLONE_TIMEOUT_MS = 120000;
@@ -33,8 +31,7 @@ export async function listOrgRepos(
   maxRepos: number,
 ): Promise<ListReposResult> {
   const repos: GithubRepo[] = [];
-  let url: string | undefined =
-    `${apiBase.replace(/\/+$/, "")}/orgs/${org}/repos?per_page=100`;
+  let url: string | undefined = `${apiBase.replace(/\/+$/, "")}/orgs/${org}/repos?per_page=100`;
   while (url !== undefined) {
     let res: Response;
     try {
@@ -79,10 +76,7 @@ export async function listOrgRepos(
       }
       if (entry !== null && typeof entry === "object") {
         const record = entry as Record<string, unknown>;
-        if (
-          typeof record.name === "string" &&
-          typeof record.clone_url === "string"
-        ) {
+        if (typeof record.name === "string" && typeof record.clone_url === "string") {
           repos.push({ name: record.name, cloneUrl: record.clone_url });
         }
       }
@@ -107,10 +101,7 @@ export async function cloneRepo(
     });
     return { ok: true };
   } catch (err) {
-    if (
-      err instanceof Error &&
-      (err as NodeJS.ErrnoException).code === "ENOENT"
-    ) {
+    if (err instanceof Error && (err as NodeJS.ErrnoException).code === "ENOENT") {
       return {
         ok: false,
         error: "git not found: install git to use --github",

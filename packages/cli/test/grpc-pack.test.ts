@@ -3,19 +3,10 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
 import { describe, expect, it } from "vitest";
-import {
-  evaluate,
-  flattenRuleLists,
-  loadPack,
-} from "@apigovscan/core";
+import { evaluate, flattenRuleLists, loadPack } from "@apigovscan/core";
 import { parseProto } from "@apigovscan/grpc";
 
-const repoRoot = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "..",
-);
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const packDir = join(repoRoot, "packs", "grpc");
 
 function loadGrpcPack() {
@@ -89,9 +80,9 @@ describe("grpc pack inventory (M8.7)", () => {
     expect(
       fires("GRPC-001", svc("// Get a thing with words.\nrpc GetThing(Req) returns (Res);")),
     ).toBe(false);
-    expect(fires("GRPC-001", svc("// Bad method name here now.\nrpc get_thing(Req) returns (Res);"))).toBe(
-      true,
-    );
+    expect(
+      fires("GRPC-001", svc("// Bad method name here now.\nrpc get_thing(Req) returns (Res);")),
+    ).toBe(true);
   });
 
   it("GRPC-002 fires on non-snake_case fields", () => {
@@ -110,7 +101,10 @@ describe("grpc pack inventory (M8.7)", () => {
 
   it("GRPC-004 fires on short rpc descriptions", () => {
     expect(
-      fires("GRPC-004", svc("// Get a thing with enough words here.\nrpc GetThing(Req) returns (Res);")),
+      fires(
+        "GRPC-004",
+        svc("// Get a thing with enough words here.\nrpc GetThing(Req) returns (Res);"),
+      ),
     ).toBe(false);
     expect(fires("GRPC-004", svc("// Too short.\nrpc GetThing(Req) returns (Res);"))).toBe(true);
   });
@@ -126,25 +120,25 @@ describe("grpc pack inventory (M8.7)", () => {
 
   it("GRPC-006 fires on non-standard verbs", () => {
     expect(
-      fires("GRPC-006", svc("// List all the things now here.\nrpc ListThings(Req) returns (Res);")),
+      fires(
+        "GRPC-006",
+        svc("// List all the things now here.\nrpc ListThings(Req) returns (Res);"),
+      ),
     ).toBe(false);
     expect(
-      fires("GRPC-006", svc("// Activate the thing right now here.\nrpc ActivateThing(Req) returns (Res);")),
+      fires(
+        "GRPC-006",
+        svc("// Activate the thing right now here.\nrpc ActivateThing(Req) returns (Res);"),
+      ),
     ).toBe(true);
   });
 
   it("GRPC-007 fires when package is missing", () => {
     expect(
-      fires(
-        "GRPC-007",
-        svc("// Get a thing with words.\nrpc GetThing(Req) returns (Res);"),
-      ),
+      fires("GRPC-007", svc("// Get a thing with words.\nrpc GetThing(Req) returns (Res);")),
     ).toBe(false);
     expect(
-      fires(
-        "GRPC-007",
-        svc("// Get a thing with words.\nrpc GetThing(Req) returns (Res);", ""),
-      ),
+      fires("GRPC-007", svc("// Get a thing with words.\nrpc GetThing(Req) returns (Res);", "")),
     ).toBe(true);
   });
 });

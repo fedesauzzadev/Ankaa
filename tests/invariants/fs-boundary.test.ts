@@ -96,11 +96,7 @@ describe("INV-1 CLI analyze path with network stub", () => {
     const original = globalThis.fetch;
     globalThis.fetch = spy as unknown as typeof fetch;
     try {
-      const { code } = await runCapture([
-        "analyze",
-        petstore,
-        "--no-color",
-      ]);
+      const { code } = await runCapture(["analyze", petstore, "--no-color"]);
       expect([0, 1]).toContain(code);
       expect(spy).not.toHaveBeenCalled();
     } finally {

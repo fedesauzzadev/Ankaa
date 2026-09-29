@@ -3,22 +3,11 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
 import { describe, expect, it } from "vitest";
-import {
-  evaluate,
-  explain,
-  flattenRuleLists,
-  loadPack,
-  validateRule,
-} from "@apigovscan/core";
+import { evaluate, explain, flattenRuleLists, loadPack, validateRule } from "@apigovscan/core";
 import { parseSpec } from "@apigovscan/openapi";
 import { run } from "../src/index.js";
 
-const repoRoot = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "..",
-);
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const packDir = join(repoRoot, "packs", "elite");
 const fixturesDir = join(repoRoot, "fixtures");
 const publicDir = join(fixturesDir, "public");
@@ -196,10 +185,7 @@ describe("elite pack load (M1.5)", () => {
     if (!loaded.ok) return;
     for (const rule of loaded.pack.rules) {
       const result = validateRule(rule, { strictSource: true });
-      expect(
-        result.ok,
-        `${rule.id}: ${!result.ok ? result.issues.join("; ") : ""}`,
-      ).toBe(true);
+      expect(result.ok, `${rule.id}: ${!result.ok ? result.issues.join("; ") : ""}`).toBe(true);
     }
   });
 
@@ -230,9 +216,7 @@ describe("elite pack load (M1.5)", () => {
       expect(rule.message, rule.id).toBeTypeOf("string");
       expect(rule.message.length, rule.id).toBeGreaterThan(0);
       expect(localeRisk.test(rule.message), rule.id).toBe(false);
-      expect(/[àáâãäåèéêëìíîïòóôõöùúûüñç]/i.test(rule.message), rule.id).toBe(
-        false,
-      );
+      expect(/[àáâãäåèéêëìíîïòóôõöùúûüñç]/i.test(rule.message), rule.id).toBe(false);
       if (rule.fix !== undefined) {
         expect(localeRisk.test(rule.fix), rule.id).toBe(false);
       }
@@ -283,11 +267,7 @@ describe("CLI rules explain (AC-P.9)", () => {
   }
 
   it("prints message + source + url for NAMING-001", async () => {
-    const { code, stdout, stderr } = await runCapture([
-      "rules",
-      "explain",
-      "NAMING-001",
-    ]);
+    const { code, stdout, stderr } = await runCapture(["rules", "explain", "NAMING-001"]);
     expect(code).toBe(0);
     expect(stderr).toBe("");
     expect(stdout).toContain("NAMING-001");
@@ -297,11 +277,7 @@ describe("CLI rules explain (AC-P.9)", () => {
   });
 
   it("exits 2 for unknown rule id", async () => {
-    const { code, stderr } = await runCapture([
-      "rules",
-      "explain",
-      "NOPE-999",
-    ]);
+    const { code, stderr } = await runCapture(["rules", "explain", "NOPE-999"]);
     expect(code).toBe(2);
     expect(stderr).toContain("rule not found");
   });

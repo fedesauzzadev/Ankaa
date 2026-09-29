@@ -6,12 +6,7 @@ import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
 import { run } from "../src/index.js";
 
-const repoRoot = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "..",
-);
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const asyncapiFixtures = join(repoRoot, "fixtures", "asyncapi");
 const v2 = join(asyncapiFixtures, "v2.yaml");
 const invalid = join(asyncapiFixtures, "invalid.yaml");
@@ -56,13 +51,7 @@ async function runCapture(
 
 describe("asyncapi analyze e2e (f8-asyncapi)", () => {
   it("AC-AS.5 analyzes v2.yaml with the asyncapi pack", async () => {
-    const { code, stdout } = await runCapture([
-      "analyze",
-      v2,
-      "--format",
-      "json",
-      "--no-color",
-    ]);
+    const { code, stdout } = await runCapture(["analyze", v2, "--format", "json", "--no-color"]);
     expect(code).toBe(0);
     const report = JSON.parse(stdout) as {
       reportHash: string;
@@ -96,20 +85,8 @@ describe("asyncapi analyze e2e (f8-asyncapi)", () => {
   });
 
   it("AC-AS.5 deterministic across runs", async () => {
-    const first = await runCapture([
-      "analyze",
-      v2,
-      "--format",
-      "json",
-      "--no-color",
-    ]);
-    const second = await runCapture([
-      "analyze",
-      v2,
-      "--format",
-      "json",
-      "--no-color",
-    ]);
+    const first = await runCapture(["analyze", v2, "--format", "json", "--no-color"]);
+    const second = await runCapture(["analyze", v2, "--format", "json", "--no-color"]);
     const a = JSON.parse(first.stdout) as { reportHash: string };
     const b = JSON.parse(second.stdout) as { reportHash: string };
     expect(a.reportHash).toBe(b.reportHash);
@@ -125,10 +102,9 @@ describe("asyncapi analyze e2e (f8-asyncapi)", () => {
     const dir = tempDir();
     mkdirSync(join(dir, "events"));
     copyFileSync(v2, join(dir, "events", "asyncapi.yaml"));
-    const { code, stdout } = await runCapture(
-      ["analyze", ".", "--format", "json", "--no-color"],
-      { cwd: dir },
-    );
+    const { code, stdout } = await runCapture(["analyze", ".", "--format", "json", "--no-color"], {
+      cwd: dir,
+    });
     expect([0, 1]).toContain(code);
     const report = JSON.parse(stdout) as {
       input: Array<{ path: string }>;

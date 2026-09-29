@@ -37,8 +37,5 @@ writeFileSync(deepPath, lines.join("\n") + "\n");
 console.log("deep-nesting lines", lines.length);
 
 const doc = parse(readFileSync(join(root, "fixtures", "petstore-mini.yaml"), "utf8"));
-writeFileSync(
-  join(root, "fixtures", "petstore-mini.json"),
-  JSON.stringify(doc, null, 2) + "\n",
-);
+writeFileSync(join(root, "fixtures", "petstore-mini.json"), JSON.stringify(doc, null, 2) + "\n");
 console.log("petstore json ok", Object.keys(doc.paths));

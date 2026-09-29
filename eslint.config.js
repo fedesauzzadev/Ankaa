@@ -19,7 +19,15 @@ const CORE_FORBIDDEN = [
   "@modelcontextprotocol/*",
 ];
 
-const OPENAPI_FORBIDDEN = ["node:http", "node:http/*", "node:https", "node:net", "undici", "axios", "node-fetch"];
+const OPENAPI_FORBIDDEN = [
+  "node:http",
+  "node:http/*",
+  "node:https",
+  "node:net",
+  "undici",
+  "axios",
+  "node-fetch",
+];
 
 export default tseslint.config(
   {

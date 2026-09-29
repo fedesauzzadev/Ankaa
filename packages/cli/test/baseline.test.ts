@@ -1,9 +1,4 @@
-import {
-  mkdtempSync,
-  rmSync,
-  writeFileSync,
-  existsSync,
-} from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
@@ -67,10 +62,7 @@ describe("buildBaseline / serialize", () => {
       createdAt: "2026-01-01T00:00:00.000Z",
     });
     expect(baseline.version).toBe(BASELINE_SCHEMA_VERSION);
-    expect(baseline.fingerprints).toEqual([
-      "a".repeat(64),
-      "b".repeat(64),
-    ]);
+    expect(baseline.fingerprints).toEqual(["a".repeat(64), "b".repeat(64)]);
     expect(baseline.counts).toEqual({
       error: 3,
       warning: 0,
@@ -192,25 +184,15 @@ describe("checkInputHashes", () => {
   });
 
   it("warn mode: mismatch + unused warnings (AC-B.5)", () => {
-    const result = checkInputHashes(
-      baseline,
-      [{ path: "a.yaml", sha256: "sha256:new" }],
-      "warn",
-    );
+    const result = checkInputHashes(baseline, [{ path: "a.yaml", sha256: "sha256:new" }], "warn");
     expect(result.fatal).toBeUndefined();
-    expect(result.warnings.some((w) => w.includes("inputHash mismatch"))).toBe(
-      true,
-    );
+    expect(result.warnings.some((w) => w.includes("inputHash mismatch"))).toBe(true);
     expect(result.warnings.some((w) => w.includes("entry unused"))).toBe(true);
     expect(result.warnings.some((w) => w.includes("inputs differ"))).toBe(true);
   });
 
   it("strict mode: mismatch is fatal", () => {
-    const result = checkInputHashes(
-      baseline,
-      [{ path: "a.yaml", sha256: "sha256:new" }],
-      "strict",
-    );
+    const result = checkInputHashes(baseline, [{ path: "a.yaml", sha256: "sha256:new" }], "strict");
     expect(result.fatal).toContain("inputHash mismatch");
   });
 
@@ -224,30 +206,18 @@ describe("checkInputHashes", () => {
       "ignore",
     );
     expect(result.fatal).toBeUndefined();
-    expect(
-      result.warnings.some((w) => w.includes("inputHash mismatch")),
-    ).toBe(false);
+    expect(result.warnings.some((w) => w.includes("inputHash mismatch"))).toBe(false);
   });
 });
 
 describe("resolveBaselinePath", () => {
   it("flag wins over config and resolves vs cwd", () => {
-    const path = resolveBaselinePath(
-      "custom.json",
-      "cfg.json",
-      "/cfgdir",
-      "/cwd",
-    );
+    const path = resolveBaselinePath("custom.json", "cfg.json", "/cfgdir", "/cwd");
     expect(path).toBe(resolve("/cwd", "custom.json"));
   });
 
   it("config path resolves relative to config dir", () => {
-    const path = resolveBaselinePath(
-      undefined,
-      "bl.json",
-      "/cfgdir",
-      "/cwd",
-    );
+    const path = resolveBaselinePath(undefined, "bl.json", "/cfgdir", "/cwd");
     expect(path).toBe(resolve("/cfgdir", "bl.json"));
   });
 

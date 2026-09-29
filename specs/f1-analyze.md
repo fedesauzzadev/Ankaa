@@ -1,11 +1,11 @@
 # f1-analyze · Caso de uso y comando `analyze`
 
-| Campo | Valor |
-|---|---|
-| Estado | implementada |
-| Fase | 1 |
+| Campo     | Valor                                                                                                          |
+| --------- | -------------------------------------------------------------------------------------------------------------- |
+| Estado    | implementada                                                                                                   |
+| Fase      | 1                                                                                                              |
 | Deriva de | SDD FR-01…FR-06, ADR-003, ADR-004, INV-1/2/7; specs `f1-openapi`, `f1-engine`, `f1-elite-pack`, `f1-reporters` |
-| Roadmap | Fase 1 MVP |
+| Roadmap   | Fase 1 MVP                                                                                                     |
 
 ## 1. Objetivo
 
@@ -59,11 +59,11 @@ Options:
 
 ### Exit codes
 
-| Código | Condición |
-|---|---|
-| 0 | Análisis OK y ningún finding con severidad ≥ `failOn` (o `failOn: never`) |
-| 1 | ≥ 1 finding con severidad ≥ `failOn` |
-| 2 | Error de uso / input inválido / parseo fallido / regla custom inválida |
+| Código | Condición                                                                 |
+| ------ | ------------------------------------------------------------------------- |
+| 0      | Análisis OK y ningún finding con severidad ≥ `failOn` (o `failOn: never`) |
+| 1      | ≥ 1 finding con severidad ≥ `failOn`                                      |
+| 2      | Error de uso / input inválido / parseo fallido / regla custom inválida    |
 
 ### Descubrimiento en directorio
 
@@ -94,13 +94,13 @@ Búsqueda de config: `./apigovscan.yaml` → `./apigovscan.yml` → none. `--con
 
 ```ts
 interface SpecLoader {
-  load(path: string): Promise<Uint8Array>;           // FS adapter en cli
+  load(path: string): Promise<Uint8Array>; // FS adapter en cli
 }
 interface PackRepository {
-  loadActive(): Promise<RulePack[]>;                 // embebido + overrides
+  loadActive(): Promise<RulePack[]>; // embebido + overrides
 }
 interface ReportSink {
-  write(report: Report): Promise<void>;              // stdout o --output
+  write(report: Report): Promise<void>; // stdout o --output
 }
 ```
 
@@ -110,15 +110,15 @@ interface ReportSink {
 
 Ver SDD §02.5. Etapas y debug:
 
-1. resolve inputs  
-2. load bytes  
-3. parse+normalize  
-4. load packs+config+custom rules  
-5. engine.evaluate  
-6. apply overrides (`rules:` config)  
-7. sort + counts  
-8. report build + sink  
-9. exit code  
+1. resolve inputs
+2. load bytes
+3. parse+normalize
+4. load packs+config+custom rules
+5. engine.evaluate
+6. apply overrides (`rules:` config)
+7. sort + counts
+8. report build + sink
+9. exit code
 
 ## 4. Criterios de aceptación
 
@@ -138,16 +138,16 @@ Ver SDD §02.5. Etapas y debug:
 
 ## 5. Test plan
 
-| Caso | Tipo | Nota |
-|---|---|---|
-| happy path fixture válida | e2e cli (execa) | snapshot console + json |
-| determinismo double run | e2e | reportHash equal |
-| exit codes matrix | e2e | 0/1/2 |
-| config overrides | unit (useCase) + e2e | |
-| custom rule inline | e2e | |
-| directorio discovery | e2e | fixtures dir |
-| stdin | e2e | |
-| red fail-fast | unit (invariant) | ver f1-invariants |
+| Caso                      | Tipo                 | Nota                    |
+| ------------------------- | -------------------- | ----------------------- |
+| happy path fixture válida | e2e cli (execa)      | snapshot console + json |
+| determinismo double run   | e2e                  | reportHash equal        |
+| exit codes matrix         | e2e                  | 0/1/2                   |
+| config overrides          | unit (useCase) + e2e |                         |
+| custom rule inline        | e2e                  |                         |
+| directorio discovery      | e2e                  | fixtures dir            |
+| stdin                     | e2e                  |                         |
+| red fail-fast             | unit (invariant)     | ver f1-invariants       |
 
 ## 6. Dependencias
 
@@ -159,11 +159,11 @@ Ver SDD §02.5. Etapas y debug:
 
 ## 7. Riesgos y decisiones abiertas
 
-| Tema | Decisión |
-|---|---|
+| Tema                                     | Decisión                                                                          |
+| ---------------------------------------- | --------------------------------------------------------------------------------- |
 | Múltiples errores de parse en directorio | Abort total (exit 2) vs parcial; **f1: abort** si algún input falla (CI-friendly) |
-| `failOn: never` | Permitido con advertencia en consola |
-| Color | `NO_COLOR` + `--no-color` + TTY detect |
+| `failOn: never`                          | Permitido con advertencia en consola                                              |
+| Color                                    | `NO_COLOR` + `--no-color` + TTY detect                                            |
 
 ## Changelog
 

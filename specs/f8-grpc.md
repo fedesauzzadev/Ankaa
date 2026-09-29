@@ -1,10 +1,10 @@
 # f8-grpc · Soporte proto/gRPC en el plano de governance (M8.7, protocolo 2)
 
-| Campo | Valor |
-|---|---|
-| Estado | cerrada |
-| Fecha | 2026-09-27 |
-| Fase | 8 (M8.7 del umbrella `f8-oss-differentials`: GraphQL ✓ → gRPC → AsyncAPI → webhooks) |
+| Campo     | Valor                                                                                                            |
+| --------- | ---------------------------------------------------------------------------------------------------------------- |
+| Estado    | cerrada                                                                                                          |
+| Fecha     | 2026-09-27                                                                                                       |
+| Fase      | 8 (M8.7 del umbrella `f8-oss-differentials`: GraphQL ✓ → gRPC → AsyncAPI → webhooks)                             |
 | Deriva de | `f8-oss-differentials` M8.7; `f8-graphql` (patrón adapter + pack + CLI por extensión); `f1-engine` (sin cambios) |
 
 ## 1. Objetivo / user story
@@ -68,12 +68,12 @@ Unit parser + pack + e2e CLI + MCP + boundary + invariantes (patrón M8.6).
 
 ## 7. Riesgos y decisiones abiertas
 
-| Tema | Decisión v1 |
-|---|---|
-| proto2 (`required`, groups, `extend` con campos) | Tolerar/saltear; slice 1 manda proto3 moderno. |
-| `google.api.http` annotations | Se ignoran (option custom); transcoding como fuente REST = milestone aparte si se pide. |
-| Field numbers / breaking | Requiere diff cross-versión → futuro sobre `drift`, no reglas snapshot. |
-| Reglas AIP finas (121/158/etag) | Backlog con átomos nuevos, doctrina M8.5. |
+| Tema                                             | Decisión v1                                                                             |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| proto2 (`required`, groups, `extend` con campos) | Tolerar/saltear; slice 1 manda proto3 moderno.                                          |
+| `google.api.http` annotations                    | Se ignoran (option custom); transcoding como fuente REST = milestone aparte si se pide. |
+| Field numbers / breaking                         | Requiere diff cross-versión → futuro sobre `drift`, no reglas snapshot.                 |
+| Reglas AIP finas (121/158/etag)                  | Backlog con átomos nuevos, doctrina M8.5.                                               |
 
 ## Changelog
 

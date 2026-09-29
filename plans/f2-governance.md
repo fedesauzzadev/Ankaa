@@ -1,11 +1,11 @@
 # Plan · f2-governance · config + custom rules + baseline
 
-| Campo | Valor |
-|---|---|
-| Specs | f2-config, f2-custom-rules, f2-baseline |
-| Esfuerzo estimado | 1 semana (1 dev full-time equivalente) |
-| Dependencias | f1 cerrado (`v0.1.0-mvp`) |
-| Milestones | M2.1–M2.3 |
+| Campo             | Valor                                   |
+| ----------------- | --------------------------------------- |
+| Specs             | f2-config, f2-custom-rules, f2-baseline |
+| Esfuerzo estimado | 1 semana (1 dev full-time equivalente)  |
+| Dependencias      | f1 cerrado (`v0.1.0-mvp`)               |
+| Milestones        | M2.1–M2.3                               |
 
 ## Estrategia
 
@@ -73,13 +73,13 @@ Pasos:
 
 ## Riesgos del plan
 
-| Riesgo | Impacto | Mitigación |
-|---|---|---|
-| Baseline esconde reglas de seguridad nuevas no intencionalmente | Confianza | Conteo suppressed siempre visible; write imprime counts; review de baseline en PR como código |
-| Config strict rompe configs ad-hoc de usuarios f1 | Fragua | Allowlist corta; error claro con key unknown; changelog |
-| Colisión id custom/elite molesta | UX | Mensaje apunta a `rules:` override, no a redefinir |
-| Fingerprint inestable rompe baseline | Filtro no matchea | INV-5 ya en f1; golden tests |
-| Scope creep hacia skills dentro de baseline | Demora | Specs f2 explícitos: skills = f3 |
+| Riesgo                                                          | Impacto           | Mitigación                                                                                    |
+| --------------------------------------------------------------- | ----------------- | --------------------------------------------------------------------------------------------- |
+| Baseline esconde reglas de seguridad nuevas no intencionalmente | Confianza         | Conteo suppressed siempre visible; write imprime counts; review de baseline en PR como código |
+| Config strict rompe configs ad-hoc de usuarios f1               | Fragua            | Allowlist corta; error claro con key unknown; changelog                                       |
+| Colisión id custom/elite molesta                                | UX                | Mensaje apunta a `rules:` override, no a redefinir                                            |
+| Fingerprint inestable rompe baseline                            | Filtro no matchea | INV-5 ya en f1; golden tests                                                                  |
+| Scope creep hacia skills dentro de baseline                     | Demora            | Specs f2 explícitos: skills = f3                                                              |
 
 ## Definition of Done (fase 2 completa)
 

@@ -1,10 +1,10 @@
 # f0-foundation · Fundación del monorepo
 
-| Campo | Valor |
-|---|---|
-| Estado | implementada |
-| Fase | 0 |
-| Deriva de | SDD ADR-012, ADR-004, D1; roadmap Fase 0 |
+| Campo                  | Valor                                           |
+| ---------------------- | ----------------------------------------------- |
+| Estado                 | implementada                                    |
+| Fase                   | 0                                               |
+| Deriva de              | SDD ADR-012, ADR-004, D1; roadmap Fase 0        |
 | Criterio de salida SDD | `pnpm i && pnpm build && pnpm test` verde en CI |
 
 ## 1. Objetivo
@@ -61,14 +61,14 @@ ApiGovScan/
 
 ### Scripts raíz (package.json)
 
-| Script | Comando esperado |
-|---|---|
-| `build` | `pnpm -r --filter "./packages/**" build` |
-| `test` | `pnpm -r test` |
-| `lint` | eslint en todo el repo |
-| `typecheck` | `tsc -b` o `pnpm -r typecheck` |
-| `format` | prettier --write |
-| `check` | `lint && typecheck && test && build && test:invariants` |
+| Script      | Comando esperado                                        |
+| ----------- | ------------------------------------------------------- |
+| `build`     | `pnpm -r --filter "./packages/**" build`                |
+| `test`      | `pnpm -r test`                                          |
+| `lint`      | eslint en todo el repo                                  |
+| `typecheck` | `tsc -b` o `pnpm -r typecheck`                          |
+| `format`    | prettier --write                                        |
+| `check`     | `lint && typecheck && test && build && test:invariants` |
 
 ### Paquete cli (esqueleto)
 
@@ -92,12 +92,12 @@ apigovscan --help                                   # lista comandos futuros (st
 
 ## 5. Test plan
 
-| Test | Tipo |
-|---|---|
-| Smoke por package (export o bin) | unit |
-| `pnpm check` local espejo de CI | script |
-| Lint rule: core sin I/O | lint en CI |
-| Windows: scripts no dependen de bash-only | CI matrix |
+| Test                                      | Tipo       |
+| ----------------------------------------- | ---------- |
+| Smoke por package (export o bin)          | unit       |
+| `pnpm check` local espejo de CI           | script     |
+| Lint rule: core sin I/O                   | lint en CI |
+| Windows: scripts no dependen de bash-only | CI matrix  |
 
 ## 6. Dependencias
 
@@ -106,11 +106,11 @@ apigovscan --help                                   # lista comandos futuros (st
 
 ## 7. Riesgos y decisiones abiertas
 
-| Tema | Decisión provisional |
-|---|---|
+| Tema                                   | Decisión provisional                                                      |
+| -------------------------------------- | ------------------------------------------------------------------------- |
 | Project references vs tsup por package | Preferir `tsc` para libs + `tsup` solo en `cli` cuando se optimice el bin |
-| Vitest vs Jest | Vitest (ESM nativo, rápido, alineado TS) |
-| Cobertura gate | Informativo en f0; gate en f1+ |
+| Vitest vs Jest                         | Vitest (ESM nativo, rápido, alineado TS)                                  |
+| Cobertura gate                         | Informativo en f0; gate en f1+                                            |
 
 ## Changelog
 

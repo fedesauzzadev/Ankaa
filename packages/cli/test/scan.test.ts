@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  aggregateScans,
-  loadGroupMapping,
-  type RepoScan,
-} from "../src/scan.js";
+import { aggregateScans, loadGroupMapping, type RepoScan } from "../src/scan.js";
 
 function repo(partial: Partial<RepoScan> & { name: string }): RepoScan {
   return {

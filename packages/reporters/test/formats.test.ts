@@ -1,11 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { EvaluationResult, Finding } from "@apigovscan/core";
-import {
-  buildReport,
-  formatAnnotations,
-  formatMarkdown,
-  formatSarif,
-} from "../src/index.js";
+import { buildReport, formatAnnotations, formatMarkdown, formatSarif } from "../src/index.js";
 
 interface SarifRule {
   id: string;
@@ -61,9 +56,7 @@ function result(findings: Finding[]): EvaluationResult {
   return { findings, errors: [] };
 }
 
-function makeReport(
-  overrides: Partial<Parameters<typeof buildReport>[0]> = {},
-) {
+function makeReport(overrides: Partial<Parameters<typeof buildReport>[0]> = {}) {
   return buildReport({
     results: [result([finding()])],
     inputs: [{ path: "openapi.yaml", sha256: "sha256:9f3a" }],
@@ -118,14 +111,12 @@ describe("formatSarif (AC-SARIF.*)", () => {
       results: [result([finding({ location: "a.yaml#/paths/~1user/get" })])],
     });
     const multiText = formatSarif(multi);
-    const multiLocation =
-      sarifOf(multi).runs[0].results[0].locations[0].physicalLocation;
+    const multiLocation = sarifOf(multi).runs[0].results[0].locations[0].physicalLocation;
     expect(multiLocation.artifactLocation.uri).toBe("a.yaml");
     expect(multiLocation.region).toBeUndefined();
     expect(multiText).not.toContain('"region"');
 
-    const singleLocation =
-      sarifOf(makeReport()).runs[0].results[0].locations[0].physicalLocation;
+    const singleLocation = sarifOf(makeReport()).runs[0].results[0].locations[0].physicalLocation;
     expect(singleLocation.artifactLocation.uri).toBe("openapi.yaml");
     expect(singleLocation.region).toBeUndefined();
   });
@@ -158,11 +149,7 @@ describe("formatSarif (AC-SARIF.*)", () => {
       ],
     });
     const rules = sarifOf(report).runs[0].tool.driver.rules;
-    expect(rules.map((r) => r.id)).toEqual([
-      "ALPHA-001",
-      "NAMING-001",
-      "ZETA-001",
-    ]);
+    expect(rules.map((r) => r.id)).toEqual(["ALPHA-001", "NAMING-001", "ZETA-001"]);
     const zeta = rules.find((r) => r.id === "ZETA-001")!;
     expect(zeta.helpUri).toBeUndefined();
     expect(zeta.help).toBeUndefined();
@@ -235,17 +222,13 @@ describe("formatMarkdown (AC-MD.*)", () => {
   });
 
   it("renders _(none)_ for empty severities and missing fix", () => {
-    const out = formatMarkdown(
-      makeReport({ results: [result([finding({ fix: undefined })])] }),
-    );
+    const out = formatMarkdown(makeReport({ results: [result([finding({ fix: undefined })])] }));
     expect(out).toContain("### warning\n\n_(none)_");
     expect(out).toContain("| _(none)_ |");
   });
 
   it("shows suppression notes when present", () => {
-    const out = formatMarkdown(
-      makeReport({ suppressed: 3, skillsSuppressed: 2 }),
-    );
+    const out = formatMarkdown(makeReport({ suppressed: 3, skillsSuppressed: 2 }));
     expect(out).toContain("(baseline: 3 suppressed)");
     expect(out).toContain("(skills: 2 suppressed)");
   });

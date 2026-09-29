@@ -84,8 +84,7 @@ export async function startLlmStub(opts?: StubOptions): Promise<LlmStub> {
   });
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const address = server.address();
-  const port =
-    typeof address === "object" && address !== null ? address.port : 0;
+  const port = typeof address === "object" && address !== null ? address.port : 0;
   return {
     url: `http://127.0.0.1:${port}`,
     requests,

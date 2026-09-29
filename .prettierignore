@@ -1,4 +1,9 @@
 node_modules/
 dist/
+dist-release/
 coverage/
 pnpm-lock.yaml
+# Fixtures are test data, not source: several are intentionally invalid or
+# adversarial (attack corpus, malformed inputs) and crash or fail prettier.
+# Valid fixtures stay byte-stable so parser/line assertions don't shift.
+fixtures/

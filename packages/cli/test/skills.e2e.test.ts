@@ -1,23 +1,11 @@
-import {
-  existsSync,
-  mkdirSync,
-  mkdtempSync,
-  readdirSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
 import { run } from "../src/index.js";
 
-const repoRoot = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "..",
-);
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 
 const tempRoots: string[] = [];
 
@@ -88,23 +76,13 @@ async function analyzeOnce(dir: string): Promise<{
   stderr: string;
 }> {
   const { code, stdout, stderr } = await runCapture(
-    [
-      "analyze",
-      join(dir, "openapi.yaml"),
-      "--format",
-      "json",
-      "--fail-on",
-      "never",
-      "--no-color",
-    ],
+    ["analyze", join(dir, "openapi.yaml"), "--format", "json", "--fail-on", "never", "--no-color"],
     { cwd: dir },
   );
   return { code, report: extractJson(stdout), stdout, stderr };
 }
 
-function firstFingerprint(
-  report: Record<string, unknown>,
-): string {
+function firstFingerprint(report: Record<string, unknown>): string {
   const findings = report.findings as Array<{ fingerprint: string }>;
   expect(findings.length).toBeGreaterThan(0);
   return findings[0]!.fingerprint;
@@ -175,13 +153,7 @@ describe("skills e2e (AC-S.*)", () => {
     );
 
     const { code, stdout } = await runCapture(
-      [
-        "analyze",
-        join(dir, "openapi.yaml"),
-        "--fail-on",
-        "never",
-        "--no-color",
-      ],
+      ["analyze", join(dir, "openapi.yaml"), "--fail-on", "never", "--no-color"],
       { cwd: dir },
     );
     expect([0, 1]).toContain(code);
@@ -201,8 +173,7 @@ describe("skills e2e (AC-S.*)", () => {
     }>;
     expect(findingsBefore.length).toBeGreaterThan(0);
     const target = findingsBefore[0]!;
-    const newSev =
-      target.severity === "error" ? "info" : "error";
+    const newSev = target.severity === "error" ? "info" : "error";
 
     const skillsDir = join(dir, ".apigovscan", "skills");
     mkdirSync(skillsDir, { recursive: true });
@@ -224,9 +195,7 @@ describe("skills e2e (AC-S.*)", () => {
       severity: string;
       fingerprint: string;
     }>;
-    const updated = findingsAfter.find(
-      (f) => f.fingerprint === target.fingerprint,
-    );
+    const updated = findingsAfter.find((f) => f.fingerprint === target.fingerprint);
     // fingerprint does not include severity; same finding should show new severity
     // (unless suppressed elsewhere)
     if (updated) {
@@ -324,11 +293,7 @@ describe("skills e2e (AC-S.*)", () => {
     const skillsDir = join(dir, ".apigovscan", "skills");
     mkdirSync(skillsDir, { recursive: true });
     // empty first
-    writeFileSync(
-      join(skillsDir, "suppressions.yaml"),
-      "version: 1\nsuppressions: []\n",
-      "utf8",
-    );
+    writeFileSync(join(skillsDir, "suppressions.yaml"), "version: 1\nsuppressions: []\n", "utf8");
     const stillVisible = await analyzeOnce(dir);
     const stillFindings = stillVisible.report!.findings as Array<{
       fingerprint: string;
@@ -338,13 +303,9 @@ describe("skills e2e (AC-S.*)", () => {
     // hand-edit → immediately reflected
     writeFileSync(
       join(skillsDir, "suppressions.yaml"),
-      [
-        "version: 1",
-        "suppressions:",
-        `  - fingerprint: ${fp}`,
-        "    reason: hand edit",
-        "",
-      ].join("\n"),
+      ["version: 1", "suppressions:", `  - fingerprint: ${fp}`, "    reason: hand edit", ""].join(
+        "\n",
+      ),
       "utf8",
     );
     const afterEdit = await analyzeOnce(dir);
@@ -373,11 +334,7 @@ describe("skills e2e (AC-S.*)", () => {
       ].join("\n"),
       "utf8",
     );
-    writeFileSync(
-      join(skillsDir, "severities.yaml"),
-      "version: 1\noverrides: []\n",
-      "utf8",
-    );
+    writeFileSync(join(skillsDir, "severities.yaml"), "version: 1\noverrides: []\n", "utf8");
 
     const a = await analyzeOnce(dir);
     const b = await analyzeOnce(dir);
@@ -385,10 +342,7 @@ describe("skills e2e (AC-S.*)", () => {
     expect(fp).toMatch(/^[0-9a-f]{64}$/);
     expect(existsSync(join(dir, ".apigovscan", "baseline.json"))).toBe(false);
     // skills only read, not written (INV-7)
-    expect(readdirSync(skillsDir).sort()).toEqual([
-      "severities.yaml",
-      "suppressions.yaml",
-    ]);
+    expect(readdirSync(skillsDir).sort()).toEqual(["severities.yaml", "suppressions.yaml"]);
   });
 
   it("--skills-dir flag points analyze at alternate directory", async () => {
@@ -401,13 +355,9 @@ describe("skills e2e (AC-S.*)", () => {
     mkdirSync(alt, { recursive: true });
     writeFileSync(
       join(alt, "suppressions.yaml"),
-      [
-        "version: 1",
-        "suppressions:",
-        `  - fingerprint: ${fp}`,
-        "    reason: via flag",
-        "",
-      ].join("\n"),
+      ["version: 1", "suppressions:", `  - fingerprint: ${fp}`, "    reason: via flag", ""].join(
+        "\n",
+      ),
       "utf8",
     );
 
@@ -442,13 +392,9 @@ describe("skills e2e (AC-S.*)", () => {
     mkdirSync(custom, { recursive: true });
     writeFileSync(
       join(custom, "suppressions.yaml"),
-      [
-        "version: 1",
-        "suppressions:",
-        `  - fingerprint: ${fp}`,
-        "    reason: config dir",
-        "",
-      ].join("\n"),
+      ["version: 1", "suppressions:", `  - fingerprint: ${fp}`, "    reason: config dir", ""].join(
+        "\n",
+      ),
       "utf8",
     );
     writeFileSync(

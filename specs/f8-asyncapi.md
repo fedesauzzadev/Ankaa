@@ -1,10 +1,10 @@
 # f8-asyncapi · Soporte AsyncAPI/eventos en el plano de governance (M8.8, protocolo 3)
 
-| Campo | Valor |
-|---|---|
-| Estado | cerrada |
-| Fecha | 2026-09-27 |
-| Fase | 8 (M8.8 del umbrella `f8-oss-differentials`: GraphQL ✓ → gRPC ✓ → AsyncAPI → webhooks) |
+| Campo     | Valor                                                                                                        |
+| --------- | ------------------------------------------------------------------------------------------------------------ |
+| Estado    | cerrada                                                                                                      |
+| Fecha     | 2026-09-27                                                                                                   |
+| Fase      | 8 (M8.8 del umbrella `f8-oss-differentials`: GraphQL ✓ → gRPC ✓ → AsyncAPI → webhooks)                       |
 | Deriva de | `f8-oss-differentials` M8.8; `f8-graphql`/`f8-grpc` (patrón adapter + pack + CLI); `f1-engine` (sin cambios) |
 
 ## 1. Objetivo / user story
@@ -68,12 +68,12 @@ Unit parser (v2+v3) + pack + e2e CLI + MCP + boundary + invariantes. Ojo AC-AS.5
 
 ## 7. Riesgos y decisiones abiertas
 
-| Tema | Decisión v1 |
-|---|---|
-| v2 vs v3 | Ambos slice 1 (v3 nace obsoleto sin v2 legacy y viceversa); subset documentado, resto warning o error honesto. |
-| `oneOf` / múltiples mensajes | Primer mensaje; documentado. Full-union = milestone con átomos. |
-| Sniff falso positivo | Regex anclada a raíz `asyncapi:` en primeros 4 KB; test de regresión OpenAPI. |
-| CloudEvents como formato | Fuente de guidance, no parser aparte (los payloads CE son JSON Schema normal). |
+| Tema                         | Decisión v1                                                                                                    |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| v2 vs v3                     | Ambos slice 1 (v3 nace obsoleto sin v2 legacy y viceversa); subset documentado, resto warning o error honesto. |
+| `oneOf` / múltiples mensajes | Primer mensaje; documentado. Full-union = milestone con átomos.                                                |
+| Sniff falso positivo         | Regex anclada a raíz `asyncapi:` en primeros 4 KB; test de regresión OpenAPI.                                  |
+| CloudEvents como formato     | Fuente de guidance, no parser aparte (los payloads CE son JSON Schema normal).                                 |
 
 ## Changelog
 

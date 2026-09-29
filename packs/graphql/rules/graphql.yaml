@@ -11,7 +11,7 @@
   when:
     not:
       op: operationIdPattern
-      pattern: '^[A-Z][A-Za-z0-9]*[.][a-z][a-zA-Z0-9]*$'
+      pattern: "^[A-Z][A-Za-z0-9]*[.][a-z][a-zA-Z0-9]*$"
 
 - id: GQL-002
   category: docs
@@ -57,7 +57,7 @@
       - not:
           op: descriptionMatches
           target: description
-          pattern: 'Deprecated:'
+          pattern: "Deprecated:"
 
 - id: GQL-005
   category: naming
@@ -74,7 +74,7 @@
         in: [mutation]
       - not:
           op: operationIdPattern
-          pattern: '^[A-Z][A-Za-z0-9]*[.](create|update|delete|remove|add|publish|unpublish|archive|restore|send|invite|approve|reject|cancel|confirm|reset|resend)[A-Za-z0-9]*$'
+          pattern: "^[A-Z][A-Za-z0-9]*[.](create|update|delete|remove|add|publish|unpublish|archive|restore|send|invite|approve|reject|cancel|confirm|reset|resend)[A-Za-z0-9]*$"
 
 - id: GQL-006
   category: naming
@@ -90,7 +90,7 @@
       - op: method
         in: [query]
       - op: operationIdPattern
-        pattern: '^[A-Z][A-Za-z0-9]*[.](get|list|fetch|find|search|load|retrieve)[A-Za-z0-9]*$'
+        pattern: "^[A-Z][A-Za-z0-9]*[.](get|list|fetch|find|search|load|retrieve)[A-Za-z0-9]*$"
 
 - id: GQL-007
   category: naming
@@ -103,7 +103,7 @@
     section: "Names"
   when:
     op: propertyNamingViolation
-    pattern: '^[a-z][a-zA-Z0-9]*$'
+    pattern: "^[a-z][a-zA-Z0-9]*$"
 
 - id: GQL-008
   category: docs
@@ -117,4 +117,4 @@
   when:
     op: descriptionMatches
     target: description
-    pattern: 'TODO|FIXME|XXX|TBD'
+    pattern: "TODO|FIXME|XXX|TBD"

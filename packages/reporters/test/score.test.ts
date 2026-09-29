@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  buildReport,
-  computeReportHash,
-  computeScore,
-  type ReportScore,
-} from "../src/index.js";
+import { buildReport, computeReportHash, computeScore, type ReportScore } from "../src/index.js";
 import type { EvaluationResult, Finding, Severity } from "@apigovscan/core";
 
 function finding(severity: Severity): Finding {
@@ -20,11 +15,7 @@ function finding(severity: Severity): Finding {
   };
 }
 
-function reportWith(counts: {
-  error: number;
-  warning: number;
-  info: number;
-}) {
+function reportWith(counts: { error: number; warning: number; info: number }) {
   const findings: Finding[] = [
     ...Array.from({ length: counts.error }, () => finding("error")),
     ...Array.from({ length: counts.warning }, () => finding("warning")),

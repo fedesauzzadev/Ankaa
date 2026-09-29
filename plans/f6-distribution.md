@@ -1,8 +1,8 @@
 # Plan · f6-distribution · Distribución privada + licencia offline
 
-| Campo | Valor |
-|---|---|
-| Specs | f6-distribution |
+| Campo        | Valor                                                      |
+| ------------ | ---------------------------------------------------------- |
+| Specs        | f6-distribution                                            |
 | Dependencias | f6-score cerrado; f2-config/f4-mcp/f5-action implementados |
 
 ## M6.2 — Licencia + bundle + canales (f6-distribution)

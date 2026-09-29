@@ -33,9 +33,7 @@ describe("parseGraphQL (f8-graphql)", () => {
     expect(byId.get("Subscription.petCreated")?.method).toBe("subscription");
     expect(byId.has("Query.petCount")).toBe(true);
     expect(byId.has("QueryExtra.ping")).toBe(false);
-    expect(spec.parseWarnings.map((w) => w.code)).toContain(
-      "gql-directives-ignored",
-    );
+    expect(spec.parseWarnings.map((w) => w.code)).toContain("gql-directives-ignored");
   });
 
   it("AC-GQL.1 preserves descriptions and @deprecated", () => {
@@ -88,9 +86,9 @@ describe("parseGraphQL (f8-graphql)", () => {
     expect(parsed.spec.components.schemas).toContain("PetInput");
     expect(parsed.spec.components.schemas).toContain("Status");
     expect(parsed.spec.components.schemaNodes?.["Pet"]?.type).toBe("object");
-    expect(
-      parsed.spec.components.schemaNodes?.["Pet"]?.properties?.["owner"],
-    ).toEqual({ ref: "#/components/schemas/Owner" });
+    expect(parsed.spec.components.schemaNodes?.["Pet"]?.properties?.["owner"]).toEqual({
+      ref: "#/components/schemas/Owner",
+    });
   });
 
   it("AC-GQL.3 rejects invalid SDL with line info", () => {
@@ -120,9 +118,7 @@ describe("parseGraphQL (f8-graphql)", () => {
       expect(parsed.ok).toBe(true);
       if (!parsed.ok) continue;
       expect(parsed.spec.operations).toEqual([]);
-      expect(parsed.spec.parseWarnings.map((w) => w.code)).toContain(
-        "gql-no-roots",
-      );
+      expect(parsed.spec.parseWarnings.map((w) => w.code)).toContain("gql-no-roots");
     }
   });
 

@@ -24,20 +24,14 @@ export const SUPPORTED_IMPORT_EXTENSIONS = [
   ".docx",
 ] as const;
 
-export type SupportedImportExtension =
-  (typeof SUPPORTED_IMPORT_EXTENSIONS)[number];
+export type SupportedImportExtension = (typeof SUPPORTED_IMPORT_EXTENSIONS)[number];
 
 export async function extractText(
   file: string,
   bytes: Buffer,
 ): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
   const ext = extname(file).toLowerCase();
-  if (
-    ext === ".md" ||
-    ext === ".txt" ||
-    ext === ".yaml" ||
-    ext === ".yml"
-  ) {
+  if (ext === ".md" || ext === ".txt" || ext === ".yaml" || ext === ".yml") {
     const text = bytes.toString("utf8").trim();
     if (text === "") {
       return { ok: false, error: "could not extract text (empty document)" };
@@ -87,10 +81,7 @@ export async function extractText(
   };
 }
 
-export function chunkGuideline(
-  text: string,
-  maxChars: number = MAX_CHUNK_CHARS,
-): string[] {
+export function chunkGuideline(text: string, maxChars: number = MAX_CHUNK_CHARS): string[] {
   const paras = text
     .split(/\r?\n\s*\r?\n/)
     .map((p) => p.trim())
@@ -151,9 +142,7 @@ export function parseRulesEnvelope(text: string): unknown[] {
     const end = cleaned.lastIndexOf("}");
     if (end > startBrace) {
       try {
-        const parsed: unknown = JSON.parse(
-          cleaned.slice(startBrace, end + 1),
-        );
+        const parsed: unknown = JSON.parse(cleaned.slice(startBrace, end + 1));
         if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) {
           return [parsed];
         }
@@ -200,12 +189,12 @@ export function buildImportMessages(chunk: string): ChatMessage[] {
     content: [
       "You draft API governance rules from an internal design guideline.",
       'Respond with ONLY a valid JSON array of rule objects: [{"id", "category", "severity", "message", "fix?", "when?"}].',
-      "Rules: id matches PREFIX-NNN in capitals using the TEAM- prefix (e.g. TEAM-101); "
-        + `category is one of: ${CATEGORIES}; severity is error, warning or info; `
-        + "message is one sentence in English.",
-      "when is optional; when present it must use only these matcher ops: "
-        + "method, pathMatches, responseMissing, responsePresent, headerRequired, missingField, "
-        + "presentField, securityMissing, exampleRequired, docFieldMissing.",
+      "Rules: id matches PREFIX-NNN in capitals using the TEAM- prefix (e.g. TEAM-101); " +
+        `category is one of: ${CATEGORIES}; severity is error, warning or info; ` +
+        "message is one sentence in English.",
+      "when is optional; when present it must use only these matcher ops: " +
+        "method, pathMatches, responseMissing, responsePresent, headerRequired, missingField, " +
+        "presentField, securityMissing, exampleRequired, docFieldMissing.",
       "Only propose a when clause when the guideline states a checkable condition; otherwise omit when.",
       "Example of one valid rule:",
       DSL_EXAMPLE,

@@ -1,10 +1,4 @@
-import {
-  copyFileSync,
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  writeFileSync,
-} from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, resolve } from "node:path";
 import type { Finding } from "@apigovscan/core";
 
@@ -50,9 +44,7 @@ export function resolveBaselinePath(
   const raw = flagPath ?? configPath ?? DEFAULT_BASELINE_PATH;
   if (isAbsolute(raw)) return raw;
   // flag path → cwd; config path → config file dir
-  const base = flagPath === undefined && configPath !== undefined
-    ? (configDir ?? cwd)
-    : cwd;
+  const base = flagPath === undefined && configPath !== undefined ? (configDir ?? cwd) : cwd;
   return resolve(base, raw);
 }
 
@@ -64,9 +56,7 @@ export function buildBaseline(input: {
   engineVersion: string;
   createdAt?: string;
 }): BaselineFile {
-  const fingerprints = [
-    ...new Set(input.findings.map((f) => f.fingerprint)),
-  ].sort(cmp);
+  const fingerprints = [...new Set(input.findings.map((f) => f.fingerprint))].sort(cmp);
   return {
     version: BASELINE_SCHEMA_VERSION,
     createdAt: input.createdAt ?? new Date().toISOString(),
@@ -166,9 +156,7 @@ export function loadBaselineFile(
       error: `baseline ${path}: "fingerprints" must be an array`,
     };
   }
-  const fingerprints = obj.fingerprints.filter(
-    (f): f is string => typeof f === "string",
-  );
+  const fingerprints = obj.fingerprints.filter((f): f is string => typeof f === "string");
   if (fingerprints.length !== obj.fingerprints.length) {
     return {
       ok: false,
@@ -216,15 +204,12 @@ export function loadBaselineFile(
   };
   const baseline: BaselineFile = {
     version: BASELINE_SCHEMA_VERSION,
-    createdAt:
-      typeof obj.createdAt === "string" ? obj.createdAt : new Date(0).toISOString(),
+    createdAt: typeof obj.createdAt === "string" ? obj.createdAt : new Date(0).toISOString(),
     tool: {
       name: "apigovscan",
-      version:
-        tool && typeof tool.version === "string" ? tool.version : "0.0.0-dev",
+      version: tool && typeof tool.version === "string" ? tool.version : "0.0.0-dev",
     },
-    engineVersion:
-      typeof obj.engineVersion === "string" ? obj.engineVersion : "0.0.0-dev",
+    engineVersion: typeof obj.engineVersion === "string" ? obj.engineVersion : "0.0.0-dev",
     packs,
     inputs,
     fingerprints: [...fingerprints].sort(cmp),

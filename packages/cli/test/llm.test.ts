@@ -1,9 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import {
-  chatCompletion,
-  loadLlmConfig,
-  type LlmConfig,
-} from "../src/llm.js";
+import { chatCompletion, loadLlmConfig, type LlmConfig } from "../src/llm.js";
 import { loadConfigFromText } from "../src/config.js";
 import { startLlmStub } from "./llm-stub.js";
 
@@ -76,9 +72,7 @@ describe("config schema llm block (AC-SF.2)", () => {
     const result = loadConfigFromText("llm:\n  baseUrl: 42\n", "apigovscan.yaml");
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.error).toBe(
-        "config apigovscan.yaml: llm.baseUrl must be a non-empty string",
-      );
+      expect(result.error).toBe("config apigovscan.yaml: llm.baseUrl must be a non-empty string");
     }
   });
 
@@ -147,9 +141,7 @@ describe("chatCompletion", () => {
     const notJson = await startLlmStub({ rawBody: "not json" });
     try {
       await expect(
-        chatCompletion({ baseUrl: notJson.url, model: "m" }, [
-          { role: "user", content: "x" },
-        ]),
+        chatCompletion({ baseUrl: notJson.url, model: "m" }, [{ role: "user", content: "x" }]),
       ).rejects.toThrow("invalid llm response: expected JSON");
     } finally {
       await notJson.close();
@@ -157,9 +149,7 @@ describe("chatCompletion", () => {
     const noContent = await startLlmStub({ response: { choices: [] } });
     try {
       await expect(
-        chatCompletion({ baseUrl: noContent.url, model: "m" }, [
-          { role: "user", content: "x" },
-        ]),
+        chatCompletion({ baseUrl: noContent.url, model: "m" }, [{ role: "user", content: "x" }]),
       ).rejects.toThrow("missing choices[0].message.content");
     } finally {
       await noContent.close();

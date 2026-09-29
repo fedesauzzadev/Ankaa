@@ -18,7 +18,7 @@ jobs:
 
       - name: ApiGovScan
         id: apigovscan
-        uses: owner/repo@v1        # en este repo: ./action
+        uses: owner/repo@v1 # en este repo: ./action
         with:
           path: specs/
           fail-on: error
@@ -35,23 +35,23 @@ antes del gate, así que el artefacto existe aunque el job falle.
 
 ## Inputs
 
-| Input | Default | Descripción |
-|---|---|---|
-| `path` | `.` | Archivo o directorio de specs a analizar |
-| `fail-on` | `error` | Umbral del gate: `error` \| `warning` \| `info` \| `never` |
-| `format` | `sarif` | Artefacto a producir: `sarif` \| `json` \| `none` |
-| `cli` | `npx -y @apigovscan/cli` | Comando CLI a invocar (dogfood: `node packages/cli/bin/apigovscan.js`) |
-| `rules` | `""` | Rutas a reglas custom, separadas por espacios |
-| `config` | `""` | Ruta a `apigovscan.yaml` (opcional) |
-| `baseline` | `false` | Aplicar baseline (`true`/`false`) |
-| `license-key` | `""` | License key (también vía `APIGOVSCAN_LICENSE_KEY` o config `license.key`) |
+| Input         | Default                  | Descripción                                                               |
+| ------------- | ------------------------ | ------------------------------------------------------------------------- |
+| `path`        | `.`                      | Archivo o directorio de specs a analizar                                  |
+| `fail-on`     | `error`                  | Umbral del gate: `error` \| `warning` \| `info` \| `never`                |
+| `format`      | `sarif`                  | Artefacto a producir: `sarif` \| `json` \| `none`                         |
+| `cli`         | `npx -y @apigovscan/cli` | Comando CLI a invocar (dogfood: `node packages/cli/bin/apigovscan.js`)    |
+| `rules`       | `""`                     | Rutas a reglas custom, separadas por espacios                             |
+| `config`      | `""`                     | Ruta a `apigovscan.yaml` (opcional)                                       |
+| `baseline`    | `false`                  | Aplicar baseline (`true`/`false`)                                         |
+| `license-key` | `""`                     | License key (también vía `APIGOVSCAN_LICENSE_KEY` o config `license.key`) |
 
 ## Outputs
 
-| Output | Descripción |
-|---|---|
+| Output       | Descripción                                                                          |
+| ------------ | ------------------------------------------------------------------------------------ |
 | `sarif-path` | Ruta del artefacto (`apigovscan.sarif` o `apigovscan.json`; vacío si `format: none`) |
-| `exit-code` | Exit code del gate: `0` ok · `1` findings ≥ `fail-on` · `2` error |
+| `exit-code`  | Exit code del gate: `0` ok · `1` findings ≥ `fail-on` · `2` error                    |
 
 ## Cómo funciona
 

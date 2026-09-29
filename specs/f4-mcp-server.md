@@ -1,11 +1,11 @@
 # f4-mcp-server · Server MCP stdio local
 
-| Campo | Valor |
-|---|---|
-| Estado | cerrada |
-| Fase | 4 |
+| Campo     | Valor                                                                                       |
+| --------- | ------------------------------------------------------------------------------------------- |
+| Estado    | cerrada                                                                                     |
+| Fase      | 4                                                                                           |
 | Deriva de | SDD FR-50/FR-51, ADR-009, D9; doc 02 §MCP stdio, doc 05 §6, doc 06 §7; specs `f4-mcp-tools` |
-| Roadmap | Fase 4 — MCP stdio local |
+| Roadmap   | Fase 4 — MCP stdio local                                                                    |
 
 ## 1. Objetivo
 
@@ -46,11 +46,11 @@ Como **dev que usa un agente LLM**, quiero exponer ApiGovScan como servidor MCP 
 apigovscan mcp [--cwd <dir>]
 ```
 
-| Condición | Exit |
-|---|---|
+| Condición                  | Exit                              |
+| -------------------------- | --------------------------------- |
 | Server corriendo por stdio | 0 al cierre limpio del transporte |
-| Error fatal de arranque | 2 |
-| `--help` | 0 (describe el server + tools) |
+| Error fatal de arranque    | 2                                 |
+| `--help`                   | 0 (describe el server + tools)    |
 
 ### `@apigovscan/mcp` API
 
@@ -76,13 +76,13 @@ export async function startStdioServer(server: McpServer): Promise<void>;
 
 ### Tools (registro)
 
-| Tool | Input (zod/JSON schema) | Output payload |
-|---|---|---|
-| `analyze_spec` | `{ path: string, failOn?: "never"\|"error"\|"warning"\|"any", rules?: string[] }` | `{ ok, report?, truncated?, totalFindings?, findings?, error? }` |
-| `list_rules` | `{ rules?: string[] }` | `{ rules: [{ id, severity, category, message, enabled }] }` |
-| `explain_rule` | `{ ruleId: string, rules?: string[] }` | `{ ok, explanation?, error? }` (mensaje + fix + source pack) |
-| `validate_custom_rules` | `{ files: string[] }` | `{ ok, files: ValidateFileOutcome[] }` |
-| `explain_finding` | `{ reportPath: string, fingerprint: string }` | `{ ok, finding?, explanation?, error? }` |
+| Tool                    | Input (zod/JSON schema)                                                           | Output payload                                                   |
+| ----------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `analyze_spec`          | `{ path: string, failOn?: "never"\|"error"\|"warning"\|"any", rules?: string[] }` | `{ ok, report?, truncated?, totalFindings?, findings?, error? }` |
+| `list_rules`            | `{ rules?: string[] }`                                                            | `{ rules: [{ id, severity, category, message, enabled }] }`      |
+| `explain_rule`          | `{ ruleId: string, rules?: string[] }`                                            | `{ ok, explanation?, error? }` (mensaje + fix + source pack)     |
+| `validate_custom_rules` | `{ files: string[] }`                                                             | `{ ok, files: ValidateFileOutcome[] }`                           |
+| `explain_finding`       | `{ reportPath: string, fingerprint: string }`                                     | `{ ok, finding?, explanation?, error? }`                         |
 
 - Nombres **canónicos = FR-50** (SDD usa alias cortos `analyze`/`validate_rules` — se documenta alias solo si hace falta en help; schema usa FR-50).
 - `rules` en tools = paths de archivos custom (relativos a cwd), igual que `--rules` CLI.
@@ -115,13 +115,13 @@ resolve(cwd, path) → must be inside cwd (inclusive)
 
 ## 5. Test plan
 
-| Caso | Tipo |
-|---|---|
+| Caso                              | Tipo                                                             |
+| --------------------------------- | ---------------------------------------------------------------- |
 | initialize + tools/list (5 tools) | unit/e2e in-process (SDK client sobre streams o handler directo) |
-| path sandbox `../` y absolute | unit (resolve helper) + tool call |
-| statelessness call×2 | e2e |
-| INV-1 analyze_spec | e2e con fetch stub |
-| help `mcp` | e2e CLI in-process (`RunIO`) |
+| path sandbox `../` y absolute     | unit (resolve helper) + tool call                                |
+| statelessness call×2              | e2e                                                              |
+| INV-1 analyze_spec                | e2e con fetch stub                                               |
+| help `mcp`                        | e2e CLI in-process (`RunIO`)                                     |
 
 ## 6. Dependencias
 
@@ -131,13 +131,13 @@ resolve(cwd, path) → must be inside cwd (inclusive)
 
 ## 7. Riesgos y decisiones abiertas
 
-| Tema | Decisión |
-|---|---|
-| SDK en core? | **No** — banned por INV; solo en `packages/mcp` (+ wiring cli). |
-| Embebido vs paquete | Server library en `packages/mcp`; CLI solo spawn/inject — doc 02 "embebido" = bin + server juntos en UX, no mono-archivo. |
-| Alias de nombres SDD | Canónicos FR-50; help menciona ambos si aporta. |
-| Streams test | Preferir `McpServer` + in-memory transport del SDK si existe; si no, spawn proceso. |
-| Symlinks | v1: `realpath` **solo como chequeo de containment** (best-effort); se **devuelve la path léxica** para que los labels/`reportHash` del MCP coincidan con el CLI (paridad AC-T.10; en macOS `/var/folders` → `/private/…` rompía la paridad). Si `realpath` falla, se acepta tras el chequeo léxico (no cambia mensajes). |
+| Tema                 | Decisión                                                                                                                                                                                                                                                                                                                 |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| SDK en core?         | **No** — banned por INV; solo en `packages/mcp` (+ wiring cli).                                                                                                                                                                                                                                                          |
+| Embebido vs paquete  | Server library en `packages/mcp`; CLI solo spawn/inject — doc 02 "embebido" = bin + server juntos en UX, no mono-archivo.                                                                                                                                                                                                |
+| Alias de nombres SDD | Canónicos FR-50; help menciona ambos si aporta.                                                                                                                                                                                                                                                                          |
+| Streams test         | Preferir `McpServer` + in-memory transport del SDK si existe; si no, spawn proceso.                                                                                                                                                                                                                                      |
+| Symlinks             | v1: `realpath` **solo como chequeo de containment** (best-effort); se **devuelve la path léxica** para que los labels/`reportHash` del MCP coincidan con el CLI (paridad AC-T.10; en macOS `/var/folders` → `/private/…` rompía la paridad). Si `realpath` falla, se acepta tras el chequeo léxico (no cambia mensajes). |
 
 ## Changelog
 

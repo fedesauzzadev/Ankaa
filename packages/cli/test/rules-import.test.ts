@@ -62,10 +62,7 @@ describe("chunkGuideline", () => {
   });
 
   it("AC-RI.3 long docs split into bounded chunks that rejoin", () => {
-    const paras = Array.from(
-      { length: 30 },
-      (_, i) => `Section ${i}\n${"x".repeat(500)}`,
-    );
+    const paras = Array.from({ length: 30 }, (_, i) => `Section ${i}\n${"x".repeat(500)}`);
     const text = paras.join("\n\n");
     expect(text.length).toBeGreaterThan(MAX_CHUNK_CHARS);
     const chunks = chunkGuideline(text);
@@ -103,9 +100,7 @@ describe("parseRulesEnvelope", () => {
 
 describe("buildImportMessages", () => {
   it("redacts the chunk and documents the DSL contract", () => {
-    const messages = buildImportMessages(
-      "key AKIAIOSFODNN7EXAMPLE must stay out",
-    );
+    const messages = buildImportMessages("key AKIAIOSFODNN7EXAMPLE must stay out");
     expect(messages).toHaveLength(2);
     const body = messages.map((m) => m.content).join("\n");
     expect(body).not.toContain("AKIAIOSFODNN7EXAMPLE");
@@ -119,7 +114,13 @@ describe("validateDrafts", () => {
     const outcome = validateDrafts(
       [
         VALID_A,
-        { id: "bad id!!", category: "custom", severity: "error", message: "x", when: { op: "securityMissing" } },
+        {
+          id: "bad id!!",
+          category: "custom",
+          severity: "error",
+          message: "x",
+          when: { op: "securityMissing" },
+        },
         VALID_B,
         "just a string",
         { ...VALID_A },
@@ -130,16 +131,20 @@ describe("validateDrafts", () => {
           message: "x",
           when: { op: "securityMissing" },
         },
-        { id: "TEAM-104", category: "custom", severity: "error", message: "x", when: { op: "frobnicate" } },
+        {
+          id: "TEAM-104",
+          category: "custom",
+          severity: "error",
+          message: "x",
+          when: { op: "frobnicate" },
+        },
       ],
       "0.0.0-dev",
       new Set(["TEAM-102"]),
     );
     expect(outcome.valid.map((r) => r.id)).toEqual(["TEAM-101"]);
     expect(outcome.rejected.map((r) => r.index)).toEqual([2, 3, 4, 5, 6, 7]);
-    expect(outcome.rejected[1]!.issues.join(" ")).toContain(
-      "already exists in pack elite",
-    );
+    expect(outcome.rejected[1]!.issues.join(" ")).toContain("already exists in pack elite");
     expect(outcome.rejected[3]!.issues).toEqual(["duplicate id skipped"]);
   });
 });

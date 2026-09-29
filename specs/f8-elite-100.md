@@ -1,10 +1,10 @@
 # f8-elite-100 · Pack elite 65 → 88 reglas curadas (solo átomos existentes)
 
-| Campo | Valor |
-|---|---|
-| Estado | cerrada |
-| Fecha | 2026-09-26 |
-| Fase | 8 (M8.5 del umbrella `f8-oss-differentials`) |
+| Campo     | Valor                                                                                                   |
+| --------- | ------------------------------------------------------------------------------------------------------- |
+| Estado    | cerrada                                                                                                 |
+| Fecha     | 2026-09-26                                                                                              |
+| Fase      | 8 (M8.5 del umbrella `f8-oss-differentials`)                                                            |
 | Deriva de | `f8-oss-differentials` M8.5; `f1-elite-pack` (contrato de cobertura, taxonomía, curación); doc 04 §§2–4 |
 
 ## 1. Objetivo
@@ -57,11 +57,11 @@ Llevar el pack `elite` de 65 a **88 reglas activas** (cierre honesto del objetiv
 
 ## 7. Riesgos y decisiones abiertas
 
-| Tema | Decisión v1 |
-|---|---|
+| Tema                                      | Decisión v1                                                                                                                |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | Techo de reglas honestas sin engine nuevo | ~85-90; si el conteo final queda ahí, se sinceran umbrella y titulares en vez de rellenar (f1 spec: calidad sobre conteo). |
-| Reglas que nunca disparan en fixtures | Aceptadas si son guidance real con fuente (se testean inline); no se inventa guidance débil para sumar. |
-| Thresholds | No se tocan salvo medición justificada en CHANGELOG. |
+| Reglas que nunca disparan en fixtures     | Aceptadas si son guidance real con fuente (se testean inline); no se inventa guidance débil para sumar.                    |
+| Thresholds                                | No se tocan salvo medición justificada en CHANGELOG.                                                                       |
 
 ## Changelog
 

@@ -11,10 +11,7 @@ import type { Report } from "@apigovscan/reporters";
 import type { McpToolHandlers, ToolResult } from "@apigovscan/mcp";
 import type { FailOn } from "./args.js";
 import { analyzeUseCase } from "./analyze.js";
-import {
-  loadConfig,
-  resolveCustomRulePaths,
-} from "./config.js";
+import { loadConfig, resolveCustomRulePaths } from "./config.js";
 import { discoverSpecs } from "./discovery.js";
 import {
   collectCustomRules,
@@ -28,20 +25,9 @@ import {
   mergeSeverityOverrides,
   resolveSkillsDir,
 } from "./skills.js";
-import {
-  createFsPackRepository,
-  createFsSpecLoader,
-} from "./loaders.js";
-import {
-  defaultPackSearchRoots,
-  findElitePackDir,
-  loadPackFromDir,
-} from "./pack-fs.js";
-import {
-  fingerprintSet,
-  loadBaselineFile,
-  resolveBaselinePath,
-} from "./baseline.js";
+import { createFsPackRepository, createFsSpecLoader } from "./loaders.js";
+import { defaultPackSearchRoots, findElitePackDir, loadPackFromDir } from "./pack-fs.js";
+import { fingerprintSet, loadBaselineFile, resolveBaselinePath } from "./baseline.js";
 import { chatCompletion, loadLlmConfig } from "./llm.js";
 import {
   buildFixMessages,
@@ -69,15 +55,14 @@ function fail(error: string): ToolResult {
 }
 
 function normalizeLabel(absPath: string, cwd: string): string {
-  const rel = absPath.startsWith(cwd)
-    ? absPath.slice(cwd.length).replace(/^[\\/]+/, "")
-    : absPath;
+  const rel = absPath.startsWith(cwd) ? absPath.slice(cwd.length).replace(/^[\\/]+/, "") : absPath;
   return rel.split("\\").join("/");
 }
 
-function applyConfigRules(config: {
-  rules?: Record<string, Severity | "off">;
-}): { disabled: Set<string>; overrides: Map<string, Severity> } {
+function applyConfigRules(config: { rules?: Record<string, Severity | "off"> }): {
+  disabled: Set<string>;
+  overrides: Map<string, Severity>;
+} {
   const disabled = new Set<string>();
   const overrides = new Map<string, Severity>();
   for (const [ruleId, value] of Object.entries(config.rules ?? {})) {
@@ -103,10 +88,7 @@ async function analyzeSpecHandler(
     return fail(configResult.error);
   }
   const config = configResult.config;
-  if (
-    config.standards?.pack !== undefined &&
-    config.standards.pack !== "elite"
-  ) {
+  if (config.standards?.pack !== undefined && config.standards.pack !== "elite") {
     return fail(
       `unknown pack "${config.standards.pack}" (f1 ships only the embedded "elite" pack)`,
     );
@@ -122,10 +104,7 @@ async function analyzeSpecHandler(
   const skills = skillsResult.skills;
 
   const configRuleResult = applyConfigRules(config);
-  const severityOverrides = mergeSeverityOverrides(
-    skills.severities,
-    configRuleResult.overrides,
-  );
+  const severityOverrides = mergeSeverityOverrides(skills.severities, configRuleResult.overrides);
   const disabled = configRuleResult.disabled;
 
   let customRules: Rule[] | undefined;
@@ -326,9 +305,7 @@ export function createCliMcpHandlers(cwd: string): McpToolHandlers {
     async explainRule(input) {
       try {
         if (!/^[A-Z][A-Z0-9]*-\d{3}$/.test(input.ruleId)) {
-          return fail(
-            `invalid rule id format "${input.ruleId}" (expected PREFIX-NNN)`,
-          );
+          return fail(`invalid rule id format "${input.ruleId}" (expected PREFIX-NNN)`);
         }
         const elite = loadElitePackOrThrow(cwd);
         const customResult = await loadCustomForTools(cwd, input.rules, elite);
@@ -353,18 +330,14 @@ export function createCliMcpHandlers(cwd: string): McpToolHandlers {
           packageVersion(),
           cwd,
         );
-        const allOk = outcomes.every(
-          (o) => o.ok && o.structuralError === undefined,
-        );
+        const allOk = outcomes.every((o) => o.ok && o.structuralError === undefined);
         return ok({
           ok: allOk,
           files: outcomes.map((o) => ({
             file: o.file,
             ok: o.ok && o.structuralError === undefined,
             ruleCount: o.ruleCount,
-            ...(o.structuralError !== undefined
-              ? { error: o.structuralError }
-              : {}),
+            ...(o.structuralError !== undefined ? { error: o.structuralError } : {}),
             errors: o.errors,
           })),
         });
@@ -378,21 +351,15 @@ export function createCliMcpHandlers(cwd: string): McpToolHandlers {
           return fail(`report not found: ${input.reportPath}`);
         }
         if (!/^[0-9a-f]{64}$/.test(input.fingerprint)) {
-          return fail(
-            `invalid fingerprint (expected 64 hex chars): ${input.fingerprint}`,
-          );
+          return fail(`invalid fingerprint (expected 64 hex chars): ${input.fingerprint}`);
         }
         let report: Report;
         try {
           report = JSON.parse(readFileSync(input.reportPath, "utf8")) as Report;
         } catch (err) {
-          return fail(
-            `invalid report JSON: ${err instanceof Error ? err.message : String(err)}`,
-          );
+          return fail(`invalid report JSON: ${err instanceof Error ? err.message : String(err)}`);
         }
-        const finding = report.findings?.find(
-          (f) => f.fingerprint === input.fingerprint,
-        );
+        const finding = report.findings?.find((f) => f.fingerprint === input.fingerprint);
         if (finding === undefined) {
           return fail(`finding not found: ${input.fingerprint}`);
         }
@@ -413,12 +380,8 @@ export function createCliMcpHandlers(cwd: string): McpToolHandlers {
                   severity: explanation.severity,
                   category: explanation.category,
                   message: explanation.message,
-                  ...(explanation.fix !== undefined
-                    ? { fix: explanation.fix }
-                    : {}),
-                  ...(explanation.source !== undefined
-                    ? { source: explanation.source }
-                    : {}),
+                  ...(explanation.fix !== undefined ? { fix: explanation.fix } : {}),
+                  ...(explanation.source !== undefined ? { source: explanation.source } : {}),
                   packId: explanation.packId,
                   packVersion: explanation.packVersion,
                 },
@@ -435,21 +398,15 @@ export function createCliMcpHandlers(cwd: string): McpToolHandlers {
           return fail(`report not found: ${input.reportPath}`);
         }
         if (!/^[0-9a-f]{64}$/.test(input.fingerprint)) {
-          return fail(
-            `invalid fingerprint (expected 64 hex chars): ${input.fingerprint}`,
-          );
+          return fail(`invalid fingerprint (expected 64 hex chars): ${input.fingerprint}`);
         }
         let report: Report;
         try {
           report = JSON.parse(readFileSync(input.reportPath, "utf8")) as Report;
         } catch (err) {
-          return fail(
-            `invalid report JSON: ${err instanceof Error ? err.message : String(err)}`,
-          );
+          return fail(`invalid report JSON: ${err instanceof Error ? err.message : String(err)}`);
         }
-        const finding = report.findings?.find(
-          (f) => f.fingerprint === input.fingerprint,
-        );
+        const finding = report.findings?.find((f) => f.fingerprint === input.fingerprint);
         if (finding === undefined) {
           return fail(`finding not found: ${input.fingerprint}`);
         }
@@ -476,31 +433,19 @@ export function createCliMcpHandlers(cwd: string): McpToolHandlers {
           report.input.map((i) => i.path),
         );
         if (target.label === "<stdin>") {
-          return fail(
-            "cannot suggest a fix for stdin input (analyze a file instead)",
-          );
+          return fail("cannot suggest a fix for stdin input (analyze a file instead)");
         }
         let specPath: string | undefined;
         if (target.label !== undefined) {
-          specPath = isAbsolute(target.label)
-            ? target.label
-            : resolve(cwd, target.label);
-        } else if (
-          report.input.length === 1 &&
-          report.input[0] !== undefined
-        ) {
+          specPath = isAbsolute(target.label) ? target.label : resolve(cwd, target.label);
+        } else if (report.input.length === 1 && report.input[0] !== undefined) {
           const only = report.input[0].path;
           specPath = isAbsolute(only) ? only : resolve(cwd, only);
         }
         if (specPath === undefined || !existsSync(specPath)) {
-          return fail(
-            `spec file not found: ${target.label ?? finding.location}`,
-          );
+          return fail(`spec file not found: ${target.label ?? finding.location}`);
         }
-        const { fragment } = extractSpecFragment(
-          readFileSync(specPath, "utf8"),
-          target.pointer,
-        );
+        const { fragment } = extractSpecFragment(readFileSync(specPath, "utf8"), target.pointer);
         const fileLabel = target.label ?? finding.location;
         let text: string;
         try {
@@ -512,9 +457,7 @@ export function createCliMcpHandlers(cwd: string): McpToolHandlers {
               severity: finding.severity,
               message: finding.message,
               location: finding.location,
-              ...(explanation.fix !== undefined
-                ? { fixHint: explanation.fix }
-                : {}),
+              ...(explanation.fix !== undefined ? { fixHint: explanation.fix } : {}),
               ...(explanation.source !== undefined
                 ? {
                     source: {
@@ -555,11 +498,7 @@ async function loadSuggestLookup(
 ): Promise<{ ok: true; rules: Rule[] } | { ok: false; error: string }> {
   try {
     const elite = loadElitePackOrThrow(cwd);
-    const customResult = await loadCustomForTools(
-      cwd,
-      config.customRules,
-      elite,
-    );
+    const customResult = await loadCustomForTools(cwd, config.customRules, elite);
     if (!customResult.ok) {
       return { ok: false, error: customResult.error };
     }

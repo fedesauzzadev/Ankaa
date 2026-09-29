@@ -23,9 +23,7 @@ export interface SpecFragment {
 const MAX_FRAGMENT_CHARS = 4000;
 
 export function isUnifiedDiff(text: string): boolean {
-  return (
-    /^--- .+/m.test(text) && /^\+\+\+ .+/m.test(text) && /^@@ .+ @@/m.test(text)
-  );
+  return /^--- .+/m.test(text) && /^\+\+\+ .+/m.test(text) && /^@@ .+ @@/m.test(text);
 }
 
 function stripFences(text: string): string {
@@ -36,9 +34,7 @@ function stripFences(text: string): string {
 }
 
 function coerceConfidence(value: unknown): FixConfidence {
-  return value === "low" || value === "medium" || value === "high"
-    ? value
-    : "low";
+  return value === "low" || value === "medium" || value === "high" ? value : "low";
 }
 
 export function parseFixResponse(
@@ -49,10 +45,7 @@ export function parseFixResponse(
   const end = cleaned.lastIndexOf("}");
   if (start >= 0 && end > start) {
     try {
-      const raw = JSON.parse(cleaned.slice(start, end + 1)) as Record<
-        string,
-        unknown
-      >;
+      const raw = JSON.parse(cleaned.slice(start, end + 1)) as Record<string, unknown>;
       const patch = raw.patch;
       if (typeof patch !== "string" || !isUnifiedDiff(patch)) {
         return { ok: false, error: "could not produce a valid patch" };
@@ -78,10 +71,7 @@ export function parseFixResponse(
   return { ok: false, error: "could not produce a valid patch" };
 }
 
-export function splitFindingTarget(
-  location: string,
-  labels: readonly string[],
-): FixTarget {
+export function splitFindingTarget(location: string, labels: readonly string[]): FixTarget {
   const hash = location.indexOf("#");
   if (hash >= 0) {
     const label = location.slice(0, hash);
@@ -156,17 +146,14 @@ export function buildFixMessages(opts: {
   source?: { title: string; url?: string };
   fragment: string;
 }): ChatMessage[] {
-  const context =
-    opts.fragment === ""
-      ? "(context unavailable)"
-      : redactText(opts.fragment);
+  const context = opts.fragment === "" ? "(context unavailable)" : redactText(opts.fragment);
   const system: ChatMessage = {
     role: "system",
     content: [
       "You are an OpenAPI governance assistant.",
       'Respond with ONLY valid JSON: {"patch": "<unified diff>", "explanation": "<1-2 sentences>", "confidence": "low"|"medium"|"high"}.',
       `The patch must be a unified diff for ${opts.fileLabel}, starting with "--- a/${opts.fileLabel}" and "+++ b/${opts.fileLabel}" headers.`,
-      "Never invent other files. If you cannot produce a valid patch, respond with {\"patch\": \"\", \"explanation\": \"<why>\", \"confidence\": \"low\"}.",
+      'Never invent other files. If you cannot produce a valid patch, respond with {"patch": "", "explanation": "<why>", "confidence": "low"}.',
     ].join("\n"),
   };
   const lines = [

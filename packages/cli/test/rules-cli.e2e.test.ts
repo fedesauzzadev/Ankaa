@@ -5,12 +5,7 @@ import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
 import { run } from "../src/index.js";
 
-const repoRoot = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "..",
-);
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const petstore = join(repoRoot, "fixtures", "petstore-mini.yaml");
 
 const tempRoots: string[] = [];
@@ -80,11 +75,7 @@ describe("rules validate (AC-R2.1…3, AC-R2.10)", () => {
     const dir = tempDir();
     const file = join(dir, "team.yaml");
     writeFileSync(file, TEAM_RULE, "utf8");
-    const { code, stdout } = await runCapture([
-      "rules",
-      "validate",
-      file,
-    ]);
+    const { code, stdout } = await runCapture(["rules", "validate", file]);
     expect(code).toBe(0);
     expect(stdout).toContain("ok: 1 rules");
   });
@@ -104,11 +95,7 @@ describe("rules validate (AC-R2.1…3, AC-R2.10)", () => {
       ].join("\n"),
       "utf8",
     );
-    const { code, stderr } = await runCapture([
-      "rules",
-      "validate",
-      file,
-    ]);
+    const { code, stderr } = await runCapture(["rules", "validate", file]);
     expect(code).toBe(2);
     expect(stderr).toContain("invalid custom rule");
     expect(stderr).toContain("bad.yaml");
@@ -121,23 +108,14 @@ describe("rules validate (AC-R2.1…3, AC-R2.10)", () => {
     const bad = join(dir, "bad.yaml");
     writeFileSync(good, TEAM_RULE, "utf8");
     writeFileSync(bad, "foo: bar\n", "utf8");
-    const { code, stderr } = await runCapture([
-      "rules",
-      "validate",
-      good,
-      bad,
-    ]);
+    const { code, stderr } = await runCapture(["rules", "validate", good, bad]);
     expect(code).toBe(2);
     expect(stderr).toContain("bad.yaml");
   });
 
   it("AC-R2.10 missing file exits 2", async () => {
     const dir = tempDir();
-    const { code, stderr } = await runCapture([
-      "rules",
-      "validate",
-      join(dir, "missing.yaml"),
-    ]);
+    const { code, stderr } = await runCapture(["rules", "validate", join(dir, "missing.yaml")]);
     expect(code).toBe(2);
     expect(stderr).toContain("rules file not found");
   });
@@ -146,13 +124,7 @@ describe("rules validate (AC-R2.1…3, AC-R2.10)", () => {
     const dir = tempDir();
     const file = join(dir, "team.yaml");
     writeFileSync(file, TEAM_RULE, "utf8");
-    const { code, stdout } = await runCapture([
-      "rules",
-      "validate",
-      file,
-      "--format",
-      "json",
-    ]);
+    const { code, stdout } = await runCapture(["rules", "validate", file, "--format", "json"]);
     expect(code).toBe(0);
     const parsed = extractJson(stdout);
     expect(parsed).not.toBeNull();
@@ -178,12 +150,7 @@ describe("rules list (AC-R2.6)", () => {
     const dir = tempDir();
     const file = join(dir, "team.yaml");
     writeFileSync(file, TEAM_RULE, "utf8");
-    const { code, stdout } = await runCapture([
-      "rules",
-      "list",
-      "--rules",
-      file,
-    ]);
+    const { code, stdout } = await runCapture(["rules", "list", "--rules", file]);
     expect(code).toBe(0);
     expect(stdout).toContain("custom@");
     expect(stdout).toContain("TEAM-001");
@@ -198,13 +165,7 @@ describe("rules explain with custom (AC-R2.7)", () => {
     const dir = tempDir();
     const file = join(dir, "team.yaml");
     writeFileSync(file, TEAM_RULE, "utf8");
-    const { code, stdout } = await runCapture([
-      "rules",
-      "explain",
-      "TEAM-001",
-      "--rules",
-      file,
-    ]);
+    const { code, stdout } = await runCapture(["rules", "explain", "TEAM-001", "--rules", file]);
     expect(code).toBe(0);
     expect(stdout).toContain("TEAM-001");
     expect(stdout).toContain("x-request-id");
@@ -212,11 +173,7 @@ describe("rules explain with custom (AC-R2.7)", () => {
   });
 
   it("exits 2 without --rules for unknown custom id", async () => {
-    const { code, stderr } = await runCapture([
-      "rules",
-      "explain",
-      "TEAM-001",
-    ]);
+    const { code, stderr } = await runCapture(["rules", "explain", "TEAM-001"]);
     expect(code).toBe(2);
     expect(stderr).toContain("rule not found");
   });
@@ -275,23 +232,13 @@ describe("analyze with custom rules (AC-R2.4, AC-R2.5, AC-R2.8)", () => {
     const dir = tempDir();
     const file = join(dir, "clash.yaml");
     writeFileSync(file, TEAM_RULE.replace(/TEAM-001/g, "NAMING-001"), "utf8");
-    const { code, stderr } = await runCapture([
-      "analyze",
-      petstore,
-      "--rules",
-      file,
-      "--no-color",
-    ]);
+    const { code, stderr } = await runCapture(["analyze", petstore, "--rules", file, "--no-color"]);
     expect(code).toBe(2);
     expect(stderr).toContain("already exists in pack elite");
   });
 
   it("AC-R2.9 elite still validates strictSource (no-regresion via explain)", async () => {
-    const { code, stdout } = await runCapture([
-      "rules",
-      "explain",
-      "NAMING-001",
-    ]);
+    const { code, stdout } = await runCapture(["rules", "explain", "NAMING-001"]);
     expect(code).toBe(0);
     expect(stdout).toMatch(/url: https?:\/\//);
   });

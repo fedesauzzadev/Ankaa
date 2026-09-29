@@ -77,10 +77,7 @@ function toResult(report: Report, finding: Finding): SarifResult {
   };
 }
 
-export function formatSarif(
-  report: Report,
-  opts?: { pretty?: boolean },
-): string {
+export function formatSarif(report: Report, opts?: { pretty?: boolean }): string {
   const pretty = opts?.pretty !== false;
   const sarif = {
     $schema: SARIF_SCHEMA,

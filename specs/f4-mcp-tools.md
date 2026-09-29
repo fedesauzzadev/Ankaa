@@ -1,11 +1,11 @@
 # f4-mcp-tools · Tools MCP de análisis y consulta
 
-| Campo | Valor |
-|---|---|
-| Estado | cerrada |
-| Fase | 4 |
+| Campo     | Valor                                                                                                            |
+| --------- | ---------------------------------------------------------------------------------------------------------------- |
+| Estado    | cerrada                                                                                                          |
+| Fase      | 4                                                                                                                |
 | Deriva de | SDD FR-50/FR-51, scenario S5; doc 01 §6.6, doc 03 reglas; specs `f4-mcp-server`, `f1-analyze`, `f2-custom-rules` |
-| Roadmap | Fase 4 — MCP stdio local |
+| Roadmap   | Fase 4 — MCP stdio local                                                                                         |
 
 ## 1. Objetivo
 
@@ -117,13 +117,13 @@ output: {
 
 ## 5. Test plan
 
-| Caso | Tipo |
-|---|---|
-| Cada tool happy path | unit (handlers con FS fixtures) |
-| Truncación | unit |
-| Paridad CLI vs tool | e2e (mismo fixture) |
-| explain_finding roundtrip | e2e (CLI --output → tool) |
-| Errores | unit |
+| Caso                      | Tipo                            |
+| ------------------------- | ------------------------------- |
+| Cada tool happy path      | unit (handlers con FS fixtures) |
+| Truncación                | unit                            |
+| Paridad CLI vs tool       | e2e (mismo fixture)             |
+| explain_finding roundtrip | e2e (CLI --output → tool)       |
+| Errores                   | unit                            |
 
 ## 6. Dependencias
 
@@ -132,12 +132,12 @@ output: {
 
 ## 7. Riesgos y decisiones abiertas
 
-| Tema | Decisión |
-|---|---|
-| Config/skills en MCP | **v1: sí** — handlers cargan config igual que CLI desde cwd del server; si rompe complejidad, flag `--no-config` después. |
-| Directorio en analyze_spec | Igual que CLI: discover `openapi*/swagger*`; vacío → ok con 0 findings o error — alinear con `discoverSpecs`. |
-| Report para explain_finding | Cliente debe generar report (CLI o guardarlo); tool no re-análiza salvo path inválido → error claro. |
-| source en findings | Solo si el pack ya lo expone en finding/`explain`; no inventar campos. |
+| Tema                        | Decisión                                                                                                                  |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Config/skills en MCP        | **v1: sí** — handlers cargan config igual que CLI desde cwd del server; si rompe complejidad, flag `--no-config` después. |
+| Directorio en analyze_spec  | Igual que CLI: discover `openapi*/swagger*`; vacío → ok con 0 findings o error — alinear con `discoverSpecs`.             |
+| Report para explain_finding | Cliente debe generar report (CLI o guardarlo); tool no re-análiza salvo path inválido → error claro.                      |
+| source en findings          | Solo si el pack ya lo expone en finding/`explain`; no inventar campos.                                                    |
 
 ## Changelog
 

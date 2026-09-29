@@ -17,7 +17,10 @@ export interface CreateMcpServerOptions {
   maxFindings?: number;
 }
 
-function textResult(result: ToolResult, truncated?: AnalyzeSpecPayload): {
+function textResult(
+  result: ToolResult,
+  truncated?: AnalyzeSpecPayload,
+): {
   content: Array<{ type: "text"; text: string }>;
   isError?: boolean;
 } {
@@ -37,8 +40,7 @@ function errorResult(error: unknown): {
   content: Array<{ type: "text"; text: string }>;
   isError: true;
 } {
-  const message =
-    error instanceof Error ? error.message : `unexpected error: ${String(error)}`;
+  const message = error instanceof Error ? error.message : `unexpected error: ${String(error)}`;
   return {
     content: [
       {
@@ -75,9 +77,7 @@ export function createMcpServer(
       description:
         "Run ApiGovScan analyze on a local OpenAPI/Swagger file or directory. Same semantics as the CLI. Output findings are truncated; use the CLI for the full report.",
       inputSchema: {
-        path: z
-          .string()
-          .describe("File or directory path relative to the server cwd (sandboxed)"),
+        path: z.string().describe("File or directory path relative to the server cwd (sandboxed)"),
         failOn: z
           .enum(["never", "error", "warning", "info"])
           .optional()
@@ -100,10 +100,7 @@ export function createMcpServer(
         const truncated =
           result.isError === true
             ? undefined
-            : truncateAnalyzePayload(
-                result.payload as AnalyzeSpecPayload,
-                maxFindings,
-              );
+            : truncateAnalyzePayload(result.payload as AnalyzeSpecPayload, maxFindings);
         return textResult(result, truncated);
       } catch (err) {
         if (err instanceof SandboxError) return errorResult(err);
@@ -141,8 +138,7 @@ export function createMcpServer(
     "explain_rule",
     {
       title: "Explain a rule",
-      description:
-        "Explain a rule by id (message, fix, source citation, pack version).",
+      description: "Explain a rule by id (message, fix, source citation, pack version).",
       inputSchema: {
         ruleId: z.string().describe("Rule id, e.g. NAMING-004"),
         rules: z
@@ -171,10 +167,7 @@ export function createMcpServer(
       title: "Validate custom rules",
       description: "Validate custom rule YAML/JSON files against the ApiGovScan DSL.",
       inputSchema: {
-        files: z
-          .array(z.string())
-          .min(1)
-          .describe("Rule files to validate (sandboxed paths)"),
+        files: z.array(z.string()).min(1).describe("Rule files to validate (sandboxed paths)"),
       },
     },
     async (args) => {
@@ -198,9 +191,7 @@ export function createMcpServer(
         reportPath: z
           .string()
           .describe("Path to a JSON report from analyze --format json (sandboxed)"),
-        fingerprint: z
-          .string()
-          .describe("64-char hex finding fingerprint from the report"),
+        fingerprint: z.string().describe("64-char hex finding fingerprint from the report"),
       },
     },
     async (args) => {
@@ -224,9 +215,7 @@ export function createMcpServer(
       description:
         "Propose a unified-diff fix for a finding (from a JSON report on disk) using the configured LLM. Draft only; never applies changes. Requires llm.baseUrl in apigovscan.yaml.",
       inputSchema: {
-        fingerprint: z
-          .string()
-          .describe("64-char hex finding fingerprint from the report"),
+        fingerprint: z.string().describe("64-char hex finding fingerprint from the report"),
         reportPath: z
           .string()
           .optional()

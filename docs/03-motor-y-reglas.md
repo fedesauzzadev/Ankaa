@@ -33,19 +33,19 @@ rules:
     when:
       all:
         - op: pathSegmentPlural
-          segmentIndex: -1   # último segmento de path fijo (no template)
+          segmentIndex: -1 # último segmento de path fijo (no template)
 ```
 
 ### Campos obligatorios (schema estricto, falla el pack si falta)
 
-| Campo | Descripción |
-|---|---|
-| `id` | `CATEGORIA-NNN` único globalmente en un release del pack |
-| `category` | taxonomy cerrada (ver §4) |
-| `severity` | `error` \| `warning` \| `info` |
-| `message` | texto EN, una oración, sin findings dinámicos (placeholders `{}` opcionales) |
-| `when` | árbol DSL (§3) |
-| `source` | **obligatorio en packs elite**; `title` + `url` (+ `section` opcional) |
+| Campo      | Descripción                                                                  |
+| ---------- | ---------------------------------------------------------------------------- |
+| `id`       | `CATEGORIA-NNN` único globalmente en un release del pack                     |
+| `category` | taxonomy cerrada (ver §4)                                                    |
+| `severity` | `error` \| `warning` \| `info`                                               |
+| `message`  | texto EN, una oración, sin findings dinámicos (placeholders `{}` opcionales) |
+| `when`     | árbol DSL (§3)                                                               |
+| `source`   | **obligatorio en packs elite**; `title` + `url` (+ `section` opcional)       |
 
 Opcionales: `fix`, `deprecated`, `enabledByDefault`, `since`, `related` (ids).
 
@@ -59,48 +59,48 @@ Opcionales: `fix`, `deprecated`, `enabledByDefault`, `since`, `related` (ids).
 
 **Sobre operaciones / paths:**
 
-| Constructor | Sentido |
-|---|---|
-| `method` | método HTTP igual a / en lista |
-| `pathMatches` | regex **segura** sobre path (timeout + sin backtracking catastrófico; ver 06) |
-| `pathSegmentPlural` | último/índice de segmento es plural |
-| `pathHasPrefix` | prefijo (versionado `/v1/…`) |
-| `missingField` / `presentField` | campo en operation/parameter/response |
-| `responseMissing` | status code ausente en `responses` |
-| `schemaRefStyle` | `$ref` vs inline (política del equipo) |
+| Constructor                     | Sentido                                                                       |
+| ------------------------------- | ----------------------------------------------------------------------------- |
+| `method`                        | método HTTP igual a / en lista                                                |
+| `pathMatches`                   | regex **segura** sobre path (timeout + sin backtracking catastrófico; ver 06) |
+| `pathSegmentPlural`             | último/índice de segmento es plural                                           |
+| `pathHasPrefix`                 | prefijo (versionado `/v1/…`)                                                  |
+| `missingField` / `presentField` | campo en operation/parameter/response                                         |
+| `responseMissing`               | status code ausente en `responses`                                            |
+| `schemaRefStyle`                | `$ref` vs inline (política del equipo)                                        |
 
 **Sobre calidad de docs:**
 
-| Constructor | Sentido |
-|---|---|
-| `descriptionMinLength` | `summary`/`description` con longitud mínima |
-| `descriptionMatches` | regex en description |
-| `exampleRequired` | ejemplos presentes en schema/operation |
-| `operationIdRequired` / `operationIdPattern` | operationId y su formato |
+| Constructor                                  | Sentido                                     |
+| -------------------------------------------- | ------------------------------------------- |
+| `descriptionMinLength`                       | `summary`/`description` con longitud mínima |
+| `descriptionMatches`                         | regex en description                        |
+| `exampleRequired`                            | ejemplos presentes en schema/operation      |
+| `operationIdRequired` / `operationIdPattern` | operationId y su formato                    |
 
 **Sobre seguridad y errores:**
 
-| Constructor | Sentido |
-|---|---|
-| `securityMissing` | operación sin `security` (o sin global) |
-| `errorResponseMissing` | sin 4xx documentado |
-| `errorSchemaShape` | error body sin shape esperado (pair title/detail o problem+json) |
-| `sensitiveExample` | ejemplos que parecen secretos (patrones) → finding + redacción |
+| Constructor            | Sentido                                                          |
+| ---------------------- | ---------------------------------------------------------------- |
+| `securityMissing`      | operación sin `security` (o sin global)                          |
+| `errorResponseMissing` | sin 4xx documentado                                              |
+| `errorSchemaShape`     | error body sin shape esperado (pair title/detail o problem+json) |
+| `sensitiveExample`     | ejemplos que parecen secretos (patrones) → finding + redacción   |
 
 **Sobre headers/params/paginación:**
 
-| Constructor | Sentido |
-|---|---|
-| `missingHeader` / `headerRequired` | presencia de `x-request-id`, `traceparent`, etc. |
-| `paginationStyle` | list operations con estilo de paginación soportado |
-| `parameterNamingPattern` | naming de query params (camel/snake case policy) |
+| Constructor                        | Sentido                                            |
+| ---------------------------------- | -------------------------------------------------- |
+| `missingHeader` / `headerRequired` | presencia de `x-request-id`, `traceparent`, etc.   |
+| `paginationStyle`                  | list operations con estilo de paginación soportado |
+| `parameterNamingPattern`           | naming de query params (camel/snake case policy)   |
 
 **Sobre versionado/deprecación:**
 
-| Constructor | Sentido |
-|---|---|
+| Constructor               | Sentido                                                |
+| ------------------------- | ------------------------------------------------------ |
 | `deprecatedWithoutSunset` | `deprecated: true` sin `x-sunset` / header documentado |
-| `versioningStyle` | política de versión (path vs media type vs header) |
+| `versioningStyle`         | política de versión (path vs media type vs header)     |
 
 **Scope:** cada `when` evalúa contra `Spec` completo o contra cada `Operation` (implícito por constructor). No hay variables mutables, ni loops, ni acceso a red/FS/disco.
 
@@ -111,7 +111,11 @@ Opcionales: `fix`, `deprecated`, `enabledByDefault`, `since`, `related` (ids).
   category: errors
   severity: warning
   message: "Write operations should document at least one 4xx response."
-  source: { title: "Zalando RESTful API Guidelines", url: "https://opensource.zalando.com/restful-api-guidelines/" }
+  source:
+    {
+      title: "Zalando RESTful API Guidelines",
+      url: "https://opensource.zalando.com/restful-api-guidelines/",
+    }
   when:
     all:
       - op: method
@@ -139,11 +143,11 @@ Categorías nuevas = cambio de minor del motor (documentado), no string libre.
 
 ## 5. Severidades y `failOn`
 
-| Severidad | Uso típico | Default `failOn` |
-|---|---|---|
-| `error` | Rompe integración o seguridad clara | sí |
-| `warning` | Deuda que debería arreglarse | no |
-| `info` | Estilo / hint | no |
+| Severidad | Uso típico                          | Default `failOn` |
+| --------- | ----------------------------------- | ---------------- |
+| `error`   | Rompe integración o seguridad clara | sí               |
+| `warning` | Deuda que debería arreglarse        | no               |
+| `info`    | Estilo / hint                       | no               |
 
 Config:
 
@@ -152,7 +156,7 @@ Config:
 failOn: error
 rules:
   NAMING-001: off
-  ERR-010: error   # subir severidad local
+  ERR-010: error # subir severidad local
 ```
 
 ## 6. Pipeline de evaluación
@@ -225,11 +229,11 @@ El fingerprint **no** incluye severity (permite `severity_change` sin cambiar id
 ```yaml
 version: 1
 suppressions:
-  - fingerprint: "ab12…"           # exacta
+  - fingerprint: "ab12…" # exacta
     reason: "Legacy endpoint frozen until v2 migration"
-    by: "lead@team"                 # opcional, string libre
-    createdAt: "2026-09-23"         # metadata; no afecta eval
-  - match:                          # query (más amplia, con cuidado)
+    by: "lead@team" # opcional, string libre
+    createdAt: "2026-09-23" # metadata; no afecta eval
+  - match: # query (más amplia, con cuidado)
       ruleId: NAMING-001
       apiPath: "^/legacy/"
     reason: "Legacy namespace excluded from naming policy"
@@ -260,7 +264,7 @@ when:
       pattern: "/batch$"
 source:
   title: "Derived from feedback (learn)"
-  url: ""        # vacío permitido solo en draft; bloquea promoción a elite
+  url: "" # vacío permitido solo en draft; bloquea promoción a elite
 ```
 
 Drafts **no** se evalúan hasta `learn --promote TEAM-007` (mueve a `custom` activo) o edición manual con `draft: false` en config del equipo.
@@ -282,20 +286,28 @@ Output: patch idempotente sobre .apigovscan/skills/
     { "fingerprint": "…", "decision": "wontfix", "comment": "migrate in Q4" },
     { "fingerprint": "…", "decision": "severity_change", "severity": "info" },
     { "fingerprint": "…", "decision": "confirm" },
-    { "fingerprint": "…", "decision": "suggest_rule", "draft": { "id": "TEAM-008", "when": { "op": "headerRequired", "name": "x-batch-limit" }, "message": "…" } }
+    {
+      "fingerprint": "…",
+      "decision": "suggest_rule",
+      "draft": {
+        "id": "TEAM-008",
+        "when": { "op": "headerRequired", "name": "x-batch-limit" },
+        "message": "…"
+      }
+    }
   ]
 }
 ```
 
 ### Mapeo decision → skills
 
-| decision | efecto |
-|---|---|
-| `false_positive` | upsert suppression por fingerprint con `reason` obligatorio |
-| `wontfix` | suppression con reason (deuda aceptada) |
+| decision          | efecto                                                                                                     |
+| ----------------- | ---------------------------------------------------------------------------------------------------------- |
+| `false_positive`  | upsert suppression por fingerprint con `reason` obligatorio                                                |
+| `wontfix`         | suppression con reason (deuda aceptada)                                                                    |
 | `severity_change` | upsert override de severidad para ese `ruleId` (global) o scoped por fingerprint (opción `scope: finding`) |
-| `confirm` | no cambia skills; cuenta en `feedback/` histórico (métrica futura) |
-| `suggest_rule` | escribe `skills/drafts/<id>.yaml` con `draft: true` |
+| `confirm`         | no cambia skills; cuenta en `feedback/` histórico (métrica futura)                                         |
+| `suggest_rule`    | escribe `skills/drafts/<id>.yaml` con `draft: true`                                                        |
 
 ### Idempotencia (INV-5)
 
@@ -345,7 +357,7 @@ warning ERR-010  POST /payments
        Write operations should document at least one 4xx response.
        ↳ Zalando RESTful API Guidelines
 
-… 
+…
 ✖ 2 errors · 14 warnings · 3 info  (baseline: 11 suppressed)  reportHash 6c1e…
 ```
 
@@ -378,13 +390,13 @@ warning ERR-010  POST /payments
 
 ## 12. Extensibilidad futura (no v1)
 
-| Idea | Condición de entrada |
-|---|---|
-| Rules como módulos TS externos | Solo packs oficiales versionados (rompe INV-4 si es arbitrario) |
-| Matchers CEL | Si YAML DSL se queda corto en 2+ equipos reales |
-| LLM `--explain-friendly` | Paquete aparte opt-in, nunca en core ni CI default |
-| Rules de organización (multi-repo) | Cliente remoto de packs internos self-host (compose) |
+| Idea                               | Condición de entrada                                            |
+| ---------------------------------- | --------------------------------------------------------------- |
+| Rules como módulos TS externos     | Solo packs oficiales versionados (rompe INV-4 si es arbitrario) |
+| Matchers CEL                       | Si YAML DSL se queda corto en 2+ equipos reales                 |
+| LLM `--explain-friendly`           | Paquete aparte opt-in, nunca en core ni CI default              |
+| Rules de organización (multi-repo) | Cliente remoto de packs internos self-host (compose)            |
 
 ---
 
-*Continuar: [04-estandares.md](04-estandares.md).*
+_Continuar: [04-estandares.md](04-estandares.md)._

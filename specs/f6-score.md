@@ -1,10 +1,10 @@
 # f6-score · Governance score (0-100 + grade)
 
-| Campo | Valor |
-|---|---|
-| Estado | cerrada |
-| Fecha | 2026-09-26 |
-| Fase | 6 |
+| Campo     | Valor                                                                                                      |
+| --------- | ---------------------------------------------------------------------------------------------------------- |
+| Estado    | cerrada                                                                                                    |
+| Fecha     | 2026-09-26                                                                                                 |
+| Fase      | 6                                                                                                          |
 | Deriva de | SDD §7 (re-priorización de producto 2026-09-26), FR-45; docs/01 §6.5; specs `f1-reporters`, `f5-reporters` |
 
 ## 1. Objetivo / user story
@@ -82,12 +82,12 @@ export interface Report {
 
 ## 7. Riesgos y decisiones abiertas
 
-| Tema | Decisión v1 |
-|---|---|
+| Tema                         | Decisión v1                                                                          |
+| ---------------------------- | ------------------------------------------------------------------------------------ |
 | Sin normalización por tamaño | Aceptado: specs grandes puntúan peor; documentar; revisar en v2 con densidad por op. |
-| Score dentro de reportHash | Sí: cualquier cambio de findings/score invalida el hash (auditable). |
-| Pesos 8/3/1 | Fijos v1; sencillos de explicar (`error ≈ 3 warnings`). |
-| Score histórico | Fuera de v1 — requiere persistencia (dashboard/posterior). |
+| Score dentro de reportHash   | Sí: cualquier cambio de findings/score invalida el hash (auditable).                 |
+| Pesos 8/3/1                  | Fijos v1; sencillos de explicar (`error ≈ 3 warnings`).                              |
+| Score histórico              | Fuera de v1 — requiere persistencia (dashboard/posterior).                           |
 
 ## Changelog
 

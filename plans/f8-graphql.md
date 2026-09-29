@@ -1,8 +1,8 @@
 # Plan · f8-graphql · Soporte GraphQL SDL (M8.6, protocolo 1)
 
-| Campo | Valor |
-|---|---|
-| Specs | f8-graphql |
+| Campo        | Valor                                                                                                         |
+| ------------ | ------------------------------------------------------------------------------------------------------------- |
+| Specs        | f8-graphql                                                                                                    |
 | Dependencias | analyze/analyze-setup/loaders/pack-fs/discovery existentes; `graphql` npm (nueva dep, justificada en spec §6) |
 
 ## M8.6 — Adapter + pack + CLI

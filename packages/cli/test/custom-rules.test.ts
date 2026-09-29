@@ -2,11 +2,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
-import {
-  collectCustomRules,
-  loadRulesFile,
-  validateRulesFiles,
-} from "../src/custom-rules.js";
+import { collectCustomRules, loadRulesFile, validateRulesFiles } from "../src/custom-rules.js";
 
 const tempRoots: string[] = [];
 
@@ -88,10 +84,7 @@ describe("loadRulesFile", () => {
 describe("collectCustomRules", () => {
   it("stamps and validates a single rule", () => {
     const path = writeRules("ok.yaml", VALID_RULE);
-    const result = collectCustomRules(
-      [{ kind: "file", path }],
-      "0.0.0-dev",
-    );
+    const result = collectCustomRules([{ kind: "file", path }], "0.0.0-dev");
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.rules[0]!.id).toBe("TEAM-001");
@@ -117,10 +110,7 @@ describe("collectCustomRules", () => {
   });
 
   it("AC-R2.5 collision with elite id exits", () => {
-    const path = writeRules(
-      "clash.yaml",
-      VALID_RULE.replace("TEAM-001", "NAMING-001"),
-    );
+    const path = writeRules("clash.yaml", VALID_RULE.replace("TEAM-001", "NAMING-001"));
     const result = collectCustomRules([{ kind: "file", path }], "0.0.0-dev", {
       eliteRuleIds: new Set(["NAMING-001"]),
     });
@@ -131,10 +121,7 @@ describe("collectCustomRules", () => {
   });
 
   it("rejects invalid inline JSON", () => {
-    const result = collectCustomRules(
-      [{ kind: "inline", json: "{not json" }],
-      "0.0.0-dev",
-    );
+    const result = collectCustomRules([{ kind: "inline", json: "{not json" }], "0.0.0-dev");
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error).toContain("--rule is not valid JSON");
@@ -163,13 +150,7 @@ describe("validateRulesFiles", () => {
   it("AC-R2.2 reports issues for bad rules", () => {
     const path = writeRules(
       "bad.yaml",
-      [
-        "id: bad",
-        "category: custom",
-        "severity: error",
-        "message: x",
-        "when: {}",
-      ].join("\n"),
+      ["id: bad", "category: custom", "severity: error", "message: x", "when: {}"].join("\n"),
     );
     const outcomes = validateRulesFiles([path], "0.0.0-dev", tempDir());
     expect(outcomes[0]!.ok).toBe(false);
@@ -179,11 +160,7 @@ describe("validateRulesFiles", () => {
   it("AC-R2.3 collects issues across multiple files", () => {
     const good = writeRules("good.yaml", VALID_RULE);
     const bad = writeRules("bad2.yaml", "not-a-rule: true\n");
-    const outcomes = validateRulesFiles(
-      [good, bad],
-      "0.0.0-dev",
-      tempDir(),
-    );
+    const outcomes = validateRulesFiles([good, bad], "0.0.0-dev", tempDir());
     expect(outcomes[0]!.ok).toBe(true);
     expect(outcomes[1]!.ok).toBe(false);
     expect(outcomes[1]!.structuralError).toContain("expected an array");

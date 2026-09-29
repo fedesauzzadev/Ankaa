@@ -44,11 +44,7 @@ export function resolveLicenseKey(src: {
   return clean(src.flag) ?? clean(src.env) ?? clean(src.config);
 }
 
-export function checkLicense(src: {
-  flag?: string;
-  env?: string;
-  config?: string;
-}): LicenseCheck {
+export function checkLicense(src: { flag?: string; env?: string; config?: string }): LicenseCheck {
   const key = resolveLicenseKey(src);
   if (key === undefined) {
     return { ok: false, reason: "missing" };
@@ -78,9 +74,7 @@ export function verifyLicenseKey(key: string, today?: string): LicenseCheck {
   return { ok: true, info: { customer, expiry } };
 }
 
-export function licenseErrorMessage(
-  check: Exclude<LicenseCheck, { ok: true }>,
-): string {
+export function licenseErrorMessage(check: Exclude<LicenseCheck, { ok: true }>): string {
   switch (check.reason) {
     case "missing":
       return "missing license: set --license-key, APIGOVSCAN_LICENSE_KEY or license.key in apigovscan.yaml";

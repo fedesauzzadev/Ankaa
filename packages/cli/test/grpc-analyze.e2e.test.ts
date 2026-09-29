@@ -6,12 +6,7 @@ import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
 import { run } from "../src/index.js";
 
-const repoRoot = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "..",
-);
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const grpcFixtures = join(repoRoot, "fixtures", "grpc");
 const pet = join(grpcFixtures, "pet.proto");
 const invalid = join(grpcFixtures, "invalid.proto");
@@ -55,13 +50,7 @@ async function runCapture(
 
 describe("grpc analyze e2e (f8-grpc)", () => {
   it("AC-GR.5 analyzes pet.proto with the grpc pack", async () => {
-    const { code, stdout } = await runCapture([
-      "analyze",
-      pet,
-      "--format",
-      "json",
-      "--no-color",
-    ]);
+    const { code, stdout } = await runCapture(["analyze", pet, "--format", "json", "--no-color"]);
     expect(code).toBe(0);
     const report = JSON.parse(stdout) as {
       reportHash: string;
@@ -77,20 +66,8 @@ describe("grpc analyze e2e (f8-grpc)", () => {
   });
 
   it("AC-GR.5 deterministic across runs", async () => {
-    const first = await runCapture([
-      "analyze",
-      pet,
-      "--format",
-      "json",
-      "--no-color",
-    ]);
-    const second = await runCapture([
-      "analyze",
-      pet,
-      "--format",
-      "json",
-      "--no-color",
-    ]);
+    const first = await runCapture(["analyze", pet, "--format", "json", "--no-color"]);
+    const second = await runCapture(["analyze", pet, "--format", "json", "--no-color"]);
     const a = JSON.parse(first.stdout) as { reportHash: string };
     const b = JSON.parse(second.stdout) as { reportHash: string };
     expect(a.reportHash).toBe(b.reportHash);
@@ -107,10 +84,9 @@ describe("grpc analyze e2e (f8-grpc)", () => {
     const dir = tempDir();
     mkdirSync(join(dir, "api"));
     copyFileSync(pet, join(dir, "api", "pet.proto"));
-    const { code, stdout } = await runCapture(
-      ["analyze", ".", "--format", "json", "--no-color"],
-      { cwd: dir },
-    );
+    const { code, stdout } = await runCapture(["analyze", ".", "--format", "json", "--no-color"], {
+      cwd: dir,
+    });
     expect([0, 1]).toContain(code);
     const report = JSON.parse(stdout) as {
       input: Array<{ path: string }>;

@@ -1,4 +1,11 @@
-import { copyFileSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  copyFileSync,
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -6,21 +13,11 @@ import { parse as parseYaml } from "yaml";
 import { afterAll, describe, expect, it } from "vitest";
 import { run } from "../src/index.js";
 
-const repoRoot = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "..",
-);
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const fixtures = join(repoRoot, "fixtures");
 const actionFile = join(repoRoot, "action", "action.yml");
 const actionReadme = join(repoRoot, "action", "README.md");
-const dogfoodWorkflow = join(
-  repoRoot,
-  ".github",
-  "workflows",
-  "apigovscan.yml",
-);
+const dogfoodWorkflow = join(repoRoot, ".github", "workflows", "apigovscan.yml");
 
 interface ActionDoc {
   name: string;
@@ -97,16 +94,7 @@ async function simulateAction(
 }> {
   const sarifPath = join(cwd, "apigovscan.sarif");
   const artifact = await runCapture(
-    [
-      "analyze",
-      specPath,
-      "--fail-on",
-      "never",
-      "--format",
-      "sarif",
-      "--output",
-      sarifPath,
-    ],
+    ["analyze", specPath, "--fail-on", "never", "--format", "sarif", "--output", sarifPath],
     { cwd },
   );
   expect([0, 1]).toContain(artifact.code);
@@ -155,10 +143,7 @@ describe("action/action.yml structure (f5-action)", () => {
     expect(action.inputs.format.default).toBe("sarif");
     expect(action.inputs.cli.default).toBe("npx -y @apigovscan/cli");
     expect(action.inputs.baseline.default).toBe("false");
-    expect(Object.keys(action.outputs).sort()).toEqual([
-      "exit-code",
-      "sarif-path",
-    ]);
+    expect(Object.keys(action.outputs).sort()).toEqual(["exit-code", "sarif-path"]);
     expect(action.runs.using).toBe("composite");
     expect(action.runs.steps.length).toBeGreaterThanOrEqual(3);
     const ids = action.runs.steps.map((s) => s.id);
@@ -204,7 +189,7 @@ describe("action/action.yml structure (f5-action)", () => {
     }
     // gate is the only step allowed to fail the job
     const gate = action.runs.steps.find((s) => s.id === "gate")!;
-    expect(gate.run).toContain("--fail-on \"$AG_FAIL_ON\"");
+    expect(gate.run).toContain('--fail-on "$AG_FAIL_ON"');
     expect(gate.run).toContain("$GITHUB_STEP_SUMMARY");
     const artifact = action.runs.steps.find((s) => s.id === "artifact")!;
     expect(artifact.run).toContain("--fail-on never");
@@ -236,10 +221,7 @@ describe("action/action.yml structure (f5-action)", () => {
 describe("action e2e simulation (AC-ACT.2–4)", () => {
   it("AC-ACT.2 artifact + annotations + summary + outputs", async () => {
     const cwd = tempDir();
-    copyFileSync(
-      join(fixtures, "petstore-mini.yaml"),
-      join(cwd, "openapi.yaml"),
-    );
+    copyFileSync(join(fixtures, "petstore-mini.yaml"), join(cwd, "openapi.yaml"));
 
     const sim = await simulateAction(cwd, "openapi.yaml", "error");
 
@@ -253,9 +235,7 @@ describe("action e2e simulation (AC-ACT.2–4)", () => {
     expect(sarif.version).toBe("2.1.0");
     const results = sarif.runs[0].results;
     expect(results.length).toBeGreaterThan(0);
-    expect(
-      results.every((r) => ["error", "warning", "note"].includes(r.level)),
-    ).toBe(true);
+    expect(results.every((r) => ["error", "warning", "note"].includes(r.level))).toBe(true);
     expect(JSON.stringify(results)).toContain("openapi.yaml");
 
     expect(sim.annotations).toMatch(/^::(error|warning|notice) /m);
@@ -272,10 +252,7 @@ describe("action e2e simulation (AC-ACT.2–4)", () => {
 
   it("AC-ACT.3 format=none flow leaves no artifact requirement (gate only)", async () => {
     const cwd = tempDir();
-    copyFileSync(
-      join(fixtures, "petstore-mini.yaml"),
-      join(cwd, "openapi.yaml"),
-    );
+    copyFileSync(join(fixtures, "petstore-mini.yaml"), join(cwd, "openapi.yaml"));
     const gate = await runCapture(
       ["analyze", "openapi.yaml", "--fail-on", "never", "--format", "markdown"],
       { cwd },
@@ -287,10 +264,7 @@ describe("action e2e simulation (AC-ACT.2–4)", () => {
 
   it("AC-ACT.4 gate fails (exit-code=1) on error findings with fail-on error", async () => {
     const cwd = tempDir();
-    copyFileSync(
-      join(fixtures, "unsorted-paths.yaml"),
-      join(cwd, "broken.yaml"),
-    );
+    copyFileSync(join(fixtures, "unsorted-paths.yaml"), join(cwd, "broken.yaml"));
 
     const failing = await simulateAction(cwd, "broken.yaml", "error");
     expect(failing.gateCode).toBe(1);
@@ -298,9 +272,7 @@ describe("action e2e simulation (AC-ACT.2–4)", () => {
     const sarif = JSON.parse(failing.sarif) as {
       runs: Array<{ results: Array<{ level: string }> }>;
     };
-    expect(
-      sarif.runs[0].results.some((r) => r.level === "error"),
-    ).toBe(true);
+    expect(sarif.runs[0].results.some((r) => r.level === "error")).toBe(true);
 
     const passing = await simulateAction(cwd, "broken.yaml", "never");
     expect(passing.gateCode).toBe(0);

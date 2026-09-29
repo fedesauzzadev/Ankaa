@@ -28,11 +28,7 @@ function paint(text: string, code: string, color: boolean): string {
 }
 
 function findingLines(finding: Finding, color: boolean): string[] {
-  const severity = paint(
-    finding.severity,
-    SEVERITY_COLOR[finding.severity],
-    color,
-  );
+  const severity = paint(finding.severity, SEVERITY_COLOR[finding.severity], color);
   const location = finding.apiLocation ?? finding.location;
   const lines: string[] = [`${severity}  ${finding.ruleId}  ${location}`];
   lines.push(`        ${redactText(finding.message)}`);
@@ -40,9 +36,7 @@ function findingLines(finding: Finding, color: boolean): string[] {
     lines.push(`        fix: ${redactText(finding.fix)}`);
   }
   if (finding.source) {
-    const section = finding.source.section
-      ? ` - ${finding.source.section}`
-      : "";
+    const section = finding.source.section ? ` - ${finding.source.section}` : "";
     lines.push(`        > ${finding.source.title}${section}`);
     lines.push(`        ${finding.source.url}`);
   }
@@ -69,9 +63,7 @@ export function formatConsole(report: Report, opts: ConsoleOpts): string {
   lines.push("");
 
   const findings =
-    opts.maxFindings !== undefined
-      ? report.findings.slice(0, opts.maxFindings)
-      : report.findings;
+    opts.maxFindings !== undefined ? report.findings.slice(0, opts.maxFindings) : report.findings;
 
   let lastGroup: string | undefined;
   for (const finding of findings) {
@@ -87,8 +79,7 @@ export function formatConsole(report: Report, opts: ConsoleOpts): string {
     lines.push("");
   }
 
-  const { error, warning, info, total, suppressed, skillsSuppressed } =
-    report.summary;
+  const { error, warning, info, total, suppressed, skillsSuppressed } = report.summary;
   const counts = [
     `${error} error${error === 1 ? "" : "s"}`,
     `${warning} warning${warning === 1 ? "" : "s"}`,
@@ -97,9 +88,7 @@ export function formatConsole(report: Report, opts: ConsoleOpts): string {
   const hash = report.reportHash.slice(0, 8);
   const mark = total > 0 ? "!" : "ok";
   const suppressedNote =
-    suppressed !== undefined && suppressed > 0
-      ? ` (baseline: ${suppressed} suppressed)`
-      : "";
+    suppressed !== undefined && suppressed > 0 ? ` (baseline: ${suppressed} suppressed)` : "";
   const skillsNote =
     skillsSuppressed !== undefined && skillsSuppressed > 0
       ? ` (skills: ${skillsSuppressed} suppressed)`
@@ -108,13 +97,8 @@ export function formatConsole(report: Report, opts: ConsoleOpts): string {
     `${mark} ${counts}${suppressedNote}${skillsNote} · score ${report.score.value} (${report.score.grade}) · reportHash ${hash}`,
   );
 
-  if (
-    opts.maxFindings !== undefined &&
-    report.findings.length > opts.maxFindings
-  ) {
-    lines.push(
-      `  ... ${report.findings.length - opts.maxFindings} more findings omitted`,
-    );
+  if (opts.maxFindings !== undefined && report.findings.length > opts.maxFindings) {
+    lines.push(`  ... ${report.findings.length - opts.maxFindings} more findings omitted`);
   }
 
   return `${lines.join("\n")}\n`;

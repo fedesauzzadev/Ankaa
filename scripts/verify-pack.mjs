@@ -13,8 +13,7 @@ import { fileURLToPath } from "node:url";
 
 const repoRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 const tgz =
-  process.argv[2] ??
-  readdirSync(join(repoRoot, "dist-release")).find((f) => f.endsWith(".tgz"));
+  process.argv[2] ?? readdirSync(join(repoRoot, "dist-release")).find((f) => f.endsWith(".tgz"));
 if (tgz === undefined) {
   console.error("no tarball found (run scripts/pack-cli.mjs first)");
   process.exit(2);
@@ -45,10 +44,7 @@ try {
 
   const fixtureDir = join(work, "spec");
   mkdirSync(fixtureDir, { recursive: true });
-  cpSync(
-    join(repoRoot, "fixtures", "petstore-mini.yaml"),
-    join(fixtureDir, "openapi.yaml"),
-  );
+  cpSync(join(repoRoot, "fixtures", "petstore-mini.yaml"), join(fixtureDir, "openapi.yaml"));
 
   const bin = join(prefix, "node_modules", "@apigovscan", "cli", "bin", "apigovscan.js");
   const out = execFileSync(

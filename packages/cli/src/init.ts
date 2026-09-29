@@ -36,17 +36,11 @@ const CONFIG_SCAFFOLD = [
   "",
 ].join("\n");
 
-const SUPPRESSIONS_SCAFFOLD = [
-  `version: ${SKILLS_SCHEMA_VERSION}`,
-  "suppressions: []",
-  "",
-].join("\n");
+const SUPPRESSIONS_SCAFFOLD = [`version: ${SKILLS_SCHEMA_VERSION}`, "suppressions: []", ""].join(
+  "\n",
+);
 
-const SEVERITIES_SCAFFOLD = [
-  `version: ${SKILLS_SCHEMA_VERSION}`,
-  "overrides: []",
-  "",
-].join("\n");
+const SEVERITIES_SCAFFOLD = [`version: ${SKILLS_SCHEMA_VERSION}`, "overrides: []", ""].join("\n");
 
 const SKILLS_README = [
   "# ApiGovScan skills",
@@ -69,10 +63,7 @@ const SUPPRESSIONS_KEY = "suppressions.yaml";
 const SEVERITIES_KEY = "severities.yaml";
 const SKILLS_README_KEY = "README.md";
 
-function resolveInitSkillsDir(
-  options: InitOptions,
-  cwd: string,
-): string {
+function resolveInitSkillsDir(options: InitOptions, cwd: string): string {
   if (options.skillsDirFlag !== undefined) {
     return isAbsolute(options.skillsDirFlag)
       ? options.skillsDirFlag
@@ -87,10 +78,7 @@ function resolveInitSkillsDir(
   return resolve(base, raw);
 }
 
-function isScaffoldContent(
-  path: string,
-  scaffold: string,
-): boolean {
+function isScaffoldContent(path: string, scaffold: string): boolean {
   try {
     return readFileSync(path, "utf8") === scaffold;
   } catch {
@@ -103,11 +91,7 @@ function isEmptySkillsArrayFile(path: string, key: string): boolean {
     const raw = parseYaml(readFileSync(path, "utf8")) as Record<string, unknown> | null;
     if (raw === null || typeof raw !== "object") return false;
     const value = raw[key];
-    return (
-      raw.version === SKILLS_SCHEMA_VERSION &&
-      Array.isArray(value) &&
-      value.length === 0
-    );
+    return raw.version === SKILLS_SCHEMA_VERSION && Array.isArray(value) && value.length === 0;
   } catch {
     return false;
   }
@@ -164,24 +148,16 @@ export function runInit(cwd: string, options: InitOptions): InitResult | InitErr
 
     const entries: InitEntry[] = [];
 
+    entries.push(writeOrSkip(configPath, CONFIG_SCAFFOLD, options.force, { isConfig: true }));
     entries.push(
-      writeOrSkip(configPath, CONFIG_SCAFFOLD, options.force, { isConfig: true }),
+      writeOrSkip(join(skillsDir, SUPPRESSIONS_KEY), SUPPRESSIONS_SCAFFOLD, options.force, {
+        isEmptySkills: true,
+      }),
     );
     entries.push(
-      writeOrSkip(
-        join(skillsDir, SUPPRESSIONS_KEY),
-        SUPPRESSIONS_SCAFFOLD,
-        options.force,
-        { isEmptySkills: true },
-      ),
-    );
-    entries.push(
-      writeOrSkip(
-        join(skillsDir, SEVERITIES_KEY),
-        SEVERITIES_SCAFFOLD,
-        options.force,
-        { isEmptySkills: true },
-      ),
+      writeOrSkip(join(skillsDir, SEVERITIES_KEY), SEVERITIES_SCAFFOLD, options.force, {
+        isEmptySkills: true,
+      }),
     );
     const gitkeep = join(draftsDir, ".gitkeep");
     if (!existsSync(gitkeep)) {
@@ -191,12 +167,9 @@ export function runInit(cwd: string, options: InitOptions): InitResult | InitErr
       entries.push({ path: gitkeep, action: "skipped" });
     }
     entries.push(
-      writeOrSkip(
-        join(skillsDir, SKILLS_README_KEY),
-        SKILLS_README,
-        options.force,
-        { alwaysForce: true },
-      ),
+      writeOrSkip(join(skillsDir, SKILLS_README_KEY), SKILLS_README, options.force, {
+        alwaysForce: true,
+      }),
     );
 
     return { ok: true, entries, skillsDir };
@@ -208,13 +181,14 @@ export function runInit(cwd: string, options: InitOptions): InitResult | InitErr
   }
 }
 
-export function formatInitEntries(
-  entries: readonly InitEntry[],
-  cwd: string,
-): string[] {
+export function formatInitEntries(entries: readonly InitEntry[], cwd: string): string[] {
   return entries.map((e) => {
     const rel = e.path.startsWith(cwd)
-      ? e.path.slice(cwd.length).replace(/^[\\/]/, "").split("\\").join("/")
+      ? e.path
+          .slice(cwd.length)
+          .replace(/^[\\/]/, "")
+          .split("\\")
+          .join("/")
       : e.path.split("\\").join("/");
     if (e.action === "created") return `created: ${rel}`;
     if (e.action === "overwritten") return `overwritten: ${rel}`;

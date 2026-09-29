@@ -6,16 +6,16 @@ ApiGovScan · SDD · v1.0
 
 ## 1. Modelo de amenazas (resumen)
 
-| # | Activo | Amenaza principal | Severidad |
-|---|---|---|---|
-| T1 | Confidencialidad de specs/API surface del usuario | Exfiltración accidental (red, logs, telemetría) | Crítica |
-| T2 | Integridad de la supply chain del CLI | Paquete comprometido / install script malicioso | Alta |
-| T3 | Disponibilidad del proceso de análisis | DoS local: YAML bomb, regex catastrófica, spec gigante | Media |
-| T4 | Integridad de skills/baseline | Suppression maliciosa que apaga reglas de seguridad | Media |
-| T5 | Integridad de los packs elite | Pack adulterado o update silencioso malicioso | Alta |
-| T6 | Cliente LLM vía MCP | Prompt injection desde el spec → acciones del agente | Media (depende del cliente) |
-| T7 | Servicios de borde CF | Abuse del MCP remoto / registry (spam, scraping) | Baja (datos públicos) |
-| T8 | Reportes | Secrets del spec parpadeando en logs/CI artifacts | Media |
+| #   | Activo                                            | Amenaza principal                                      | Severidad                   |
+| --- | ------------------------------------------------- | ------------------------------------------------------ | --------------------------- |
+| T1  | Confidencialidad de specs/API surface del usuario | Exfiltración accidental (red, logs, telemetría)        | Crítica                     |
+| T2  | Integridad de la supply chain del CLI             | Paquete comprometido / install script malicioso        | Alta                        |
+| T3  | Disponibilidad del proceso de análisis            | DoS local: YAML bomb, regex catastrófica, spec gigante | Media                       |
+| T4  | Integridad de skills/baseline                     | Suppression maliciosa que apaga reglas de seguridad    | Media                       |
+| T5  | Integridad de los packs elite                     | Pack adulterado o update silencioso malicioso          | Alta                        |
+| T6  | Cliente LLM vía MCP                               | Prompt injection desde el spec → acciones del agente   | Media (depende del cliente) |
+| T7  | Servicios de borde CF                             | Abuse del MCP remoto / registry (spam, scraping)       | Baja (datos públicos)       |
+| T8  | Reportes                                          | Secrets del spec parpadeando en logs/CI artifacts      | Media                       |
 
 Correspondencia con invariantes: T1 ↔ INV-1; T3 ↔ NFR-08; T4 ↔ INV-5/INV-7; T5 ↔ INV-6 + firmas/hash de packs.
 
@@ -33,16 +33,16 @@ Correspondencia con invariantes: T1 ↔ INV-1; T3 ↔ NFR-08; T4 ↔ INV-5/INV-7
 
 Specs son **input hostil** (pueden venir de terceros o de un repo comprometido).
 
-| Control | Límite / política |
-|---|---|
-| Tamaño máximo de input | default 10 MB, configurable; excede → exit 2 con mensaje |
-| Alias expansion / YAML anchors | depth máx. 20; anchors por archivo máx. 1000; rechazar `!!python/...` u tags no permitidos |
-| Billion laughs / quadratic expansion | parser YAML con límites de expansión (usar lib con `maxAliasCount`/equiv. o pre-scan) |
-| Profundidad de JSON structure | máx. 100 niveles |
-| `$ref` cycles y remote refs | **remote `$ref` (http/https) prohibidos** por defecto (INV-1); local files resueltos con path sandbox al directorio del spec raíz (no escape con `../` fuera del root sin `--allow-outside-root`) |
-| Regex DSL del usuario | engine de regex seguro (límite de pasos / linear-time donde sea posible); timeout 50 ms por evaluación; patrones de reglas se validan en `rules validate` |
-| Recurso de CPU | budget opcional `--max-ms` (default off en local, on en CI examples) |
-| Deserialización | nada de `eval`, `Function`, `vm`, `serialize-javascript` de terceros en el camino caliente |
+| Control                              | Límite / política                                                                                                                                                                                 |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tamaño máximo de input               | default 10 MB, configurable; excede → exit 2 con mensaje                                                                                                                                          |
+| Alias expansion / YAML anchors       | depth máx. 20; anchors por archivo máx. 1000; rechazar `!!python/...` u tags no permitidos                                                                                                        |
+| Billion laughs / quadratic expansion | parser YAML con límites de expansión (usar lib con `maxAliasCount`/equiv. o pre-scan)                                                                                                             |
+| Profundidad de JSON structure        | máx. 100 niveles                                                                                                                                                                                  |
+| `$ref` cycles y remote refs          | **remote `$ref` (http/https) prohibidos** por defecto (INV-1); local files resueltos con path sandbox al directorio del spec raíz (no escape con `../` fuera del root sin `--allow-outside-root`) |
+| Regex DSL del usuario                | engine de regex seguro (límite de pasos / linear-time donde sea posible); timeout 50 ms por evaluación; patrones de reglas se validan en `rules validate`                                         |
+| Recurso de CPU                       | budget opcional `--max-ms` (default off en local, on en CI examples)                                                                                                                              |
+| Deserialización                      | nada de `eval`, `Function`, `vm`, `serialize-javascript` de terceros en el camino caliente                                                                                                        |
 
 Path sandbox:
 
@@ -63,12 +63,12 @@ resolve($ref) = /etc/...  ✗ (error de parseo, no lectura)
 
 ## 5. Skills y baseline (T4)
 
-| Riesgo | Control |
-|---|---|
+| Riesgo                                                | Control                                                                                                   |
+| ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | Alguien commitea suppression masiva que apaga el gate | Code review de `.apigovscan/`; `protectedRules`; CI con `--deny-suppressions-touching-protected` opcional |
-| Learn duplica o corrompe skills | INV-5 idempotente + schema validation + backups timestamped en `skills/.history/` (git ya da history) |
-| Baseline gigante que oculta todo | `--write-baseline` imprime conteo; opción `maxBaseline` warning; review normal de PR |
-| Fingerprint collision | sha256; colisión práctica irrelevante |
+| Learn duplica o corrompe skills                       | INV-5 idempotente + schema validation + backups timestamped en `skills/.history/` (git ya da history)     |
+| Baseline gigante que oculta todo                      | `--write-baseline` imprime conteo; opción `maxBaseline` warning; review normal de PR                      |
+| Fingerprint collision                                 | sha256; colisión práctica irrelevante                                                                     |
 
 ## 6. Integridad de packs (T5)
 
@@ -83,21 +83,21 @@ resolve($ref) = /etc/...  ✗ (error de parseo, no lectura)
 
 ### Local stdio (primario)
 
-| Control | Detalle |
-|---|---|
-| Attack surface | Sin puerto de red; el proceso lo spawn el cliente LLM |
-| Tools | Sólidos y finos: `analyze_spec(path)`, `explain_rule(id)`, … sin tool de "run arbitrary" |
-| Paths | Mismo sandbox de $ref; rechazar paths fuera de cwd sin flag explícito documentado |
-| Output size | Trunca findings para no inyectar kilos de texto en el contexto (top N + "use CLI para completo") |
+| Control                     | Detalle                                                                                                                                                                                                                     |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Attack surface              | Sin puerto de red; el proceso lo spawn el cliente LLM                                                                                                                                                                       |
+| Tools                       | Sólidos y finos: `analyze_spec(path)`, `explain_rule(id)`, … sin tool de "run arbitrary"                                                                                                                                    |
+| Paths                       | Mismo sandbox de $ref; rechazar paths fuera de cwd sin flag explícito documentado                                                                                                                                           |
+| Output size                 | Trunca findings para no inyectar kilos de texto en el contexto (top N + "use CLI para completo")                                                                                                                            |
 | Prompt injection desde spec | El spec es attacker-controlled: mensajes de finding son texto plano; **nunca** instrucciones al LLM; documentar en README que el cliente debe no treat tool results como comandos (mitigación parcial, depende del cliente) |
 
 ### Remoto CF (consulta de estándares)
 
-| Control | Detalle |
-|---|---|
-| Superficie | Solo lectura de packs públicos (ya publicados en registry) |
-| Rate limit | CF WAF / rate limiting por IP en `/mcp` y `/packs/*` |
-| Auth | v1 pública opcional; si abuse → API key o Cloudflare Access |
+| Control            | Detalle                                                                             |
+| ------------------ | ----------------------------------------------------------------------------------- |
+| Superficie         | Solo lectura de packs públicos (ya publicados en registry)                          |
+| Rate limit         | CF WAF / rate limiting por IP en `/mcp` y `/packs/*`                                |
+| Auth               | v1 pública opcional; si abuse → API key o Cloudflare Access                         |
 | No análisis remoto | FR-52: el remoto **no** acepta specs de usuarios (reduce data exposure y CPU abuse) |
 
 ## 8. Secrets en specs y reportes (T8)
@@ -108,16 +108,16 @@ resolve($ref) = /etc/...  ✗ (error de parseo, no lectura)
 
 ## 9. Supply chain del producto (T2)
 
-| Control | Implementación |
-|---|---|
-| Dependencias mínimas | audit manual de cada deps; preferir stdlib / 0-dep en core |
-| Lockfile | pnpm-lock committed; `--frozen-lockfile` en CI |
-| npm provenance | publish con `--provenance` cuando repo público |
-| Install scripts | `ignore-scripts=true` recomendado; ningún `postinstall` nuestro |
-| Code review | CODEOWNERS en `packages/core`, `packs/` |
-| Release | tags anotados + changelog; imágenes GHCR con SBOM (fase 5+) |
-| Análisis estático | `npm audit` / `pnpm audit` en CI (fail en high) |
-| Runtime | sin eval; test grep de `eval(`/`new Function` en core |
+| Control              | Implementación                                                  |
+| -------------------- | --------------------------------------------------------------- |
+| Dependencias mínimas | audit manual de cada deps; preferir stdlib / 0-dep en core      |
+| Lockfile             | pnpm-lock committed; `--frozen-lockfile` en CI                  |
+| npm provenance       | publish con `--provenance` cuando repo público                  |
+| Install scripts      | `ignore-scripts=true` recomendado; ningún `postinstall` nuestro |
+| Code review          | CODEOWNERS en `packages/core`, `packs/`                         |
+| Release              | tags anotados + changelog; imágenes GHCR con SBOM (fase 5+)     |
+| Análisis estático    | `npm audit` / `pnpm audit` en CI (fail en high)                 |
+| Runtime              | sin eval; test grep de `eval(`/`new Function` en core           |
 
 ## 10. Seguridad del worker / registry (T7)
 
@@ -148,4 +148,4 @@ Cuando el repo sea público: `SECURITY.md` con email/GitHub private advisory; co
 
 ---
 
-*Fin de la documentación SDD v1.0. Próximo paso: validación del usuario y apertura de specs/plans/tasks (spec-driven development) para Fase 0–1.*
+_Fin de la documentación SDD v1.0. Próximo paso: validación del usuario y apertura de specs/plans/tasks (spec-driven development) para Fase 0–1._

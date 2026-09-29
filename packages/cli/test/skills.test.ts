@@ -30,10 +30,7 @@ afterAll(() => {
   }
 });
 
-function writeSkills(
-  dir: string,
-  files: Record<string, string>,
-): string {
+function writeSkills(dir: string, files: Record<string, string>): string {
   const skillsDir = join(dir, ".apigovscan", "skills");
   mkdirSync(skillsDir, { recursive: true });
   for (const [name, content] of Object.entries(files)) {
@@ -96,9 +93,7 @@ describe("loadSkills (AC-S.1–6)", () => {
     expect(result.skills.suppressions).toHaveLength(2);
     expect(result.skills.suppressions[0]!.fingerprint).toBe("b".repeat(64));
     expect(result.skills.suppressions[1]!.match?.ruleId).toBe("NAMING-001");
-    expect(result.skills.severities).toEqual([
-      { ruleId: "PAGINATION-001", severity: "error" },
-    ]);
+    expect(result.skills.severities).toEqual([{ ruleId: "PAGINATION-001", severity: "error" }]);
   });
 
   it("missing reason → error (AC-S.3)", () => {
@@ -130,11 +125,7 @@ describe("loadSkills (AC-S.1–6)", () => {
   it("neither fingerprint nor match → error (AC-S.3)", () => {
     const dir = tempDir();
     const skillsDir = writeSkills(dir, {
-      "suppressions.yaml": [
-        "version: 1",
-        "suppressions:",
-        "  - reason: no key",
-      ].join("\n"),
+      "suppressions.yaml": ["version: 1", "suppressions:", "  - reason: no key"].join("\n"),
     });
     const result = loadSkills(skillsDir, "0.0.0-dev");
     expect(result.ok).toBe(false);
@@ -169,9 +160,7 @@ describe("loadSkills (AC-S.1–6)", () => {
     const result = loadSkills(skillsDir, "0.0.0-dev");
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.skills.activeDraftRules.map((r) => r.id)).toEqual([
-      "TEAM-002",
-    ]);
+    expect(result.skills.activeDraftRules.map((r) => r.id)).toEqual(["TEAM-002"]);
   });
 
   it("unsafe apiPath regex → error (AC-S.6)", () => {
@@ -194,9 +183,7 @@ describe("loadSkills (AC-S.1–6)", () => {
 });
 
 describe("applySkillSuppressions (AC-S.1, AC-S.2, AC-S.8)", () => {
-  const fingerprintSup: SuppressionEntry[] = [
-    { fingerprint: "a".repeat(64), reason: "fp" },
-  ];
+  const fingerprintSup: SuppressionEntry[] = [{ fingerprint: "a".repeat(64), reason: "fp" }];
 
   it("fingerprint match suppresses", () => {
     const regexes = new Map<number, RegExp>();
@@ -228,26 +215,14 @@ describe("applySkillSuppressions (AC-S.1, AC-S.2, AC-S.8)", () => {
       fingerprint: "f".repeat(64),
       apiLocation: "GET /users",
     });
-    const { visible, suppressed } = applySkillSuppressions(
-      [legacy, modern],
-      sup,
-      compiled.map,
-    );
+    const { visible, suppressed } = applySkillSuppressions([legacy, modern], sup, compiled.map);
     expect(suppressed).toBe(1);
     expect(visible.map((f) => f.fingerprint)).toEqual(["f".repeat(64)]);
   });
 
   it("order of severity vs suppressions load does not change apply result (AC-S.8)", () => {
-    const a = applySkillSuppressions(
-      [finding()],
-      fingerprintSup,
-      new Map(),
-    );
-    const b = applySkillSuppressions(
-      [finding()],
-      fingerprintSup,
-      new Map(),
-    );
+    const a = applySkillSuppressions([finding()], fingerprintSup, new Map());
+    const b = applySkillSuppressions([finding()], fingerprintSup, new Map());
     expect(a).toEqual(b);
   });
 });
@@ -285,10 +260,7 @@ describe("resolveSkillsDir", () => {
     const dir = tempDir();
     const configDir = join(dir, "cfg");
     mkdirSync(configDir, { recursive: true });
-    const resolved = resolveSkillsDir(
-      { skillsDir: "custom/skills", configDir },
-      dir,
-    );
+    const resolved = resolveSkillsDir({ skillsDir: "custom/skills", configDir }, dir);
     expect(resolved).toBe(join(configDir, "custom", "skills"));
   });
 

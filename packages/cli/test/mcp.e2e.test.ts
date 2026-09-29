@@ -1,10 +1,4 @@
-import {
-  mkdtempSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-  mkdirSync,
-} from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -16,12 +10,7 @@ import { run } from "../src/index.js";
 import { createCliMcpHandlers } from "../src/mcp.js";
 import { startLlmStub } from "./llm-stub.js";
 
-const repoRoot = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "..",
-);
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const petstore = join(repoRoot, "fixtures", "petstore-mini.yaml");
 const malformed = join(repoRoot, "fixtures", "malformed.yaml");
 
@@ -73,8 +62,7 @@ async function connectCli(cwd: string): Promise<{
     name: "apigovscan",
     version: "0.0.0-dev",
   });
-  const [clientTransport, serverTransport] =
-    InMemoryTransport.createLinkedPair();
+  const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   const client = new Client({ name: "e2e", version: "1.0.0" });
   await server.connect(serverTransport);
   await client.connect(clientTransport);
@@ -223,11 +211,7 @@ describe("MCP tools e2e (f4-mcp-tools)", () => {
       );
       expect(payload.ok).toBe(true);
       const findings = payload.findings as Array<{ ruleId: string }>;
-      expect(findings.map((f) => f.ruleId).sort()).toEqual([
-        "ASYNC-001",
-        "ASYNC-002",
-        "ASYNC-006",
-      ]);
+      expect(findings.map((f) => f.ruleId).sort()).toEqual(["ASYNC-001", "ASYNC-002", "ASYNC-006"]);
     } finally {
       await close();
     }
@@ -255,9 +239,7 @@ describe("MCP tools e2e (f4-mcp-tools)", () => {
     const dir = setupWorkspace();
     const { client, close } = await connectCli(dir);
     try {
-      const payload = parseToolText(
-        await client.callTool({ name: "list_rules", arguments: {} }),
-      );
+      const payload = parseToolText(await client.callTool({ name: "list_rules", arguments: {} }));
       expect(payload.ok).toBe(true);
       const rules = payload.rules as Array<{ id: string; severity: string }>;
       expect(rules.length).toBeGreaterThan(0);
@@ -349,10 +331,9 @@ describe("MCP tools e2e (f4-mcp-tools)", () => {
     const reportPath = join(dir, "report.json");
     const { client, close } = await connectCli(dir);
     try {
-      await runCapture(
-        ["analyze", "openapi.yaml", "--format", "json", "--output", "report.json"],
-        { cwd: dir },
-      );
+      await runCapture(["analyze", "openapi.yaml", "--format", "json", "--output", "report.json"], {
+        cwd: dir,
+      });
       const report = JSON.parse(readFileSync(reportPath, "utf8")) as {
         findings: Array<{ fingerprint: string; ruleId: string }>;
       };
@@ -394,9 +375,10 @@ describe("MCP tools e2e (f4-mcp-tools)", () => {
         { cwd: dir },
       );
       expect([0, 1]).toContain(cli.code);
-      const cliReport = JSON.parse(
-        readFileSync(join(dir, "cli.json"), "utf8"),
-      ) as { reportHash: string; score: { value: number; grade: string } };
+      const cliReport = JSON.parse(readFileSync(join(dir, "cli.json"), "utf8")) as {
+        reportHash: string;
+        score: { value: number; grade: string };
+      };
 
       const payload = parseToolText(
         await client.callTool({
@@ -406,9 +388,7 @@ describe("MCP tools e2e (f4-mcp-tools)", () => {
       );
       expect(payload.reportHash).toBe(cliReport.reportHash);
       expect(payload.score).toEqual(cliReport.score);
-      expect(payload.summary).toEqual(
-        (cliReport as unknown as { summary: unknown }).summary,
-      );
+      expect(payload.summary).toEqual((cliReport as unknown as { summary: unknown }).summary);
     } finally {
       await close();
     }
@@ -480,9 +460,7 @@ describe("MCP tools e2e (f4-mcp-tools)", () => {
         }),
       );
       expect(explainPayload.ok).toBe(true);
-      const source = (
-        explainPayload.explanation as { source?: { url: string } }
-      ).source;
+      const source = (explainPayload.explanation as { source?: { url: string } }).source;
       expect(source?.url).toMatch(/^https?:\/\//);
     } finally {
       await close();
@@ -521,9 +499,9 @@ describe("MCP suggest_fix (f8-suggest-fix)", () => {
       { cwd: dir },
     );
     expect([0, 1]).toContain(out.code);
-    const report = JSON.parse(
-      readFileSync(join(dir, "report.json"), "utf8"),
-    ) as { findings: Array<{ fingerprint: string }> };
+    const report = JSON.parse(readFileSync(join(dir, "report.json"), "utf8")) as {
+      findings: Array<{ fingerprint: string }>;
+    };
     expect(report.findings.length).toBeGreaterThan(0);
     return report.findings[0]!.fingerprint;
   }
@@ -634,9 +612,7 @@ describe("MCP suggest_fix (f8-suggest-fix)", () => {
         arguments: { reportPath: "report.json", fingerprint: "nope" },
       });
       expect(malformed).toHaveProperty("isError", true);
-      expect(String(parseToolText(malformed).error)).toContain(
-        "invalid fingerprint",
-      );
+      expect(String(parseToolText(malformed).error)).toContain("invalid fingerprint");
     } finally {
       restoreLlmEnv(saved);
       await close();

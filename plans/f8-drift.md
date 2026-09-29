@@ -1,8 +1,8 @@
 # Plan · f8-drift · Drift spec↔código + generación (M8.3)
 
-| Campo | Valor |
-|---|---|
-| Specs | f8-drift |
+| Campo        | Valor                                                          |
+| ------------ | -------------------------------------------------------------- |
+| Specs        | f8-drift                                                       |
 | Dependencias | f8-rules-import cerrado (stub, gates, strings); parser openapi |
 
 ## M8.3 — Detección + comparación + generación

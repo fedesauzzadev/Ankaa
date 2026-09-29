@@ -1,11 +1,11 @@
 # f2-custom-rules · DSL de reglas custom del usuario
 
-| Campo | Valor |
-|---|---|
-| Estado | cerrada |
-| Fase | 2 |
+| Campo     | Valor                                                                     |
+| --------- | ------------------------------------------------------------------------- |
+| Estado    | cerrada                                                                   |
+| Fase      | 2                                                                         |
 | Deriva de | SDD FR-14/FR-15, doc 03 §3 reglas custom; specs `f1-engine`, `f1-analyze` |
-| Roadmap | Fase 2 — Config + custom rules + baseline |
+| Roadmap   | Fase 2 — Config + custom rules + baseline                                 |
 
 ## 1. Objetivo
 
@@ -21,7 +21,7 @@ Como **platform/API guild**, quiero escribir reglas de equipo en YAML (misma DSL
 
 ### Dentro
 
-- Carga de archivos custom (YAML/JSON): array de rules o `{ rules: [...] }` o single rule object. *(parte ya en f1 `--rules`; se endurece)*
+- Carga de archivos custom (YAML/JSON): array de rules o `{ rules: [...] }` o single rule object. _(parte ya en f1 `--rules`; se endurece)_
 - Validación con `validateRule` de core (zod strict + MIXED_SCOPE + unsafe regex) — **ya parcial** en f1; f2 expone comando `rules validate`.
 - Colisión de ids: entre fuentes custom → exit 2; custom vs pack elite → exit 2.
 - Subcomando `rules validate <file...>`.
@@ -63,7 +63,7 @@ JSON equivalente.
 ### Camino de validación (core)
 
 ```ts
-validateRule(raw, { strictSource: false })  // custom NO exige source.url
+validateRule(raw, { strictSource: false }); // custom NO exige source.url
 // stamp: packId: "custom", packVersion: packageVersion()
 ```
 
@@ -77,11 +77,11 @@ apigovscan rules list [--rules <file>] [--format console|json]
 apigovscan rules explain <ruleId>   # ya f1; busca pack + custom si se pasan --rules
 ```
 
-| Comando | Exit 0 | Exit 2 |
-|---|---|---|
-| `rules validate` | todas las reglas OK (imprime `ok: N rules`) | cualquier issue; imprime `file#i: issues` |
-| `rules list` | lista impresa | archivo de rules inválido / pack no encontrado |
-| analyze con rules inválidas | — | ya f1 (`invalid custom rule`) + path/file |
+| Comando                     | Exit 0                                      | Exit 2                                         |
+| --------------------------- | ------------------------------------------- | ---------------------------------------------- |
+| `rules validate`            | todas las reglas OK (imprime `ok: N rules`) | cualquier issue; imprime `file#i: issues`      |
+| `rules list`                | lista impresa                               | archivo de rules inválido / pack no encontrado |
+| analyze con rules inválidas | —                                           | ya f1 (`invalid custom rule`) + path/file      |
 
 `rules validate` acepta múltiples files. Flags: `--format json` opcional para machine output.
 
@@ -111,13 +111,13 @@ apigovscan rules explain <ruleId>   # ya f1; busca pack + custom si se pasan --r
 
 ## 5. Test plan
 
-| Caso | Tipo |
-|---|---|
-| validate ok / issues matrix | unit + e2e |
-| collisions id | unit (merge) + e2e |
-| list / explain custom | e2e |
-| findings custom end-to-end | e2e |
-| no-regresión elite strictSource | unit pack tests |
+| Caso                            | Tipo               |
+| ------------------------------- | ------------------ |
+| validate ok / issues matrix     | unit + e2e         |
+| collisions id                   | unit (merge) + e2e |
+| list / explain custom           | e2e                |
+| findings custom end-to-end      | e2e                |
+| no-regresión elite strictSource | unit pack tests    |
 
 ## 6. Dependencias
 
@@ -127,12 +127,12 @@ apigovscan rules explain <ruleId>   # ya f1; busca pack + custom si se pasan --r
 
 ## 7. Riesgos y decisiones abiertas
 
-| Tema | Decisión |
-|---|---|
-| Prefijo TEAM vs libre | Formato `PREFIX-NNN` solo; docs recomiendan `TEAM`/`ORG` |
-| source opcional en custom | Sí opcional (INV solo obliga citation en packs elite) |
-| `rules explain` sin --rules | Solo busca elite (f1); con `--rules` o config, incluye custom |
-| Compatible con future skills drafts | Drafts f3 no pasan por este loader (skills dir aparte) |
+| Tema                                | Decisión                                                      |
+| ----------------------------------- | ------------------------------------------------------------- |
+| Prefijo TEAM vs libre               | Formato `PREFIX-NNN` solo; docs recomiendan `TEAM`/`ORG`      |
+| source opcional en custom           | Sí opcional (INV solo obliga citation en packs elite)         |
+| `rules explain` sin --rules         | Solo busca elite (f1); con `--rules` o config, incluye custom |
+| Compatible con future skills drafts | Drafts f3 no pasan por este loader (skills dir aparte)        |
 
 ## Changelog
 

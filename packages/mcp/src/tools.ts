@@ -50,23 +50,10 @@ export function truncateAnalyzePayload(
 }
 
 export interface McpToolHandlers {
-  analyzeSpec(input: {
-    path: string;
-    failOn?: string;
-    rules?: string[];
-  }): Promise<ToolResult>;
+  analyzeSpec(input: { path: string; failOn?: string; rules?: string[] }): Promise<ToolResult>;
   listRules(input: { rules?: string[] }): Promise<ToolResult>;
-  explainRule(input: {
-    ruleId: string;
-    rules?: string[];
-  }): Promise<ToolResult>;
+  explainRule(input: { ruleId: string; rules?: string[] }): Promise<ToolResult>;
   validateCustomRules(input: { files: string[] }): Promise<ToolResult>;
-  explainFinding(input: {
-    reportPath: string;
-    fingerprint: string;
-  }): Promise<ToolResult>;
-  suggestFix(input: {
-    reportPath: string;
-    fingerprint: string;
-  }): Promise<ToolResult>;
+  explainFinding(input: { reportPath: string; fingerprint: string }): Promise<ToolResult>;
+  suggestFix(input: { reportPath: string; fingerprint: string }): Promise<ToolResult>;
 }

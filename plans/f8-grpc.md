@@ -1,8 +1,8 @@
 # Plan · f8-grpc · Soporte proto/gRPC (M8.7, protocolo 2)
 
-| Campo | Valor |
-|---|---|
-| Specs | f8-grpc |
+| Campo        | Valor                                                               |
+| ------------ | ------------------------------------------------------------------- |
+| Specs        | f8-grpc                                                             |
 | Dependencias | `f8-graphql` cerrado (plantilla adapter+pack+CLI); cero deps nuevas |
 
 ## M8.7 — Parser propio + pack + CLI

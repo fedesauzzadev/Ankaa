@@ -1,8 +1,8 @@
 # Plan · f8-scan-org · Informe consolidado multi-repo (M8.4)
 
-| Campo | Valor |
-|---|---|
-| Specs | f8-scan-org |
+| Campo        | Valor                                                                          |
+| ------------ | ------------------------------------------------------------------------------ |
+| Specs        | f8-scan-org                                                                    |
 | Dependencias | f8-rules-import cerrado (gates, strings); analyze/discovery/loaders existentes |
 
 ## M8.4 — Agregación + fetch GitHub + CLI

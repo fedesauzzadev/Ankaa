@@ -1,8 +1,8 @@
 # Plan · f8-rules-import · Guideline → reglas (M8.2)
 
-| Campo | Valor |
-|---|---|
-| Specs | f8-rules-import |
+| Campo        | Valor                                        |
+| ------------ | -------------------------------------------- |
+| Specs        | f8-rules-import                              |
 | Dependencias | f8-suggest-fix cerrado (llm.ts, stub, gates) |
 
 ## M8.2 — Extracción + prompt + validación + salida

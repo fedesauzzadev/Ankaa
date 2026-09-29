@@ -1,10 +1,10 @@
 # f6-distribution · Distribución privada (tarball + registry) y licencia offline
 
-| Campo | Valor |
-|---|---|
-| Estado | cerrada |
-| Fecha | 2026-09-26 |
-| Fase | 6 |
+| Campo     | Valor                                                                                                                        |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Estado    | cerrada                                                                                                                      |
+| Fecha     | 2026-09-26                                                                                                                   |
+| Fase      | 6                                                                                                                            |
 | Deriva de | Re-priorización de producto 2026-09-26 ("privado, instalable, vendible"); FR-60; docs/05; specs `f2-config`, `f4-mcp-server` |
 
 ## 1. Objetivo / user story
@@ -44,13 +44,20 @@ Como organización que **compra** ApiGovScan quiero instalarlo sin que nada del 
 
 ```ts
 // packages/cli/src/license.ts
-export interface LicenseInfo { customer: string; expiry: string } // YYYYMMDD
+export interface LicenseInfo {
+  customer: string;
+  expiry: string;
+} // YYYYMMDD
 export type LicenseCheck =
   | { ok: true; info: LicenseInfo }
   | { ok: false; reason: "missing" | "malformed" | "bad signature" | "expired" };
 
 export function verifyLicenseKey(key: string, today?: string): LicenseCheck;
-export function resolveLicenseKey(src: { flag?: string; env?: string; config?: string }): string | undefined;
+export function resolveLicenseKey(src: {
+  flag?: string;
+  env?: string;
+  config?: string;
+}): string | undefined;
 ```
 
 - Mensajes (EN): `missing license: set --license-key, APIGOVSCAN_LICENSE_KEY or license.key in apigovscan.yaml` · `invalid license: bad signature` · `license expired on <YYYYMMDD>`.
@@ -84,12 +91,12 @@ export function resolveLicenseKey(src: { flag?: string; env?: string; config?: s
 
 ## 7. Riesgos y decisiones abiertas
 
-| Tema | Decisión v1 |
-|---|---|
-| HMAC simétrico embebido | Aceptable para cliente honesto + repo privado; upgrade a Ed25519 en v2 (mismo formato key + `sig` nueva). |
-| Secret en repo | `AGS_VERIFY_SECRET` default embebido; keygen usa `--secret`. Rotación = nueva versión del CLI. |
-| Licencia en config | `license.key` — plaintext en `apigovscan.yaml` (igual que cualquier token de CI). |
-| Dev license committeada | Válida hasta 2099, solo funciona con el secret embebido (que ya está en el binario igualmente). |
+| Tema                               | Decisión v1                                                                                                                   |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| HMAC simétrico embebido            | Aceptable para cliente honesto + repo privado; upgrade a Ed25519 en v2 (mismo formato key + `sig` nueva).                     |
+| Secret en repo                     | `AGS_VERIFY_SECRET` default embebido; keygen usa `--secret`. Rotación = nueva versión del CLI.                                |
+| Licencia en config                 | `license.key` — plaintext en `apigovscan.yaml` (igual que cualquier token de CI).                                             |
+| Dev license committeada            | Válida hasta 2099, solo funciona con el secret embebido (que ya está en el binario igualmente).                               |
 | `exports` programático del tarball | Apunta a dist tsc con `workspace:*` — soportado solo dentro del monorepo; el producto del tarball es el **bin**. Documentado. |
 
 ## Changelog

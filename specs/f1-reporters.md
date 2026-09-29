@@ -1,11 +1,11 @@
 # f1-reporters · Reportes console + JSON
 
-| Campo | Valor |
-|---|---|
-| Estado | implementada |
-| Fase | 1 |
+| Campo     | Valor                                 |
+| --------- | ------------------------------------- |
+| Estado    | implementada                          |
+| Fase      | 1                                     |
 | Deriva de | SDD FR-03/05/40/41, doc 03 §11; INV-2 |
-| Package | `@apigovscan/reporters` |
+| Package   | `@apigovscan/reporters`               |
 
 ## 1. Objetivo
 
@@ -33,25 +33,25 @@ Serializar `EvaluationResult` + metadatos de corrida a (1) **console** legible p
 
 ```ts
 interface Report {
-  tool: { name: "apigovscan"; version: string };      // engine/package version
-  packs: Array<{ id: string; version: string }>;      // sort by id
+  tool: { name: "apigovscan"; version: string }; // engine/package version
+  packs: Array<{ id: string; version: string }>; // sort by id
   input: Array<{
-    path: string;                                      // label estable (no abs host path en CI?: ver §7)
-    sha256: string;                                     // "sha256:..." o hex — fijar hex+prefijo
+    path: string; // label estable (no abs host path en CI?: ver §7)
+    sha256: string; // "sha256:..." o hex — fijar hex+prefijo
   }>;
   summary: {
     error: number;
     warning: number;
     info: number;
-    suppressed?: number;                                // f2; omitido en f1
+    suppressed?: number; // f2; omitido en f1
     total: number;
   };
-  findings: Finding[];                                 // sort estable ya aplicado
-  reportHash: string;                                  // sha256 del canónico sin meta
+  findings: Finding[]; // sort estable ya aplicado
+  reportHash: string; // sha256 del canónico sin meta
   meta?: {
     durationMs?: number;
-    startedAt?: string;                                // ISO; excluido de hash
-    engineVersion?: string;                            // ya está en tool si coincide
+    startedAt?: string; // ISO; excluido de hash
+    engineVersion?: string; // ya está en tool si coincide
   };
 }
 ```
@@ -69,7 +69,7 @@ interface Report {
 
 ```ts
 export function buildReport(input: {
-  results: EvaluationResult[];      // por spec
+  results: EvaluationResult[]; // por spec
   inputs: Array<{ path: string; sha256: string }>;
   packs: Array<{ id: string; version: string }>;
   toolVersion: string;
@@ -80,8 +80,8 @@ export function formatConsole(report: Report, opts?: ConsoleOpts): string;
 export function formatJson(report: Report, opts?: { pretty?: boolean }): string;
 
 export interface ConsoleOpts {
-  color: boolean;                   // false si NO_COLOR / --no-color / !TTY
-  maxFindings?: number;             // default: all; MCP podría truncar
+  color: boolean; // false si NO_COLOR / --no-color / !TTY
+  maxFindings?: number; // default: all; MCP podría truncar
 }
 ```
 
@@ -141,11 +141,11 @@ warning ERR-001  POST /payments
 
 ## 7. Riesgos y decisiones abiertas
 
-| Tema | Decisión f1 |
-|---|---|
-| `input.path` absoluto vs relativo | Reporter recibe label ya resuelto por CLI (CLI normaliza a path relativo al cwd cuando sea posible) |
-| Pretty JSON | `--format json` compacto por default; pretty con flag interno o cuando TTY (fijar: **pretty si TTY y format json sin --output**) — actualizar AC si cambia |
-| sha256 format | hex con prefijo `sha256:` |
+| Tema                              | Decisión f1                                                                                                                                                |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `input.path` absoluto vs relativo | Reporter recibe label ya resuelto por CLI (CLI normaliza a path relativo al cwd cuando sea posible)                                                        |
+| Pretty JSON                       | `--format json` compacto por default; pretty con flag interno o cuando TTY (fijar: **pretty si TTY y format json sin --output**) — actualizar AC si cambia |
+| sha256 format                     | hex con prefijo `sha256:`                                                                                                                                  |
 
 ## Changelog
 

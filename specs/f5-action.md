@@ -1,12 +1,12 @@
 # f5-action · GitHub Action oficial (`apigovscan-action`)
 
-| Campo | Valor |
-|---|---|
-| Estado | cerrada |
-| Fase | 5 |
+| Campo     | Valor                                                                    |
+| --------- | ------------------------------------------------------------------------ |
+| Estado    | cerrada                                                                  |
+| Fase      | 5                                                                        |
 | Deriva de | SDD FR-42/40, SDD §7 fila 5; doc 05 §3; doc 06 §8.6; spec `f5-reporters` |
-| Artefacto | `action/action.yml` (composite) |
-| Roadmap | Fase 5 — Reporters SARIF + Markdown + GitHub Action |
+| Artefacto | `action/action.yml` (composite)                                          |
+| Roadmap   | Fase 5 — Reporters SARIF + Markdown + GitHub Action                      |
 
 ## 1. Objetivo
 
@@ -70,11 +70,11 @@ runs:
 
 Todos los steps usan `env:` con `AG_CLI/AG_PATH/AG_FAIL_ON/AG_FORMAT/AG_RULES/AG_CONFIG/AG_BASELINE/AG_OUT` y los `run:` citan **solo** `$AG_*` + `$GITHUB_*` (AC-ACT.5).
 
-| # | id | Comando (bash) | Propósito |
-|---|---|---|---|
-| 1 | `artifact` | `$AG_CLI analyze "$AG_PATH" --format sarif\|json --output apigovscan.sarif\|apigovscan.json --fail-on never` (+ `--rules/--config/--baseline` condicionales) | Artefacto para upload; gate **nunca** acá ⇒ siempre se produce. Si `format: none`, step con `if:` en falso. Escribe `sarif-path=<archivo\|vacío>` en `$GITHUB_OUTPUT`. |
-| 2 | `annotations` | `$AG_CLI analyze "$AG_PATH" --format annotations --fail-on never` (+ flags) | Workflow commands a stdout del step ⇒ GitHub publica anotaciones en el PR. |
-| 3 | `gate` | `$AG_CLI analyze "$AG_PATH" --format markdown --fail-on "$AG_FAIL_ON"` (+ flags) `>> "$GITHUB_STEP_SUMMARY"` con `set +e`, captura `$?` ⇒ `exit-code=$code` en `$GITHUB_OUTPUT`, luego `exit $code` | Resumen Markdown + **gate real** (exit 0/1/2 del CLI). |
+| #   | id            | Comando (bash)                                                                                                                                                                                      | Propósito                                                                                                                                                              |
+| --- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `artifact`    | `$AG_CLI analyze "$AG_PATH" --format sarif\|json --output apigovscan.sarif\|apigovscan.json --fail-on never` (+ `--rules/--config/--baseline` condicionales)                                        | Artefacto para upload; gate **nunca** acá ⇒ siempre se produce. Si `format: none`, step con `if:` en falso. Escribe `sarif-path=<archivo\|vacío>` en `$GITHUB_OUTPUT`. |
+| 2   | `annotations` | `$AG_CLI analyze "$AG_PATH" --format annotations --fail-on never` (+ flags)                                                                                                                         | Workflow commands a stdout del step ⇒ GitHub publica anotaciones en el PR.                                                                                             |
+| 3   | `gate`        | `$AG_CLI analyze "$AG_PATH" --format markdown --fail-on "$AG_FAIL_ON"` (+ flags) `>> "$GITHUB_STEP_SUMMARY"` con `set +e`, captura `$?` ⇒ `exit-code=$code` en `$GITHUB_OUTPUT`, luego `exit $code` | Resumen Markdown + **gate real** (exit 0/1/2 del CLI).                                                                                                                 |
 
 - Flags condicionales (`--rules "$AG_RULES"`, `--config`, `--baseline`) solo se agregan si el input no está vacío/`false` (construidos con `$AG_*` en el run, sin `${{ }}`).
 - `$AG_CLI` se expande **sin** comillas (admite `npx -y @apigovscan/cli`); paths siempre entre comillas.
@@ -89,11 +89,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: <owner>/<repo>/action@v1     # en este repo: ./action
+      - uses: <owner>/<repo>/action@v1 # en este repo: ./action
         with:
           path: specs/
           fail-on: error
-      - uses: github/codeql-action/upload-sarif@v3   # opcional
+      - uses: github/codeql-action/upload-sarif@v3 # opcional
         if: always()
         with:
           sarif_file: ${{ steps.<id>.outputs.sarif-path }}
@@ -111,7 +111,7 @@ jobs:
   with:
     path: fixtures/petstore-mini.yaml
     cli: node packages/cli/bin/apigovscan.js
-    fail-on: never        # o error si el fixture sale 0; verificar al implementar
+    fail-on: never # o error si el fixture sale 0; verificar al implementar
 ```
 
 - Corre en CI con el bin local (dogfood del mismo CLI; sin `npx` de red).
@@ -131,13 +131,13 @@ jobs:
 
 ## 5. Test plan
 
-| Caso | Tipo |
-|---|---|
-| `action.yml` parsea + inputs/outputs/composite | unit (`yaml` ya dep del cli) |
-| Sin `${{` en `run:` · solo CLI en `run:` | unit (regex sobre bloques run) |
-| Simulación e2e 3 pasos con env fake | e2e `packages/cli/test/action.e2e.test.ts` (spawn bin como lo haría GH) |
-| Gate exit-code 0 vs 1 vs 2 | e2e (fail-on never vs error vs path inválido) |
-| Dogfood workflow | CI real (job nuevo en `ci.yml` o workflow propio) |
+| Caso                                           | Tipo                                                                    |
+| ---------------------------------------------- | ----------------------------------------------------------------------- |
+| `action.yml` parsea + inputs/outputs/composite | unit (`yaml` ya dep del cli)                                            |
+| Sin `${{` en `run:` · solo CLI en `run:`       | unit (regex sobre bloques run)                                          |
+| Simulación e2e 3 pasos con env fake            | e2e `packages/cli/test/action.e2e.test.ts` (spawn bin como lo haría GH) |
+| Gate exit-code 0 vs 1 vs 2                     | e2e (fail-on never vs error vs path inválido)                           |
+| Dogfood workflow                               | CI real (job nuevo en `ci.yml` o workflow propio)                       |
 
 ## 6. Dependencias
 
@@ -147,15 +147,15 @@ jobs:
 
 ## 7. Riesgos y decisiones abiertas
 
-| Tema | Decisión f5 |
-|---|---|
-| Composite vs JS action | **Composite**: invoca el CLI existente (doc 05: "mismo CLI, no lógica duplicada"); sin bundle ni esbuild ni `action/dist`. |
-| 3 corridas de CLI | Costo ≈ 3× analyze (specs son chicos); contraparte: artefacto+annotations existen **antes** del gate ⇒ upload funciona con `if: always()`. Documentado en §3. |
-| `standards-version` (doc 05) | Diferido al registry (fase 6); snippet de doc 05 se ajusta al cierre de la fase. |
+| Tema                                 | Decisión f5                                                                                                                                                      |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Composite vs JS action               | **Composite**: invoca el CLI existente (doc 05: "mismo CLI, no lógica duplicada"); sin bundle ni esbuild ni `action/dist`.                                       |
+| 3 corridas de CLI                    | Costo ≈ 3× analyze (specs son chicos); contraparte: artefacto+annotations existen **antes** del gate ⇒ upload funciona con `if: always()`. Documentado en §3.    |
+| `standards-version` (doc 05)         | Diferido al registry (fase 6); snippet de doc 05 se ajusta al cierre de la fase.                                                                                 |
 | Repo dedicado `apigovscan/action@v1` | No existe aún; spec cubre el action **in-repo** (`./action` o `<repo>/action@v1` sobre este repo). El UX target de doc 05 queda como roadmap, no se inventa URL. |
-| Injection vía inputs `${{ }}` en run | Prohibido por diseño (AC-ACT.5); solo `env:`. |
-| `npx` = red en CI | Esperado (instalación del CLI en el runner); el **código** del action no hace red (INV-1 aplica al binario, como en CLI/MCP). Dogfood usa `node bin` local. |
-| `fail-on: warning` vs baseline | El gate usa el `--fail-on` del CLI tal cual; baseline/skills ya vienen por flags si el usuario los configura. |
+| Injection vía inputs `${{ }}` en run | Prohibido por diseño (AC-ACT.5); solo `env:`.                                                                                                                    |
+| `npx` = red en CI                    | Esperado (instalación del CLI en el runner); el **código** del action no hace red (INV-1 aplica al binario, como en CLI/MCP). Dogfood usa `node bin` local.      |
+| `fail-on: warning` vs baseline       | El gate usa el `--fail-on` del CLI tal cual; baseline/skills ya vienen por flags si el usuario los configura.                                                    |
 
 ## Changelog
 

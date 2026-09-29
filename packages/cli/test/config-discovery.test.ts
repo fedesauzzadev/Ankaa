@@ -3,11 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import { discoverSpecs } from "../src/discovery.js";
-import {
-  loadConfig,
-  loadConfigFromText,
-  resolveCustomRulePaths,
-} from "../src/config.js";
+import { loadConfig, loadConfigFromText, resolveCustomRulePaths } from "../src/config.js";
 
 const tempRoots: string[] = [];
 
@@ -50,23 +46,12 @@ describe("discoverSpecs", () => {
   it("finds nested openapi under openapi/", () => {
     const dir = tempDir();
     mkdirSync(join(dir, "openapi", "v1"), { recursive: true });
-    writeFileSync(
-      join(dir, "openapi", "v1", "openapi.yaml"),
-      "openapi: 3.1.0",
-      "utf8",
-    );
-    writeFileSync(
-      join(dir, "openapi", "openapi.yml"),
-      "openapi: 3.1.0",
-      "utf8",
-    );
+    writeFileSync(join(dir, "openapi", "v1", "openapi.yaml"), "openapi: 3.1.0", "utf8");
+    writeFileSync(join(dir, "openapi", "openapi.yml"), "openapi: 3.1.0", "utf8");
     const result = discoverSpecs(dir);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.paths).toEqual([
-      "openapi/openapi.yml",
-      "openapi/v1/openapi.yaml",
-    ]);
+    expect(result.paths).toEqual(["openapi/openapi.yml", "openapi/v1/openapi.yaml"]);
   });
 
   it("finds swagger.json anywhere", () => {
@@ -82,11 +67,7 @@ describe("discoverSpecs", () => {
   it("skips node_modules", () => {
     const dir = tempDir();
     mkdirSync(join(dir, "node_modules", "pkg"), { recursive: true });
-    writeFileSync(
-      join(dir, "node_modules", "pkg", "swagger.yaml"),
-      "swagger: '2.0'",
-      "utf8",
-    );
+    writeFileSync(join(dir, "node_modules", "pkg", "swagger.yaml"), "swagger: '2.0'", "utf8");
     const result = discoverSpecs(dir);
     expect(result.ok).toBe(false);
   });
@@ -104,19 +85,12 @@ describe("discoverSpecs", () => {
   it("sorts results lexicographically (AC-A.13)", () => {
     const dir = tempDir();
     mkdirSync(join(dir, "openapi"), { recursive: true });
-    writeFileSync(
-      join(dir, "openapi", "openapi.yaml"),
-      "openapi: 3.1.0",
-      "utf8",
-    );
+    writeFileSync(join(dir, "openapi", "openapi.yaml"), "openapi: 3.1.0", "utf8");
     writeFileSync(join(dir, "openapi.json"), "{}", "utf8");
     const result = discoverSpecs(dir);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.paths).toEqual([
-      "openapi.json",
-      "openapi/openapi.yaml",
-    ]);
+    expect(result.paths).toEqual(["openapi.json", "openapi/openapi.yaml"]);
   });
 });
 
@@ -160,10 +134,7 @@ describe("loadConfig", () => {
   });
 
   it("fails on invalid rules value", () => {
-    const result = loadConfigFromText(
-      "rules:\n  X-001: nope",
-      "apigovscan.yaml",
-    );
+    const result = loadConfigFromText("rules:\n  X-001: nope", "apigovscan.yaml");
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error).toContain("rules.X-001");
@@ -178,37 +149,25 @@ describe("loadConfig", () => {
   });
 
   it("AC-C.1 rejects unknown top-level key", () => {
-    const result = loadConfigFromText(
-      "failOn: error\nwat: true\n",
-      "apigovscan.yaml",
-    );
+    const result = loadConfigFromText("failOn: error\nwat: true\n", "apigovscan.yaml");
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error).toContain('unknown key "wat"');
   });
 
   it("AC-C.7 allows skillsDir without deep validation", () => {
-    const result = loadConfigFromText(
-      "skillsDir: .apigovscan/skills\n",
-      "apigovscan.yaml",
-    );
+    const result = loadConfigFromText("skillsDir: .apigovscan/skills\n", "apigovscan.yaml");
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.config.skillsDir).toBe(".apigovscan/skills");
   });
 
   it("parses customRules as string or list", () => {
-    const single = loadConfigFromText(
-      "customRules: ./team.yaml\n",
-      "apigovscan.yaml",
-    );
+    const single = loadConfigFromText("customRules: ./team.yaml\n", "apigovscan.yaml");
     expect(single.ok).toBe(true);
     if (single.ok) expect(single.config.customRules).toEqual(["./team.yaml"]);
 
-    const multi = loadConfigFromText(
-      "customRules:\n  - a.yaml\n  - b.yaml\n",
-      "apigovscan.yaml",
-    );
+    const multi = loadConfigFromText("customRules:\n  - a.yaml\n  - b.yaml\n", "apigovscan.yaml");
     expect(multi.ok).toBe(true);
     if (multi.ok) expect(multi.config.customRules).toEqual(["a.yaml", "b.yaml"]);
   });
@@ -233,10 +192,7 @@ describe("loadConfig", () => {
   });
 
   it("rejects unknown key inside baseline", () => {
-    const result = loadConfigFromText(
-      "baseline:\n  enabled: true\n  nope: 1\n",
-      "apigovscan.yaml",
-    );
+    const result = loadConfigFromText("baseline:\n  enabled: true\n  nope: 1\n", "apigovscan.yaml");
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error).toContain('unknown key "nope"');
@@ -250,19 +206,14 @@ describe("loadConfig", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.config.configDir).toBe(dir);
-    expect(resolveCustomRulePaths(result.config, "/elsewhere")).toEqual([
-      join(dir, "team.yaml"),
-    ]);
+    expect(resolveCustomRulePaths(result.config, "/elsewhere")).toEqual([join(dir, "team.yaml")]);
   });
 });
 
 describe("resolveCustomRulePaths", () => {
   it("falls back to cwd when no config loaded", () => {
     const dir = tempDir();
-    const paths = resolveCustomRulePaths(
-      { customRules: ["./team.yaml"] },
-      dir,
-    );
+    const paths = resolveCustomRulePaths({ customRules: ["./team.yaml"] }, dir);
     expect(paths).toEqual([join(dir, "team.yaml")]);
   });
 });

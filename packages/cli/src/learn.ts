@@ -10,11 +10,7 @@ import {
 } from "./skills.js";
 
 export type FeedbackDecision =
-  | "false_positive"
-  | "wontfix"
-  | "severity_change"
-  | "confirm"
-  | "suggest_rule";
+  "false_positive" | "wontfix" | "severity_change" | "confirm" | "suggest_rule";
 
 const DECISIONS = new Set<FeedbackDecision>([
   "false_positive",
@@ -41,8 +37,7 @@ export interface FeedbackFile {
 }
 
 export type LoadFeedbackResult =
-  | { ok: true; feedback: FeedbackFile }
-  | { ok: false; error: string };
+  { ok: true; feedback: FeedbackFile } | { ok: false; error: string };
 
 export function loadReportFile(
   path: string,
@@ -119,10 +114,7 @@ export function loadFeedbackFile(path: string): LoadFeedbackResult {
         error: `feedback ${path}: items[${i}].fingerprint must be 64 hex chars`,
       };
     }
-    if (
-      typeof entry.decision !== "string" ||
-      !DECISIONS.has(entry.decision as FeedbackDecision)
-    ) {
+    if (typeof entry.decision !== "string" || !DECISIONS.has(entry.decision as FeedbackDecision)) {
       return {
         ok: false,
         error: `feedback ${path}: items[${i}].decision must be false_positive | wontfix | severity_change | confirm | suggest_rule`,
@@ -149,11 +141,7 @@ export function loadFeedbackFile(path: string): LoadFeedbackResult {
       fb.severity = entry.severity as Severity;
     }
     if (decision === "suggest_rule") {
-      if (
-        entry.draft === null ||
-        typeof entry.draft !== "object" ||
-        Array.isArray(entry.draft)
-      ) {
+      if (entry.draft === null || typeof entry.draft !== "object" || Array.isArray(entry.draft)) {
         return {
           ok: false,
           error: `feedback ${path}: items[${i}].draft must be a mapping`,
@@ -169,9 +157,7 @@ export function loadFeedbackFile(path: string): LoadFeedbackResult {
   return { ok: true, feedback };
 }
 
-function extractReportFindings(
-  report: Record<string, unknown>,
-): Map<string, Finding> {
+function extractReportFindings(report: Record<string, unknown>): Map<string, Finding> {
   const map = new Map<string, Finding>();
   const findings = report.findings;
   if (!Array.isArray(findings)) return map;
@@ -300,9 +286,7 @@ export function buildLearnPatch(input: {
   for (const item of input.feedback.items) {
     const finding = findingsByFp.get(item.fingerprint);
     if (finding === undefined) {
-      warnings.push(
-        `fingerprint ${item.fingerprint} not in report (possible stale feedback)`,
-      );
+      warnings.push(`fingerprint ${item.fingerprint} not in report (possible stale feedback)`);
     }
 
     if (item.decision === "confirm") {
@@ -470,10 +454,7 @@ export function resolveLearnSkillsDir(
 ): string {
   const raw = flagPath ?? configSkillsDir ?? DEFAULT_SKILLS_DIR;
   if (raw.startsWith("/") || /^[A-Za-z]:[\\/]/.test(raw)) return raw;
-  const base =
-    flagPath === undefined && configSkillsDir !== undefined
-      ? (configDir ?? cwd)
-      : cwd;
+  const base = flagPath === undefined && configSkillsDir !== undefined ? (configDir ?? cwd) : cwd;
   return join(base, raw);
 }
 

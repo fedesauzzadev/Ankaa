@@ -1,10 +1,10 @@
 # f8-rules-import · Guideline interna → pack de reglas (LLM propone, engine valida)
 
-| Campo | Valor |
-|---|---|
-| Estado | cerrada |
-| Fecha | 2026-09-26 |
-| Fase | 8 (M8.2 del umbrella `f8-oss-differentials`) |
+| Campo     | Valor                                                                                                                                                     |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Estado    | cerrada                                                                                                                                                   |
+| Fecha     | 2026-09-26                                                                                                                                                |
+| Fase      | 8 (M8.2 del umbrella `f8-oss-differentials`)                                                                                                              |
 | Deriva de | `f8-oss-differentials` M8.2; `f8-suggest-fix` (adapter `llm.ts`, gates); `f2-custom-rules` (validador determinista); FR-43 (redacción); INV-1/INV-3/INV-7 |
 
 ## 1. Objetivo / user story
@@ -40,11 +40,14 @@ Como equipo con un documento interno de diseño de APIs (PDF/Word/Markdown) que 
 
 ```ts
 // packages/cli/src/rules-import.ts
-export function extractText(file: string, bytes: Buffer): { ok: true; text: string } | { ok: false; error: string };
+export function extractText(
+  file: string,
+  bytes: Buffer,
+): { ok: true; text: string } | { ok: false; error: string };
 export function chunkGuideline(text: string, maxChars?: number): string[];
-export function parseRulesEnvelope(text: string): unknown[];              // objetos regla crudos
-export function buildImportMessages(chunk: string): ChatMessage[];       // redacta el chunk
-export function serializeRulesDrafts(rules: Rule[]): string;             // YAML del mismo formato que team-rules.yaml
+export function parseRulesEnvelope(text: string): unknown[]; // objetos regla crudos
+export function buildImportMessages(chunk: string): ChatMessage[]; // redacta el chunk
+export function serializeRulesDrafts(rules: Rule[]): string; // YAML del mismo formato que team-rules.yaml
 ```
 
 - Exit codes: `0` con ≥1 regla válida escrita; `2` en error de config/llm/license/extracción, o si **0 reglas válidas** (`no valid rules produced`).
@@ -78,12 +81,12 @@ export function serializeRulesDrafts(rules: Rule[]): string;             // YAML
 
 ## 7. Riesgos y decisiones abiertas
 
-| Tema | Decisión v1 |
-|---|---|
+| Tema                                  | Decisión v1                                                                                |
+| ------------------------------------- | ------------------------------------------------------------------------------------------ |
 | Calidad de drafts con `when` complejo | Se acepta: el validador filtra; el humano revisa. El prompt pide `when` solo si es simple. |
-| PDFs escaneados (sin texto) | Texto vacío → exit 2 `could not extract text (scanned PDFs are not supported)`. |
-| Docs gigantes | N chunks = N requests; sin límite v1 (es el LLM del cliente), aviso con `--debug`. |
-| Ids duplicados entre chunks | Gana el primero; resto reportado como `duplicate id skipped`. |
+| PDFs escaneados (sin texto)           | Texto vacío → exit 2 `could not extract text (scanned PDFs are not supported)`.            |
+| Docs gigantes                         | N chunks = N requests; sin límite v1 (es el LLM del cliente), aviso con `--debug`.         |
+| Ids duplicados entre chunks           | Gana el primero; resto reportado como `duplicate id skipped`.                              |
 
 ## Changelog
 

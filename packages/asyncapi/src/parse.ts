@@ -22,9 +22,7 @@ export interface ParseError {
   line?: number;
 }
 
-export type ParseResult =
-  | { ok: true; spec: Spec }
-  | { ok: false; errors: ParseError[] };
+export type ParseResult = { ok: true; spec: Spec } | { ok: false; errors: ParseError[] };
 
 export interface ParseOptions {
   sourceLabel: string;
@@ -71,13 +69,17 @@ function isRemoteRef(ref: string): boolean {
     ref.startsWith("https://") ||
     ref.startsWith("./") ||
     ref.startsWith("../") ||
-    (!ref.startsWith("#") && (ref.includes(".json") || ref.includes(".yaml") || ref.includes(".yml")))
+    (!ref.startsWith("#") &&
+      (ref.includes(".json") || ref.includes(".yaml") || ref.includes(".yml")))
   );
 }
 
 function resolveLocalPointer(doc: unknown, ref: string): unknown {
   if (!ref.startsWith("#/")) return undefined;
-  const parts = ref.slice(2).split("/").map((p) => p.replace(/~1/g, "/").replace(/~0/g, "~"));
+  const parts = ref
+    .slice(2)
+    .split("/")
+    .map((p) => p.replace(/~1/g, "/").replace(/~0/g, "~"));
   let current: unknown = doc;
   for (const part of parts) {
     const key = decodeURIComponent(part);
@@ -186,16 +188,15 @@ function resolveMessage(
   schemaNodes: Record<string, SchemaNode>,
   pointer: string,
 ): ResolvedMessage | undefined {
-  const node = isRecord(message) && asString(message["$ref"]) !== undefined
-    ? resolveRef(index, message["$ref"] as string)
-    : message;
+  const node =
+    isRecord(message) && asString(message["$ref"]) !== undefined
+      ? resolveRef(index, message["$ref"] as string)
+      : message;
   if (!isRecord(node)) return undefined;
   const description = asString(node["description"]) ?? asString(node["summary"]);
   const payloadRaw = node["payload"];
   const payload =
-    payloadRaw !== undefined
-      ? toSchemaNode(payloadRaw, index, schemaNodes, 0)
-      : undefined;
+    payloadRaw !== undefined ? toSchemaNode(payloadRaw, index, schemaNodes, 0) : undefined;
   const headerParams: Parameter[] = [];
   const headersRaw = node["headers"];
   const headers =
@@ -231,9 +232,10 @@ function channelParams(
   if (!isRecord(params)) return [];
   const out: Parameter[] = [];
   for (const [name, def] of Object.entries(params)) {
-    const node = isRecord(def) && asString(def["$ref"]) !== undefined
-      ? resolveRef(index, def["$ref"] as string)
-      : def;
+    const node =
+      isRecord(def) && asString(def["$ref"]) !== undefined
+        ? resolveRef(index, def["$ref"] as string)
+        : def;
     out.push({
       name,
       in: "path",
@@ -263,21 +265,19 @@ function externalDocsOf(op: unknown): { url?: string; description?: string } | u
   };
 }
 
-function buildOperation(
-  opts: {
-    method: string;
-    path: string;
-    pointer: string;
-    operationId?: string;
-    summary?: string;
-    description?: string;
-    tags: string[];
-    externalDocs?: { url?: string; description?: string };
-    parameters: Parameter[];
-    payload?: SchemaNode;
-    outgoing: boolean;
-  },
-): Operation {
+function buildOperation(opts: {
+  method: string;
+  path: string;
+  pointer: string;
+  operationId?: string;
+  summary?: string;
+  description?: string;
+  tags: string[];
+  externalDocs?: { url?: string; description?: string };
+  parameters: Parameter[];
+  payload?: SchemaNode;
+  outgoing: boolean;
+}): Operation {
   const responses: Response[] = [];
   let requestBody: Operation["requestBody"];
   if (opts.payload !== undefined) {
@@ -315,11 +315,7 @@ function buildOperation(
   };
 }
 
-function parseV2(
-  doc: Json,
-  index: RefIndex,
-  schemaNodes: Record<string, SchemaNode>,
-): Operation[] {
+function parseV2(doc: Json, index: RefIndex, schemaNodes: Record<string, SchemaNode>): Operation[] {
   const operations: Operation[] = [];
   const channels = doc["channels"];
   if (!isRecord(channels)) return operations;
@@ -332,12 +328,17 @@ function parseV2(
       schemaNodes,
       `#/channels/${channelName}/parameters`,
     );
-    for (const [direction, outgoing] of [["publish", true], ["subscribe", false]] as const) {
+    for (const [direction, outgoing] of [
+      ["publish", true],
+      ["subscribe", false],
+    ] as const) {
       const op = channel[direction];
       if (!isRecord(op)) continue;
       const pointer = `#/channels/${channelName}/${direction}`;
       const rawMessage = op["message"];
-      const first = Array.isArray(rawMessage) ? rawMessage.find((m) => isRecord(m) || typeof m === "string") : rawMessage;
+      const first = Array.isArray(rawMessage)
+        ? rawMessage.find((m) => isRecord(m) || typeof m === "string")
+        : rawMessage;
       const resolved =
         first !== undefined
           ? resolveMessage(first, index, schemaNodes, `${pointer}/message`)
@@ -362,11 +363,7 @@ function parseV2(
   return operations;
 }
 
-function parseV3(
-  doc: Json,
-  index: RefIndex,
-  schemaNodes: Record<string, SchemaNode>,
-): Operation[] {
+function parseV3(doc: Json, index: RefIndex, schemaNodes: Record<string, SchemaNode>): Operation[] {
   const operations: Operation[] = [];
   const ops = doc["operations"];
   if (!isRecord(ops)) return operations;
@@ -389,7 +386,11 @@ function parseV3(
       : `/${address ?? channelName}`;
     const pointer = `#/operations/${opKey}`;
     const rawMessages = op["messages"];
-    const list = Array.isArray(rawMessages) ? rawMessages : rawMessages !== undefined ? [rawMessages] : [];
+    const list = Array.isArray(rawMessages)
+      ? rawMessages
+      : rawMessages !== undefined
+        ? [rawMessages]
+        : [];
     const first = list[0];
     const resolved =
       first !== undefined
@@ -400,7 +401,12 @@ function parseV3(
       const channel = resolveRef(index, channelRef);
       if (isRecord(channel)) {
         channelParamsList.push(
-          ...channelParams(channel["parameters"], index, schemaNodes, `#/channels/${channelName}/parameters`),
+          ...channelParams(
+            channel["parameters"],
+            index,
+            schemaNodes,
+            `#/channels/${channelName}/parameters`,
+          ),
         );
       }
     }
@@ -444,13 +450,9 @@ function registerComponentSchemas(
   }
 }
 
-export function parseAsyncAPI(
-  input: Uint8Array | string,
-  opts: ParseOptions,
-): ParseResult {
+export function parseAsyncAPI(input: Uint8Array | string, opts: ParseOptions): ParseResult {
   const limits: ParseLimits = { ...DEFAULT_LIMITS, ...opts.limits };
-  const bytes =
-    typeof input === "string" ? new TextEncoder().encode(input) : input;
+  const bytes = typeof input === "string" ? new TextEncoder().encode(input) : input;
   const inputHash = sha256Hex(bytes);
   if (bytes.byteLength > limits.maxBytes) {
     return {
@@ -485,7 +487,10 @@ export function parseAsyncAPI(
     };
   }
   if (!isRecord(doc)) {
-    return { ok: false, errors: [{ message: "NOT_AN_OBJECT: AsyncAPI document must be an object" }] };
+    return {
+      ok: false,
+      errors: [{ message: "NOT_AN_OBJECT: AsyncAPI document must be an object" }],
+    };
   }
   const version = asString(doc["asyncapi"]);
   const major = version?.split(".")[0];
@@ -502,7 +507,8 @@ export function parseAsyncAPI(
   const index: RefIndex = { doc, seenRemote: false };
   const schemaNodes: Record<string, SchemaNode> = {};
   registerComponentSchemas(doc, index, schemaNodes);
-  const operations = major === "2" ? parseV2(doc, index, schemaNodes) : parseV3(doc, index, schemaNodes);
+  const operations =
+    major === "2" ? parseV2(doc, index, schemaNodes) : parseV3(doc, index, schemaNodes);
   if (index.seenRemote) {
     return {
       ok: false,

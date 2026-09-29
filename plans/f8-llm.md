@@ -1,9 +1,9 @@
 # Plan · f8-llm · Feature LLM opcional (suggest_fix primero)
 
-| Campo | Valor |
-|---|---|
-| Specs | f8-suggest-fix (después: rules import, drift, scan-org — ver `f8-oss-differentials`) |
-| Dependencias | f6 cerrado; motor/reportes/MCP implementados |
+| Campo        | Valor                                                                                |
+| ------------ | ------------------------------------------------------------------------------------ |
+| Specs        | f8-suggest-fix (después: rules import, drift, scan-org — ver `f8-oss-differentials`) |
+| Dependencias | f6 cerrado; motor/reportes/MCP implementados                                         |
 
 ## M8.1 — Config LLM + adapter + `fix` CLI + MCP `suggest_fix`
 

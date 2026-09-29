@@ -16,12 +16,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { run } from "../src/index.js";
 import { DEV_LICENSE_KEY } from "../src/license.js";
 
-const repoRoot = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "..",
-);
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const petstore = join(repoRoot, "fixtures", "petstore-mini.yaml");
 
 const tempRoots: string[] = [];
@@ -134,9 +129,11 @@ function setupOrg(): { root: string; names: string[] } {
   return { root, names: ["repo-a", "repo-b", "repo-c"] };
 }
 
-async function analyzeRepo(
-  dir: string,
-): Promise<{ summary: { error: number; warning: number; info: number; total: number }; score: { value: number; grade: string }; specs: number }> {
+async function analyzeRepo(dir: string): Promise<{
+  summary: { error: number; warning: number; info: number; total: number };
+  score: { value: number; grade: string };
+  specs: number;
+}> {
   const out = await runCapture(
     ["analyze", ".", "--format", "json", "--no-color", "--fail-on", "never"],
     { cwd: dir, env: licEnv() },
@@ -167,9 +164,7 @@ describe("scan-org e2e (f8-scan-org)", { timeout: 30000 }, () => {
     });
     expect(out.code).toBe(0);
     const report = JSON.parse(out.stdout) as JsonReport;
-    const byName = new Map(
-      report.groups.flatMap((g) => g.repos).map((r) => [r.name, r]),
-    );
+    const byName = new Map(report.groups.flatMap((g) => g.repos).map((r) => [r.name, r]));
     for (const name of names) {
       const want = expected.get(name)!;
       const got = byName.get(name)!;
@@ -187,11 +182,7 @@ describe("scan-org e2e (f8-scan-org)", { timeout: 30000 }, () => {
 
   it("AC-SO.2 groups by mapping file, unmapped go to ungrouped", async () => {
     const { root } = setupOrg();
-    writeFileSync(
-      join(root, "groups.yaml"),
-      "repo-a: shop\nrepo-b: shop\n",
-      "utf8",
-    );
+    writeFileSync(join(root, "groups.yaml"), "repo-a: shop\nrepo-b: shop\n", "utf8");
     const out = await runCapture(
       ["scan-org", ".", "--format", "json", "--group-by", "groups.yaml"],
       { cwd: root, env: licEnv() },
@@ -209,10 +200,10 @@ describe("scan-org e2e (f8-scan-org)", { timeout: 30000 }, () => {
   it("AC-SO.2 invalid mapping exits 2", async () => {
     const { root } = setupOrg();
     writeFileSync(join(root, "groups.yaml"), "- just\n- a\n- list\n", "utf8");
-    const out = await runCapture(
-      ["scan-org", ".", "--group-by", "groups.yaml"],
-      { cwd: root, env: licEnv() },
-    );
+    const out = await runCapture(["scan-org", ".", "--group-by", "groups.yaml"], {
+      cwd: root,
+      env: licEnv(),
+    });
     expect(out.code).toBe(2);
     expect(out.stderr).toContain("invalid group mapping");
 
@@ -268,18 +259,18 @@ describe("scan-org e2e (f8-scan-org)", { timeout: 30000 }, () => {
 
   it("AC-SO.5 --out writes the report and refuses overwrite without --force", async () => {
     const { root } = setupOrg();
-    const out = await runCapture(
-      ["scan-org", ".", "--format", "json", "--out", "report.json"],
-      { cwd: root, env: licEnv() },
-    );
+    const out = await runCapture(["scan-org", ".", "--format", "json", "--out", "report.json"], {
+      cwd: root,
+      env: licEnv(),
+    });
     expect(out.code).toBe(0);
     const file = JSON.parse(readFileSync(join(root, "report.json"), "utf8")) as JsonReport;
     expect(file.totals.repos).toBe(3);
 
-    const again = await runCapture(
-      ["scan-org", ".", "--format", "json", "--out", "report.json"],
-      { cwd: root, env: licEnv() },
-    );
+    const again = await runCapture(["scan-org", ".", "--format", "json", "--out", "report.json"], {
+      cwd: root,
+      env: licEnv(),
+    });
     expect(again.code).toBe(2);
     expect(again.stderr).toContain("output exists");
     expect(again.stderr).toContain("--force");
@@ -384,8 +375,7 @@ async function startGithubStub(
   });
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const address = server.address();
-  const port =
-    typeof address === "object" && address !== null ? address.port : 0;
+  const port = typeof address === "object" && address !== null ? address.port : 0;
   return {
     url: `http://127.0.0.1:${port}`,
     close: () =>
@@ -400,11 +390,10 @@ function initGitRepo(dir: string, specName: string, specText: string): void {
   writeFileSync(join(dir, specName), specText, "utf8");
   execFileSync("git", ["init"], { cwd: dir, stdio: "ignore" });
   execFileSync("git", ["add", "."], { cwd: dir, stdio: "ignore" });
-  execFileSync(
-    "git",
-    ["-c", "user.name=t", "-c", "user.email=t@t", "commit", "-m", "init"],
-    { cwd: dir, stdio: "ignore" },
-  );
+  execFileSync("git", ["-c", "user.name=t", "-c", "user.email=t@t", "commit", "-m", "init"], {
+    cwd: dir,
+    stdio: "ignore",
+  });
 }
 
 describe("scan-org --github e2e (f8-scan-org)", { timeout: 30000 }, () => {
@@ -453,10 +442,12 @@ describe("scan-org --github e2e (f8-scan-org)", { timeout: 30000 }, () => {
       const report = JSON.parse(out.stdout) as JsonReport & { org: string | null };
       expect(report.org).toBe("acme");
       expect(report.totals.repos).toBe(2);
-      expect(report.groups.flatMap((g) => g.repos).map((r) => r.name).sort()).toEqual([
-        "gh-a",
-        "gh-b",
-      ]);
+      expect(
+        report.groups
+          .flatMap((g) => g.repos)
+          .map((r) => r.name)
+          .sort(),
+      ).toEqual(["gh-a", "gh-b"]);
       expect(report.skipped.map((s) => s.name)).toEqual(["gh-bad"]);
       expect(readdirSync(work).sort()).toEqual(["gh-a", "gh-b"]);
     } finally {

@@ -35,9 +35,7 @@ export interface LoadedSkills {
   activeDraftRules: Rule[];
 }
 
-export type LoadSkillsResult =
-  | { ok: true; skills: LoadedSkills }
-  | { ok: false; error: string };
+export type LoadSkillsResult = { ok: true; skills: LoadedSkills } | { ok: false; error: string };
 
 const EMPTY_SKILLS: LoadedSkills = {
   suppressions: [],
@@ -45,11 +43,7 @@ const EMPTY_SKILLS: LoadedSkills = {
   activeDraftRules: [],
 };
 
-export function resolveSkillsDir(
-  config: AnalyzeConfig,
-  cwd: string,
-  flagPath?: string,
-): string {
+export function resolveSkillsDir(config: AnalyzeConfig, cwd: string, flagPath?: string): string {
   if (flagPath !== undefined) {
     return isAbsolute(flagPath) ? flagPath : resolve(cwd, flagPath);
   }
@@ -114,7 +108,11 @@ function safeApiPathRegex(
   }
 }
 
-function loadSuppressions(path: string): { ok: true; entries: SuppressionEntry[]; matchRes: Map<number, RegExp> } | { ok: false; error: string } {
+function loadSuppressions(
+  path: string,
+):
+  | { ok: true; entries: SuppressionEntry[]; matchRes: Map<number, RegExp> }
+  | { ok: false; error: string } {
   if (!existsSync(path)) {
     return { ok: true, entries: [], matchRes: new Map() };
   }
@@ -176,7 +174,10 @@ function loadSuppressions(path: string): { ok: true; entries: SuppressionEntry[]
     const supMatch: SuppressionMatch = { ruleId: matchObj.ruleId };
     if (matchObj.apiPath !== undefined) {
       if (typeof matchObj.apiPath !== "string") {
-        return { ok: false, error: `skills ${path}: suppressions[${i}].match.apiPath must be a string` };
+        return {
+          ok: false,
+          error: `skills ${path}: suppressions[${i}].match.apiPath must be a string`,
+        };
       }
       const safe = safeApiPathRegex(path, matchObj.apiPath);
       if (!safe.ok) return { ok: false, error: safe.error };
@@ -191,7 +192,9 @@ function loadSuppressions(path: string): { ok: true; entries: SuppressionEntry[]
   return { ok: true, entries, matchRes };
 }
 
-function loadSeverities(path: string): { ok: true; entries: SeverityOverride[] } | { ok: false; error: string } {
+function loadSeverities(
+  path: string,
+): { ok: true; entries: SeverityOverride[] } | { ok: false; error: string } {
   if (!existsSync(path)) {
     return { ok: true, entries: [] };
   }
@@ -280,10 +283,7 @@ function loadActiveDrafts(
   return { ok: true, rules };
 }
 
-export function loadSkills(
-  skillsDir: string,
-  toolVersion: string,
-): LoadSkillsResult {
+export function loadSkills(skillsDir: string, toolVersion: string): LoadSkillsResult {
   if (!existsSync(skillsDir)) {
     return { ok: true, skills: EMPTY_SKILLS };
   }
@@ -437,10 +437,7 @@ export function listSkills(
         return { ok: false, error: `skills ${path}: root must be a mapping` };
       }
       const raw = parsed.raw as Record<string, unknown>;
-      const id =
-        typeof raw.id === "string"
-          ? raw.id
-          : name.replace(/\.(ya?ml|json)$/, "");
+      const id = typeof raw.id === "string" ? raw.id : name.replace(/\.(ya?ml|json)$/, "");
       drafts.push({
         id,
         draft: raw.draft !== false,

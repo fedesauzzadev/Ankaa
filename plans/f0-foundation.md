@@ -1,11 +1,11 @@
 # Plan · f0-foundation
 
-| Campo | Valor |
-|---|---|
-| Spec | [specs/f0-foundation.md](../specs/f0-foundation.md) |
-| Esfuerzo estimado | 0.5–1 día |
-| Dependencias externas | pnpm ≥ 9, Node ≥ 20, cuenta GitHub para CI |
-| Milestones | M0.1–M0.3 |
+| Campo                 | Valor                                               |
+| --------------------- | --------------------------------------------------- |
+| Spec                  | [specs/f0-foundation.md](../specs/f0-foundation.md) |
+| Esfuerzo estimado     | 0.5–1 día                                           |
+| Dependencias externas | pnpm ≥ 9, Node ≥ 20, cuenta GitHub para CI          |
+| Milestones            | M0.1–M0.3                                           |
 
 ## Objetivo del plan
 
@@ -45,9 +45,9 @@ Dejar el esqueleto mergeable con CI verde **antes** de escribir lógica de anál
 
 ## Riesgos del plan
 
-| Riesgo | Manejo |
-|---|---|
-| Windows rompe scripts | CI matrix desde M0.3, no después |
+| Riesgo                          | Manejo                             |
+| ------------------------------- | ---------------------------------- |
+| Windows rompe scripts           | CI matrix desde M0.3, no después   |
 | Discusión de tsup vs tsc eterna | tsc en libs; tsup solo si bin pesa |
 
 ## Fuera de plan

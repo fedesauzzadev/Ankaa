@@ -1,21 +1,11 @@
-import {
-  existsSync,
-  mkdtempSync,
-  readFileSync,
-  rmSync,
-} from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
 import { run } from "../src/index.js";
 
-const repoRoot = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "..",
-);
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const fixtures = join(repoRoot, "fixtures");
 const petstore = join(fixtures, "petstore-mini.yaml");
 
@@ -74,18 +64,10 @@ describe("analyze output formats e2e (f5-reporters)", () => {
       expect(stdout.length).toBeGreaterThan(0);
     }
 
-    const bad = await runCapture([
-      "analyze",
-      petstore,
-      "--format",
-      "yaml",
-      "--no-color",
-    ]);
+    const bad = await runCapture(["analyze", petstore, "--format", "yaml", "--no-color"]);
     expect(bad.code).toBe(2);
     expect(bad.stderr).toContain("invalid --format");
-    expect(bad.stderr).toContain(
-      "expected console | json | sarif | markdown | annotations",
-    );
+    expect(bad.stderr).toContain("expected console | json | sarif | markdown | annotations");
   });
 
   it("AC-CLI.2 sarif to --output writes the file and keeps stdout silent", async () => {
@@ -107,12 +89,7 @@ describe("analyze output formats e2e (f5-reporters)", () => {
   });
 
   it("AC-CLI.3 rules commands keep console | json only", async () => {
-    const { code, stderr } = await runCapture([
-      "rules",
-      "list",
-      "--format",
-      "sarif",
-    ]);
+    const { code, stderr } = await runCapture(["rules", "list", "--format", "sarif"]);
     expect(code).toBe(2);
     expect(stderr).toContain("invalid --format");
     expect(stderr).toContain("(expected console | json)");
@@ -130,20 +107,8 @@ describe("analyze output formats e2e (f5-reporters)", () => {
 
   it("AC-INV.2 double run yields byte-identical sarif and markdown", async () => {
     for (const format of ["sarif", "markdown"]) {
-      const first = await runCapture([
-        "analyze",
-        petstore,
-        "--format",
-        format,
-        "--no-color",
-      ]);
-      const second = await runCapture([
-        "analyze",
-        petstore,
-        "--format",
-        format,
-        "--no-color",
-      ]);
+      const first = await runCapture(["analyze", petstore, "--format", format, "--no-color"]);
+      const second = await runCapture(["analyze", petstore, "--format", format, "--no-color"]);
       expect(first.code).toBe(second.code);
       expect(first.stdout).toBe(second.stdout);
       expect(first.stdout.length).toBeGreaterThan(0);

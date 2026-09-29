@@ -1,10 +1,4 @@
-import {
-  mkdirSync,
-  mkdtempSync,
-  rmSync,
-  symlinkSync,
-  writeFileSync,
-} from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -31,9 +25,7 @@ describe("resolveSandboxPath", () => {
   });
 
   it("rejects parent escapes", () => {
-    expect(() => resolveSandboxPath(cwd, "../outside.yaml")).toThrow(
-      SandboxError,
-    );
+    expect(() => resolveSandboxPath(cwd, "../outside.yaml")).toThrow(SandboxError);
   });
 
   it("rejects absolute paths outside cwd", () => {
@@ -55,8 +47,7 @@ describe("resolveSandboxPath", () => {
       } catch {
         return; // runner without symlink privileges
       }
-      const resolved = resolveSandboxPath(root, "link/openapi.yaml")
-        .replace(/\\/g, "/");
+      const resolved = resolveSandboxPath(root, "link/openapi.yaml").replace(/\\/g, "/");
       expect(resolved).toContain("link/openapi.yaml");
       expect(resolved).not.toContain("/real/openapi.yaml");
     } finally {
@@ -74,9 +65,7 @@ describe("resolveSandboxPath", () => {
       } catch {
         return; // runner without symlink privileges
       }
-      expect(() => resolveSandboxPath(root, "escape/openapi.yaml")).toThrow(
-        SandboxError,
-      );
+      expect(() => resolveSandboxPath(root, "escape/openapi.yaml")).toThrow(SandboxError);
     } finally {
       rmSync(root, { recursive: true, force: true });
       rmSync(outside, { recursive: true, force: true });

@@ -13,12 +13,12 @@ Formato: CalVer `YYYY.MM.PATCH`. Breaking = quitar regla o cambiar severidad def
 
 Conteo de findings con el pack completo sobre fixtures oficiales:
 
-| Fixture | total | error | warning | info |
-|---|---:|---:|---:|---:|
-| `fixtures/petstore-mini.yaml` | 14 | 0 | 6 | 8 |
-| `fixtures/petstore-mini.json` | 14 | 0 | 6 | 8 |
-| `fixtures/public/petstore3.json` (petstore3.swagger.io) | 74 | 18 | 38 | 18 |
-| `fixtures/public/petstore2.yaml` (swagger-api/swagger-petstore) | 74 | 18 | 38 | 18 |
+| Fixture                                                         | total | error | warning | info |
+| --------------------------------------------------------------- | ----: | ----: | ------: | ---: |
+| `fixtures/petstore-mini.yaml`                                   |    14 |     0 |       6 |    8 |
+| `fixtures/petstore-mini.json`                                   |    14 |     0 |       6 |    8 |
+| `fixtures/public/petstore3.json` (petstore3.swagger.io)         |    74 |    18 |      38 |   18 |
+| `fixtures/public/petstore2.yaml` (swagger-api/swagger-petstore) |    74 |    18 |      38 |   18 |
 
 Cero findings nuevos sobre `petstore-mini.*` (score congelado `{74, C}` intacto); cero errores nuevos en fixtures públicas; thresholds ≤ 60 / ≤ 80 intactos.
 
@@ -34,12 +34,12 @@ Cero findings nuevos sobre `petstore-mini.*` (score congelado `{74, C}` intacto)
 
 Conteo de findings con el pack completo sobre fixtures oficiales:
 
-| Fixture | total | error | warning | info |
-|---|---:|---:|---:|---:|
-| `fixtures/petstore-mini.yaml` | 14 | 0 | 6 | 8 |
-| `fixtures/petstore-mini.json` | 14 | 0 | 6 | 8 |
-| `fixtures/public/petstore3.json` (petstore3.swagger.io) | 61 | 18 | 26 | 17 |
-| `fixtures/public/petstore2.yaml` (swagger-api/swagger-petstore) | 61 | 18 | 26 | 17 |
+| Fixture                                                         | total | error | warning | info |
+| --------------------------------------------------------------- | ----: | ----: | ------: | ---: |
+| `fixtures/petstore-mini.yaml`                                   |    14 |     0 |       6 |    8 |
+| `fixtures/petstore-mini.json`                                   |    14 |     0 |       6 |    8 |
+| `fixtures/public/petstore3.json` (petstore3.swagger.io)         |    61 |    18 |      26 |   17 |
+| `fixtures/public/petstore2.yaml` (swagger-api/swagger-petstore) |    61 |    18 |      26 |   17 |
 
 Thresholds de ruido en tests (`packages/cli/test/elite-pack.test.ts`):
 

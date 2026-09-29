@@ -49,7 +49,9 @@ describe("parseAsyncAPI (f8-asyncapi)", () => {
       ref: "#/components/schemas/Status",
     });
     expect(body?.required).toEqual(["petId"]);
-    const headerNames = (publish?.parameters ?? []).filter((p) => p.in === "header").map((p) => p.name);
+    const headerNames = (publish?.parameters ?? [])
+      .filter((p) => p.in === "header")
+      .map((p) => p.name);
     expect(headerNames).toEqual(["ceType"]);
     const pathNames = (publish?.parameters ?? []).filter((p) => p.in === "path").map((p) => p.name);
     expect(pathNames).toEqual(["shelterId"]);
@@ -92,10 +94,9 @@ describe("parseAsyncAPI (f8-asyncapi)", () => {
       sourceLabel: "invalid.yaml",
     });
     expect(broken.ok).toBe(false);
-    const legacy = parseAsyncAPI(
-      'asyncapi: "1.2.0"\ninfo:\n  title: T\n  version: "1"\n',
-      { sourceLabel: "legacy.yaml" },
-    );
+    const legacy = parseAsyncAPI('asyncapi: "1.2.0"\ninfo:\n  title: T\n  version: "1"\n', {
+      sourceLabel: "legacy.yaml",
+    });
     expect(legacy.ok).toBe(false);
     if (legacy.ok) return;
     expect(legacy.errors[0]?.message).toContain("UNSUPPORTED_VERSION");
@@ -125,9 +126,7 @@ describe("parseAsyncAPI (f8-asyncapi)", () => {
     expect(parsed.ok).toBe(true);
     if (!parsed.ok) return;
     expect(parsed.spec.operations).toEqual([]);
-    expect(parsed.spec.parseWarnings.map((w) => w.code)).toContain(
-      "asyncapi-no-operations",
-    );
+    expect(parsed.spec.parseWarnings.map((w) => w.code)).toContain("asyncapi-no-operations");
   });
 
   it("looksLikeAsyncApi sniffs the root key only", () => {

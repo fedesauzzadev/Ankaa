@@ -20,9 +20,7 @@ export function messageKey(message: string): string {
 
 export function computeFingerprint(f: Omit<Finding, "fingerprint">): string {
   const mk = messageKey(f.message);
-  return sha256HexString(
-    `${f.ruleId}|${f.location}|${f.apiLocation ?? ""}|${mk}`,
-  );
+  return sha256HexString(`${f.ruleId}|${f.location}|${f.apiLocation ?? ""}|${mk}`);
 }
 
 function cmp(a: string, b: string): number {

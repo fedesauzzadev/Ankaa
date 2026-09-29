@@ -1,11 +1,11 @@
 # Plan · f5-ci · Reporters SARIF/Markdown + GitHub Action
 
-| Campo | Valor |
-|---|---|
-| Specs | f5-reporters, f5-action |
+| Campo             | Valor                                  |
+| ----------------- | -------------------------------------- |
+| Specs             | f5-reporters, f5-action                |
 | Esfuerzo estimado | 1 semana (1 dev full-time equivalente) |
-| Dependencias | f4 cerrado (`v0.4.0-mcp`) |
-| Milestones | M5.1–M5.2 |
+| Dependencias      | f4 cerrado (`v0.4.0-mcp`)              |
+| Milestones        | M5.1–M5.2                              |
 
 ## Estrategia
 
@@ -54,14 +54,14 @@ Pasos:
 
 ## Riesgos del plan
 
-| Riesgo | Impacto | Mitigación |
-|---|---|---|
-| SARIF rechazado por code scanning (schema estricto) | UX CI | Cumplir §3 mínimo (driver/rules/results/level); upload es opcional del usuario |
-| `${{ }}` injection en `run:` | Seguridad | Solo `env:` + test regex AC-ACT.5 |
-| 3 corridas CLI lentas | CI time | Specs chicos; si duele, fusionar 1+3 en el futuro (changelog) |
-| Fixture gate ≠ 0 rompe dogfood | CI rojo | `fail-on: never` en dogfood si hace falta; verificar al implementar (AC-ACT.3/7) |
-| Action sin lógica → tentación de "mejorar" en YAML | INV-3 | AC-ACT.6 revisa que `run:` solo invoque al CLI |
-| `annotations` fuera de FR-40 | Contradice doc | Ampliar FR-40 en `docs/01` + changelog del spec al cierre |
+| Riesgo                                              | Impacto        | Mitigación                                                                       |
+| --------------------------------------------------- | -------------- | -------------------------------------------------------------------------------- |
+| SARIF rechazado por code scanning (schema estricto) | UX CI          | Cumplir §3 mínimo (driver/rules/results/level); upload es opcional del usuario   |
+| `${{ }}` injection en `run:`                        | Seguridad      | Solo `env:` + test regex AC-ACT.5                                                |
+| 3 corridas CLI lentas                               | CI time        | Specs chicos; si duele, fusionar 1+3 en el futuro (changelog)                    |
+| Fixture gate ≠ 0 rompe dogfood                      | CI rojo        | `fail-on: never` en dogfood si hace falta; verificar al implementar (AC-ACT.3/7) |
+| Action sin lógica → tentación de "mejorar" en YAML  | INV-3          | AC-ACT.6 revisa que `run:` solo invoque al CLI                                   |
+| `annotations` fuera de FR-40                        | Contradice doc | Ampliar FR-40 en `docs/01` + changelog del spec al cierre                        |
 
 ## Definition of Done (fase 5 completa)
 

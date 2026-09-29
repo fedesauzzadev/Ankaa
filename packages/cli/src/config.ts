@@ -28,8 +28,7 @@ export interface AnalyzeConfig {
 }
 
 export type LoadConfigResult =
-  | { ok: true; config: AnalyzeConfig; path?: string }
-  | { ok: false; error: string };
+  { ok: true; config: AnalyzeConfig; path?: string } | { ok: false; error: string };
 
 const FAIL_ON = new Set(["error", "warning", "info", "never"]);
 const SEVERITIES = new Set(["error", "warning", "info", "off"]);
@@ -138,17 +137,11 @@ function parseConfigObject(raw: unknown, path: string): LoadConfigResult {
   }
 
   if (obj.rules !== undefined) {
-    if (
-      obj.rules === null ||
-      typeof obj.rules !== "object" ||
-      Array.isArray(obj.rules)
-    ) {
+    if (obj.rules === null || typeof obj.rules !== "object" || Array.isArray(obj.rules)) {
       return { ok: false, error: `config ${path}: rules must be a mapping` };
     }
     const rules: Record<string, Severity | "off"> = {};
-    for (const [ruleId, value] of Object.entries(
-      obj.rules as Record<string, unknown>,
-    )) {
+    for (const [ruleId, value] of Object.entries(obj.rules as Record<string, unknown>)) {
       if (typeof value !== "string" || !SEVERITIES.has(value)) {
         return {
           ok: false,
@@ -167,11 +160,7 @@ function parseConfigObject(raw: unknown, path: string): LoadConfigResult {
   }
 
   if (obj.baseline !== undefined) {
-    if (
-      obj.baseline === null ||
-      typeof obj.baseline !== "object" ||
-      Array.isArray(obj.baseline)
-    ) {
+    if (obj.baseline === null || typeof obj.baseline !== "object" || Array.isArray(obj.baseline)) {
       return { ok: false, error: `config ${path}: baseline must be a mapping` };
     }
     const baseline = obj.baseline as Record<string, unknown>;
@@ -225,11 +214,7 @@ function parseConfigObject(raw: unknown, path: string): LoadConfigResult {
   }
 
   if (obj.license !== undefined) {
-    if (
-      obj.license === null ||
-      typeof obj.license !== "object" ||
-      Array.isArray(obj.license)
-    ) {
+    if (obj.license === null || typeof obj.license !== "object" || Array.isArray(obj.license)) {
       return { ok: false, error: `config ${path}: license must be a mapping` };
     }
     const license = obj.license as Record<string, unknown>;
@@ -253,11 +238,7 @@ function parseConfigObject(raw: unknown, path: string): LoadConfigResult {
   }
 
   if (obj.llm !== undefined) {
-    if (
-      obj.llm === null ||
-      typeof obj.llm !== "object" ||
-      Array.isArray(obj.llm)
-    ) {
+    if (obj.llm === null || typeof obj.llm !== "object" || Array.isArray(obj.llm)) {
       return { ok: false, error: `config ${path}: llm must be a mapping` };
     }
     const llm = obj.llm as Record<string, unknown>;
@@ -290,10 +271,7 @@ function parseConfigObject(raw: unknown, path: string): LoadConfigResult {
   return { ok: true, config, path };
 }
 
-export function loadConfigFromText(
-  text: string,
-  path: string,
-): LoadConfigResult {
+export function loadConfigFromText(text: string, path: string): LoadConfigResult {
   let raw: unknown;
   try {
     raw = parseYaml(text);
@@ -340,12 +318,7 @@ export function loadConfig(cwd: string, overridePath?: string): LoadConfigResult
  * Resolve config customRules paths relative to the config file directory
  * (or cwd when no config file was loaded). Returns absolute paths.
  */
-export function resolveCustomRulePaths(
-  config: AnalyzeConfig,
-  cwd: string,
-): string[] {
+export function resolveCustomRulePaths(config: AnalyzeConfig, cwd: string): string[] {
   const base = config.configDir ?? cwd;
-  return (config.customRules ?? []).map((p) =>
-    isAbsolute(p) ? p : resolve(base, p),
-  );
+  return (config.customRules ?? []).map((p) => (isAbsolute(p) ? p : resolve(base, p)));
 }

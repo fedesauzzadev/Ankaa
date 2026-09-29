@@ -11,7 +11,7 @@
   when:
     not:
       op: operationIdPattern
-      pattern: '^[A-Z][A-Za-z0-9]*[.][A-Z][A-Za-z0-9]*$'
+      pattern: "^[A-Z][A-Za-z0-9]*[.][A-Z][A-Za-z0-9]*$"
 
 - id: GRPC-002
   category: naming
@@ -24,7 +24,7 @@
     section: "Field names"
   when:
     op: propertyNamingViolation
-    pattern: '^[a-z][a-z0-9_]*$'
+    pattern: "^[a-z][a-z0-9_]*$"
 
 - id: GRPC-003
   category: docs
@@ -66,7 +66,7 @@
   when:
     op: descriptionMatches
     target: description
-    pattern: 'TODO|FIXME|XXX|TBD'
+    pattern: "TODO|FIXME|XXX|TBD"
 
 - id: GRPC-006
   category: naming
@@ -80,7 +80,7 @@
   when:
     not:
       op: operationIdPattern
-      pattern: '^[A-Z][A-Za-z0-9]*[.](Get|List|Create|Update|Delete|BatchGet|BatchCreate|BatchUpdate|BatchDelete)[A-Za-z0-9]*$'
+      pattern: "^[A-Z][A-Za-z0-9]*[.](Get|List|Create|Update|Delete|BatchGet|BatchCreate|BatchUpdate|BatchDelete)[A-Za-z0-9]*$"
 
 - id: GRPC-007
   category: structure
@@ -94,4 +94,4 @@
   when:
     not:
       op: pathMatches
-      pattern: '^/[a-z0-9]'
+      pattern: "^/[a-z0-9]"

@@ -84,15 +84,7 @@ export function computeScore(summary: {
     SCORE_PENALTY.info * summary.info;
   const value = Math.max(0, 100 - penalty);
   const grade: ReportScore["grade"] =
-    value >= 90
-      ? "A"
-      : value >= 75
-        ? "B"
-        : value >= 60
-          ? "C"
-          : value >= 40
-            ? "D"
-            : "F";
+    value >= 90 ? "A" : value >= 75 ? "B" : value >= 60 ? "C" : value >= 40 ? "D" : "F";
   return { value, grade };
 }
 
@@ -145,16 +137,10 @@ function cmp(a: string, b: string): number {
 }
 
 export function buildReport(input: BuildReportInput): Report {
-  const findings = input.results
-    .flatMap((r) => r.findings)
-    .map(redactFinding);
+  const findings = input.results.flatMap((r) => r.findings).map(redactFinding);
 
   const packs = [...input.packs].sort((a, b) => cmp(a.id, b.id));
-  const summary = countSummary(
-    findings,
-    input.suppressed,
-    input.skillsSuppressed,
-  );
+  const summary = countSummary(findings, input.suppressed, input.skillsSuppressed);
   const withoutHash = {
     tool: { name: "apigovscan" as const, version: input.toolVersion },
     packs,

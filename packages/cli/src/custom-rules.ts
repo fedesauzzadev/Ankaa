@@ -3,13 +3,9 @@ import { resolve } from "node:path";
 import { parse as parseYaml } from "yaml";
 import { validateRule, type Rule, type RulePack } from "@apigovscan/core";
 
-export type RulesSource =
-  | { kind: "file"; path: string }
-  | { kind: "inline"; json: string };
+export type RulesSource = { kind: "file"; path: string } | { kind: "inline"; json: string };
 
-export type LoadRulesFileResult =
-  | { ok: true; rules: unknown[] }
-  | { ok: false; error: string };
+export type LoadRulesFileResult = { ok: true; rules: unknown[] } | { ok: false; error: string };
 
 export function loadRulesFile(path: string): LoadRulesFileResult {
   if (!existsSync(path)) {
@@ -45,9 +41,7 @@ export function loadRulesFile(path: string): LoadRulesFileResult {
   };
 }
 
-export type StampResult =
-  | { ok: true; rules: Rule[] }
-  | { ok: false; error: string };
+export type StampResult = { ok: true; rules: Rule[] } | { ok: false; error: string };
 
 export function stampCustomRules(
   entries: readonly unknown[],
@@ -77,9 +71,7 @@ export function stampCustomRules(
   return { ok: true, rules };
 }
 
-export type CollectCustomRulesResult =
-  | { ok: true; rules: Rule[] }
-  | { ok: false; error: string };
+export type CollectCustomRulesResult = { ok: true; rules: Rule[] } | { ok: false; error: string };
 
 export function collectCustomRules(
   sources: readonly RulesSource[],

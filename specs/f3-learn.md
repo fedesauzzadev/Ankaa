@@ -1,11 +1,11 @@
 # f3-learn · feedback → skills (idempotente) + gestión de drafts
 
-| Campo | Valor |
-|---|---|
-| Estado | cerrada |
-| Fase | 3 |
+| Campo     | Valor                                                                                                                                  |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Estado    | cerrada                                                                                                                                |
+| Fase      | 3                                                                                                                                      |
 | Deriva de | SDD FR-31/FR-32, INV-5, doc 03 §9, ADR-007/ADR-011; specs `f3-skills`, `f1-reporters` (report JSON), `f2-custom-rules` (schema drafts) |
-| Roadmap | Fase 3 — criterio de salida: flujo report→feedback→learn→re-analyze |
+| Roadmap   | Fase 3 — criterio de salida: flujo report→feedback→learn→re-analyze                                                                    |
 
 ## 1. Objetivo
 
@@ -25,13 +25,13 @@ Como **tech lead**, quiero transformar `report.json` + `feedback.json` en un pat
 - Schema de `feedback.json` (doc 03 §9).
 - Mapeo decision → skills:
 
-| decision | efecto |
-|---|---|
-| `false_positive` | upsert suppression por fingerprint; `reason` = comment o `"false_positive"` si vacío? → **comment obligatorio** o default documentado (§7) |
-| `wontfix` | suppression con reason = comment (default `"wontfix"`) |
-| `severity_change` | upsert override severity para `ruleId` del finding (global) |
-| `confirm` | no cambia skills; se puede loguear en stderr count |
-| `suggest_rule` | escribe `skills/drafts/<id>.yaml` con `draft: true` |
+| decision          | efecto                                                                                                                                     |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `false_positive`  | upsert suppression por fingerprint; `reason` = comment o `"false_positive"` si vacío? → **comment obligatorio** o default documentado (§7) |
+| `wontfix`         | suppression con reason = comment (default `"wontfix"`)                                                                                     |
+| `severity_change` | upsert override severity para `ruleId` del finding (global)                                                                                |
+| `confirm`         | no cambia skills; se puede loguear en stderr count                                                                                         |
+| `suggest_rule`    | escribe `skills/drafts/<id>.yaml` con `draft: true`                                                                                        |
 
 - Idempotencia INV-5: upsert por clave (`fingerprint` o `match` canónico; override por `ruleId`; draft por `id`); listas ordenadas estables al serializar.
 - Validación feedback: unknown decision → exit 2; fingerprint no está en report → **warning** + aplica igual (doc 03).
@@ -71,7 +71,12 @@ Como **tech lead**, quiero transformar `report.json` + `feedback.json` en un pat
         "category": "custom",
         "severity": "warning",
         "message": "Batch endpoints must document max array size.",
-        "when": { "all": [ { "op": "method", "in": ["post"] }, { "op": "pathMatches", "pattern": "/batch$" } ] }
+        "when": {
+          "all": [
+            { "op": "method", "in": ["post"] },
+            { "op": "pathMatches", "pattern": "/batch$" }
+          ]
+        }
       }
     }
   ]
@@ -90,10 +95,10 @@ Como **tech lead**, quiero transformar `report.json` + `feedback.json` en un pat
 apigovscan learn --report <r.json> --feedback <f.json> [--skills-dir <p>] [--dry-run]
 ```
 
-| Exit | Condición |
-|---|---|
-| 0 | patch aplicado (o dry-run); imprime summary |
-| 2 | args faltantes, report/feedback ilegibles, schema inválido, draft inválido, severity_change sin finding |
+| Exit | Condición                                                                                               |
+| ---- | ------------------------------------------------------------------------------------------------------- |
+| 0    | patch aplicado (o dry-run); imprime summary                                                             |
+| 2    | args faltantes, report/feedback ilegibles, schema inválido, draft inválido, severity_change sin finding |
 
 Salida console (ejemplo):
 
@@ -148,14 +153,14 @@ custom active:
 
 ## 5. Test plan
 
-| Caso | Tipo |
-|---|---|
-| map decisions → files | unit |
+| Caso                                      | Tipo       |
+| ----------------------------------------- | ---------- |
+| map decisions → files                     | unit       |
 | idempotencia INV-5 (run twice deep equal) | unit + e2e |
-| dry-run no write | e2e |
-| e2e S4 full loop | e2e |
-| promote + re-analyze | e2e |
-| validateRule draft | unit |
+| dry-run no write                          | e2e        |
+| e2e S4 full loop                          | e2e        |
+| promote + re-analyze                      | e2e        |
+| validateRule draft                        | unit       |
 
 ## 6. Dependencias
 
@@ -166,14 +171,14 @@ custom active:
 
 ## 7. Riesgos y decisiones abiertas
 
-| Tema | Decisión |
-|---|---|
-| reason en FP sin comment | Default `reason: "false_positive"`; si hay `comment`, se usa como reason. |
-| createdAt en suppressions | **Omitido en v1** para byte-stable INV-5. |
-| promote = flip vs move | Flip `draft: false` en `drafts/<id>.yaml`; loader acepta drafts no-draft como activos. |
-| confirm | Solo count en stdout (`confirm: N`); no escribe `feedback/` histórico en v1. |
-| report + feedback paths | Relativos a cwd; abs OK. |
-| skillsDir default | igual que config/init: `.apigovscan/skills` resuelto vs cwd si no hay config. |
+| Tema                      | Decisión                                                                               |
+| ------------------------- | -------------------------------------------------------------------------------------- |
+| reason en FP sin comment  | Default `reason: "false_positive"`; si hay `comment`, se usa como reason.              |
+| createdAt en suppressions | **Omitido en v1** para byte-stable INV-5.                                              |
+| promote = flip vs move    | Flip `draft: false` en `drafts/<id>.yaml`; loader acepta drafts no-draft como activos. |
+| confirm                   | Solo count en stdout (`confirm: N`); no escribe `feedback/` histórico en v1.           |
+| report + feedback paths   | Relativos a cwd; abs OK.                                                               |
+| skillsDir default         | igual que config/init: `.apigovscan/skills` resuelto vs cwd si no hay config.          |
 
 ## Changelog
 

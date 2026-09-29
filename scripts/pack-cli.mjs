@@ -41,18 +41,16 @@ try {
 
   mkdirSync(outDir, { recursive: true });
   const npm = process.platform === "win32" ? "npm.cmd" : "npm";
-  execFileSync(
-    npm,
-    ["pack", "--ignore-scripts", "--pack-destination", outDir],
-    {
-      cwd: stage,
-      stdio: "inherit",
-      shell: process.platform === "win32",
-    },
-  );
+  execFileSync(npm, ["pack", "--ignore-scripts", "--pack-destination", outDir], {
+    cwd: stage,
+    stdio: "inherit",
+    shell: process.platform === "win32",
+  });
 } finally {
   rmSync(stage, { recursive: true, force: true });
 }
 
-const tgz = readdirSync(outDir).filter((f) => f.endsWith(".tgz")).at(-1);
+const tgz = readdirSync(outDir)
+  .filter((f) => f.endsWith(".tgz"))
+  .at(-1);
 console.log(`packed -> ${join(outDir, tgz)}`);

@@ -87,4 +87,4 @@
     section: "Versions"
   when:
     op: openapiVersionMismatch
-    pattern: '^3[.]1[.]'
+    pattern: "^3[.]1[.]"

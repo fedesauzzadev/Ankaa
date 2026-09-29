@@ -2,12 +2,7 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import {
-  evaluate,
-  flattenRuleLists,
-  loadPack,
-  type RulePack,
-} from "@apigovscan/core";
+import { evaluate, flattenRuleLists, loadPack, type RulePack } from "@apigovscan/core";
 import { parseSpec } from "@apigovscan/openapi";
 import { buildReport, formatJson } from "@apigovscan/reporters";
 import { parse as parseYaml } from "yaml";
@@ -19,9 +14,11 @@ const coreSrc = join(repoRoot, "packages", "core", "src");
 const openapiSrc = join(repoRoot, "packages", "openapi", "src");
 
 function loadElitePack(): RulePack {
-  const meta = parseYaml(
-    readFileSync(join(packDir, "pack.yaml"), "utf8"),
-  ) as { id: string; version: string; strictSource?: boolean };
+  const meta = parseYaml(readFileSync(join(packDir, "pack.yaml"), "utf8")) as {
+    id: string;
+    version: string;
+    strictSource?: boolean;
+  };
   const rulesDir = join(packDir, "rules");
   const files = readdirSync(rulesDir)
     .filter((f) => f.endsWith(".yaml") || f.endsWith(".yml"))
@@ -61,9 +58,7 @@ function walkTsFiles(dir: string): string[] {
 }
 
 function stripComments(text: string): string {
-  return text
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/(^|[^:])\/\/.*$/gm, "$1");
+  return text.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1");
 }
 
 const pack = loadElitePack();
@@ -137,9 +132,7 @@ describe("INV-2 determinism", () => {
     const make = () =>
       buildReport({
         results: [result],
-        inputs: [
-          { path: "petstore-mini.yaml", sha256: `sha256:${"0".repeat(64)}` },
-        ],
+        inputs: [{ path: "petstore-mini.yaml", sha256: `sha256:${"0".repeat(64)}` }],
         packs: [{ id: pack.id, version: pack.version }],
         toolVersion: "0.0.0-dev",
       });
@@ -150,9 +143,7 @@ describe("INV-2 determinism", () => {
     const result = analyzeFixture("petstore-mini.yaml");
     const base = {
       results: [result],
-      inputs: [
-        { path: "petstore-mini.yaml", sha256: `sha256:${"0".repeat(64)}` },
-      ],
+      inputs: [{ path: "petstore-mini.yaml", sha256: `sha256:${"0".repeat(64)}` }],
       packs: [{ id: pack.id, version: pack.version }],
       toolVersion: "0.0.0-dev",
     };
@@ -182,10 +173,7 @@ describe("INV-3 core purity (source scan)", () => {
     for (const file of files) {
       const text = stripComments(readFileSync(file, "utf8"));
       for (const pattern of forbidden) {
-        expect(
-          pattern.test(text),
-          `${file} matches forbidden pattern ${pattern}`,
-        ).toBe(false);
+        expect(pattern.test(text), `${file} matches forbidden pattern ${pattern}`).toBe(false);
       }
     }
   });
@@ -224,9 +212,7 @@ describe("INV-4 no eval / Function / vm", () => {
       for (const file of walkTsFiles(dir)) {
         const text = stripComments(readFileSync(file, "utf8"));
         for (const [pattern, label] of patterns) {
-          expect(pattern.test(text), `${file} uses forbidden ${label}`).toBe(
-            false,
-          );
+          expect(pattern.test(text), `${file} uses forbidden ${label}`).toBe(false);
         }
       }
     }
@@ -248,9 +234,7 @@ describe("INV-4 no eval / Function / vm", () => {
 
 describe("INV-5 fingerprint stability and sort idempotence", () => {
   it("sortFindings is idempotent under shuffle", async () => {
-    const { sortFindings, computeFingerprint } = await import(
-      "@apigovscan/core"
-    );
+    const { sortFindings, computeFingerprint } = await import("@apigovscan/core");
     const result = analyzeFixture("petstore-mini.yaml");
     const findings = result.findings;
     expect(findings.length).toBeGreaterThan(0);
@@ -261,9 +245,7 @@ describe("INV-5 fingerprint stability and sort idempotence", () => {
 
     const shuffled = [...findings].reverse();
     const fromShuffle = sortFindings(shuffled);
-    expect(fromShuffle.map((f) => f.fingerprint)).toEqual(
-      once.map((f) => f.fingerprint),
-    );
+    expect(fromShuffle.map((f) => f.fingerprint)).toEqual(once.map((f) => f.fingerprint));
 
     for (const f of once) {
       const { fingerprint, ...base } = f;
@@ -277,9 +259,7 @@ describe("INV-6 packs versioned in report", () => {
     const result = analyzeFixture("petstore-mini.yaml");
     const report = buildReport({
       results: [result],
-      inputs: [
-        { path: "petstore-mini.yaml", sha256: `sha256:${"0".repeat(64)}` },
-      ],
+      inputs: [{ path: "petstore-mini.yaml", sha256: `sha256:${"0".repeat(64)}` }],
       packs: [{ id: pack.id, version: pack.version }],
       toolVersion: "0.0.0-dev",
     });
@@ -309,40 +289,26 @@ describe("INV-7 fs boundary (pure path)", () => {
 
 describe("pack embed (AC-P.8 / INV-1)", () => {
   it("CLI package embeds a loadable elite pack under packages/cli/packs", () => {
-    const embedded = join(
-      repoRoot,
-      "packages",
-      "cli",
-      "packs",
-      "elite",
-      "pack.yaml",
-    );
+    const embedded = join(repoRoot, "packages", "cli", "packs", "elite", "pack.yaml");
     expect(statSync(embedded).isFile()).toBe(true);
-    const rulesDir = join(
-      repoRoot,
-      "packages",
-      "cli",
-      "packs",
-      "elite",
-      "rules",
-    );
+    const rulesDir = join(repoRoot, "packages", "cli", "packs", "elite", "rules");
     const files = readdirSync(rulesDir).filter((f) => f.endsWith(".yaml"));
     expect(files.length).toBeGreaterThanOrEqual(13);
   });
 
   it("embedded pack loads with ≥ 50 rules", () => {
     const embeddedDir = join(repoRoot, "packages", "cli", "packs", "elite");
-    const meta = parseYaml(
-      readFileSync(join(embeddedDir, "pack.yaml"), "utf8"),
-    ) as { id: string; version: string; strictSource?: boolean };
+    const meta = parseYaml(readFileSync(join(embeddedDir, "pack.yaml"), "utf8")) as {
+      id: string;
+      version: string;
+      strictSource?: boolean;
+    };
     const rulesDir = join(embeddedDir, "rules");
     const lists = readdirSync(rulesDir)
       .filter((f) => f.endsWith(".yaml"))
       .sort()
       .map((f) => {
-        const parsed = parseYaml(
-          readFileSync(join(rulesDir, f), "utf8"),
-        ) as unknown[];
+        const parsed = parseYaml(readFileSync(join(rulesDir, f), "utf8")) as unknown[];
         expect(Array.isArray(parsed)).toBe(true);
         return parsed;
       });

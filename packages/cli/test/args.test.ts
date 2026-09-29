@@ -68,22 +68,14 @@ describe("parseAnalyzeArgs", () => {
   });
 
   it("rejects --write-baseline with --baseline", () => {
-    const result = parseAnalyzeArgs([
-      "spec.yaml",
-      "--write-baseline",
-      "--baseline",
-    ]);
+    const result = parseAnalyzeArgs(["spec.yaml", "--write-baseline", "--baseline"]);
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error).toContain("mutually exclusive");
   });
 
   it("rejects --strict-hash with --baseline-ignore-hash", () => {
-    const result = parseAnalyzeArgs([
-      "spec.yaml",
-      "--strict-hash",
-      "--baseline-ignore-hash",
-    ]);
+    const result = parseAnalyzeArgs(["spec.yaml", "--strict-hash", "--baseline-ignore-hash"]);
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error).toContain("mutually exclusive");
@@ -97,13 +89,7 @@ describe("parseAnalyzeArgs", () => {
   });
 
   it("accepts repeated --rules flags", () => {
-    const result = parseAnalyzeArgs([
-      "spec.yaml",
-      "--rules",
-      "a.yaml",
-      "--rules",
-      "b.yaml",
-    ]);
+    const result = parseAnalyzeArgs(["spec.yaml", "--rules", "a.yaml", "--rules", "b.yaml"]);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.args.rulesFiles).toEqual(["a.yaml", "b.yaml"]);

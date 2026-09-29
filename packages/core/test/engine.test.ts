@@ -207,9 +207,7 @@ describe("AC-E.4 invalid rule", () => {
     });
     const result = evaluate({
       specs: [spec],
-      packs: [
-        { id: "elite", version: "1.0.0", rules: [good, bad as unknown as Rule] },
-      ],
+      packs: [{ id: "elite", version: "1.0.0", rules: [good, bad as unknown as Rule] }],
     });
     expect(result.errors).toHaveLength(1);
     expect(result.errors[0]!.ruleId).toBe("BAD-001");
@@ -296,10 +294,7 @@ describe("AC-E.9 combinators", () => {
       specs: [spec],
       packs: [{ id: "elite", version: "1.0.0", rules: [rule] }],
     });
-    expect(result.findings.map((f) => f.apiLocation).sort()).toEqual([
-      "GET /users",
-      "POST /users",
-    ]);
+    expect(result.findings.map((f) => f.apiLocation).sort()).toEqual(["GET /users", "POST /users"]);
   });
 });
 
@@ -329,31 +324,15 @@ describe("atoms batch 1", () => {
         { op: "pathSegmentPlural", segmentIndex: -1 },
         ["GET /users", "POST /users"],
       ],
-      [
-        "securityMissing on GET",
-        { op: "securityMissing" },
-        ["GET /users"],
-      ],
-      [
-        "missing description none",
-        { op: "missingField", field: "description" },
-        [],
-      ],
+      ["securityMissing on GET", { op: "securityMissing" }, ["GET /users"]],
+      ["missing description none", { op: "missingField", field: "description" }, []],
       [
         "responseMissing 404",
         { op: "responseMissing", status: "404" },
         ["GET /users", "POST /users"],
       ],
-      [
-        "responsePresent 200",
-        { op: "responsePresent", status: "200" },
-        ["GET /users"],
-      ],
-      [
-        "operationIdRequired all",
-        { op: "operationIdRequired" },
-        ["GET /users", "POST /users"],
-      ],
+      ["responsePresent 200", { op: "responsePresent", status: "200" }, ["GET /users"]],
+      ["operationIdRequired all", { op: "operationIdRequired" }, ["GET /users", "POST /users"]],
       [
         "descriptionMinLength desc>=10",
         { op: "descriptionMinLength", target: "description", min: 10 },
@@ -382,10 +361,7 @@ describe("atoms batch 1", () => {
           },
         ],
       });
-      expect(
-        result.findings.map((f) => f.apiLocation).sort(),
-        label,
-      ).toEqual([...expected].sort());
+      expect(result.findings.map((f) => f.apiLocation).sort(), label).toEqual([...expected].sort());
     }
   });
 });
@@ -422,9 +398,7 @@ describe("sort order", () => {
   });
 
   it("messageKey strips placeholders and collapses whitespace", () => {
-    expect(messageKey("Found {count} issues   in  op")).toBe(
-      "Found issues in op",
-    );
+    expect(messageKey("Found {count} issues   in  op")).toBe("Found issues in op");
   });
 
   it("dedupe keeps higher severity on same fingerprint", () => {

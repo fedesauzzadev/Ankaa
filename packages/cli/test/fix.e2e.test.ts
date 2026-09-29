@@ -1,10 +1,4 @@
-import {
-  copyFileSync,
-  mkdtempSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
+import { copyFileSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,12 +7,7 @@ import { run } from "../src/index.js";
 import { DEV_LICENSE_KEY } from "../src/license.js";
 import { startLlmStub } from "./llm-stub.js";
 
-const repoRoot = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "..",
-);
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const petstore = join(repoRoot, "fixtures", "petstore-mini.yaml");
 
 const tempRoots: string[] = [];
@@ -77,10 +66,10 @@ function licEnv(llmUrl?: string): Env {
 }
 
 async function firstFingerprint(dir: string): Promise<string> {
-  const out = await runCapture(
-    ["analyze", "openapi.yaml", "--format", "json", "--no-color"],
-    { cwd: dir, env: licEnv() },
-  );
+  const out = await runCapture(["analyze", "openapi.yaml", "--format", "json", "--no-color"], {
+    cwd: dir,
+    env: licEnv(),
+  });
   expect(out.code).toBe(0);
   const report = JSON.parse(out.stdout) as {
     findings: Array<{ fingerprint: string }>;
@@ -93,10 +82,10 @@ describe("fix command e2e (f8-suggest-fix)", () => {
   it("AC-SF.3 analyze is byte-identical with or without llm configured", async () => {
     const dir = licensedDir();
     const dead = { ...licEnv(), APIGOVSCAN_LLM_BASE_URL: "http://127.0.0.1:1" };
-    const plain = await runCapture(
-      ["analyze", "openapi.yaml", "--format", "json", "--no-color"],
-      { cwd: dir, env: licEnv() },
-    );
+    const plain = await runCapture(["analyze", "openapi.yaml", "--format", "json", "--no-color"], {
+      cwd: dir,
+      env: licEnv(),
+    });
     const withLlm = await runCapture(
       ["analyze", "openapi.yaml", "--format", "json", "--no-color"],
       { cwd: dir, env: dead },
@@ -146,25 +135,25 @@ describe("fix command e2e (f8-suggest-fix)", () => {
     const stub = await startLlmStub();
     try {
       const fp = await firstFingerprint(dir);
-      const out = await runCapture(
-        ["fix", "openapi.yaml", "--fingerprint", fp],
-        { cwd: dir, env: licEnv(stub.url) },
-      );
+      const out = await runCapture(["fix", "openapi.yaml", "--fingerprint", fp], {
+        cwd: dir,
+        env: licEnv(stub.url),
+      });
       expect(out.code).toBe(0);
       expect(out.stdout.split("confidence:").length).toBe(2);
       expect(out.stdout).toContain(fp.slice(0, 8));
 
-      const missing = await runCapture(
-        ["fix", "openapi.yaml", "--fingerprint", "b".repeat(64)],
-        { cwd: dir, env: licEnv(stub.url) },
-      );
+      const missing = await runCapture(["fix", "openapi.yaml", "--fingerprint", "b".repeat(64)], {
+        cwd: dir,
+        env: licEnv(stub.url),
+      });
       expect(missing.code).toBe(2);
       expect(missing.stderr).toContain("finding not found");
 
-      const malformed = await runCapture(
-        ["fix", "openapi.yaml", "--fingerprint", "nope"],
-        { cwd: dir, env: licEnv(stub.url) },
-      );
+      const malformed = await runCapture(["fix", "openapi.yaml", "--fingerprint", "nope"], {
+        cwd: dir,
+        env: licEnv(stub.url),
+      });
       expect(malformed.code).toBe(2);
       expect(malformed.stderr).toContain("invalid fingerprint");
     } finally {
@@ -199,20 +188,13 @@ describe("fix command e2e (f8-suggest-fix)", () => {
     const dir = tempDir();
     writeFileSync(
       join(dir, "openapi.yaml"),
-      [
-        "openapi: 3.1.0",
-        "info:",
-        "  title: Clean",
-        "  version: 1.0.0",
-        "paths: {}",
-        "",
-      ].join("\n"),
+      ["openapi: 3.1.0", "info:", "  title: Clean", "  version: 1.0.0", "paths: {}", ""].join("\n"),
       "utf8",
     );
-    const probe = await runCapture(
-      ["analyze", "openapi.yaml", "--format", "json", "--no-color"],
-      { cwd: dir, env: licEnv() },
-    );
+    const probe = await runCapture(["analyze", "openapi.yaml", "--format", "json", "--no-color"], {
+      cwd: dir,
+      env: licEnv(),
+    });
     expect(probe.code).toBe(0);
     const probeReport = JSON.parse(probe.stdout) as {
       findings: Array<{ ruleId: string }>;

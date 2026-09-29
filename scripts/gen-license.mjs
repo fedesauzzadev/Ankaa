@@ -20,13 +20,10 @@ function parseArgs(argv) {
 const args = parseArgs(process.argv.slice(2));
 const customer = typeof args.customer === "string" ? args.customer : "";
 const expiry = typeof args.expiry === "string" ? args.expiry : "";
-const secret =
-  typeof args.secret === "string" ? args.secret : "ags-verify-2026";
+const secret = typeof args.secret === "string" ? args.secret : "ags-verify-2026";
 
 if (!/^[a-z0-9]{2,16}$/.test(customer)) {
-  console.error(
-    "--customer required (2-16 lowercase alphanumeric, e.g. acme)",
-  );
+  console.error("--customer required (2-16 lowercase alphanumeric, e.g. acme)");
   process.exit(2);
 }
 if (!/^\d{8}$/.test(expiry)) {

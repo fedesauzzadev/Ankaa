@@ -24,7 +24,7 @@
     section: "URLs"
   when:
     op: pathMatches
-    pattern: '/$'
+    pattern: "/$"
 
 - id: NAMING-003
   category: naming
@@ -55,7 +55,7 @@
       - op: operationIdRequired
       - not:
           op: operationIdPattern
-          pattern: '^[a-z][a-zA-Z0-9]*$'
+          pattern: "^[a-z][a-zA-Z0-9]*$"
 
 - id: NAMING-005
   category: naming
@@ -68,7 +68,7 @@
     section: "URLs"
   when:
     op: pathMatches
-    pattern: '/[a-zA-Z0-9]+_[a-zA-Z0-9]+'
+    pattern: "/[a-zA-Z0-9]+_[a-zA-Z0-9]+"
 
 - id: NAMING-006
   category: naming
@@ -94,7 +94,7 @@
     section: "Schema naming"
   when:
     op: schemaNameNotMatching
-    pattern: '^[A-Z][A-Za-z0-9]*$'
+    pattern: "^[A-Z][A-Za-z0-9]*$"
 
 - id: NAMING-008
   category: naming
@@ -107,7 +107,7 @@
     section: "Properties"
   when:
     op: propertyNamingViolation
-    pattern: '^[a-z][a-zA-Z0-9]*$'
+    pattern: "^[a-z][a-zA-Z0-9]*$"
 
 - id: NAMING-009
   category: naming
@@ -132,7 +132,7 @@
     section: "Paths / methods"
   when:
     op: pathMatches
-    pattern: '/(create|update|delete|get|list|add|remove|insert|modify|save|fetch|find|search)(/|$)'
+    pattern: "/(create|update|delete|get|list|add|remove|insert|modify|save|fetch|find|search)(/|$)"
 
 - id: NAMING-011
   category: naming
@@ -145,4 +145,4 @@
     section: "Paths / query parameters"
   when:
     op: pathMatches
-    pattern: '[?]'
+    pattern: "[?]"

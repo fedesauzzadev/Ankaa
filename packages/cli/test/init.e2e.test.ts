@@ -1,10 +1,4 @@
-import {
-  existsSync,
-  mkdtempSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,12 +7,7 @@ import { parse as parseYaml } from "yaml";
 import { run } from "../src/index.js";
 import { runInit } from "../src/init.js";
 
-const repoRoot = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "..",
-);
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 
 const tempRoots: string[] = [];
 
@@ -65,15 +54,9 @@ describe("init e2e (AC-I.*)", () => {
     expect(code).toBe(0);
     expect(stderr).toBe("");
     expect(existsSync(join(dir, "apigovscan.yaml"))).toBe(true);
-    expect(existsSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"))).toBe(
-      true,
-    );
-    expect(existsSync(join(dir, ".apigovscan", "skills", "severities.yaml"))).toBe(
-      true,
-    );
-    expect(existsSync(join(dir, ".apigovscan", "skills", "drafts", ".gitkeep"))).toBe(
-      true,
-    );
+    expect(existsSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"))).toBe(true);
+    expect(existsSync(join(dir, ".apigovscan", "skills", "severities.yaml"))).toBe(true);
+    expect(existsSync(join(dir, ".apigovscan", "skills", "drafts", ".gitkeep"))).toBe(true);
     expect(existsSync(join(dir, ".apigovscan", "skills", "README.md"))).toBe(true);
     expect(stdout).toContain("created: apigovscan.yaml");
     expect(stdout).toContain("created: .apigovscan/skills/suppressions.yaml");
@@ -124,10 +107,7 @@ describe("init e2e (AC-I.*)", () => {
       ].join("\n"),
       "utf8",
     );
-    const before = readFileSync(
-      join(dir, ".apigovscan", "skills", "suppressions.yaml"),
-      "utf8",
-    );
+    const before = readFileSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"), "utf8");
 
     // corrupt config so force can re-scaffold only if it matches known scaffold — it won't
     writeFileSync(join(dir, "apigovscan.yaml"), "failOn: warning\n", "utf8");
@@ -135,9 +115,9 @@ describe("init e2e (AC-I.*)", () => {
     const { code, stdout } = await runCapture(["init", "--force"], { cwd: dir });
     expect(code).toBe(0);
     // user suppressions preserved
-    expect(
-      readFileSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"), "utf8"),
-    ).toBe(before);
+    expect(readFileSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"), "utf8")).toBe(
+      before,
+    );
     // config not overwritten (differs from scaffold)
     expect(readFileSync(join(dir, "apigovscan.yaml"), "utf8")).toBe("failOn: warning\n");
     expect(stdout).toContain("ok: already present: .apigovscan/skills/suppressions.yaml");
@@ -250,9 +230,9 @@ describe("phase 3 e2e S4: init → analyze → feedback → learn → re-analyze
       { cwd: dir },
     );
     expect(a1.code).toBe(0);
-    const report = JSON.parse(
-      readFileSync(join(dir, "report.json"), "utf8"),
-    ) as { findings: Array<{ fingerprint: string }> };
+    const report = JSON.parse(readFileSync(join(dir, "report.json"), "utf8")) as {
+      findings: Array<{ fingerprint: string }>;
+    };
     expect(report.findings.length).toBeGreaterThan(0);
 
     const fp = report.findings[0]!.fingerprint;
@@ -260,9 +240,7 @@ describe("phase 3 e2e S4: init → analyze → feedback → learn → re-analyze
       join(dir, "feedback.json"),
       JSON.stringify({
         reportHash: undefined,
-        items: [
-          { fingerprint: fp, decision: "false_positive", comment: "by design" },
-        ],
+        items: [{ fingerprint: fp, decision: "false_positive", comment: "by design" }],
       }),
       "utf8",
     );
@@ -272,13 +250,8 @@ describe("phase 3 e2e S4: init → analyze → feedback → learn → re-analyze
       { cwd: dir },
     );
     expect(learn.code).toBe(0);
-    expect(existsSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"))).toBe(
-      true,
-    );
-    const supText = readFileSync(
-      join(dir, ".apigovscan", "skills", "suppressions.yaml"),
-      "utf8",
-    );
+    expect(existsSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"))).toBe(true);
+    const supText = readFileSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"), "utf8");
     expect(supText).toContain(fp);
     expect(supText).toContain("by design");
 
@@ -296,9 +269,7 @@ describe("phase 3 e2e S4: init → analyze → feedback → learn → re-analyze
       { cwd: dir },
     );
     expect(a2.code).toBe(0);
-    const report2 = JSON.parse(
-      readFileSync(join(dir, "report2.json"), "utf8"),
-    ) as {
+    const report2 = JSON.parse(readFileSync(join(dir, "report2.json"), "utf8")) as {
       findings: Array<{ fingerprint: string }>;
       summary: { skillsSuppressed?: number };
     };
@@ -306,17 +277,14 @@ describe("phase 3 e2e S4: init → analyze → feedback → learn → re-analyze
     expect(report2.summary.skillsSuppressed).toBeGreaterThanOrEqual(1);
 
     // INV-5: second learn with same input is byte-identical
-    const before = readFileSync(
-      join(dir, ".apigovscan", "skills", "suppressions.yaml"),
-      "utf8",
-    );
+    const before = readFileSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"), "utf8");
     const learn2 = await runCapture(
       ["learn", "--report", "report.json", "--feedback", "feedback.json"],
       { cwd: dir },
     );
     expect(learn2.code).toBe(0);
-    expect(
-      readFileSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"), "utf8"),
-    ).toBe(before);
+    expect(readFileSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"), "utf8")).toBe(
+      before,
+    );
   });
 });

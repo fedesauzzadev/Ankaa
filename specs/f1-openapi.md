@@ -1,11 +1,11 @@
 # f1-openapi · Parser y normalizador OpenAPI → modelo `Spec`
 
-| Campo | Valor |
-|---|---|
-| Estado | implementada |
-| Fase | 1 |
+| Campo     | Valor                                                   |
+| --------- | ------------------------------------------------------- |
+| Estado    | implementada                                            |
+| Fase      | 1                                                       |
 | Deriva de | SDD ADR-002, FR-01/02, NFR-02; SDD §7 modelo de dominio |
-| Package | `@apigovscan/openapi` |
+| Package   | `@apigovscan/openapi`                                   |
 
 ## 1. Objetivo
 
@@ -39,29 +39,29 @@ Convertir bytes (YAML/JSON) de OpenAPI 3.0.x / 3.1.x en un modelo normalizado, e
 type Severity = "error" | "warning" | "info";
 
 interface Spec {
-  inputHash: string;            // sha256 hex de los bytes crudos
-  openapiVersion: string;       // "3.1.0" | "3.0.3" | ...
-  sourceLabel: string;          // path display o "<stdin>"
+  inputHash: string; // sha256 hex de los bytes crudos
+  openapiVersion: string; // "3.1.0" | "3.0.3" | ...
+  sourceLabel: string; // path display o "<stdin>"
   info: { title?: string; version?: string; description?: string };
   operations: Operation[];
   components: ComponentIndex;
-  parseWarnings: ParseWarning[];// ej. Swagger 2.0, dialect unknown
+  parseWarnings: ParseWarning[]; // ej. Swagger 2.0, dialect unknown
 }
 
 interface Operation {
-  method: string;               // lower-case get/post/...
-  path: string;                 // "/users/{id}"
+  method: string; // lower-case get/post/...
+  path: string; // "/users/{id}"
   operationId?: string;
   summary?: string;
   description?: string;
   tags: string[];
   deprecated: boolean;
-  parameters: Parameter[];      // merged path-level + op-level (op wins)
+  parameters: Parameter[]; // merged path-level + op-level (op wins)
   requestBody?: RequestBody;
-  responses: Response[];        // sorted by status key
+  responses: Response[]; // sorted by status key
   security: SecurityRequirement[] | undefined; // undefined = hereda global
-  extensions: Record<string, unknown>;         // x-* relevantes
-  jsonPointer: string;          // "/paths/~1users~1{id}/get"
+  extensions: Record<string, unknown>; // x-* relevantes
+  jsonPointer: string; // "/paths/~1users~1{id}/get"
 }
 
 interface Parameter {
@@ -75,9 +75,9 @@ interface Parameter {
 }
 
 interface Response {
-  status: string;               // "200" | "4XX" | "default"
+  status: string; // "200" | "4XX" | "default"
   description?: string;
-  content: ContentMedia[];      // media type + schema ref
+  content: ContentMedia[]; // media type + schema ref
   headers: string[];
   jsonPointer: string;
 }
@@ -85,7 +85,7 @@ interface Response {
 interface SchemaNode {
   type?: string | string[];
   format?: string;
-  ref?: string;                 // ya resuelto o local ref id
+  ref?: string; // ya resuelto o local ref id
   enum?: unknown[];
   properties?: Record<string, SchemaNode>;
   required?: string[];
@@ -95,13 +95,17 @@ interface SchemaNode {
 }
 
 interface ComponentIndex {
-  schemas: string[];            // names
+  schemas: string[]; // names
   responses: string[];
   parameters: string[];
   // expandir f1 según reglas
 }
 
-interface ParseWarning { code: string; message: string; jsonPointer?: string }
+interface ParseWarning {
+  code: string;
+  message: string;
+  jsonPointer?: string;
+}
 ```
 
 ### API del package
@@ -109,19 +113,17 @@ interface ParseWarning { code: string; message: string; jsonPointer?: string }
 ```ts
 // @apigovscan/openapi
 export interface ParseLimits {
-  maxBytes: number;             // default 10_000_000
-  maxDepth: number;             // default 100
-  maxAliases: number;           // default 1000
+  maxBytes: number; // default 10_000_000
+  maxDepth: number; // default 100
+  maxAliases: number; // default 1000
 }
 
 export function parseSpec(
   bytes: Uint8Array | string,
-  opts: { sourceLabel: string; limits?: ParseLimits; allowOutsideRoot?: false }
+  opts: { sourceLabel: string; limits?: ParseLimits; allowOutsideRoot?: false },
 ): ParseResult;
 
-export type ParseResult =
-  | { ok: true; spec: Spec }
-  | { ok: false; errors: ParseError[] };  // messages localizables
+export type ParseResult = { ok: true; spec: Spec } | { ok: false; errors: ParseError[] }; // messages localizables
 
 export interface ParseError {
   message: string;
@@ -160,19 +162,19 @@ export interface ParseError {
 
 ## 5. Test plan
 
-| Fixture | Cubre |
-|---|---|
-| `petstore-mini.yaml` (3.1) | happy, ops ordenadas |
-| `petstore-mini.json` | equivalencia JSON/YAML |
-| `v303-minimal.yaml` | 3.0.3 |
-| `malformed.yaml` | exit/error parse |
-| `attack/alias-bomb.yaml` | AC-O.4 |
-| `attack/remote-ref.yaml` | AC-O.6 |
-| `attack/outside-root.yaml` | AC-O.7 |
-| `attack/deep-nesting.yaml` | AC-O.9 |
-| `refs-cycle.yaml` | AC-O.8 |
-| `swagger2-minimal.yaml` | AC-O.12 |
-| `unsorted-paths.yaml` | AC-O.11 |
+| Fixture                    | Cubre                  |
+| -------------------------- | ---------------------- |
+| `petstore-mini.yaml` (3.1) | happy, ops ordenadas   |
+| `petstore-mini.json`       | equivalencia JSON/YAML |
+| `v303-minimal.yaml`        | 3.0.3                  |
+| `malformed.yaml`           | exit/error parse       |
+| `attack/alias-bomb.yaml`   | AC-O.4                 |
+| `attack/remote-ref.yaml`   | AC-O.6                 |
+| `attack/outside-root.yaml` | AC-O.7                 |
+| `attack/deep-nesting.yaml` | AC-O.9                 |
+| `refs-cycle.yaml`          | AC-O.8                 |
+| `swagger2-minimal.yaml`    | AC-O.12                |
+| `unsorted-paths.yaml`      | AC-O.11                |
 
 Unit tests de normalize + property: shuffle keys de path ⇒ mismo orden.
 
@@ -183,11 +185,11 @@ Unit tests de normalize + property: shuffle keys de path ⇒ mismo orden.
 
 ## 7. Riesgos y decisiones abiertas
 
-| Tema | Opciones | Recomendación f1 |
-|---|---|---|
+| Tema                          | Opciones                   | Recomendación f1                                                                                    |
+| ----------------------------- | -------------------------- | --------------------------------------------------------------------------------------------------- |
 | Validación profunda vs ligera | swagger-parser full vs own | **Híbrido:** parse own + smoke schema OpenAPI own; no traer validators gigantes si violan size/deps |
-| Swagger 2.0 | error vs convert | **error + warning en docs** en f1; conversión f2 si hay demanda |
-| Dependencia YAML | `yaml` vs `js-yaml` | elegir la que permita `maxAliasCount` o pre-scan |
+| Swagger 2.0                   | error vs convert           | **error + warning en docs** en f1; conversión f2 si hay demanda                                     |
+| Dependencia YAML              | `yaml` vs `js-yaml`        | elegir la que permita `maxAliasCount` o pre-scan                                                    |
 
 ## Changelog
 

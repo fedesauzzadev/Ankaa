@@ -70,5 +70,5 @@
     section: "Sensitive data exposure"
   when:
     op: parameterNamingViolation
-    pattern: '^(?!(password|passwd|secret|client_secret|api[_-]?key|ssn)$).*$'
+    pattern: "^(?!(password|passwd|secret|client_secret|api[_-]?key|ssn)$).*$"
     in: query

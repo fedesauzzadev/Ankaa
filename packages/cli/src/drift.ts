@@ -122,8 +122,7 @@ export function compareEndpoints(
     const specMethods = [...specSet].sort();
     const methods = [...codeSet].sort();
     const same =
-      specMethods.length === methods.length &&
-      specMethods.every((m, i) => m === methods[i]);
+      specMethods.length === methods.length && specMethods.every((m, i) => m === methods[i]);
     if (!same) {
       changed.push({ path, specMethods, codeMethods: methods });
     }
@@ -215,10 +214,7 @@ function toOperationId(method: string, path: string): string {
   return `${method.toLowerCase()}${base}`;
 }
 
-export function buildSpecSkeleton(
-  routes: DetectedRoute[],
-  sourceLabel: string,
-): string {
+export function buildSpecSkeleton(routes: DetectedRoute[], sourceLabel: string): string {
   const byPath = new Map<string, Set<string>>();
   for (const route of routes) {
     if (route.method === "*") continue;
@@ -252,9 +248,7 @@ export function buildSpecSkeleton(
 }
 
 function coerceConfidence(value: unknown): "low" | "medium" | "high" {
-  return value === "low" || value === "medium" || value === "high"
-    ? value
-    : "low";
+  return value === "low" || value === "medium" || value === "high" ? value : "low";
 }
 
 function stripFences(text: string): string {
@@ -287,9 +281,7 @@ export function parseSweepResponse(text: string): DetectedRoute[] {
         ? record.method.toUpperCase()
         : undefined;
     const path =
-      typeof record.path === "string" && record.path.startsWith("/")
-        ? record.path
-        : undefined;
+      typeof record.path === "string" && record.path.startsWith("/") ? record.path : undefined;
     if (method === undefined || path === undefined) continue;
     routes.push({
       method,

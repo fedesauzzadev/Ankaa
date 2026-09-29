@@ -20,9 +20,7 @@ export interface ParseError {
   line?: number;
 }
 
-export type ParseResult =
-  | { ok: true; spec: Spec }
-  | { ok: false; errors: ParseError[] };
+export type ParseResult = { ok: true; spec: Spec } | { ok: false; errors: ParseError[] };
 
 export interface ParseOptions {
   sourceLabel: string;
@@ -670,11 +668,7 @@ function buildIndex(file: ProtoFile): TypeIndex {
   return { resolve, messages, enums, order };
 }
 
-function typeToSchema(
-  typeName: string,
-  index: TypeIndex,
-  unresolved: Set<string>,
-): SchemaNode {
+function typeToSchema(typeName: string, index: TypeIndex, unresolved: Set<string>): SchemaNode {
   const clean = typeName.startsWith(".") ? typeName.slice(1) : typeName;
   const scalar = SCALAR_MAP[clean];
   if (scalar !== undefined) return { type: scalar };
@@ -689,10 +683,7 @@ function typeToSchema(
   return refOf(clean);
 }
 
-function canonicalName(
-  key: string,
-  map: Map<string, { fullName: string }>,
-): string | undefined {
+function canonicalName(key: string, map: Map<string, { fullName: string }>): string | undefined {
   const entry = map.get(key);
   if (!entry) return undefined;
   for (const [k, v] of map) {
@@ -701,11 +692,7 @@ function canonicalName(
   return key;
 }
 
-function fieldToSchema(
-  field: ProtoField,
-  index: TypeIndex,
-  unresolved: Set<string>,
-): SchemaNode {
+function fieldToSchema(field: ProtoField, index: TypeIndex, unresolved: Set<string>): SchemaNode {
   let node: SchemaNode;
   if (field.isMap) {
     node = { type: "object" };
@@ -837,13 +824,9 @@ function toSpec(
   };
 }
 
-export function parseProto(
-  input: Uint8Array | string,
-  opts: ParseOptions,
-): ParseResult {
+export function parseProto(input: Uint8Array | string, opts: ParseOptions): ParseResult {
   const limits: ParseLimits = { ...DEFAULT_LIMITS, ...opts.limits };
-  const bytes =
-    typeof input === "string" ? new TextEncoder().encode(input) : input;
+  const bytes = typeof input === "string" ? new TextEncoder().encode(input) : input;
   const inputHash = sha256Hex(bytes);
   if (bytes.byteLength > limits.maxBytes) {
     return {

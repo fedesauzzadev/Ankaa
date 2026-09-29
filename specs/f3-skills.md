@@ -1,11 +1,11 @@
 # f3-skills · Carga y aplicación de skills en analyze
 
-| Campo | Valor |
-|---|---|
-| Estado | cerrada |
-| Fase | 3 |
+| Campo     | Valor                                                                                                                                                                |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Estado    | cerrada                                                                                                                                                              |
+| Fase      | 3                                                                                                                                                                    |
 | Deriva de | SDD FR-33/FR-34, doc 03 §8 (skills), ADR-007, INV-2 (orden tras skills); specs `f2-config` (skillsDir), `f1-engine` (fingerprints), `f2-baseline` (patrón de filtro) |
-| Roadmap | Fase 3 — init + skills + learn |
+| Roadmap   | Fase 3 — init + skills + learn                                                                                                                                       |
 
 ## 1. Objetivo
 
@@ -58,11 +58,11 @@ version: 1
 suppressions:
   - fingerprint: "<64 hex>"
     reason: "Legacy endpoint frozen until v2"
-    by: "lead@team"            # opcional
-    createdAt: "2026-09-24"    # metadata; no participa de hashes de reporte
+    by: "lead@team" # opcional
+    createdAt: "2026-09-24" # metadata; no participa de hashes de reporte
   - match:
       ruleId: NAMING-001
-      apiPath: "^/legacy/"     # opcional; regex segura
+      apiPath: "^/legacy/" # opcional; regex segura
     reason: "Legacy namespace excluded"
 ```
 
@@ -77,7 +77,7 @@ suppressions:
 version: 1
 overrides:
   - ruleId: PAGINATION-001
-    severity: error   # error | warning | info
+    severity: error # error | warning | info
 ```
 
 - No soporta `off` (para apagar → config `rules: { id: off }` o baseline).
@@ -121,14 +121,14 @@ Severidad de skills **sobre** la del pack; si config `rules:` también overridea
 
 ## 5. Test plan
 
-| Caso | Tipo |
-|---|---|
-| load schema ok / bad version / missing reason | unit |
-| fingerprint + match suppression | unit + e2e |
-| severity override e2e | e2e |
-| drafts not evaluated | e2e |
-| determinism load order | unit |
-| no-regresión sin skillsDir | e2e existente |
+| Caso                                          | Tipo          |
+| --------------------------------------------- | ------------- |
+| load schema ok / bad version / missing reason | unit          |
+| fingerprint + match suppression               | unit + e2e    |
+| severity override e2e                         | e2e           |
+| drafts not evaluated                          | e2e           |
+| determinism load order                        | unit          |
+| no-regresión sin skillsDir                    | e2e existente |
 
 ## 6. Dependencias
 
@@ -139,14 +139,14 @@ Severidad de skills **sobre** la del pack; si config `rules:` también overridea
 
 ## 7. Riesgos y decisiones abiertas
 
-| Tema | Decisión |
-|---|---|
-| `summary.suppressed` vs `skillsSuppressed` | **Separados:** `suppressed` = baseline (f2); `skillsSuppressed` = skills (f3). Ambos pueden coexistir en summary; console muestra ambos notes. |
-| ¿skillsSuppressed siempre presente? | Solo si `> 0` (evita cambiar reportHash de runs sin skills útiles). |
-| Precedencia severity: config rules vs skills | **flag/config rules > skills severities > pack default.** Skills son "del equipo en git"; config local puede pinchar en PR. |
-| apiPath regex | Seguridad: reusar la misma safe-regex que el engine (sin catastrophic backtracking); límite de longitud. |
-| drafts location | Solo `skillsDir/drafts/*.yaml`; no se auto-agregan a `customRules` de config. |
-| INV-7 | analyze solo **lee** skills; nunca escribe (learn/init escriben). |
+| Tema                                         | Decisión                                                                                                                                       |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `summary.suppressed` vs `skillsSuppressed`   | **Separados:** `suppressed` = baseline (f2); `skillsSuppressed` = skills (f3). Ambos pueden coexistir en summary; console muestra ambos notes. |
+| ¿skillsSuppressed siempre presente?          | Solo si `> 0` (evita cambiar reportHash de runs sin skills útiles).                                                                            |
+| Precedencia severity: config rules vs skills | **flag/config rules > skills severities > pack default.** Skills son "del equipo en git"; config local puede pinchar en PR.                    |
+| apiPath regex                                | Seguridad: reusar la misma safe-regex que el engine (sin catastrophic backtracking); límite de longitud.                                       |
+| drafts location                              | Solo `skillsDir/drafts/*.yaml`; no se auto-agregan a `customRules` de config.                                                                  |
+| INV-7                                        | analyze solo **lee** skills; nunca escribe (learn/init escriben).                                                                              |
 
 ## Changelog
 

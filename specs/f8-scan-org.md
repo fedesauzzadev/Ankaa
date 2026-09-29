@@ -1,10 +1,10 @@
 # f8-scan-org · Informe consolidado multi-repo (batch de organización)
 
-| Campo | Valor |
-|---|---|
-| Estado | cerrada |
-| Fecha | 2026-09-26 |
-| Fase | 8 (M8.4 del umbrella `f8-oss-differentials`) |
+| Campo     | Valor                                                                                                                        |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Estado    | cerrada                                                                                                                      |
+| Fecha     | 2026-09-26                                                                                                                   |
+| Fase      | 8 (M8.4 del umbrella `f8-oss-differentials`)                                                                                 |
 | Deriva de | `f8-oss-differentials` M8.4; `analyze.ts` (`analyzeUseCase`); `discovery.ts`; FR-51 (misma semántica CLI); INV-1/INV-2/INV-7 |
 
 ## 1. Objetivo / user story
@@ -38,14 +38,48 @@ Como responsable de plataforma quiero `apigovscan scan-org <dir>` (o `--github <
 
 ```ts
 // packages/cli/src/scan.ts (puro: sin fs, sin red, sin LLM)
-export interface RepoScan { name: string; specs: number; findings: number; errors: number; warnings: number; infos: number; score: number; grade: string }
-export interface GroupScan { name: string; repos: RepoScan[]; totals: Totals; avgScore: number }
-export interface OrgReport { tool: string; version: string; org: string | null; groups: GroupScan[]; totals: Totals; avgScore: number; skipped: Array<{ name: string; reason: string }> }
+export interface RepoScan {
+  name: string;
+  specs: number;
+  findings: number;
+  errors: number;
+  warnings: number;
+  infos: number;
+  score: number;
+  grade: string;
+}
+export interface GroupScan {
+  name: string;
+  repos: RepoScan[];
+  totals: Totals;
+  avgScore: number;
+}
+export interface OrgReport {
+  tool: string;
+  version: string;
+  org: string | null;
+  groups: GroupScan[];
+  totals: Totals;
+  avgScore: number;
+  skipped: Array<{ name: string; reason: string }>;
+}
 export function aggregateScans(scans: RepoScan[], groups?: Record<string, string>): OrgReport;
-export function loadGroupMapping(text: string): { ok: true; mapping: Record<string, string> } | { ok: false; error: string };
+export function loadGroupMapping(
+  text: string,
+): { ok: true; mapping: Record<string, string> } | { ok: false; error: string };
 // packages/cli/src/github.ts (solo este módulo toca red/procesos en cli para scan-org)
-export function listOrgRepos(apiBase: string, org: string, token: string, maxRepos: number): Promise<{ ok: true; repos: Array<{ name: string; cloneUrl: string }> } | { ok: false; error: string }>;
-export function cloneRepo(cloneUrl: string, destDir: string): Promise<{ ok: true } | { ok: false; error: string }>; // git CLI, shallow
+export function listOrgRepos(
+  apiBase: string,
+  org: string,
+  token: string,
+  maxRepos: number,
+): Promise<
+  { ok: true; repos: Array<{ name: string; cloneUrl: string }> } | { ok: false; error: string }
+>;
+export function cloneRepo(
+  cloneUrl: string,
+  destDir: string,
+): Promise<{ ok: true } | { ok: false; error: string }>; // git CLI, shallow
 ```
 
 - Red explícita SOLO en `--github` (fetch lista + `git clone`); `analyze`/parse/engine intactos (INV-1). Clones en tmpdir o `--workdir` explícito; reportes solo a `--out` explícito (INV-7).
@@ -78,12 +112,12 @@ export function cloneRepo(cloneUrl: string, destDir: string): Promise<{ ok: true
 
 ## 7. Riesgos y decisiones abiertas
 
-| Tema | Decisión v1 |
-|---|---|
-| Red en un comando nuevo | Solo `--github` la usa, explícita y documentada; `analyze` intacto (INV-1 por alcance). |
-| Repos enormes/monorepos | Un subdir = un proyecto; discovery existente con sus skips; `--max-repos` acota fetch. |
-| Score multi-spec por repo | Un solo `analyzeUseCase` por repo (misma semántica que `analyze <dir>`). |
-| Clones parciales | Warn + `skipped`, nunca tumba el informe. |
+| Tema                      | Decisión v1                                                                             |
+| ------------------------- | --------------------------------------------------------------------------------------- |
+| Red en un comando nuevo   | Solo `--github` la usa, explícita y documentada; `analyze` intacto (INV-1 por alcance). |
+| Repos enormes/monorepos   | Un subdir = un proyecto; discovery existente con sus skips; `--max-repos` acota fetch.  |
+| Score multi-spec por repo | Un solo `analyzeUseCase` por repo (misma semántica que `analyze <dir>`).                |
+| Clones parciales          | Warn + `skipped`, nunca tumba el informe.                                               |
 
 ## Changelog
 

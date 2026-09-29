@@ -1,11 +1,11 @@
 # Plan · f1-mvp · `analyze` end-to-end
 
-| Campo | Valor |
-|---|---|
-| Specs | f1-openapi, f1-engine, f1-elite-pack, f1-analyze, f1-reporters, f1-invariants |
-| Esfuerzo estimado | 1–2 semanas (1 dev full-time equivalente) |
-| Dependencias | f0 cerrado |
-| Milestones | M1.1–M1.5 |
+| Campo             | Valor                                                                         |
+| ----------------- | ----------------------------------------------------------------------------- |
+| Specs             | f1-openapi, f1-engine, f1-elite-pack, f1-analyze, f1-reporters, f1-invariants |
+| Esfuerzo estimado | 1–2 semanas (1 dev full-time equivalente)                                     |
+| Dependencias      | f0 cerrado                                                                    |
+| Milestones        | M1.1–M1.5                                                                     |
 
 ## Estrategia
 
@@ -106,13 +106,13 @@ Pasos:
 
 ## Riesgos del plan
 
-| Riesgo | Impacto | Mitigación |
-|---|---|---|
+| Riesgo                          | Impacto             | Mitigación                                                              |
+| ------------------------------- | ------------------- | ----------------------------------------------------------------------- |
 | Pack ≥50 reglas de baja calidad | Ruido, desconfianza | Threshold fixtures; mejor 50 buenas que 80 malas; inventor comprometido |
-| Átomos engine quedan cortos | Pack no cierra | Gap analysis en M1.3, no al final |
-| YAML parser inseguro/lento | INV-1/NFR-2 | Spike M1.1 day 1 |
-| CLI argv creep | Demora | Solo flags de spec f1-analyze; nada de baseline/learn |
-| Multi-OS path bugs | CI rojo | Normalizar paths; matrix desde f0 |
+| Átomos engine quedan cortos     | Pack no cierra      | Gap analysis en M1.3, no al final                                       |
+| YAML parser inseguro/lento      | INV-1/NFR-2         | Spike M1.1 day 1                                                        |
+| CLI argv creep                  | Demora              | Solo flags de spec f1-analyze; nada de baseline/learn                   |
+| Multi-OS path bugs              | CI rojo             | Normalizar paths; matrix desde f0                                       |
 
 ## Definition of Done (fase 1 completa)
 

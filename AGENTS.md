@@ -14,14 +14,14 @@ Guía para humanos y agentes (opencode, Claude, Cursor, etc.) que trabajen en es
 
 ## 1. Principios no negociables (del SDD)
 
-| Invariante | Regla práctica |
-|---|---|
-| INV-1 | Cero red en `analyze` / parse / engine. No agregar `fetch`, axios, update-check. |
-| INV-2 | Determinismo: sin `Date.now()`/`Math.random()` en el hash de findings; sort estable. |
-| INV-3 | Core sin LLM ni clientes de IA. |
-| INV-4 | No `eval`, no `new Function`, no código arbitrario desde specs/rules. |
-| INV-5 | Fingerprint estable; learn idempotente (fase 2+). |
-| INV-7 | Escribir FS solo en `.apigovscan/` y outputs explícitos del usuario. |
+| Invariante | Regla práctica                                                                       |
+| ---------- | ------------------------------------------------------------------------------------ |
+| INV-1      | Cero red en `analyze` / parse / engine. No agregar `fetch`, axios, update-check.     |
+| INV-2      | Determinismo: sin `Date.now()`/`Math.random()` en el hash de findings; sort estable. |
+| INV-3      | Core sin LLM ni clientes de IA.                                                      |
+| INV-4      | No `eval`, no `new Function`, no código arbitrario desde specs/rules.                |
+| INV-5      | Fingerprint estable; learn idempotente (fase 2+).                                    |
+| INV-7      | Escribir FS solo en `.apigovscan/` y outputs explícitos del usuario.                 |
 
 Si un cambio viola un invariante → **detente** y pide ADR/SDD update. No "raras excepciones".
 
@@ -83,13 +83,13 @@ Dependencias: `cli/mcp → application(core) → core`; los adapters inyectan I/
 
 ## 7. Tests esperados
 
-| Cambio | Test mínimo |
-|---|---|
-| Átomo DSL | true + false |
-| Regla nueva | fixture donde matchea + una donde no |
-| Parse/normalize | fixture + ataque si aplica |
-| CLI flag | e2e exit code |
-| Cualquier PR | `pnpm check` verde en matriz CI |
+| Cambio          | Test mínimo                          |
+| --------------- | ------------------------------------ |
+| Átomo DSL       | true + false                         |
+| Regla nueva     | fixture donde matchea + una donde no |
+| Parse/normalize | fixture + ataque si aplica           |
+| CLI flag        | e2e exit code                        |
+| Cualquier PR    | `pnpm check` verde en matriz CI      |
 
 No borres snapshots de determinismo "porque flaquean": investiga (INV-2).
 

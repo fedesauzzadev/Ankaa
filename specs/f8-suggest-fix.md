@@ -1,10 +1,10 @@
 # f8-suggest-fix · Proponer arreglos de findings con LLM del cliente (opcional)
 
-| Campo | Valor |
-|---|---|
-| Estado | cerrada |
-| Fecha | 2026-09-26 |
-| Fase | 8 (M8.1 del umbrella `f8-oss-differentials`) |
+| Campo     | Valor                                                                                    |
+| --------- | ---------------------------------------------------------------------------------------- |
+| Estado    | cerrada                                                                                  |
+| Fecha     | 2026-09-26                                                                               |
+| Fase      | 8 (M8.1 del umbrella `f8-oss-differentials`)                                             |
 | Deriva de | `f8-oss-differentials` M8.1; FR-43 (redacción); INV-1/INV-3; `f2-config` (schema strict) |
 
 ## 1. Objetivo / user story
@@ -35,10 +35,21 @@ Como dev con un finding delante, quiero que la herramienta me **muestre el arreg
 
 ```ts
 // packages/cli/src/llm.ts
-export interface LlmConfig { baseUrl: string; apiKey?: string; model?: string }
-export function loadLlmConfig(config: unknown, env: Record<string, string|undefined>): LlmConfig | undefined;
+export interface LlmConfig {
+  baseUrl: string;
+  apiKey?: string;
+  model?: string;
+}
+export function loadLlmConfig(
+  config: unknown,
+  env: Record<string, string | undefined>,
+): LlmConfig | undefined;
 // undefined => features LLM deshabilitadas (mensaje claro, no error de analyze)
-export async function chatCompletion(cfg: LlmConfig, messages: Array<{role: string; content: string}>, opts?: { timeoutMs?: number }): Promise<string>;
+export async function chatCompletion(
+  cfg: LlmConfig,
+  messages: Array<{ role: string; content: string }>,
+  opts?: { timeoutMs?: number },
+): Promise<string>;
 ```
 
 - CLI `fix`: sin LLM configurado → stderr `error: llm not configured: set llm.baseUrl in apigovscan.yaml (AI features are optional)` + exit 2. Con LLM → exit 0 (imprime diffs) o exit 2 en error.
@@ -71,12 +82,12 @@ export async function chatCompletion(cfg: LlmConfig, messages: Array<{role: stri
 
 ## 7. Riesgos y decisiones abiertas
 
-| Tema | Decisión v1 |
-|---|---|
+| Tema                      | Decisión v1                                                                                     |
+| ------------------------- | ----------------------------------------------------------------------------------------------- |
 | Formato de salida del LLM | Prompt estricto ("responde SOLO un unified diff") + parser tolerante; inválido → error honesto. |
-| Contexto del spec | Fragmento alrededor del pointer (límite de tamaño); specs enormes → trunca y avisa. |
-| Tokens/costo | Es el LLM del cliente; timeout y 1 request por finding. |
-| `confidence` | v1: lo que declare el LLM (low/medium/high); informativo, jamás gate. |
+| Contexto del spec         | Fragmento alrededor del pointer (límite de tamaño); specs enormes → trunca y avisa.             |
+| Tokens/costo              | Es el LLM del cliente; timeout y 1 request por finding.                                         |
+| `confidence`              | v1: lo que declare el LLM (low/medium/high); informativo, jamás gate.                           |
 
 ## Changelog
 

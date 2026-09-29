@@ -34,7 +34,7 @@
     section: "Query parameters"
   when:
     op: parameterNamingViolation
-    pattern: '^[a-z][a-zA-Z0-9]*$'
+    pattern: "^[a-z][a-zA-Z0-9]*$"
     in: query
 
 - id: PARAM-004
@@ -84,7 +84,7 @@
     section: "Field names"
   when:
     op: parameterNamingViolation
-    pattern: '^[a-z][a-z0-9-]*$'
+    pattern: "^[a-z][a-z0-9-]*$"
     in: header
 
 - id: PARAM-008
@@ -98,7 +98,7 @@
     section: "Parameters"
   when:
     op: parameterNamingViolation
-    pattern: '^[a-z][a-zA-Z0-9]*$'
+    pattern: "^[a-z][a-zA-Z0-9]*$"
     in: path
 
 - id: PARAM-009
@@ -112,5 +112,5 @@
     section: "Parameters"
   when:
     op: parameterNamingViolation
-    pattern: '^[a-z][a-zA-Z0-9]*$'
+    pattern: "^[a-z][a-zA-Z0-9]*$"
     in: cookie

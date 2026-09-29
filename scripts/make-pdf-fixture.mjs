@@ -90,7 +90,9 @@ for (let i = 0; i < pages.length; i++) {
 }
 // objects: 1 catalog, 2 pages, 3 font, then per page (page, content)
 addObject("<< /Type /Catalog /Pages 2 0 R >>");
-addObject(`<< /Type /Pages /Kids [${pageIds.map((id) => `${id} 0 R`).join(" ")}] /Count ${pages.length} >>`);
+addObject(
+  `<< /Type /Pages /Kids [${pageIds.map((id) => `${id} 0 R`).join(" ")}] /Count ${pages.length} >>`,
+);
 addObject("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>");
 const streams = pages.map((lines) => {
   const ops = lines.map(

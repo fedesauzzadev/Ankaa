@@ -5,12 +5,7 @@ import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
 import { run } from "../src/index.js";
 
-const repoRoot = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "..",
-);
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const petstore = join(repoRoot, "fixtures", "petstore-mini.yaml");
 
 const tempRoots: string[] = [];
@@ -85,10 +80,7 @@ describe("config e2e (AC-C.*)", () => {
   it("AC-C.1 unknown top-level key exits 2", async () => {
     const dir = tempDir();
     writeFileSync(join(dir, "apigovscan.yaml"), "failOn: error\nwat: true\n", "utf8");
-    const { code, stderr } = await runCapture(
-      ["analyze", petstore, "--no-color"],
-      { cwd: dir },
-    );
+    const { code, stderr } = await runCapture(["analyze", petstore, "--no-color"], { cwd: dir });
     expect(code).toBe(2);
     expect(stderr).toContain('unknown key "wat"');
   });
@@ -106,10 +98,7 @@ describe("config e2e (AC-C.*)", () => {
     const expected = summary.error + summary.warning > 0 ? 1 : 0;
     expect(withFlag.code).toBe(expected);
 
-    const withoutFlag = await runCapture(
-      ["analyze", petstore, "--no-color"],
-      { cwd: dir },
-    );
+    const withoutFlag = await runCapture(["analyze", petstore, "--no-color"], { cwd: dir });
     expect(withoutFlag.stderr).toContain("failOn=never");
     expect(withoutFlag.code).toBe(0);
   });
@@ -139,15 +128,8 @@ describe("config e2e (AC-C.*)", () => {
 
   it("AC-C.4 missing customRules path exits 2", async () => {
     const dir = tempDir();
-    writeFileSync(
-      join(dir, "apigovscan.yaml"),
-      "customRules:\n  - ./missing.yaml\n",
-      "utf8",
-    );
-    const { code, stderr } = await runCapture(
-      ["analyze", petstore, "--no-color"],
-      { cwd: dir },
-    );
+    writeFileSync(join(dir, "apigovscan.yaml"), "customRules:\n  - ./missing.yaml\n", "utf8");
+    const { code, stderr } = await runCapture(["analyze", petstore, "--no-color"], { cwd: dir });
     expect(code).toBe(2);
     expect(stderr).toContain("customRules not found");
   });
@@ -217,24 +199,18 @@ describe("config e2e (AC-C.*)", () => {
       ["failOn: error", "rules:", "  NAMING-001: off"].join("\n"),
       "utf8",
     );
-    const without = await runCapture(
-      ["analyze", badSpec, "--format", "json", "--no-color"],
-      { cwd: tempDir() },
-    );
-    const withCfg = await runCapture(
-      ["analyze", badSpec, "--format", "json", "--no-color"],
-      { cwd: dir },
-    );
+    const without = await runCapture(["analyze", badSpec, "--format", "json", "--no-color"], {
+      cwd: tempDir(),
+    });
+    const withCfg = await runCapture(["analyze", badSpec, "--format", "json", "--no-color"], {
+      cwd: dir,
+    });
     const withoutJson = extractJson(without.stdout);
     const withJson = extractJson(withCfg.stdout);
     expect(withoutJson).not.toBeNull();
     expect(withJson).not.toBeNull();
-    const baseIds = (withoutJson!.findings as Array<{ ruleId: string }>).map(
-      (f) => f.ruleId,
-    );
-    const cfgIds = (withJson!.findings as Array<{ ruleId: string }>).map(
-      (f) => f.ruleId,
-    );
+    const baseIds = (withoutJson!.findings as Array<{ ruleId: string }>).map((f) => f.ruleId);
+    const cfgIds = (withJson!.findings as Array<{ ruleId: string }>).map((f) => f.ruleId);
     expect(baseIds).toContain("NAMING-001");
     expect(cfgIds).not.toContain("NAMING-001");
   });
@@ -246,10 +222,7 @@ describe("config e2e (AC-C.*)", () => {
       "failOn: never\nskillsDir: .apigovscan/skills\n",
       "utf8",
     );
-    const { code, stderr } = await runCapture(
-      ["analyze", petstore, "--no-color"],
-      { cwd: dir },
-    );
+    const { code, stderr } = await runCapture(["analyze", petstore, "--no-color"], { cwd: dir });
     expect([0, 1]).toContain(code);
     expect(stderr).not.toContain("unknown key");
   });
@@ -293,9 +266,7 @@ describe("config e2e (AC-C.*)", () => {
     if (code === 2) throw new Error(stderr);
     const parsed = extractJson(stdout);
     expect(parsed).not.toBeNull();
-    const ids = (parsed!.findings as Array<{ ruleId: string }>).map(
-      (f) => f.ruleId,
-    );
+    const ids = (parsed!.findings as Array<{ ruleId: string }>).map((f) => f.ruleId);
     expect(ids).toContain("TEAM-001");
     expect(ids).toContain("TEAM-002");
     expect(ids).toContain("TEAM-900");
@@ -318,13 +289,10 @@ describe("config e2e (AC-C.*)", () => {
     const dir = tempDir();
     writeFileSync(
       join(dir, "apigovscan.yaml"),
-      ["failOn: never", "standards:", "  version: \"1999.01.1\""].join("\n"),
+      ["failOn: never", "standards:", '  version: "1999.01.1"'].join("\n"),
       "utf8",
     );
-    const { code, stderr } = await runCapture(
-      ["analyze", petstore, "--no-color"],
-      { cwd: dir },
-    );
+    const { code, stderr } = await runCapture(["analyze", petstore, "--no-color"], { cwd: dir });
     expect([0, 1]).toContain(code);
     expect(stderr).toContain("does not match embedded pack");
   });

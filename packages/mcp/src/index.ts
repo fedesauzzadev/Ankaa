@@ -12,8 +12,4 @@ export {
   type McpToolHandlers,
   type ToolResult,
 } from "./tools.js";
-export {
-  createMcpServer,
-  startStdioServer,
-  type CreateMcpServerOptions,
-} from "./server.js";
+export { createMcpServer, startStdioServer, type CreateMcpServerOptions } from "./server.js";

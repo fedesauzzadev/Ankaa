@@ -45,9 +45,7 @@ export function formatMarkdown(report: Report): string {
   lines.push(`| Tool | ${report.tool.name} ${report.tool.version} |`);
   lines.push(`| Packs | ${packs} |`);
   lines.push(`| Inputs | ${report.input.length} file(s) |`);
-  lines.push(
-    `| Findings | ${countsLine(report)}${suppressionNotes(report)} |`,
-  );
+  lines.push(`| Findings | ${countsLine(report)}${suppressionNotes(report)} |`);
   lines.push(`| Score | **${report.score.value}/100 (${report.score.grade})** |`);
   lines.push(`| reportHash | \`${report.reportHash.slice(0, 8)}…\` |`);
   lines.push("");

@@ -89,7 +89,7 @@
   when:
     op: descriptionMatches
     target: description
-    pattern: 'TODO|FIXME|XXX|TBD'
+    pattern: "TODO|FIXME|XXX|TBD"
 
 - id: DOCS-008
   category: docs

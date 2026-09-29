@@ -31,9 +31,7 @@ function stripFullLineComments(content: string): string {
 }
 
 function methodList(text: string): string[] {
-  const found = [...text.matchAll(/["']([A-Za-z]+)["']/g)].map((m) =>
-    m[1]!.toUpperCase(),
-  );
+  const found = [...text.matchAll(/["']([A-Za-z]+)["']/g)].map((m) => m[1]!.toUpperCase());
   return found.length > 0 ? found : ["*"];
 }
 
@@ -70,98 +68,113 @@ function generic(
 const EXPRESS_METHODS = "get|post|put|patch|delete|head|options";
 
 const SIGNATURES: Signature[] = [
-  generic("express", [".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs"], [
-    {
-      re: new RegExp(
-        `(?:^|[^\\w$.])(?:app|router|server|api|fastify)\\s*\\.\\s*(${EXPRESS_METHODS})\\s*\\(\\s*['"\`]([^'"\`]+)['"\`]`,
-        "gim",
-      ),
-      methods: (m) => [m[1]!.toUpperCase()],
-      path: (m) => m[2],
-    },
-    {
-      re: /@(?:Get|Post|Put|Patch|Delete|Head|Options)\s*\(\s*['"`]([^'"`]+)['"`]/gim,
-      methods: (m) => [m[0].slice(1, m[0].indexOf("(")).toUpperCase()],
-      path: (m) => m[1],
-    },
-    {
-      re: /\.route\s*\(\s*['"`]([^'"`]+)['"`]/gim,
-      methods: () => ["*"],
-      path: (m) => m[1],
-    },
-  ]),
-  generic("spring", [".java"], [
-    {
-      re: /@(Get|Post|Put|Patch|Delete)Mapping\s*\(\s*(?:value\s*=\s*)?["']([^"']+)["']/gim,
-      methods: (m) => [m[1]!.toUpperCase()],
-      path: (m) => m[2],
-    },
-    {
-      re: /@RequestMapping\s*\(([^)]*)\)/gim,
-      methods: (m) => {
-        const found = [...m[1]!.matchAll(/RequestMethod\.([A-Z]+)/g)].map(
-          (x) => x[1]!,
-        );
-        return found.length > 0 ? found : ["*"];
+  generic(
+    "express",
+    [".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs"],
+    [
+      {
+        re: new RegExp(
+          `(?:^|[^\\w$.])(?:app|router|server|api|fastify)\\s*\\.\\s*(${EXPRESS_METHODS})\\s*\\(\\s*['"\`]([^'"\`]+)['"\`]`,
+          "gim",
+        ),
+        methods: (m) => [m[1]!.toUpperCase()],
+        path: (m) => m[2],
       },
-      path: (m) => {
-        const p = m[1]!.match(/["']([^"']+)["']/);
-        return p?.[1];
+      {
+        re: /@(?:Get|Post|Put|Patch|Delete|Head|Options)\s*\(\s*['"`]([^'"`]+)['"`]/gim,
+        methods: (m) => [m[0].slice(1, m[0].indexOf("(")).toUpperCase()],
+        path: (m) => m[1],
       },
-    },
-    {
-      re: /@Path\s*\(\s*["']([^"']+)["']\s*\)/gim,
-      methods: () => ["*"],
-      path: (m) => m[1],
-    },
-  ]),
-  generic("dotnet", [".cs"], [
-    {
-      re: /\[(HttpGet|HttpPost|HttpPut|HttpPatch|HttpDelete|HttpHead|HttpOptions)(?:\(\s*"([^"]*)"\s*\))?\]/gim,
-      methods: (m) => [m[1]!.slice(4).toUpperCase()],
-      path: (m) => (m[2] !== undefined && m[2] !== "" ? m[2] : undefined),
-    },
-    {
-      re: /\[Route\s*\(\s*"([^"]+)"\s*\)\]/gim,
-      methods: () => ["*"],
-      path: (m) => m[1],
-    },
-    {
-      re: /Map(Get|Post|Put|Delete|Patch)\s*\(\s*"([^"]+)"/gim,
-      methods: (m) => [m[1]!.toUpperCase()],
-      path: (m) => m[2],
-    },
-  ]),
-  generic("python", [".py"], [
-    {
-      re: new RegExp(
-        `@(?:app|router|api|blueprint|bp)\\s*\\.\\s*(${EXPRESS_METHODS})\\s*\\(\\s*['"]([^'"]+)['"]`,
-        "gim",
-      ),
-      methods: (m) => [m[1]!.toUpperCase()],
-      path: (m) => m[2],
-    },
-    {
-      re: /@\w+\.route\s*\(\s*['"]([^'"]+)['"]((?:[^)]*?methods\s*=\s*\[([^\]]*)\])?)/gim,
-      methods: (m) => (m[2] !== undefined && m[2] !== "" ? methodList(m[3] ?? "") : ["*"]),
-      path: (m) => m[1],
-    },
-    {
-      re: /(?:path|re_path|url)\s*\(\s*r?['"]([^'"]+)['"]/gim,
-      methods: () => ["*"],
-      path: (m) => m[1],
-    },
-  ]),
-  generic("rails", [".rb"], [
-    {
-      re: new RegExp(
-        `^\\s*(${EXPRESS_METHODS})\\s+['"]([^'"]+)['"]`,
-        "gim",
-      ),
-      methods: (m) => [m[1]!.toUpperCase()],
-      path: (m) => m[2],
-    },
-  ]),
+      {
+        re: /\.route\s*\(\s*['"`]([^'"`]+)['"`]/gim,
+        methods: () => ["*"],
+        path: (m) => m[1],
+      },
+    ],
+  ),
+  generic(
+    "spring",
+    [".java"],
+    [
+      {
+        re: /@(Get|Post|Put|Patch|Delete)Mapping\s*\(\s*(?:value\s*=\s*)?["']([^"']+)["']/gim,
+        methods: (m) => [m[1]!.toUpperCase()],
+        path: (m) => m[2],
+      },
+      {
+        re: /@RequestMapping\s*\(([^)]*)\)/gim,
+        methods: (m) => {
+          const found = [...m[1]!.matchAll(/RequestMethod\.([A-Z]+)/g)].map((x) => x[1]!);
+          return found.length > 0 ? found : ["*"];
+        },
+        path: (m) => {
+          const p = m[1]!.match(/["']([^"']+)["']/);
+          return p?.[1];
+        },
+      },
+      {
+        re: /@Path\s*\(\s*["']([^"']+)["']\s*\)/gim,
+        methods: () => ["*"],
+        path: (m) => m[1],
+      },
+    ],
+  ),
+  generic(
+    "dotnet",
+    [".cs"],
+    [
+      {
+        re: /\[(HttpGet|HttpPost|HttpPut|HttpPatch|HttpDelete|HttpHead|HttpOptions)(?:\(\s*"([^"]*)"\s*\))?\]/gim,
+        methods: (m) => [m[1]!.slice(4).toUpperCase()],
+        path: (m) => (m[2] !== undefined && m[2] !== "" ? m[2] : undefined),
+      },
+      {
+        re: /\[Route\s*\(\s*"([^"]+)"\s*\)\]/gim,
+        methods: () => ["*"],
+        path: (m) => m[1],
+      },
+      {
+        re: /Map(Get|Post|Put|Delete|Patch)\s*\(\s*"([^"]+)"/gim,
+        methods: (m) => [m[1]!.toUpperCase()],
+        path: (m) => m[2],
+      },
+    ],
+  ),
+  generic(
+    "python",
+    [".py"],
+    [
+      {
+        re: new RegExp(
+          `@(?:app|router|api|blueprint|bp)\\s*\\.\\s*(${EXPRESS_METHODS})\\s*\\(\\s*['"]([^'"]+)['"]`,
+          "gim",
+        ),
+        methods: (m) => [m[1]!.toUpperCase()],
+        path: (m) => m[2],
+      },
+      {
+        re: /@\w+\.route\s*\(\s*['"]([^'"]+)['"]((?:[^)]*?methods\s*=\s*\[([^\]]*)\])?)/gim,
+        methods: (m) => (m[2] !== undefined && m[2] !== "" ? methodList(m[3] ?? "") : ["*"]),
+        path: (m) => m[1],
+      },
+      {
+        re: /(?:path|re_path|url)\s*\(\s*r?['"]([^'"]+)['"]/gim,
+        methods: () => ["*"],
+        path: (m) => m[1],
+      },
+    ],
+  ),
+  generic(
+    "rails",
+    [".rb"],
+    [
+      {
+        re: new RegExp(`^\\s*(${EXPRESS_METHODS})\\s+['"]([^'"]+)['"]`, "gim"),
+        methods: (m) => [m[1]!.toUpperCase()],
+        path: (m) => m[2],
+      },
+    ],
+  ),
   {
     framework: "rails",
     extensions: [".rb"],
@@ -185,50 +198,58 @@ const SIGNATURES: Signature[] = [
       }
     },
   },
-  generic("go", [".go"], [
-    {
-      re: /http\.HandleFunc\s*\(\s*"([^"]+)"/gim,
-      methods: () => ["*"],
-      path: (m) => m[1],
-    },
-    {
-      re: /\.HandleFunc\s*\(\s*"([^"]+)"\s*,[^\n;]*?\.Methods\s*\(([^)]*)\)/gim,
-      methods: (m) => methodList(m[2] ?? ""),
-      path: (m) => m[1],
-    },
-    {
-      re: /\.HandleFunc\s*\(\s*"([^"]+)"\s*,(?![^\n;]*?\.Methods\s*\()/gim,
-      methods: () => ["*"],
-      path: (m) => m[1],
-    },
-    {
-      re: /\.(GET|POST|PUT|DELETE|PATCH|HEAD)\s*\(\s*"([^"]+)"/gim,
-      methods: (m) => [m[1]!.toUpperCase()],
-      path: (m) => m[2],
-    },
-    {
-      re: /\.(Get|Post|Put|Delete|Patch|Head)\s*\(\s*"([^"]+)"/gim,
-      methods: (m) => [m[1]!.toUpperCase()],
-      path: (m) => m[2],
-    },
-  ]),
-  generic("php", [".php"], [
-    {
-      re: /Route::(get|post|put|patch|delete|options)\s*\(\s*['"]([^'"]+)['"]/gim,
-      methods: (m) => [m[1]!.toUpperCase()],
-      path: (m) => m[2],
-    },
-    {
-      re: /#\[\s*Route\s*\(\s*['"]([^'"]+)['"]((?:[^\]]*?methods\s*:\s*\[([^\]]*)\])?)/gim,
-      methods: (m) => (m[2] !== undefined && m[2] !== "" ? methodList(m[3] ?? "") : ["*"]),
-      path: (m) => m[1],
-    },
-    {
-      re: /\$app->(get|post|put|patch|delete)\s*\(\s*['"]([^'"]+)['"]/gim,
-      methods: (m) => [m[1]!.toUpperCase()],
-      path: (m) => m[2],
-    },
-  ]),
+  generic(
+    "go",
+    [".go"],
+    [
+      {
+        re: /http\.HandleFunc\s*\(\s*"([^"]+)"/gim,
+        methods: () => ["*"],
+        path: (m) => m[1],
+      },
+      {
+        re: /\.HandleFunc\s*\(\s*"([^"]+)"\s*,[^\n;]*?\.Methods\s*\(([^)]*)\)/gim,
+        methods: (m) => methodList(m[2] ?? ""),
+        path: (m) => m[1],
+      },
+      {
+        re: /\.HandleFunc\s*\(\s*"([^"]+)"\s*,(?![^\n;]*?\.Methods\s*\()/gim,
+        methods: () => ["*"],
+        path: (m) => m[1],
+      },
+      {
+        re: /\.(GET|POST|PUT|DELETE|PATCH|HEAD)\s*\(\s*"([^"]+)"/gim,
+        methods: (m) => [m[1]!.toUpperCase()],
+        path: (m) => m[2],
+      },
+      {
+        re: /\.(Get|Post|Put|Delete|Patch|Head)\s*\(\s*"([^"]+)"/gim,
+        methods: (m) => [m[1]!.toUpperCase()],
+        path: (m) => m[2],
+      },
+    ],
+  ),
+  generic(
+    "php",
+    [".php"],
+    [
+      {
+        re: /Route::(get|post|put|patch|delete|options)\s*\(\s*['"]([^'"]+)['"]/gim,
+        methods: (m) => [m[1]!.toUpperCase()],
+        path: (m) => m[2],
+      },
+      {
+        re: /#\[\s*Route\s*\(\s*['"]([^'"]+)['"]((?:[^\]]*?methods\s*:\s*\[([^\]]*)\])?)/gim,
+        methods: (m) => (m[2] !== undefined && m[2] !== "" ? methodList(m[3] ?? "") : ["*"]),
+        path: (m) => m[1],
+      },
+      {
+        re: /\$app->(get|post|put|patch|delete)\s*\(\s*['"]([^'"]+)['"]/gim,
+        methods: (m) => [m[1]!.toUpperCase()],
+        path: (m) => m[2],
+      },
+    ],
+  ),
 ];
 
 const EXTENSION_MAP = new Map<string, Signature[]>();
@@ -273,7 +294,19 @@ export function detectRoutes(file: string, content: string): DetectedRoute[] {
     });
   }
   routes.sort((a, b) =>
-    a.file < b.file ? -1 : a.file > b.file ? 1 : a.path < b.path ? -1 : a.path > b.path ? 1 : a.method < b.method ? -1 : a.method > b.method ? 1 : 0,
+    a.file < b.file
+      ? -1
+      : a.file > b.file
+        ? 1
+        : a.path < b.path
+          ? -1
+          : a.path > b.path
+            ? 1
+            : a.method < b.method
+              ? -1
+              : a.method > b.method
+                ? 1
+                : 0,
   );
   return routes;
 }

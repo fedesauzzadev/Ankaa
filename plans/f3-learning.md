@@ -1,11 +1,11 @@
 # Plan · f3-learning · init + skills + learn
 
-| Campo | Valor |
-|---|---|
-| Specs | f3-init, f3-skills, f3-learn |
+| Campo             | Valor                                  |
+| ----------------- | -------------------------------------- |
+| Specs             | f3-init, f3-skills, f3-learn           |
 | Esfuerzo estimado | 1 semana (1 dev full-time equivalente) |
-| Dependencias | f2 cerrado (`v0.2.0-governance`) |
-| Milestones | M3.1–M3.3 |
+| Dependencias      | f2 cerrado (`v0.2.0-governance`)       |
+| Milestones        | M3.1–M3.3                              |
 
 ## Estrategia
 
@@ -67,13 +67,13 @@ Pasos:
 
 ## Riesgos del plan
 
-| Riesgo | Impacto | Mitigación |
-|---|---|---|
-| Suppressions esconden deuda de seguridad | Confianza | reason obligatorio; conteo visible; review en PR |
-| INV-5 roto por timestamps | Flaky | no createdAt en v1; test byte equality |
-| skills + baseline confunden contadores | UX | campos separados + console notes |
-| Regex de apiPath insegura | Crash/hang | reusar safe-regex del engine + límite |
-| Scope creep a learn UI | Demora | feedback JSON only en f3 |
+| Riesgo                                   | Impacto    | Mitigación                                       |
+| ---------------------------------------- | ---------- | ------------------------------------------------ |
+| Suppressions esconden deuda de seguridad | Confianza  | reason obligatorio; conteo visible; review en PR |
+| INV-5 roto por timestamps                | Flaky      | no createdAt en v1; test byte equality           |
+| skills + baseline confunden contadores   | UX         | campos separados + console notes                 |
+| Regex de apiPath insegura                | Crash/hang | reusar safe-regex del engine + límite            |
+| Scope creep a learn UI                   | Demora     | feedback JSON only en f3                         |
 
 ## Definition of Done (fase 3 completa)
 

@@ -6,12 +6,7 @@ import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
 import { run } from "../src/index.js";
 
-const repoRoot = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "..",
-);
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const gqlFixtures = join(repoRoot, "fixtures", "graphql");
 const schema = join(gqlFixtures, "schema.graphql");
 const invalid = join(gqlFixtures, "invalid.graphql");
@@ -81,20 +76,8 @@ describe("graphql analyze e2e (f8-graphql)", () => {
   });
 
   it("AC-GQL.5 deterministic across runs", async () => {
-    const first = await runCapture([
-      "analyze",
-      schema,
-      "--format",
-      "json",
-      "--no-color",
-    ]);
-    const second = await runCapture([
-      "analyze",
-      schema,
-      "--format",
-      "json",
-      "--no-color",
-    ]);
+    const first = await runCapture(["analyze", schema, "--format", "json", "--no-color"]);
+    const second = await runCapture(["analyze", schema, "--format", "json", "--no-color"]);
     const a = JSON.parse(first.stdout) as { reportHash: string };
     const b = JSON.parse(second.stdout) as { reportHash: string };
     expect(a.reportHash).toBe(b.reportHash);
@@ -111,14 +94,10 @@ describe("graphql analyze e2e (f8-graphql)", () => {
     const dir = tempDir();
     mkdirSync(join(dir, "api"));
     copyFileSync(schema, join(dir, "api", "schema.graphql"));
-    copyFileSync(
-      join(gqlFixtures, "client-fragment.graphql"),
-      join(dir, "client.graphql"),
-    );
-    const { code, stdout } = await runCapture(
-      ["analyze", ".", "--format", "json", "--no-color"],
-      { cwd: dir },
-    );
+    copyFileSync(join(gqlFixtures, "client-fragment.graphql"), join(dir, "client.graphql"));
+    const { code, stdout } = await runCapture(["analyze", ".", "--format", "json", "--no-color"], {
+      cwd: dir,
+    });
     expect([0, 1]).toContain(code);
     const report = JSON.parse(stdout) as {
       input: Array<{ path: string }>;
@@ -128,10 +107,7 @@ describe("graphql analyze e2e (f8-graphql)", () => {
 
   it("AC-GQL.6 directory with only client fragments exits 2", async () => {
     const dir = tempDir();
-    copyFileSync(
-      join(gqlFixtures, "client-fragment.graphql"),
-      join(dir, "client.graphql"),
-    );
+    copyFileSync(join(gqlFixtures, "client-fragment.graphql"), join(dir, "client.graphql"));
     const { code, stderr } = await runCapture(["analyze", dir, "--no-color"]);
     expect(code).toBe(2);
     expect(stderr).toContain("no API specs found");

@@ -1,10 +1,10 @@
 # f8-drift · Drift spec↔código + generación de spec (determinista primero, LLM opcional)
 
-| Campo | Valor |
-|---|---|
-| Estado | cerrada |
-| Fecha | 2026-09-26 |
-| Fase | 8 (M8.3 del umbrella `f8-oss-differentials`) |
+| Campo     | Valor                                                                                                                                                                   |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Estado    | cerrada                                                                                                                                                                 |
+| Fecha     | 2026-09-26                                                                                                                                                              |
+| Fase      | 8 (M8.3 del umbrella `f8-oss-differentials`)                                                                                                                            |
 | Deriva de | `f8-oss-differentials` M8.3; `f8-suggest-fix` (adapter `llm.ts`, gates); parser `@apigovscan/openapi` (modelo `Spec`/`Operation`); FR-43 (redacción); INV-1/INV-2/INV-7 |
 
 ## 1. Objetivo / user story
@@ -41,16 +41,31 @@ Como equipo con código y spec desincronizados, quiero `apigovscan drift <dir> -
 
 ```ts
 // packages/cli/src/route-signatures.ts
-export interface DetectedRoute { method: string; path: string; file: string; framework: string }
+export interface DetectedRoute {
+  method: string;
+  path: string;
+  file: string;
+  framework: string;
+}
 export function detectRoutes(file: string, content: string): DetectedRoute[];
 export function normalizeRoutePath(path: string): string;
 // packages/cli/src/drift.ts
-export interface DriftReport { missing: Endpoint[]; removed: Endpoint[]; changed: EndpointChange[]; shapeNotes: ShapeNote[] }
-export function compareEndpoints(specOps: Array<{ method: string; path: string }>, codeRoutes: DetectedRoute[]): DriftReport;
+export interface DriftReport {
+  missing: Endpoint[];
+  removed: Endpoint[];
+  changed: EndpointChange[];
+  shapeNotes: ShapeNote[];
+}
+export function compareEndpoints(
+  specOps: Array<{ method: string; path: string }>,
+  codeRoutes: DetectedRoute[],
+): DriftReport;
 export function buildSpecSkeleton(routes: DetectedRoute[], sourceLabel: string): string; // YAML openapi 3.1.0
 export function buildSweepMessages(files: string[]): ChatMessage[];
 export function parseSweepResponse(text: string): DetectedRoute[]; // tolerante, con confidence>=low
-export function buildShapeMessages(pairs: Array<{ op: string; specFragment: string; codeFragment: string }>): ChatMessage[];
+export function buildShapeMessages(
+  pairs: Array<{ op: string; specFragment: string; codeFragment: string }>,
+): ChatMessage[];
 ```
 
 - Exit codes: drift → `0` sin drift / `1` con drift / `2` errores; generación → `0` archivo escrito / `2` errores.
@@ -84,12 +99,12 @@ export function buildShapeMessages(pairs: Array<{ op: string; specFragment: stri
 
 ## 7. Riesgos y decisiones abiertas
 
-| Tema | Decisión v1 |
-|---|---|
-| Frameworks no listados | Catálogo + sweep LLM con confidence; honesto, revisable. |
+| Tema                      | Decisión v1                                                           |
+| ------------------------- | --------------------------------------------------------------------- |
+| Frameworks no listados    | Catálogo + sweep LLM con confidence; honesto, revisable.              |
 | Handler files para shapes | Fragmento acotado alrededor de la firma detectada; truncado con nota. |
-| Specs inválidos en drift | Exit 2 con el error del parser (no se inventa nada). |
-| Directorio gigante | Límite de archivos/tamaño con nota; determinista (sort). |
+| Specs inválidos en drift  | Exit 2 con el error del parser (no se inventa nada).                  |
+| Directorio gigante        | Límite de archivos/tamaño con nota; determinista (sort).              |
 
 ## Changelog
 

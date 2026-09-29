@@ -1,11 +1,11 @@
 # f2-baseline · Baseline de deuda existente
 
-| Campo | Valor |
-|---|---|
-| Estado | cerrada |
-| Fase | 2 |
+| Campo     | Valor                                                                                                     |
+| --------- | --------------------------------------------------------------------------------------------------------- |
+| Estado    | cerrada                                                                                                   |
+| Fase      | 2                                                                                                         |
 | Deriva de | SDD FR-20…FR-22, doc 03 §10, escenario S2; specs `f1-engine` (fingerprints), `f1-analyze`, `f1-reporters` |
-| Roadmap | Fase 2 — Criterio de salida: solo falla lo nuevo |
+| Roadmap   | Fase 2 — Criterio de salida: solo falla lo nuevo                                                          |
 
 ## 1. Objetivo
 
@@ -49,9 +49,7 @@ Como **tech lead** de un proyecto con deuda, quiero congelar los findings actual
   "tool": { "name": "apigovscan", "version": "0.1.0" },
   "engineVersion": "1.0.0",
   "packs": [{ "id": "elite", "version": "2026.09.1" }],
-  "inputs": [
-    { "path": "specs/payments.yaml", "sha256": "sha256:9f3a…" }
-  ],
+  "inputs": [{ "path": "specs/payments.yaml", "sha256": "sha256:9f3a…" }],
   "fingerprints": ["…", "…"],
   "counts": { "error": 2, "warning": 14, "info": 3, "total": 19 }
 }
@@ -64,13 +62,13 @@ Como **tech lead** de un proyecto con deuda, quiero congelar los findings actual
 
 ### Flags analyze
 
-| Flag | Significado |
-|---|---|
-| `--write-baseline` | Evalúa, escribe baseline con todos los findings del run actual, **no** escribe reporte por defecto (o escribe igual? → decisión abajo) |
-| `--baseline` | Carga baseline y filtra findings cuyo fingerprint ∈ set |
-| `--baseline-path <file>` | Ruta custom (default `.apigovscan/baseline.json`) |
-| `--force` | Con `--write-baseline`, pisa sin backup |
-| `--strict-hash` | `inputHash` mismatch ⇒ exit 2 |
+| Flag                     | Significado                                                                                                                                                    |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--write-baseline`       | Evalúa, escribe baseline con todos los findings del run actual, **no** escribe reporte por defecto (o escribe igual? → decisión abajo)                         |
+| `--baseline`             | Carga baseline y filtra findings cuyo fingerprint ∈ set                                                                                                        |
+| `--baseline-path <file>` | Ruta custom (default `.apigovscan/baseline.json`)                                                                                                              |
+| `--force`                | Con `--write-baseline`, pisa sin backup                                                                                                                        |
+| `--strict-hash`          | `inputHash` mismatch ⇒ exit 2                                                                                                                                  |
 | `--baseline-ignore-hash` | No warning ni falla por hash mismatch (equivale default no-strict con silencio? → **decisión:** default = warning; ignore-hash = sin warning; strict = exit 2) |
 
 **Decisión `--write-baseline` + report:** el reporte **sí** se emite igual (console/json) además de escribir baseline; exit code calculado **antes** de escribir o con los findings completos (sin filtrar — no hay baseline read en ese run). Motivo: el dev ve qué se congeló.
@@ -119,9 +117,9 @@ Flags > config.
 
 ### Exit codes (aditivo a f1)
 
-| Código | Condición nueva |
-|---|---|
-| 2 | baseline missing con enabled, version desconocida, force needed, strict-hash mismatch, parse invalid JSON |
+| Código | Condición nueva                                                                                           |
+| ------ | --------------------------------------------------------------------------------------------------------- |
+| 2      | baseline missing con enabled, version desconocida, force needed, strict-hash mismatch, parse invalid JSON |
 
 `failOn` se evalúa **solo sobre findings no filtrados** (FR-22).
 
@@ -142,15 +140,15 @@ Flags > config.
 
 ## 5. Test plan
 
-| Caso | Tipo |
-|---|---|
-| write → read filter roundtrip | e2e |
-| force / bak / missing | e2e |
-| strict-hash / ignore-hash | e2e + unit |
+| Caso                            | Tipo                 |
+| ------------------------------- | -------------------- |
+| write → read filter roundtrip   | e2e                  |
+| force / bak / missing           | e2e                  |
+| strict-hash / ignore-hash       | e2e + unit           |
 | suppressed en summary + console | unit reporters + e2e |
-| determinism fingerprints sort | unit |
-| multi-input directory | e2e |
-| INV-7 no extra writes | invariants o unit fs |
+| determinism fingerprints sort   | unit                 |
+| multi-input directory           | e2e                  |
+| INV-7 no extra writes           | invariants o unit fs |
 
 ## 6. Dependencias
 
@@ -161,12 +159,12 @@ Flags > config.
 
 ## 7. Riesgos y decisiones abiertas
 
-| Tema | Decisión |
-|---|---|
-| reportHash incluye suppressed | Sí (va en summary canónica) |
-| write emite reporte también | Sí |
-| multi-spec | Un baseline multi-input; warnings por drift de path set |
-| backup behavior | `.bak` con `--force` si existía |
+| Tema                                     | Decisión                                                                                                            |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| reportHash incluye suppressed            | Sí (va en summary canónica)                                                                                         |
+| write emite reporte también              | Sí                                                                                                                  |
+| multi-spec                               | Un baseline multi-input; warnings por drift de path set                                                             |
+| backup behavior                          | `.bak` con `--force` si existía                                                                                     |
 | fingerprint after message change en pack | Igual que learn: fingerprint no incluye severity ni pack version (f1); messages mayores = breaking pack documentado |
 
 ## Changelog

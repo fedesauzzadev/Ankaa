@@ -1,8 +1,8 @@
 # Plan · f8-elite-100 · Pack elite 88 (M8.5 · cierre 2026-09-27; objetivo original 100+, techo honesto sin engine nuevo)
 
-| Campo | Valor |
-|---|---|
-| Specs | f8-elite-100 |
+| Campo        | Valor                                               |
+| ------------ | --------------------------------------------------- |
+| Specs        | f8-elite-100                                        |
 | Dependencias | f1-elite-pack cerrado (contrato, allowlist aditiva) |
 
 ## M8.5 — Curación + tests + medición

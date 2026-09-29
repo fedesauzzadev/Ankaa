@@ -76,9 +76,7 @@ describe("parseProto (f8-grpc)", () => {
     const parsed = parseProto(readFixture("pet.proto"), { sourceLabel: "pet.proto" });
     expect(parsed.ok).toBe(true);
     if (!parsed.ok) return;
-    expect(parsed.spec.parseWarnings.map((w) => w.code)).toContain(
-      "proto-unresolved-refs",
-    );
+    expect(parsed.spec.parseWarnings.map((w) => w.code)).toContain("proto-unresolved-refs");
   });
 
   it("AC-GR.3 rejects invalid proto with line info", () => {
@@ -93,7 +91,7 @@ describe("parseProto (f8-grpc)", () => {
   });
 
   it("AC-GR.3 accepts size limits", () => {
-    const parsed = parseProto("syntax = \"proto3\";", {
+    const parsed = parseProto('syntax = "proto3";', {
       sourceLabel: "tiny.proto",
       limits: { maxBytes: 5 },
     });

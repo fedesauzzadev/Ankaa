@@ -27,9 +27,7 @@ export function formatAnnotations(report: Report): string {
       properties.push(`file=${escapeProperty(uri)}`);
     }
     properties.push(`title=${escapeProperty(finding.ruleId)}`);
-    lines.push(
-      `::${command} ${properties.join(",")}::${escapeData(redactText(finding.message))}`,
-    );
+    lines.push(`::${command} ${properties.join(",")}::${escapeData(redactText(finding.message))}`);
   }
   return lines.length > 0 ? `${lines.join("\n")}\n` : "";
 }

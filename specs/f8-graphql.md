@@ -1,10 +1,10 @@
 # f8-graphql · Soporte GraphQL SDL en el plano de governance (M8.6, protocolo 1)
 
-| Campo | Valor |
-|---|---|
-| Estado | cerrada |
-| Fecha | 2026-09-27 |
-| Fase | 8 (M8.6 del umbrella `f8-oss-differentials`: GraphQL → gRPC → AsyncAPI → webhooks) |
+| Campo     | Valor                                                                                                                                |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Estado    | cerrada                                                                                                                              |
+| Fecha     | 2026-09-27                                                                                                                           |
+| Fase      | 8 (M8.6 del umbrella `f8-oss-differentials`: GraphQL → gRPC → AsyncAPI → webhooks)                                                   |
 | Deriva de | `f8-oss-differentials` M8.6; `f1-openapi` (patrón parser → `Spec`); `f1-engine` (sin cambios); `f1-elite-pack` (taxonomía, curación) |
 
 ## 1. Objetivo / user story
@@ -45,7 +45,10 @@ Como responsable de plataforma con APIs REST **y** GraphQL quiero `apigovscan an
 ```ts
 // packages/graphql/src/parse.ts (puro)
 import type { Spec } from "@apigovscan/core";
-export interface GraphQLParseOptions { sourceLabel: string; limits?: Partial<ParseLimits> }
+export interface GraphQLParseOptions {
+  sourceLabel: string;
+  limits?: Partial<ParseLimits>;
+}
 export type ParseResult = { ok: true; spec: Spec } | { ok: false; errors: ParseError[] };
 // parseGraphQL(input: string | Uint8Array, opts): ParseResult
 // packages/graphql/src/index.ts: export { parseGraphQL, ... }; GRAPHQL_PACKAGE id.
@@ -75,12 +78,12 @@ Unit adapter + pack + e2e CLI + boundary + invariantes (patrón umbrella §5; st
 
 ## 7. Riesgos y decisiones abiertas
 
-| Tema | Decisión v1 |
-|---|---|
-| Reglas GraphQL que piden átomos nuevos (verbo en mutations, Relay pagination, cost analysis) | Fuera de M8.6; backlog para milestone con spec `f1-engine`. Calidad sobre conteo (doctrina M8.5). |
-| Introspection JSON | Fuera slice 1; SDL es lo que se commitea y audita. |
-| Fragments de cliente en repos | Discovery solo por nombre `schema.*`; parse sin roots = warning, no error. |
-| `method` no-HTTP en engine | Atoms HTTP (`responsePresent 200` etc.) simplemente no disparan en specs GraphQL; el pack graphql solo usa átomos con semántica válida en el mapeo §2. |
+| Tema                                                                                         | Decisión v1                                                                                                                                            |
+| -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Reglas GraphQL que piden átomos nuevos (verbo en mutations, Relay pagination, cost analysis) | Fuera de M8.6; backlog para milestone con spec `f1-engine`. Calidad sobre conteo (doctrina M8.5).                                                      |
+| Introspection JSON                                                                           | Fuera slice 1; SDL es lo que se commitea y audita.                                                                                                     |
+| Fragments de cliente en repos                                                                | Discovery solo por nombre `schema.*`; parse sin roots = warning, no error.                                                                             |
+| `method` no-HTTP en engine                                                                   | Atoms HTTP (`responsePresent 200` etc.) simplemente no disparan en specs GraphQL; el pack graphql solo usa átomos con semántica válida en el mapeo §2. |
 
 ## Changelog
 

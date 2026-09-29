@@ -255,8 +255,7 @@ function mergeScopes(scopes: Scope[]): Scope {
   return "operation";
 }
 
-const UNSAFE_NESTED_QUANTIFIER =
-  /\([^)]*[+*][^)]*\)\s*[+*]/;
+const UNSAFE_NESTED_QUANTIFIER = /\([^)]*[+*][^)]*\)\s*[+*]/;
 
 export function findUnsafePatterns(m: Matcher, issues: string[]): void {
   if ("all" in m) {
@@ -271,16 +270,13 @@ export function findUnsafePatterns(m: Matcher, issues: string[]): void {
     findUnsafePatterns(m.not, issues);
     return;
   }
-  const pattern =
-    "pattern" in m ? m.pattern : undefined;
+  const pattern = "pattern" in m ? m.pattern : undefined;
   if (pattern !== undefined) {
     if (pattern.length > 200) {
       issues.push(`pattern length ${pattern.length} exceeds 200`);
     }
     if (UNSAFE_NESTED_QUANTIFIER.test(pattern)) {
-      issues.push(
-        `UNSAFE_PATTERN: nested quantifier in ${pattern.slice(0, 40)}`,
-      );
+      issues.push(`UNSAFE_PATTERN: nested quantifier in ${pattern.slice(0, 40)}`);
     }
     try {
       new RegExp(pattern);
@@ -290,14 +286,9 @@ export function findUnsafePatterns(m: Matcher, issues: string[]): void {
   }
 }
 
-export type ValidateRuleResult =
-  | { ok: true; rule: Rule }
-  | { ok: false; issues: string[] };
+export type ValidateRuleResult = { ok: true; rule: Rule } | { ok: false; issues: string[] };
 
-export function validateRule(
-  raw: unknown,
-  opts?: { strictSource?: boolean },
-): ValidateRuleResult {
+export function validateRule(raw: unknown, opts?: { strictSource?: boolean }): ValidateRuleResult {
   const parsed = ruleSchema.safeParse(raw);
   if (!parsed.success) {
     const issues = parsed.error.issues.map((i) => {
