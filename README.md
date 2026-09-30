@@ -99,8 +99,12 @@ La key comunitaria es pública y verificable offline (no permite forjar otras ke
 | `ankaa rules explain <ruleId> [--rules <file>]` | Muestra mensaje, fix, fuente y URL de una regla (`PREFIX-NNN`)                                                                                                                                                                                                                                                                                                |
 | `ankaa learn --report <r> --feedback <f>`       | Aplica feedback a `.ankaa/skills` (idempotente, INV-5)                                                                                                                                                                                                                                                                                                   |
 | `ankaa skills list [--format json]`             | Enumera suppressions, overrides y drafts                                                                                                                                                                                                                                                                                                                      |
+| `ankaa skills stats --report <r> [--feedback <f>] [--tracking <t>]` | FP report local por regla desde feedback de learn + tracking del dashboard (informativo, no muta nada; spec `f8-fp-budget`)                                                                                                                              |
+| `ankaa migrate --redocly-ignore\|--vacuum-ignore <file> --spec <path>` | Importa ignore-files ajenos como suppressions con fingerprint en `.ankaa/skills/migrated/` (spec `f17-migration-kit`)                                                                                                                                    |
 | `ankaa skills promote <draftId>`                | Activa un draft (`draft: false`)                                                                                                                                                                                                                                                                                                                              |
 | `ankaa license [--key <AGS-...>]`               | Valida la license key (customer + expiry)                                                                                                                                                                                                                                                                                                                     |
+| `ankaa certify --report <r> --key <priv.pem>`   | Firma el reporte (ed25519 detached) y emite una atestación v1 (`--gen-keys` genera el par de claves)                                                                                                                                                                                                                                                          |
+| `ankaa verify --report <r> --attestation <a.json> --key <pub.pem>` | Verifica que los bytes del reporte no cambiaron y la firma corresponde; exit 0/1/2; sin licencia (es el lado consumidor, p. ej. CI)                                                                                                                                                |
 | `ankaa fix <path> [--fingerprint <fp>]`         | Propone diffs unificados para findings con tu propio LLM (opcional; ver abajo)                                                                                                                                                                                                                                                                                |
 | `ankaa drift <dir> [--spec <file>]`             | Detecta drift spec↔código y genera borradores (ver abajo)                                                                                                                                                                                                                                                                                                     |
 | `ankaa review <base> <candidate>`               | Combina governance del candidato y cambios incompatibles OpenAPI/Swagger en una revisión local JSON o legible                                                                                                                                                                                                                                                 |
@@ -285,6 +289,27 @@ Flags útiles de `analyze`: `--format console|json|sarif|markdown|annotations`, 
 
 Exit codes: `0` ok · `1` findings ≥ `failOn` · `2` usage/parse/config/rule/baseline error.
 
+### Attestations firmadas (f8-certify)
+
+Evidencia verificable de que un reporte (y su score/packs) no cambió después de
+generado — pensado para CI que consume reportes de agentes o de personas:
+
+```bash
+# El consumidor genera el par y pinea la pública en el repo (una vez)
+ankaa certify --gen-keys --private-out ankaa-priv.pem --public-out ankaa-pub.pem
+
+# El productor firma (offline, ed25519 detached sobre los bytes crudos)
+ankaa analyze ./openapi.yaml --format json --output report.json
+ankaa certify --report report.json --key ankaa-priv.pem --out report.attestation.json
+
+# El CI verifica (sin licencia): 0 válido · 1 manipulado/clave cruzada · 2 error operacional
+ankaa verify --report report.json --attestation report.attestation.json --key ankaa-pub.pem
+```
+
+Atestaciones deterministas (mismos bytes + misma clave ⇒ atestación
+byte-idéntica); firma sobre bytes crudos: si el archivo se reformatea, `verify`
+falla — por diseño. Spec: [`specs/f8-certify.md`](specs/f8-certify.md).
+
 ### Baseline (gate "solo lo nuevo")
 
 ```bash
@@ -340,6 +365,28 @@ ankaa skills promote TEAM-001   # draft → activa
 
 - `learn` es **idempotente**: dos corridas con el mismo input dejan los YAML byte-idénticos.
 - `--dry-run` imprime el plan sin escribir (INV-7).
+
+Medí el ruido de tus reglas con ese feedback (sin telemetría, sin mutar nada):
+
+```bash
+ankaa skills stats --report report.json --feedback feedback.json --tracking report.json.tracking.json
+# FP rate por regla; sample >= 10 y rate > 30% (flags --min-sample/--fp-threshold) marca la regla `noisy`
+```
+
+### Migración desde Redocly / vacuum (f17-migration-kit)
+
+Trae tus excepciones acumuladas sin empezar de cero — las suppressions
+resultantes son por **fingerprint** (sobreviven refactors) y viven en
+`.ankaa/skills/migrated/`, versionadas en git:
+
+```bash
+ankaa migrate --redocly-ignore .redocly.lint-ignore.yaml --spec openapi.yaml
+ankaa migrate --vacuum-ignore ignore.yaml --spec openapi.yaml --dry-run
+```
+
+Matching por location: el ruleId de origen queda registrado en el `reason`,
+nunca se interpreta; entradas sin match se listan con motivo. Idempotente y
+100% offline. Spec: [`specs/f17-migration-kit.md`](specs/f17-migration-kit.md).
 
 ### Config `ankaa.yaml`
 

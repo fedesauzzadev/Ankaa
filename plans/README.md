@@ -27,6 +27,10 @@ Planes de implementación derivados de los [specs](../specs/README.md). Un plan 
 | [f10-export](f10-export.md)                   | Export enterprise sin red propia (M7.4, F7)                     | f10-export          |
 | [f14-agent-api-gate](f14-agent-api-gate.md)   | Revisor local de cambios API para personas/agentes (M14)        | f14-agent-api-gate  |
 | [f15-local-workspace](f15-local-workspace.md) | Workspace local guiado, historial y `scan-org` reanudable (M15) | f15-local-workspace |
+| [f8-fp-budget](f8-fp-budget.md)               | FP report por regla desde feedback local (M17.1, backlog f17)   | f8-fp-budget        |
+| [f8-certify](f8-certify.md)                   | Attestations ed25519 certify/verify (M17.2, backlog f17)        | f8-certify          |
+| [f17-migration-kit](f17-migration-kit.md)     | Migrar excepciones redocly/vacuum → skills/migrated (M17.3)     | f17-migration-kit   |
+| [f17-diferenciales](f17-diferenciales.md)     | Backlog T1–T3 de diferenciales competitivos (specs en draft)    | f17-* + drafts f8/f13 |
 
 ## Convención
 

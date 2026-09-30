@@ -347,6 +347,33 @@ function loadActiveDrafts(
   return { ok: true, rules };
 }
 
+function loadMigratedSuppressions(
+  skillsDir: string,
+): { ok: true; entries: SuppressionEntry[] } | { ok: false; error: string } {
+  const dir = join(skillsDir, "migrated");
+  if (!existsSync(dir)) {
+    return { ok: true, entries: [] };
+  }
+  let names: string[];
+  try {
+    names = readdirSync(dir)
+      .filter((n) => n.endsWith(".yaml") || n.endsWith(".yml") || n.endsWith(".json"))
+      .sort();
+  } catch (err) {
+    return {
+      ok: false,
+      error: `skills ${dir}: ${err instanceof Error ? err.message : String(err)}`,
+    };
+  }
+  const entries: SuppressionEntry[] = [];
+  for (const name of names) {
+    const loaded = loadSuppressions(join(dir, name));
+    if (!loaded.ok) return loaded;
+    entries.push(...loaded.entries);
+  }
+  return { ok: true, entries };
+}
+
 export function loadSkills(skillsDir: string, toolVersion: string): LoadSkillsResult {
   if (!existsSync(skillsDir)) {
     return { ok: true, skills: EMPTY_SKILLS };
@@ -359,6 +386,9 @@ export function loadSkills(skillsDir: string, toolVersion: string): LoadSkillsRe
   const sup = loadSuppressions(supPath);
   if (!sup.ok) return sup;
 
+  const migrated = loadMigratedSuppressions(skillsDir);
+  if (!migrated.ok) return migrated;
+
   const sev = loadSeverities(sevPath);
   if (!sev.ok) return sev;
 
@@ -369,7 +399,7 @@ export function loadSkills(skillsDir: string, toolVersion: string): LoadSkillsRe
   return {
     ok: true,
     skills: {
-      suppressions: sup.entries,
+      suppressions: [...sup.entries, ...migrated.entries],
       severities: sev.entries,
       activeDraftRules: drafts.rules,
     },
@@ -495,6 +525,13 @@ export interface SkillsInventory {
   suppressions: SuppressionEntry[];
   severities: SeverityOverride[];
   drafts: DraftListEntry[];
+  migrated: SuppressionEntry[];
+}
+
+function suppressionDisplayKey(entry: SuppressionEntry): string {
+  if (entry.fingerprint !== undefined) return `fp:${entry.fingerprint}`;
+  const m = entry.match!;
+  return `m:${m.ruleId}|${m.apiPath ?? ""}`;
 }
 
 export function listSkills(
@@ -503,6 +540,14 @@ export function listSkills(
 ): { ok: true; inventory: SkillsInventory } | { ok: false; error: string } {
   const loaded = loadSkills(skillsDir, toolVersion);
   if (!loaded.ok) return loaded;
+
+  const migrated = loadMigratedSuppressions(skillsDir);
+  if (!migrated.ok) return migrated;
+
+  const migratedKeys = new Set(migrated.entries.map(suppressionDisplayKey));
+  const ownSuppressions = loaded.skills.suppressions.filter(
+    (s) => !migratedKeys.has(suppressionDisplayKey(s)),
+  );
 
   const drafts: DraftListEntry[] = [];
   const draftsDir = join(skillsDir, "drafts");
@@ -539,9 +584,10 @@ export function listSkills(
   return {
     ok: true,
     inventory: {
-      suppressions: loaded.skills.suppressions,
+      suppressions: ownSuppressions,
       severities: loaded.skills.severities,
       drafts,
+      migrated: migrated.entries,
     },
   };
 }

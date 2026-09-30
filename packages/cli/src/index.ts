@@ -120,6 +120,7 @@ import {
 import { applySkillSuppressions, listSkills, promoteDraft } from "./skills.js";
 import { runSkillsStatsCommand } from "./fp-stats.js";
 import { runCertifyCommand, runVerifyCommand } from "./certify.js";
+import { runMigrateCommand } from "./migrate.js";
 import {
   buildLearnPatch,
   loadExistingSeverities,
@@ -169,6 +170,7 @@ export function getHelp(): string {
     "  ankaa rules export [--as agents-md|prompts-json] [--out <file>]",
     "  ankaa learn --report <r.json> --feedback <f.json> [options]",
     "  ankaa suppress --report <r.json> --fingerprint <fp> --decision <d> [--reason ...]",
+    "  ankaa migrate --redocly-ignore|--vacuum-ignore <file> --spec <path> [--dry-run]",
     "  ankaa skills list [--format json]",
     "  ankaa skills promote <draftId>",
     "  ankaa skills stats --report <r.json> [--feedback <f.json>] [--tracking <t.json>]",
@@ -1530,7 +1532,7 @@ function runSkillsCommand(
       io.stderr(`error: ${listed.error}\n`);
       return 2;
     }
-    const { suppressions, severities, drafts } = listed.inventory;
+    const { suppressions, severities, drafts, migrated } = listed.inventory;
     const activeDrafts = drafts.filter((d) => !d.draft);
     const pendingDrafts = drafts.filter((d) => d.draft);
 
@@ -1541,6 +1543,7 @@ function runSkillsCommand(
             skillsDir,
             suppressions,
             severities,
+            migrated,
             drafts: drafts.map((d) => ({
               id: d.id,
               draft: d.draft,
@@ -1572,6 +1575,14 @@ function runSkillsCommand(
     lines.push(`overrides: ${severities.length}`);
     for (const o of severities) {
       lines.push(`  ${o.ruleId} → ${o.severity}`);
+    }
+    if (migrated.length > 0) {
+      lines.push(`migrated: ${migrated.length}`);
+      for (const m of migrated) {
+        if (m.fingerprint !== undefined) {
+          lines.push(`  fp ${m.fingerprint.slice(0, 12)}…  ${m.reason}`);
+        }
+      }
     }
     lines.push(`drafts:`);
     if (drafts.length === 0) {
@@ -3635,6 +3646,15 @@ export async function run(argv: readonly string[], io?: RunIO): Promise<number> 
       stderr,
       env,
       cwd,
+    });
+  }
+  if (first === "migrate") {
+    return runMigrateCommand(args.slice(1), {
+      stdout,
+      stderr,
+      env,
+      cwd,
+      readStdin,
     });
   }
   if (first === "verify") {

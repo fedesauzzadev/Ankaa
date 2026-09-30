@@ -44,8 +44,8 @@ Especificaciones **spec-driven** derivadas del [SDD v1.0](../docs/SDD.md). El SD
 | [f8-scan-org](f8-scan-org.md)                   | 8    | M8.4: informe consolidado multi-repo (batch)                                         | cerrada      |
 | [f8-scan-repo](f8-scan-repo.md)                 | 8    | M8.11: analizar un repo Git individual por HTTPS/SSH                                 | cerrada      |
 | [f8-spectral-import](f8-spectral-import.md)     | 8    | Transpilar un subconjunto offline del ruleset Spectral (ADR-014)                     | draft        |
-| [f8-certify](f8-certify.md)                     | 8    | Verificación de integridad/autenticidad para reportes                                | draft        |
-| [f8-fp-budget](f8-fp-budget.md)                 | 8    | Medir feedback falso positivo por regla sin telemetría ni mutación                   | draft        |
+| [f8-certify](f8-certify.md)                     | 8    | Verificación de integridad/autenticidad para reportes                | implementada |
+| [f8-fp-budget](f8-fp-budget.md)                 | 8    | Medir feedback falso positivo por regla sin telemetría ni mutación                | implementada |
 | [f8-elite-100](f8-elite-100.md)                 | 8    | M8.5: pack elite 65 → 88 reglas curadas (cierre honesto)                             | cerrada      |
 | [f8-graphql](f8-graphql.md)                     | 8    | M8.6: GraphQL SDL — adapter + pack 8 reglas (protocolo 1 de 4)                       | cerrada      |
 | [f8-grpc](f8-grpc.md)                           | 8    | M8.7: proto/gRPC — parser propio + pack 7 reglas (protocolo 2 de 4)                  | cerrada      |
@@ -62,6 +62,11 @@ Especificaciones **spec-driven** derivadas del [SDD v1.0](../docs/SDD.md). El SD
 | [f15-local-workspace](f15-local-workspace.md)   | 15   | Workspace local guiado con historial, comparación y reanudación                      | cerrada      |
 | [f16-ankaa-rebrand](f16-ankaa-rebrand.md)       | 16   | Rebranding ApiGovScan → Ankaa (big-bang pre-publicación, sin alias legacy)            | implementada |
 | [f16-ankaa-rebrand](f16-ankaa-rebrand.md)       | 16   | Rebranding ApiGovScan → Ankaa (big-bang, pre-publicación)                            | ready       |
+| [f17-migration-kit](f17-migration-kit.md)       | 17   | Migración desde Spectral/Redocly/vacuum: reglas + excepciones → skills               | implementada |
+| [f17-compliance-pack](f17-compliance-pack.md)   | 17   | Evidencia compliance offline: PII + mapeo finding→control (OWASP/GDPR) en export     | draft       |
+| [f17-ratchet](f17-ratchet.md)                   | 17   | Gate de deuda neta no creciente + burn-down en scan-org/dashboard                    | draft       |
+| [f17-ci-reporters](f17-ci-reporters.md)         | 17   | Reporters junit/checkstyle/codequality + recetas GitLab/Azure/Jenkins                | draft       |
+| [f17-lsp](f17-lsp.md)                           | 17   | `ankaa lsp`: server LSP para feedback en editor con el mismo engine                  | draft       |
 
 ## Orden de implementación sugerido
 
@@ -84,6 +89,7 @@ f0-foundation
 - **Fase 6 (re-priorizada 2026-09-26)** = producto **privado instalable**: `f6-score` + `f6-distribution` — **cerradas en `v0.6.0-private`**.
 - **Fase 7** = todo lo pendiente consolidado en `f7-enterprise` (estado `draft`): packs por cliente, self-host compose completo, edge Cloudflare (opcional). Se abre cuando se arranque.
 - **Fases 8+** = specs futuros — se abren cuando la fase anterior esté cerrada.
+- **Fase 17** = backlog de diferenciales competitivos ([plan f17](../plans/f17-diferenciales.md)): specs `f17-*` + drafts existentes `f8-certify`, `f8-fp-budget`, `f8-spectral-import`, `f13-mini-validator`. Todas en `draft`, pendientes de las decisiones del dueño anotadas en el plan.
 
 ## Plantilla de spec (para futuras)
 
