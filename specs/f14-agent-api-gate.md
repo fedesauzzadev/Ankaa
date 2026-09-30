@@ -184,9 +184,9 @@ type ApiChangeReview = ApiChangeReviewSuccess | ApiChangeReviewError;
       evidencia, causa y siguiente acción sin depender solo de color.
 - [x] **AC-14.6** JSON contiene ambos hashes/formatos, versiones, policy/packs,
       comparabilidad, resumen y findings, con schema versionado.
-- [ ] **AC-14.7** `review_api_change` MCP acepta solo paths dentro del sandbox,
+- [x] **AC-14.7** `review_api_change` MCP acepta solo paths dentro del sandbox,
       ejecuta el mismo evaluador que CLI y declara truncación/total/hash.
-- [ ] **AC-14.8** MCP/CLI reevalúan al invocarse; nunca informan resultado
+- [x] **AC-14.8** MCP/CLI reevalúan al invocarse; nunca informan resultado
       anterior como vigente. No escriben salvo salida explícita.
 - [ ] **AC-14.9** La Action/CI usa el mismo evaluador sobre el candidato final,
       y la documentación diferencia el check publicado de configurarlo como
@@ -249,3 +249,6 @@ antes de una comunicación de lanzamiento; no bloquean construir el producto.
 - 2026-09-30 · M14.1 cerrado: evaluador compartido `reviewUseCase` + tipos
   `ApiChangeReview` (packages/cli/src/review.ts); el CLI consume el mismo
   evaluador sin sub-comandos ni roundtrips JSON, listo para MCP (M14.2).
+- 2026-09-30 · M14.2 implementado: tool MCP `review_api_change` sandboxed con
+  truncación declarada (`totalFindings`/`truncated`/`reportHash`), findings
+  proyectados accionables y paridad CLI↔MCP verificada por tests (AC-14.7/14.8).

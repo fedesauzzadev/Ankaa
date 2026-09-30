@@ -56,4 +56,58 @@ export interface McpToolHandlers {
   validateCustomRules(input: { files: string[] }): Promise<ToolResult>;
   explainFinding(input: { reportPath: string; fingerprint: string }): Promise<ToolResult>;
   suggestFix(input: { reportPath: string; fingerprint: string }): Promise<ToolResult>;
+  reviewApiChange(input: {
+    baselinePath: string;
+    candidatePath: string;
+    failOn?: string;
+  }): Promise<ToolResult>;
+}
+
+export interface ReviewApiChangePayload {
+  ok: boolean;
+  error?: string;
+  schemaVersion?: number;
+  outcome?: "clean" | "findings" | "error";
+  baseline?: { path: string; sha256?: string; format: string };
+  candidate?: { path: string; sha256?: string; format: string };
+  comparison?: { supported: boolean; reason?: string; format?: string };
+  policy?: { failOn: string };
+  toolVersion?: string;
+  packs?: Array<{ id: string; version: string }>;
+  summary?: {
+    error: number;
+    warning: number;
+    info: number;
+    total: number;
+  };
+  gate?: { failOn: string; failed: boolean };
+  reportHash?: string;
+  findings?: Array<Record<string, unknown>>;
+  totalFindings?: number;
+  truncated?: boolean;
+  note?: string;
+  errors?: Array<{ code: string; message: string }>;
+}
+
+export function truncateReviewPayload(
+  payload: ReviewApiChangePayload,
+  maxFindings: number = DEFAULT_MAX_FINDINGS,
+): ReviewApiChangePayload {
+  if (payload.ok !== true || !Array.isArray(payload.findings)) {
+    return payload;
+  }
+  const total = payload.totalFindings ?? payload.findings.length;
+  if (payload.findings.length <= maxFindings && payload.truncated !== true) {
+    return {
+      ...payload,
+      totalFindings: total,
+    };
+  }
+  return {
+    ...payload,
+    findings: payload.findings.slice(0, maxFindings),
+    totalFindings: total,
+    truncated: true,
+    note: "truncated: use CLI for the full review",
+  };
 }

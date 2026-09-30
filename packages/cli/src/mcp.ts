@@ -3,6 +3,7 @@ import { isAbsolute, resolve } from "node:path";
 import {
   explain,
   packageVersion,
+  type Finding,
   type Rule,
   type RuleExplanation,
   type Severity,
@@ -11,6 +12,8 @@ import type { Report } from "@apigovscan/reporters";
 import type { McpToolHandlers, ToolResult } from "@apigovscan/mcp";
 import type { FailOn } from "./args.js";
 import { analyzeUseCase } from "./analyze.js";
+import { prepareAnalysis } from "./analyze-setup.js";
+import { reviewUseCase } from "./review.js";
 import { loadConfig, resolveCustomRulePaths } from "./config.js";
 import { discoverSpecs } from "./discovery.js";
 import {
@@ -223,6 +226,107 @@ async function analyzeSpecHandler(
   });
 }
 
+function projectReviewFinding(finding: Finding): Record<string, unknown> {
+  return {
+    fingerprint: finding.fingerprint,
+    ruleId: finding.ruleId,
+    severity: finding.severity,
+    category: finding.category,
+    message: finding.message,
+    location: finding.location,
+    ...(finding.apiLocation !== undefined ? { apiLocation: finding.apiLocation } : {}),
+    ...(finding.fix !== undefined ? { fix: finding.fix } : {}),
+    ...(finding.source !== undefined ? { source: finding.source } : {}),
+    packId: finding.packId,
+  };
+}
+
+async function reviewApiChangeHandler(
+  cwd: string,
+  input: { baselinePath: string; candidatePath: string; failOn?: string },
+): Promise<ToolResult> {
+  for (const path of [input.baselinePath, input.candidatePath]) {
+    if (!existsSync(path)) {
+      return fail(`input not found: ${path}`);
+    }
+    if (statSync(path).isDirectory()) {
+      return fail(`review expects spec files, not directories: ${path}`);
+    }
+  }
+
+  const configResult = loadConfig(cwd, undefined);
+  if (!configResult.ok) {
+    return fail(configResult.error);
+  }
+  const config = configResult.config;
+  if (config.standards?.pack !== undefined && config.standards.pack !== "elite") {
+    return fail(
+      `unknown pack "${config.standards.pack}" (f1 ships only the embedded "elite" pack)`,
+    );
+  }
+  const failOn = (input.failOn ?? config.failOn ?? "error") as FailOn;
+
+  const prepared = prepareAnalysis(cwd, config, { rulesFiles: [], baselineMode: "off" });
+  if (!prepared.ok) {
+    return fail(prepared.error);
+  }
+
+  const evaluation = await reviewUseCase(
+    { loader: createFsSpecLoader(), packs: createFsPackRepository(cwd) },
+    {
+      cwd,
+      baselinePath: input.baselinePath,
+      candidatePath: input.candidatePath,
+      setup: prepared.setup,
+      failOn,
+      toolVersion: packageVersion(),
+    },
+  );
+
+  if (!evaluation.ok && !evaluation.comparisonUnsupported) {
+    return fail(evaluation.error);
+  }
+
+  if (!evaluation.ok) {
+    const review = evaluation.review;
+    return ok({
+      ok: true,
+      schemaVersion: review.schemaVersion,
+      outcome: review.outcome,
+      baseline: review.baseline,
+      candidate: review.candidate,
+      comparison: review.comparison,
+      policy: review.policy,
+      toolVersion: review.tool.version,
+      packs: review.packs,
+      summary: review.summary,
+      findings: review.findings.map(projectReviewFinding),
+      totalFindings: review.findings.length,
+      reportHash: review.reportHash,
+      errors: review.errors,
+      note: "comparison unsupported: candidate governance findings only; this is not a clean review",
+    });
+  }
+
+  const review = evaluation.review;
+  return ok({
+    ok: true,
+    schemaVersion: review.schemaVersion,
+    outcome: review.outcome,
+    baseline: review.baseline,
+    candidate: review.candidate,
+    comparison: review.comparison,
+    policy: review.policy,
+    toolVersion: review.tool.version,
+    packs: review.packs,
+    summary: review.summary,
+    findings: review.findings.map(projectReviewFinding),
+    totalFindings: review.findings.length,
+    reportHash: review.reportHash,
+    gate: { failOn, failed: evaluation.exitCode === 1 },
+  });
+}
+
 function listRulesPayload(
   elite: { id: string; version: string; rules: Rule[] },
   custom: Rule[],
@@ -289,6 +393,8 @@ function explanationPayload(explanation: RuleExplanation): unknown {
 export function createCliMcpHandlers(cwd: string): McpToolHandlers {
   return {
     analyzeSpec: (input) => analyzeSpecHandler(cwd, input),
+
+    reviewApiChange: (input) => reviewApiChangeHandler(cwd, input),
 
     async listRules(input) {
       try {

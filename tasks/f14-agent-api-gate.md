@@ -18,12 +18,12 @@ Plan: [f14-agent-api-review](../plans/f14-agent-api-gate.md)
 
 ## M14.2 — MCP para agentes
 
-- [ ] Añadir `review_api_change` con ambos paths dentro del sandbox.
-- [ ] Reutilizar el evaluador CLI; proyectar findings accionables con
+- [x] Añadir `review_api_change` con ambos paths dentro del sandbox.
+- [x] Reutilizar el evaluador CLI; proyectar findings accionables con
       fingerprint, regla, ubicación, evidencia, recomendación y source.
-- [ ] Añadir truncación explícita (`totalFindings`, `truncated`, `reportHash`) y
+- [x] Añadir truncación explícita (`totalFindings`, `truncated`, `reportHash`) y
       pruebas de path escape, error y paridad CLI.
-- [ ] Documentar que MCP da feedback; cada invocación revisa el estado actual y
+- [x] Documentar que MCP da feedback; cada invocación revisa el estado actual y
       el agente puede omitirlo.
 
 ## M14.3 — CI/Action

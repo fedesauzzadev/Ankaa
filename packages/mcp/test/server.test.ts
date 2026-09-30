@@ -18,6 +18,7 @@ function fakeHandlers(overrides?: Partial<McpToolHandlers>): McpToolHandlers {
     validateCustomRules: (input) => record("validate_custom_rules", input),
     explainFinding: (input) => record("explain_finding", input),
     suggestFix: (input) => record("suggest_fix", input),
+    reviewApiChange: (input) => record("review_api_change", input),
     ...overrides,
   };
 }
@@ -60,7 +61,7 @@ function parseToolText(result: unknown): Record<string, unknown> {
 }
 
 describe("createMcpServer (f4-mcp-server)", () => {
-  it("AC-SRV.1 lists FR-50 tools plus suggest_fix after initialize", async () => {
+  it("AC-SRV.1 lists FR-50 tools plus suggest_fix and review_api_change after initialize", async () => {
     const { client } = await connect(fakeHandlers());
     const tools = await client.listTools();
     const names = tools.tools.map((t) => t.name).sort();
@@ -69,6 +70,7 @@ describe("createMcpServer (f4-mcp-server)", () => {
       "explain_finding",
       "explain_rule",
       "list_rules",
+      "review_api_change",
       "suggest_fix",
       "validate_custom_rules",
     ]);

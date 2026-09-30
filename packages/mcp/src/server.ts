@@ -5,8 +5,10 @@ import { SandboxError, resolveSandboxPath } from "./sandbox.js";
 import {
   DEFAULT_MAX_FINDINGS,
   truncateAnalyzePayload,
+  truncateReviewPayload,
   type AnalyzeSpecPayload,
   type McpToolHandlers,
+  type ReviewApiChangePayload,
   type ToolResult,
 } from "./tools.js";
 
@@ -247,6 +249,46 @@ export function createMcpServer(
         });
         return textResult(result);
       } catch (err) {
+        return errorResult(err);
+      }
+    },
+  );
+
+  server.registerTool(
+    "review_api_change",
+    {
+      title: "Review an API change",
+      description:
+        "Run the same review as `apigovscan review <base> <candidate>`: candidate governance findings plus base-candidate compatibility findings, with a stable reportHash. Deterministic, no LLM, no network. Feedback only: you decide what to edit; CI is the final gate. Re-runs the current state on every call; output findings are truncated (see totalFindings/truncated) — use the CLI for the full review.",
+      inputSchema: {
+        baselinePath: z
+          .string()
+          .describe("Baseline contract path relative to the server cwd (sandboxed)"),
+        candidatePath: z
+          .string()
+          .describe("Candidate contract path relative to the server cwd (sandboxed)"),
+        failOn: z
+          .enum(["never", "error", "warning", "info"])
+          .optional()
+          .describe("Gate threshold reflected in payload.gate (default: config or error)"),
+      },
+    },
+    async (args) => {
+      try {
+        const baselinePath = resolveSandboxPath(cwd, args.baselinePath);
+        const candidatePath = resolveSandboxPath(cwd, args.candidatePath);
+        const result = await handlers.reviewApiChange({
+          baselinePath,
+          candidatePath,
+          ...(args.failOn !== undefined ? { failOn: args.failOn } : {}),
+        });
+        const truncated =
+          result.isError === true
+            ? undefined
+            : truncateReviewPayload(result.payload as ReviewApiChangePayload, maxFindings);
+        return textResult(result, truncated);
+      } catch (err) {
+        if (err instanceof SandboxError) return errorResult(err);
         return errorResult(err);
       }
     },

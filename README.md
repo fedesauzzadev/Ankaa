@@ -135,8 +135,8 @@ npx @apigovscan/cli mcp
 }
 ```
 
-Tools: `analyze_spec`, `list_rules`, `explain_rule`, `validate_custom_rules`, `explain_finding`, `suggest_fix`.  
-Paths rechazados si escapan del cwd; `analyze_spec` trunca findings (top 20) — el CLI da el reporte completo. Misma semántica que el CLI (FR-51); **0 red** (INV-1).
+Tools: `analyze_spec`, `list_rules`, `explain_rule`, `validate_custom_rules`, `explain_finding`, `suggest_fix`, `review_api_change`.  
+Paths rechazados si escapan del cwd; `analyze_spec` y `review_api_change` truncan findings (top 20, declaran `totalFindings`/`truncated`) — el CLI da el reporte completo. Misma semántica que el CLI (FR-51); **0 red** (INV-1). `review_api_change` corre la misma revisión que `apigovscan review` sobre el estado actual de los archivos: es feedback para el agente, no un gate.
 
 #### AI features (optional, f8)
 

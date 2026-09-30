@@ -8,8 +8,10 @@ export { SandboxError, resolveSandboxPath } from "./sandbox.js";
 export {
   DEFAULT_MAX_FINDINGS,
   truncateAnalyzePayload,
+  truncateReviewPayload,
   type AnalyzeSpecPayload,
   type McpToolHandlers,
+  type ReviewApiChangePayload,
   type ToolResult,
 } from "./tools.js";
 export { createMcpServer, startStdioServer, type CreateMcpServerOptions } from "./server.js";
