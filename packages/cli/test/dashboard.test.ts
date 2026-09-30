@@ -99,6 +99,13 @@ describe("dashboard helpers (f10-dashboard)", () => {
     expect(html).toContain("Copy fix command");
     expect(html).toContain("Copy suppress command");
   });
+
+  it("page shows coverage badge with legacy fallback (AC-CV.4)", () => {
+    const html = renderDashboardPage();
+    expect(html).toContain("· coverage ");
+    expect(html).toContain("typeof cov.pct");
+    expect(html).toContain("per-class breakdown");
+  });
 });
 
 describe("parseDashboardArgs", () => {

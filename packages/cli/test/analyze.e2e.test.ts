@@ -127,6 +127,37 @@ describe("analyze e2e (f1-analyze)", () => {
     expect(parsed!.score).toEqual({ value: 74, grade: "C" });
   });
 
+  it("AC-CV.5 --format json carries coherent governance coverage", async () => {
+    const { stdout } = await runCapture(["analyze", petstore, "--format", "json", "--no-color"]);
+    const parsed = extractJson(stdout) as {
+      coverage: {
+        total: number;
+        inspected: number;
+        pct: number;
+        byClass: Record<string, { total: number; inspected: number }>;
+      };
+      reportHash: string;
+    } | null;
+    expect(parsed).not.toBeNull();
+    const cov = parsed!.coverage;
+    expect(cov.total).toBeGreaterThan(0);
+    expect(cov.inspected).toBeLessThanOrEqual(cov.total);
+    expect(cov.pct).toBe(Math.round((100 * cov.inspected) / cov.total));
+    const classes = Object.keys(cov.byClass).sort();
+    expect(classes).toEqual(["doc", "operation", "parameter", "requestBody", "response", "schema"]);
+    let total = 0;
+    let inspected = 0;
+    for (const cls of classes) {
+      const node = cov.byClass[cls]!;
+      expect(node.inspected).toBeLessThanOrEqual(node.total);
+      total += node.total;
+      inspected += node.inspected;
+    }
+    expect(total).toBe(cov.total);
+    expect(inspected).toBe(cov.inspected);
+    expect(parsed!.reportHash).toMatch(/^[0-9a-f]{64}$/);
+  });
+
   it("AC-A.5 --fail-on never always exits 0; --fail-on warning can exit 1", async () => {
     const never = await runCapture(["analyze", petstore, "--fail-on", "never", "--no-color"]);
     expect(never.code).toBe(0);

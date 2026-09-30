@@ -1,10 +1,13 @@
 import {
+  computeCoverage,
   evaluate,
+  mergeCoverages,
   type EvaluationResult,
   type Finding,
   type Rule,
   type RulePack,
   type Severity,
+  type Spec,
 } from "@apigovscan/core";
 import { parseSpec, type ParseError } from "@apigovscan/openapi";
 import { parseGraphQL } from "@apigovscan/graphql";
@@ -152,6 +155,7 @@ export async function analyzeUseCase(
   const multi = sortedInputs.length > 1;
   const inputs: Array<{ path: string; sha256: string }> = [];
   const results: EvaluationResult[] = [];
+  const coverageParts: Array<{ spec: Spec; packs: RulePack[] }> = [];
   const usedPacks = new Map<string, string>();
   const protocolPacks = new Map<string, RulePack>();
   // AC-A.14: errores por input se juntan todos (orden estable); un solo
@@ -241,6 +245,7 @@ export async function analyzeUseCase(
 
     inputs.push({ path: label, sha256: `sha256:${parsed.spec.inputHash}` });
     results.push(prefixFindings(result, label, multi));
+    coverageParts.push({ spec: parsed.spec, packs: activePacks });
   }
 
   if (failures.length > 0) {
@@ -301,6 +306,15 @@ export async function analyzeUseCase(
     filteredResults = kept;
   }
 
+  const coverage = mergeCoverages(
+    coverageParts.map(({ spec, packs }) =>
+      computeCoverage([spec], packs, {
+        customRules: opts.customRules as Rule[] | undefined,
+        disabledRuleIds: opts.disabledRuleIds as Set<string> | undefined,
+      }),
+    ),
+  );
+
   const report = buildReport({
     results: filteredResults,
     inputs,
@@ -309,6 +323,7 @@ export async function analyzeUseCase(
     meta: { durationMs: Math.round(performance.now() - started) },
     ...(opts.baselineFingerprints !== undefined ? { suppressed: suppressedCount } : {}),
     ...(skillsSuppressedCount > 0 ? { skillsSuppressed: skillsSuppressedCount } : {}),
+    coverage,
   });
   debug(`report ${report.findings.length} findings ${Math.round(performance.now() - tReport)}ms`);
 

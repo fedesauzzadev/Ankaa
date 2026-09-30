@@ -126,3 +126,4 @@ export function cloneRepo(
 - 2026-09-26 · Spec creado en `ready` (cuarto milestone ejecutable de f8; handoff vía AGENTS.md + este spec).
 - 2026-09-26 · M8.4 implementado → `cerrada` (AC-SO.1–10 verdes; `pnpm check` verde).
 - 2026-09-29 · Observabilidad local: AC-SO.11 (progreso por repo a stderr, stdout intacto).
+- 2026-09-30 · Cobertura por repo (AC-CV.6): `RepoScan.coverage` + `avgCoverage` por grupo y global; consola `cov N%` por repo y `avg coverage N%` en totales.

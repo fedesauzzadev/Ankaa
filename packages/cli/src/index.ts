@@ -2007,6 +2007,7 @@ function formatScanConsole(
         infos: number;
         score: number;
         grade: string;
+        coverage: number;
       }>;
     }>;
     totals: {
@@ -2018,6 +2019,7 @@ function formatScanConsole(
       infos: number;
     };
     avgScore: number;
+    avgCoverage: number;
     skipped: Array<{ name: string; reason: string }>;
   },
 ): string {
@@ -2027,7 +2029,7 @@ function formatScanConsole(
     for (const repo of group.repos) {
       lines.push(
         `  ${repo.name}  ${repo.score} (${repo.grade})  ${repo.findings} findings ` +
-          `(${repo.errors}e ${repo.warnings}w ${repo.infos}i)  ${repo.specs} specs`,
+          `(${repo.errors}e ${repo.warnings}w ${repo.infos}i)  ${repo.specs} specs  cov ${repo.coverage}%`,
       );
     }
     lines.push("");
@@ -2035,7 +2037,7 @@ function formatScanConsole(
   const t = report.totals;
   lines.push(
     `totals: ${t.repos} repos, ${t.specs} specs, ${t.findings} findings ` +
-      `(${t.errors}e ${t.warnings}w ${t.infos}i), avg score ${report.avgScore}`,
+      `(${t.errors}e ${t.warnings}w ${t.infos}i), avg score ${report.avgScore}, avg coverage ${report.avgCoverage}%`,
   );
   if (report.skipped.length > 0) {
     lines.push(`skipped (${report.skipped.length}):`);
@@ -2055,6 +2057,7 @@ async function analyzeProjectDir(
       specs: number;
       summary: { error: number; warning: number; info: number; total: number };
       score: { value: number; grade: string };
+      coverage: number;
     }
   | { ok: false; error: string }
 > {
@@ -2107,6 +2110,7 @@ async function analyzeProjectDir(
       value: outcome.report.score.value,
       grade: outcome.report.score.grade,
     },
+    coverage: outcome.report.coverage?.pct ?? 0,
   };
 }
 
@@ -2379,6 +2383,7 @@ async function runScanOrgCommand(
       infos: analyzed.summary.info,
       score: analyzed.score.value,
       grade: analyzed.score.grade,
+      coverage: analyzed.coverage,
     });
     io.stderr(
       `note: scanned ${entry} (${analyzed.specs} specs, ${analyzed.summary.total} findings, score ${analyzed.score.value})\n`,

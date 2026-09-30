@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  computeCoverage,
   computeFingerprint,
   dedupeFindings,
   evaluate,
   explainRule,
+  isRuleActive,
+  mergeCoverages,
   messageKey,
   severityRank,
   sortFindings,
@@ -575,5 +578,144 @@ describe("validateRule strictSource", () => {
       strictSource: true,
     });
     expect(result.ok).toBe(false);
+  });
+});
+
+describe("AC-CV.1/2 coverage", () => {
+  const namingPack = {
+    id: "elite",
+    version: "2026.09.1",
+    rules: [makeRule({ id: "NAMING-004", when: { op: "method", in: ["get"] } })],
+  };
+  const specWithSchemas = () =>
+    makeSpec({
+      components: { schemas: ["Pet", "Owner"], responses: [], parameters: [], securitySchemes: [] },
+    });
+
+  it("naming-only pack covers operations, leaves response/schema blind (AC-CV.1)", () => {
+    const cov = computeCoverage([specWithSchemas()], [namingPack]);
+    // 2 ops + 1 param + 1 body + 2 responses + 2 schemas + 6 doc = 14
+    expect(cov.total).toBe(14);
+    expect(cov.inspected).toBe(2);
+    expect(cov.pct).toBe(Math.round((100 * 2) / 14));
+    expect(cov.byClass.operation).toEqual({ total: 2, inspected: 2 });
+    expect(cov.byClass.response).toEqual({ total: 2, inspected: 0 });
+    expect(cov.byClass.schema).toEqual({ total: 2, inspected: 0 });
+    expect(cov.byClass.parameter).toEqual({ total: 1, inspected: 0 });
+    expect(cov.byClass.requestBody).toEqual({ total: 1, inspected: 0 });
+    expect(cov.byClass.doc).toEqual({ total: 6, inspected: 0 });
+  });
+
+  it("doc + response + schema rules cover their classes", () => {
+    const pack = {
+      id: "elite",
+      version: "2026.09.1",
+      rules: [
+        makeRule({ id: "STRUCT-002", when: { op: "docFieldMissing", field: "info.title" } }),
+        makeRule({ id: "RESP-001", when: { op: "responseMissing", status: "2xx" } }),
+        makeRule({ id: "NAMING-007", when: { op: "schemaNameNotMatching", pattern: "^[A-Z]" } }),
+      ],
+    };
+    const cov = computeCoverage([specWithSchemas()], [pack]);
+    expect(cov.byClass.doc).toEqual({ total: 6, inspected: 6 });
+    expect(cov.byClass.response).toEqual({ total: 2, inspected: 2 });
+    expect(cov.byClass.schema).toEqual({ total: 2, inspected: 2 });
+    expect(cov.byClass.operation).toEqual({ total: 2, inspected: 0 });
+    expect(cov.inspected).toBe(10);
+    expect(cov.pct).toBe(Math.round((100 * 10) / 14));
+  });
+
+  it("field-dependent atoms map by field/target", () => {
+    const pack = {
+      id: "elite",
+      version: "2026.09.1",
+      rules: [
+        makeRule({ id: "STRUCT-010", when: { op: "presentField", field: "requestBody" } }),
+        makeRule({
+          id: "RESP-010",
+          when: { op: "descriptionMinLength", target: "response", min: 5 },
+        }),
+      ],
+    };
+    const cov = computeCoverage([makeSpec()], [pack]);
+    expect(cov.byClass.requestBody).toEqual({ total: 1, inspected: 1 });
+    expect(cov.byClass.response).toEqual({ total: 2, inspected: 2 });
+    expect(cov.byClass.operation).toEqual({ total: 2, inspected: 0 });
+  });
+
+  it("disabled/deprecated/opt-in rules do not count (AC-CV.2)", () => {
+    const rule = makeRule({ id: "NAMING-004", when: { op: "method", in: ["get"] } });
+    const pack = { id: "elite", version: "2026.09.1", rules: [rule] };
+    const spec = [makeSpec()];
+    expect(
+      computeCoverage(spec, [pack], { disabledRuleIds: new Set(["NAMING-004"]) }).inspected,
+    ).toBe(0);
+    const deprecated = { id: "elite", version: "1", rules: [{ ...rule, deprecated: true }] };
+    expect(computeCoverage(spec, [deprecated]).inspected).toBe(0);
+    const optIn = { id: "x", version: "1", rules: [{ ...rule, enabledByDefault: false }] };
+    expect(computeCoverage(spec, [optIn]).inspected).toBe(0);
+    expect(
+      computeCoverage(spec, [optIn], { customRules: [{ ...rule, enabledByDefault: false }] })
+        .inspected,
+    ).toBe(2);
+  });
+
+  it("invalid rules are skipped, same input is deep-equal (INV-2)", () => {
+    const pack = {
+      id: "elite",
+      version: "2026.09.1",
+      rules: [
+        makeRule({ id: "NAMING-004", when: { op: "method", in: ["get"] } }),
+        makeRule({ id: "X-001", when: { op: "nope" } as never }),
+      ],
+    };
+    const a = computeCoverage([makeSpec()], [pack]);
+    expect(a.inspected).toBe(2);
+    const b = computeCoverage([makeSpec()], [pack]);
+    expect(JSON.stringify(b)).toBe(JSON.stringify(a));
+  });
+
+  it("mergeCoverages adds totals and keeps per-input class attribution", () => {
+    const namingPack = {
+      id: "elite",
+      version: "2026.09.1",
+      rules: [makeRule({ id: "NAMING-004", when: { op: "method", in: ["get"] } })],
+    };
+    const docPack = {
+      id: "elite",
+      version: "2026.09.1",
+      rules: [makeRule({ id: "STRUCT-002", when: { op: "docFieldMissing", field: "info.title" } })],
+    };
+    const a = computeCoverage([makeSpec()], [namingPack]);
+    const b = computeCoverage([makeSpec()], [docPack]);
+    const merged = mergeCoverages([a, b]);
+    expect(merged.total).toBe(a.total + b.total);
+    expect(merged.byClass.operation).toEqual({ total: 4, inspected: 2 });
+    expect(merged.byClass.doc).toEqual({ total: 12, inspected: 6 });
+    expect(merged.byClass.response).toEqual({ total: 4, inspected: 0 });
+    expect(merged.inspected).toBe(8);
+    expect(merged.pct).toBe(Math.round((100 * 8) / merged.total));
+    expect(mergeCoverages([])).toEqual({
+      total: 0,
+      inspected: 0,
+      pct: 100,
+      byClass: {
+        operation: { total: 0, inspected: 0 },
+        parameter: { total: 0, inspected: 0 },
+        requestBody: { total: 0, inspected: 0 },
+        response: { total: 0, inspected: 0 },
+        schema: { total: 0, inspected: 0 },
+        doc: { total: 0, inspected: 0 },
+      },
+    });
+  });
+
+  it("isRuleActive mirrors engine activation", () => {
+    const base = makeRule({ id: "A-001" });
+    expect(isRuleActive(base, new Set())).toBe(true);
+    expect(isRuleActive(base, new Set(), new Set(["A-001"]))).toBe(false);
+    expect(isRuleActive({ ...base, deprecated: true }, new Set())).toBe(false);
+    expect(isRuleActive({ ...base, enabledByDefault: false }, new Set())).toBe(false);
+    expect(isRuleActive({ ...base, enabledByDefault: false }, new Set(["A-001"]))).toBe(true);
   });
 });

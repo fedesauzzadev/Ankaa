@@ -93,8 +93,12 @@ export function formatConsole(report: Report, opts: ConsoleOpts): string {
     skillsSuppressed !== undefined && skillsSuppressed > 0
       ? ` (skills: ${skillsSuppressed} suppressed)`
       : "";
+  const coverageNote =
+    report.coverage !== undefined
+      ? ` · coverage ${report.coverage.pct}% (${report.coverage.inspected}/${report.coverage.total} nodes)`
+      : "";
   lines.push(
-    `${mark} ${counts}${suppressedNote}${skillsNote} · score ${report.score.value} (${report.score.grade}) · reportHash ${hash}`,
+    `${mark} ${counts}${suppressedNote}${skillsNote} · score ${report.score.value} (${report.score.grade})${coverageNote} · reportHash ${hash}`,
   );
 
   if (opts.maxFindings !== undefined && report.findings.length > opts.maxFindings) {

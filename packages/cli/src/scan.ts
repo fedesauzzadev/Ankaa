@@ -9,6 +9,8 @@ export interface RepoScan {
   infos: number;
   score: number;
   grade: string;
+  /** Governance coverage pct (0..100) for this repo. */
+  coverage: number;
 }
 
 export interface ScanTotals {
@@ -25,6 +27,7 @@ export interface GroupScan {
   repos: RepoScan[];
   totals: ScanTotals;
   avgScore: number;
+  avgCoverage: number;
 }
 
 export interface SkippedRepo {
@@ -39,6 +42,7 @@ export interface OrgReport {
   groups: GroupScan[];
   totals: ScanTotals;
   avgScore: number;
+  avgCoverage: number;
   skipped: SkippedRepo[];
 }
 
@@ -79,6 +83,14 @@ function avgScore(repos: readonly RepoScan[]): number {
   return Math.round(sum / repos.length);
 }
 
+function avgCoverage(repos: readonly RepoScan[]): number {
+  if (repos.length === 0) {
+    return 100;
+  }
+  const sum = repos.reduce((n, r) => n + r.coverage, 0);
+  return Math.round(sum / repos.length);
+}
+
 export function aggregateScans(
   scans: RepoScan[],
   groups: Record<string, string> | undefined,
@@ -102,6 +114,7 @@ export function aggregateScans(
       repos,
       totals: sumTotals(repos),
       avgScore: avgScore(repos),
+      avgCoverage: avgCoverage(repos),
     };
   });
   const all = sorted;
@@ -112,6 +125,7 @@ export function aggregateScans(
     groups: groupScans,
     totals: sumTotals(all),
     avgScore: avgScore(all),
+    avgCoverage: avgCoverage(all),
     skipped: [],
   };
 }

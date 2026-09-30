@@ -257,6 +257,32 @@ describe("scan-org e2e (f8-scan-org)", { timeout: 30000 }, () => {
     expect(out.stdout).toContain("repo-empty");
   });
 
+  it("AC-CV.6 scan-org reports per-repo coverage and averages", async () => {
+    const { root } = setupOrg();
+    const out = await runCapture(["scan-org", ".", "--format", "json", "--out", "cov.json"], {
+      cwd: root,
+      env: licEnv(),
+    });
+    expect(out.code).toBe(0);
+    const file = JSON.parse(readFileSync(join(root, "cov.json"), "utf8")) as {
+      groups: Array<{ repos: Array<{ name: string; coverage: number }>; avgCoverage: number }>;
+      avgCoverage: number;
+    };
+    const repos = file.groups.flatMap((g) => g.repos);
+    expect(repos).toHaveLength(3);
+    for (const r of repos) {
+      expect(r.coverage).toBeGreaterThanOrEqual(0);
+      expect(r.coverage).toBeLessThanOrEqual(100);
+    }
+    const mean = Math.round(repos.reduce((n, r) => n + r.coverage, 0) / repos.length);
+    expect(file.avgCoverage).toBe(mean);
+    expect(file.groups[0]!.avgCoverage).toBe(mean);
+
+    const consoleOut = await runCapture(["scan-org", "."], { cwd: root, env: licEnv() });
+    expect(consoleOut.stdout).toMatch(/cov \d+%/);
+    expect(consoleOut.stdout).toContain(`avg coverage ${mean}%`);
+  });
+
   it("AC-SO.5 --out writes the report and refuses overwrite without --force", async () => {
     const { root } = setupOrg();
     const out = await runCapture(["scan-org", ".", "--format", "json", "--out", "report.json"], {

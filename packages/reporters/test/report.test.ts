@@ -242,6 +242,41 @@ describe("rule examples in reports (AC-E.13)", () => {
   });
 });
 
+describe("coverage in reports (AC-CV.3/4)", () => {
+  const coverage = {
+    total: 14,
+    inspected: 10,
+    pct: 71,
+    byClass: {
+      operation: { total: 2, inspected: 2 },
+      parameter: { total: 1, inspected: 1 },
+      requestBody: { total: 1, inspected: 1 },
+      response: { total: 2, inspected: 2 },
+      schema: { total: 2, inspected: 0 },
+      doc: { total: 6, inspected: 4 },
+    },
+  };
+
+  it("includes coverage in JSON and hash when computed", () => {
+    const report = makeReport({ coverage });
+    expect(report.coverage).toEqual(coverage);
+    expect(computeReportHash(report)).toBe(report.reportHash);
+    const parsed = JSON.parse(formatJson(report)) as { coverage: unknown };
+    expect(parsed.coverage).toEqual(coverage);
+    const out = formatConsole(report, { color: false });
+    expect(out).toContain("coverage 71% (10/14 nodes)");
+  });
+
+  it("legacy shape without coverage is unchanged (AC-CV.4)", () => {
+    const report = makeReport();
+    expect(report.coverage).toBeUndefined();
+    expect(JSON.stringify(report)).not.toContain("coverage");
+    expect(computeReportHash(report)).toBe(report.reportHash);
+    const out = formatConsole(report, { color: false });
+    expect(out).not.toContain("coverage");
+  });
+});
+
 describe("redactText (AC-R.8)", () => {
   it("redacts PEM blocks", () => {
     const input = "key=-----BEGIN PRIVATE KEY-----\nsecretmaterial\n-----END PRIVATE KEY-----";

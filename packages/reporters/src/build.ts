@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { EvaluationResult, Finding, Severity } from "@apigovscan/core";
+import type { Coverage, EvaluationResult, Finding, Severity } from "@apigovscan/core";
 import { canonicalJson } from "./canonical.js";
 import { redactText } from "./redact.js";
 
@@ -48,6 +48,8 @@ export interface Report {
   summary: ReportSummary;
   score: ReportScore;
   findings: Finding[];
+  /** Governance coverage (present when the analyzer computed it; hashed). */
+  coverage?: Coverage;
   reportHash: string;
   meta?: ReportMeta;
 }
@@ -62,6 +64,8 @@ export interface BuildReportInput {
   suppressed?: number;
   /** Count of findings suppressed by skills (omit when 0 / skills off). */
   skillsSuppressed?: number;
+  /** Governance coverage (omit when not computed, e.g. drift). */
+  coverage?: Coverage;
 }
 
 const SEVERITIES: Severity[] = ["error", "warning", "info"];
@@ -139,6 +143,7 @@ function hashPayload(report: Omit<Report, "reportHash" | "meta">): string {
     summary: report.summary,
     score: report.score,
     findings: report.findings,
+    ...(report.coverage !== undefined ? { coverage: report.coverage } : {}),
   });
   return createHash("sha256").update(canonical, "utf8").digest("hex");
 }
@@ -159,6 +164,7 @@ export function buildReport(input: BuildReportInput): Report {
     summary,
     score: computeScore(summary),
     findings,
+    ...(input.coverage !== undefined ? { coverage: input.coverage } : {}),
   };
   const reportHash = hashPayload(withoutHash);
 
@@ -177,6 +183,7 @@ export function computeReportHash(report: Report): string {
     summary: report.summary,
     score: report.score,
     findings: report.findings,
+    ...(report.coverage !== undefined ? { coverage: report.coverage } : {}),
   });
 }
 

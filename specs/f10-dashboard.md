@@ -83,3 +83,4 @@ E2E CLI (server efímero + fetch a `/` y `/api/*`) + unit del comparador por fin
 - 2026-09-29 · Botón "Copy fix command" por tarjeta: copia `apigovscan fix "<spec>" --fingerprint <12 chars>` listo para pegar en terminal (el CLI ahora acepta prefijos únicos).
 - 2026-09-29 · Botón "Copy suppress command" por tarjeta: copia `apigovscan suppress --report "<reporte>" --fingerprint <12 chars> --decision wontfix --reason "..."` (el usuario completa decisión y motivo en terminal; el servidor expone `reportFile` en `/api/report`). Solo clipboard, sin mutación.
 - 2026-09-30 · "Copy prompt for LLM" incluye los `examples` (bad/good) del finding cuando el reporte los trae (AC-E.13); sin ejemplos el prompt es idéntico al anterior.
+- 2026-09-30 · Badge de cobertura en el header (AC-CV.4/5): `coverage NN% (i/t nodes)` + tooltip por clase + nota en la leyenda; reportes sin `coverage` no muestran nada (compatibilidad).

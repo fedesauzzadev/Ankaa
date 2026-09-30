@@ -65,6 +65,16 @@ export {
 
 export { evaluate } from "./evaluate.js";
 
+export {
+  computeCoverage,
+  isRuleActive,
+  mergeCoverages,
+  ruleCoverageClasses,
+  type Coverage,
+  type CoverageByClass,
+  type CoverageClass,
+} from "./coverage.js";
+
 export { evaluateMatcher, evaluateAtom } from "./atoms.js";
 
 export {

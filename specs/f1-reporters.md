@@ -47,6 +47,7 @@ interface Report {
     total: number;
   };
   findings: Finding[]; // sort estable ya aplicado
+  coverage?: Coverage; // f11: { total, inspected, pct, byClass }; entra al hash si presente
   reportHash: string; // sha256 del canónico sin meta
   meta?: {
     durationMs?: number;
@@ -125,6 +126,7 @@ warning ERR-001  POST /payments
 - [ ] **AC-R.8** Redacción: input con finding cuyo message incluye `-----BEGIN PRIVATE KEY-----` ⇒ output no contiene la key.
 - [ ] **AC-R.9** Snapshot console de petstore estable entre corridas (normalize ANSI + duration).
 - [ ] **AC-R.10** `packs` en report ordenados por `id` (estable).
+- [x] **AC-R.11** `Report.coverage?` (f11): presente ⇒ entra al `reportHash` y a console/JSON; ausente ⇒ shape legacy byte-idéntico (compatibilidad con reportes viejos y `drift`).
 
 ## 5. Test plan
 
@@ -153,3 +155,4 @@ warning ERR-001  POST /payments
 - 2026-09-23 · M1.4: implementada (AC-R.1…10 verdes en `packages/reporters/test`).
 - 2026-09-25 · F5: se agregan `formatSarif`/`formatMarkdown`/`formatAnnotations` (outputs nuevos; `formatConsole`/`formatJson` sin cambios — contrato nuevo en `f5-reporters`).
 - 2026-09-26 · F6: `Report` gana campo requerido `score: { value, grade }` (fórmula y contrato en `f6-score`); entra al `reportHash`.
+- 2026-09-30 · F11: `Report` gana campo opcional `coverage` (contrato en `f11-coverage`); entra al `reportHash` solo si presente; console agrega segmento `· coverage NN% (i/t nodes)`.

@@ -10,6 +10,7 @@ function repo(partial: Partial<RepoScan> & { name: string }): RepoScan {
     infos: 0,
     score: 100,
     grade: "A",
+    coverage: 100,
     ...partial,
   };
 }
@@ -18,8 +19,8 @@ describe("aggregateScans (AC-SO.1-3 parcial)", () => {
   it("sums totals and averages scores", () => {
     const report = aggregateScans(
       [
-        repo({ name: "a", findings: 4, errors: 1, warnings: 3, score: 80, grade: "B" }),
-        repo({ name: "b", findings: 1, warnings: 1, score: 90, grade: "A" }),
+        repo({ name: "a", findings: 4, errors: 1, warnings: 3, score: 80, grade: "B", coverage: 70 }),
+        repo({ name: "b", findings: 1, warnings: 1, score: 90, grade: "A", coverage: 90 }),
       ],
       undefined,
       "apigovscan",
@@ -37,8 +38,10 @@ describe("aggregateScans (AC-SO.1-3 parcial)", () => {
       infos: 0,
     });
     expect(report.avgScore).toBe(85);
+    expect(report.avgCoverage).toBe(80);
     expect(report.groups).toHaveLength(1);
     expect(report.groups[0]!.name).toBe("ungrouped");
+    expect(report.groups[0]!.avgCoverage).toBe(80);
   });
 
   it("ranks worst-first with deterministic tie-breaks", () => {

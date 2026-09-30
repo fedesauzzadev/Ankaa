@@ -28,7 +28,7 @@ Fuente: comparativa Spectral/Vacuum/Redocly/Zally/oasdiff + serie 2026 de API Ev
 
 - [ ] [AHORA] Breaking-change spec-vs-spec (`diff base..head`: paths/ops eliminadas, required agregados, narrowing, sunsets): requiere átomos cross-document en el engine; es el feature enterprise más vendible (hueco dejado por Optic)
 - [x] [AHORA] Waivers con expiración (`expires` + `owner` en suppressions + aviso de waiver huérfano) — hecho 2026-09-30: AC-S.11…14 en `f3-skills` (schema + vencido⇒ignorado+warning + huérfano⇒warning + `suppress --expires/--owner` + feedback `learn`)
-- [ ] [AHORA] Métrica de cobertura de gobernanza (% de la spec que mira alguna regla) en dashboard/scan-org
+- [x] [AHORA] Métrica de cobertura de gobernanza (% de la spec que mira alguna regla) en dashboard/scan-org — hecho 2026-09-30: spec `f11-coverage` (AC-CV.1…7) + `computeCoverage`/`mergeCoverages` en core + `Report.coverage` + console + badge dashboard + `avgCoverage` scan-org
 - [ ] Agent Rule Export: pack → bloque AGENTS.md (error=MUST, warning=SHOULD, info=MAY) + pack de prompts de remediación (casi un reporter nuevo; reusa `explain` + `buildFixMessages`)
 
 ### Estratégicas (apuestas; spike o historia de consumidor antes de codear)

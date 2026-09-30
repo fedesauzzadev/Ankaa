@@ -512,8 +512,20 @@ details.glossary th { background: var(--card); }
         : "Groups come from --group-by owners.yaml.";
     }
     var s = r.summary || {};
+    var cov = r.coverage;
+    var covText = (cov && typeof cov.pct === "number")
+      ? " · coverage " + cov.pct + "% (" + cov.inspected + "/" + cov.total + " nodes)"
+      : "";
     $("summary").textContent = (r.input ? r.input.length : 0) + " specs · " +
-      (s.error || 0) + " errors · " + (s.warning || 0) + " warnings · " + (s.info || 0) + " info";
+      (s.error || 0) + " errors · " + (s.warning || 0) + " warnings · " + (s.info || 0) + " info" + covText;
+    if (cov && cov.byClass) {
+      var parts = Object.keys(cov.byClass).sort().map(function (k) {
+        var c = cov.byClass[k]; return k + " " + c.inspected + "/" + c.total;
+      });
+      $("summary").title = "Nodes inspected by at least one active rule (static approximation): " + parts.join(", ");
+      var leg = $("scorelegend");
+      if (leg) leg.textContent += " Coverage = % of spec nodes inspected by at least one active rule; hover the summary line for the per-class breakdown.";
+    }
     var sc = r.score;
     $("score").textContent = sc ? ("score " + sc.value + " (" + sc.grade + ")") : "no score";
     ["q", "rule"].forEach(function (id) {

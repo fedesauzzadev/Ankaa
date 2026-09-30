@@ -2,14 +2,10 @@ import { buildOpCache, evaluateMatcher } from "./atoms.js";
 import { computeFingerprint, dedupeFindings, sortFindings } from "./finding.js";
 import type { EvaluateOptions, EvaluationResult, Finding, Rule, RuleEvalError } from "./rule.js";
 import { detectScope, validateRule } from "./validate.js";
+import { isRuleActive } from "./coverage.js";
 
-function shouldRun(rule: Rule, opts: EvaluateOptions): boolean {
-  if (opts.disabledRuleIds?.has(rule.id)) return false;
-  if (rule.deprecated) return false;
-  if (rule.enabledByDefault === false) {
-    return opts.customRules?.some((r) => r.id === rule.id) ?? false;
-  }
-  return true;
+function shouldRun(rule: Rule, opts: EvaluateOptions, customIds: ReadonlySet<string>): boolean {
+  return isRuleActive(rule, customIds, opts.disabledRuleIds);
 }
 
 function flattenPacks(opts: EvaluateOptions): unknown[] {
@@ -56,6 +52,7 @@ export function evaluate(opts: EvaluateOptions): EvaluationResult {
   const findings: Finding[] = [];
   const rawRules = flattenPacks(opts);
   const seenIds = new Set<string>();
+  const customIds = new Set((opts.customRules ?? []).map((r) => r.id));
 
   // OpEvalCache (spec f1-engine M-perf): JSON + path segments are derived
   // once per operation for the whole run and reused across all rules.
@@ -85,7 +82,7 @@ export function evaluate(opts: EvaluateOptions): EvaluationResult {
     if (seenIds.has(rule.id)) continue;
     seenIds.add(rule.id);
 
-    if (!shouldRun(rule, opts)) continue;
+    if (!shouldRun(rule, opts, customIds)) continue;
 
     const scope = detectScope(rule.when);
     if (scope === "mixed") {
