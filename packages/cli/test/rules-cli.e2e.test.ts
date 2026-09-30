@@ -242,4 +242,51 @@ describe("analyze with custom rules (AC-R2.4, AC-R2.5, AC-R2.8)", () => {
     expect(code).toBe(0);
     expect(stdout).toMatch(/url: https?:\/\//);
   });
+
+  it("AC-E.14 strict custom rule skips draft operations (x-stability-level)", async () => {
+    const dir = tempDir();
+    const ruleFile = join(dir, "strict.yaml");
+    writeFileSync(ruleFile, [...TEAM_RULE.split("\n"), "appliesFrom: stable"].join("\n"), "utf8");
+    const specFile = join(dir, "api.yaml");
+    writeFileSync(
+      specFile,
+      [
+        "openapi: 3.1.0",
+        "info:",
+        "  title: T",
+        "  version: '1'",
+        "paths:",
+        "  /draft:",
+        "    x-stability-level: draft",
+        "    get:",
+        "      responses:",
+        "        '200':",
+        "          description: ok",
+        "  /stable:",
+        "    get:",
+        "      responses:",
+        "        '200':",
+        "          description: ok",
+      ].join("\n"),
+      "utf8",
+    );
+    const { code, stdout } = await runCapture([
+      "analyze",
+      specFile,
+      "--rules",
+      ruleFile,
+      "--format",
+      "json",
+      "--no-color",
+      "--fail-on",
+      "never",
+    ]);
+    expect(code).toBe(0);
+    const parsed = extractJson(stdout);
+    expect(parsed).not.toBeNull();
+    const findings = parsed!.findings as Array<{ ruleId: string; apiLocation?: string }>;
+    const team = findings.filter((f) => f.ruleId === "TEAM-001");
+    expect(team).toHaveLength(1);
+    expect(team[0]!.apiLocation).toBe("GET /stable");
+  });
 });

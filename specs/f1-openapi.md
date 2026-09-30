@@ -61,6 +61,7 @@ interface Operation {
   responses: Response[]; // sorted by status key
   security: SecurityRequirement[] | undefined; // undefined = hereda global
   extensions: Record<string, unknown>; // x-* relevantes
+  stability?: "draft" | "beta" | "stable"; // efectiva: x-stability-level de operation ?? path-item ?? root; ausente = sin marca
   jsonPointer: string; // "/paths/~1users~1{id}/get"
 }
 
@@ -159,6 +160,7 @@ export interface ParseError {
 - [x] **AC-O.12** Swagger 2.0 ⇒ error claro `SWAGGER_20` + docs (decisión §7).
 - [x] **AC-O.13** Path-level parameters mergeados y no duplicados en operation.
 - [x] **AC-O.14** Extensiones `x-*` (u otras) disponibles en `extensions` para reglas futuras (al menos genérico `x-*` copiado de operation).
+- [x] **AC-O.15** `x-stability-level: draft|beta|stable` en operation ?? path-item ?? root ⇒ `Operation.stability`; valor desconocido ⇒ warning `UNKNOWN_STABILITY` y `stability` ausente; sin marca en ningún nivel ⇒ ausente.
 
 ## 5. Test plan
 
@@ -195,3 +197,4 @@ Unit tests de normalize + property: shuffle keys de path ⇒ mismo orden.
 
 - 2026-09-23 · Spec creado desde SDD v1.0.
 - 2026-09-23 · Implementada (M1.1): `parseSpec` con `yaml@2` + limits; AC-O.1…14 verdes (16 tests); tipos `Spec` consolidados en `@apigovscan/core`; Swagger 2.0 = error `SWAGGER_20` (decisión §7).
+- 2026-09-30 · `Operation.stability?` (AC-O.15, backlog M8.6): `x-stability-level` en operation ?? path-item ?? root; valor desconocido ⇒ warning `UNKNOWN_STABILITY`.

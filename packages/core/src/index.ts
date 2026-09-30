@@ -28,6 +28,7 @@ export type {
   SecurityRequirement,
   SecuritySchemeDef,
   ParseWarning,
+  Stability,
 } from "./spec.js";
 
 export type {

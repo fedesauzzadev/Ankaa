@@ -284,3 +284,80 @@ describe("parseSpec · JSON pointer correctness", () => {
     expect(op.jsonPointer).toBe("/paths/~1pets/get");
   });
 });
+
+describe("parseSpec · AC-O.15 x-stability-level", () => {
+  const doc = (extra: string): string =>
+    [
+      "openapi: 3.1.0",
+      "info:",
+      "  title: T",
+      "  version: '1'",
+      ...extra.split("\n"),
+    ].join("\n");
+
+  const opBlock = (indent: string, stability?: string): string =>
+    [
+      `${indent}get:`,
+      ...(stability !== undefined ? [`${indent}  x-stability-level: ${stability}`] : []),
+      `${indent}  responses:`,
+      `${indent}    '200':`,
+      `${indent}      description: ok`,
+    ].join("\n");
+
+  it("reads operation, path-item and root levels with op > path > root precedence", () => {
+    const text = doc(
+      [
+        "x-stability-level: beta",
+        "paths:",
+        "  /a:",
+        opBlock("    "),
+        "  /b:",
+        "    x-stability-level: draft",
+        opBlock("    "),
+        "  /c:",
+        opBlock("    ", "stable"),
+        "  /d:",
+        "    x-stability-level: draft",
+        opBlock("    ", "stable"),
+      ].join("\n"),
+    );
+    const result = parseSpec(text, { sourceLabel: "t.yaml" });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const byOp = new Map(
+      result.spec.operations.map((o) => [`${o.method} ${o.path}`, o.stability]),
+    );
+    expect(byOp.get("get /a")).toBe("beta");
+    expect(byOp.get("get /b")).toBe("draft");
+    expect(byOp.get("get /c")).toBe("stable");
+    expect(byOp.get("get /d")).toBe("stable");
+  });
+
+  it("invalid values warn UNKNOWN_STABILITY and fall through", () => {
+    const text = doc(
+      [
+        "paths:",
+        "  /a:",
+        "    x-stability-level: banana",
+        opBlock("    ", "rotten"),
+      ].join("\n"),
+    );
+    const result = parseSpec(text, { sourceLabel: "t.yaml" });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.spec.operations[0]!.stability).toBeUndefined();
+    const codes = result.spec.parseWarnings.map((w) => w.code);
+    expect(codes.filter((c) => c === "UNKNOWN_STABILITY")).toHaveLength(2);
+  });
+
+  it("absent everywhere leaves stability undefined without warnings", () => {
+    const text = doc(["paths:", "  /a:", opBlock("    ")].join("\n"));
+    const result = parseSpec(text, { sourceLabel: "t.yaml" });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.spec.operations[0]!.stability).toBeUndefined();
+    expect(
+      result.spec.parseWarnings.map((w) => w.code),
+    ).not.toContain("UNKNOWN_STABILITY");
+  });
+});

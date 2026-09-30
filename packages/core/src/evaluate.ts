@@ -1,8 +1,19 @@
 import { buildOpCache, evaluateMatcher } from "./atoms.js";
 import { computeFingerprint, dedupeFindings, sortFindings } from "./finding.js";
 import type { EvaluateOptions, EvaluationResult, Finding, Rule, RuleEvalError } from "./rule.js";
+import type { Operation, Stability } from "./spec.js";
 import { detectScope, validateRule } from "./validate.js";
 import { isRuleActive } from "./coverage.js";
+
+const STABILITY_RANK: Record<Stability, number> = { draft: 0, beta: 1, stable: 2 };
+
+/** Strict rules skip operations below their stability threshold (AC-E.14). */
+export function stabilityApplies(rule: Rule, operation: Operation): boolean {
+  const need = rule.appliesFrom ?? "draft";
+  if (need === "draft") return true;
+  const have = operation.stability ?? "stable";
+  return STABILITY_RANK[have] >= STABILITY_RANK[need];
+}
 
 function shouldRun(rule: Rule, opts: EvaluateOptions, customIds: ReadonlySet<string>): boolean {
   return isRuleActive(rule, customIds, opts.disabledRuleIds);
@@ -103,6 +114,7 @@ export function evaluate(opts: EvaluateOptions): EvaluationResult {
         return;
       }
       for (const operation of spec.operations) {
+        if (!stabilityApplies(rule, operation)) continue;
         const opMeta = {
           method: operation.method,
           path: operation.path,

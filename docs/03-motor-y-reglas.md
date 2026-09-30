@@ -54,7 +54,7 @@ rules:
 | `when`     | árbol DSL (§3)                                                               |
 | `source`   | **obligatorio en packs elite**; `title` + `url` (+ `section` opcional)       |
 
-Opcionales: `fix`, `examples` (`{bad, good}`: fragmentos YAML/JSON que violan/cumplen la regla; alimentan docs, prompt LLM y fixtures), `deprecated`, `enabledByDefault`, `since`, `related` (ids).
+Opcionales: `fix`, `examples` (`{bad, good}`: fragmentos YAML/JSON que violan/cumplen la regla; alimentan docs, prompt LLM y fixtures), `appliesFrom` (`draft|beta|stable`: la regla se salta en endpoints menos estables; default `draft` = siempre), `deprecated`, `enabledByDefault`, `since`, `related` (ids).
 
 ## 3. DSL de reglas (declarativa, whitelist)
 
@@ -187,6 +187,21 @@ raw bytes
 ### Orden estable (INV-2)
 
 Sort por tuple: `(severityRank, ruleId, apiLocation?, location, message)` — todo string-comparable, sin depender de orden de iteración de objetos JS.
+
+### Estabilidad de endpoints (`x-stability-level` + `appliesFrom`)
+
+```yaml
+paths:
+  /v2/users: # en draft: las reglas estrictas no muerden
+    x-stability-level: draft # operation ?? path-item ?? root; sin marca = stable
+    get:
+      responses:
+        '200': { description: ok }
+```
+
+- Niveles `draft < beta < stable`. Valor desconocido ⇒ warning `UNKNOWN_STABILITY` y se ignora el nivel.
+- Regla con `appliesFrom: beta` se salta en operaciones `draft`; con `appliesFrom: stable` se salta en `draft` y `beta`. Default `draft` = corre siempre.
+- Reglas doc-scope no se ven afectadas (la estabilidad es por endpoint). Specs sin marcas ⇒ comportamiento idéntico.
 
 ### Fingerprint (identidad del finding)
 

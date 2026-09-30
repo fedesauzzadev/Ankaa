@@ -10,6 +10,7 @@ import type {
   SecurityRequirement,
   SecuritySchemeDef,
   Spec,
+  Stability,
 } from "@apigovscan/core";
 import { createHash } from "node:crypto";
 import { parse as parseYaml } from "yaml";
@@ -295,6 +296,27 @@ function checkDepth(value: unknown, maxDepth: number, depth = 0): boolean {
   return false;
 }
 
+function readStability(value: unknown): Stability | undefined {
+  return value === "draft" || value === "beta" || value === "stable" ? value : undefined;
+}
+
+function stabilityOf(
+  raw: Record<string, unknown>,
+  pointer: string,
+  warnings: ParseWarning[],
+): Stability | undefined {
+  if (!("x-stability-level" in raw)) return undefined;
+  const parsed = readStability(raw["x-stability-level"]);
+  if (parsed === undefined) {
+    warnings.push({
+      code: "UNKNOWN_STABILITY",
+      message: `x-stability-level must be draft | beta | stable (got ${JSON.stringify(raw["x-stability-level"]) ?? "?"})`,
+      jsonPointer: pointer,
+    });
+  }
+  return parsed;
+}
+
 function collectOperations(
   doc: Record<string, unknown>,
   warnings: ParseWarning[],
@@ -302,6 +324,7 @@ function collectOperations(
 ): Operation[] {
   const operations: Operation[] = [];
   const paths = isRecord(doc.paths) ? doc.paths : {};
+  const rootStability = stabilityOf(doc, "", warnings);
 
   for (const [path, pathItemRaw] of Object.entries(paths)) {
     if (!path.startsWith("/")) {
@@ -313,6 +336,7 @@ function collectOperations(
     }
     if (!isRecord(pathItemRaw)) continue;
     const pathItem = pathItemRaw;
+    const pathStability = stabilityOf(pathItem, `/paths/${escapePointer(path)}`, warnings);
     const pathLevelParams = parseParameters(
       pathItem.parameters,
       `/paths/${escapePointer(path)}/parameters`,
@@ -329,6 +353,8 @@ function collectOperations(
       const security: SecurityRequirement[] | undefined =
         opRaw.security !== undefined ? parseSecurity(opRaw.security) : undefined;
 
+      const stability =
+        stabilityOf(opRaw, opBase, warnings) ?? pathStability ?? rootStability;
       const operation: Operation = {
         method: key.toLowerCase(),
         path,
@@ -340,6 +366,7 @@ function collectOperations(
         responses: parseResponses(opRaw.responses, `${opBase}/responses`, errors),
         security,
         extensions: pickExtensions(opRaw),
+        ...(stability !== undefined ? { stability } : {}),
         jsonPointer: opBase,
       };
       if (typeof opRaw.operationId === "string") {

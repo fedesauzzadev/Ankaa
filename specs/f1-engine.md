@@ -130,6 +130,7 @@ interface Rule {
   source?: SourceRef; // requerido si pack.vía "elite" | pack.strictSource
   fix?: string;
   examples?: RuleExamples; // opcional: bad/good para docs + prompt LLM + fixtures
+  appliesFrom?: "draft" | "beta" | "stable"; // umbral mínimo de estabilidad (default: draft = siempre)
   enabledByDefault?: boolean; // default true
   deprecated?: boolean;
   packId: string;
@@ -211,6 +212,7 @@ Comparar por:
 ### Semántica de evaluación
 
 - Regla se evalúa **por scope**: átomos de operación se evalúan una vez por `Operation`; átomos de doc (ej. `docFieldMissing`) una vez por `Spec`.
+- Estabilidad (`appliesFrom`): en scope `operation`, la regla se **salta** en operaciones cuya estabilidad efectiva (`Operation.stability ?? "stable"`, rango `draft < beta < stable`) sea menor que `Rule.appliesFrom ?? "draft"`. Scope `doc` sin cambios (la estabilidad es un concepto por endpoint). Sin marcas en el spec ⇒ comportamiento byte-idéntico al anterior.
 - Implícito: si `when` contiene solo átomos de operación ⇒ scope `operation`. Mezcla doc+op ⇒ error de validación de regla (`MIXED_SCOPE`) — simplifica mensajes.
 - Un finding por (rule × scope instance) cuando el matcher da true.
 - `enabledByDefault: false` solo activa si config/custom la enciende.
@@ -250,6 +252,7 @@ Comparar por:
 - [x] **AC-E.10** Operación A true, B false ⇒ findings solo en A con `apiLocation` correcto.
 - [x] **AC-E.11** Performance smoke: 500 operaciones × 50 reglas < 500 ms en CI (medición orientativa, no flaky-hard).
 - [x] **AC-E.12** Perf slice: mismo input + packs ⇒ findings **byte-idénticos** antes/después (golden suites + bench 500/2000 ops con conteo idéntico); bench orientativo neutro en esta forma (techo: sha256 puro + validación, INV-3), sin flaky-hard.
+- [x] **AC-E.14** `Rule.appliesFrom?` (`draft|beta|stable`, default `draft`): valor desconocido ⇒ issue en `validateRule`; regla estricta se salta en operaciones menos estables (true+false por nivel); regla doc-scope no se ve afectada; spec sin marcas ⇒ findings idénticos.
 - [x] **AC-E.13** `examples?: { bad?, good? }` opcional en `Rule`: cada string 1–1000 chars, object strict, al menos una de `bad`/`good`. Se propaga a `Finding` y a `explainRule`/`explain`. **No** altera fingerprint, orden de sort ni `reportHash` cuando el pack no la usa (compatibilidad byte-a-byte, INV-2/INV-5). `validateRule` rechaza `examples: {}` vacío.
 
 ## 5. Test plan
@@ -284,3 +287,4 @@ Comparar por:
 - 2026-09-28 · M-perf (spec primero): cache RegExp + precompilación por regla + cache por operación; `evaluate()` sin cambio de firma ni semántica observable; AC-E.12 equivalencia + bench.
 - 2026-09-28 · M-perf implementado: suites verdes (core 19, cli 437, invariantes 16); bench 2000 ops × elite antes ~357ms vs después ~420ms mediana (ruido-dominado, neutro); techo real: sha256 puro (INV-3) + validación zod por corrida.
 - 2026-09-30 · `Rule.examples?: { bad?, good? }` (AC-E.13, backlog M8.6): ejemplos bueno/malo opcionales por regla; se propagan a `Finding` y `RuleExplanation` y alimentan el prompt de `fix` (CLI/MCP) y el "Copy prompt for LLM" del dashboard. Estricto (zod strict, ≤1000 chars, no vacío). Sin impacto en fingerprint/sort/reportHash para packs que no la usan.
+- 2026-09-30 · `Rule.appliesFrom?` + skip por estabilidad (AC-E.14, backlog M8.6): `draft|beta|stable` (default `draft`); doc-scope sin cambios; specs sin marcas ⇒ byte-idéntico.

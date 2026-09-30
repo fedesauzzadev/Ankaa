@@ -710,6 +710,59 @@ describe("AC-CV.1/2 coverage", () => {
     });
   });
 
+  it("AC-E.14 appliesFrom gates operation-scope evaluation by stability", () => {
+    const spec = makeSpec();
+    spec.operations[0]!.stability = "draft";
+    spec.operations[1]!.stability = "beta";
+    const pack = (appliesFrom: "draft" | "beta" | "stable") => ({
+      id: "elite",
+      version: "2026.09.1",
+      rules: [
+        makeRule({ id: "X-001", when: { op: "method", in: ["get", "post"] }, appliesFrom }),
+      ],
+    });
+    const run = (appliesFrom: "draft" | "beta" | "stable"): string[] => {
+      const result = evaluate({ specs: [spec], packs: [pack(appliesFrom)] });
+      expect(result.errors).toEqual([]);
+      return result.findings.map((f) => f.apiLocation ?? "");
+    };
+    expect(run("draft")).toEqual(["GET /users", "POST /users"]);
+    expect(run("beta")).toEqual(["POST /users"]);
+    expect(run("stable")).toEqual([]);
+  });
+
+  it("AC-E.14 unknown appliesFrom is a validation issue; doc scope unaffected", () => {
+    const bad = validateRule(makeRule({ id: "X-002", appliesFrom: "ga" as never }));
+    expect(bad.ok).toBe(false);
+    expect(validateRule(makeRule({ id: "X-003", appliesFrom: "beta" })).ok).toBe(true);
+
+    const spec = makeSpec();
+    spec.operations[0]!.stability = "draft";
+    const docRule = makeRule({
+      id: "STRUCT-002",
+      when: { op: "docFieldMissing", field: "info.description" },
+      appliesFrom: "stable",
+    });
+    const result = evaluate({ specs: [spec], packs: [{ id: "e", version: "1", rules: [docRule] }] });
+    expect(result.errors).toEqual([]);
+    expect(result.findings).toHaveLength(1);
+  });
+
+  it("AC-E.14 unmarked specs behave identically with or without appliesFrom", () => {
+    const spec = makeSpec();
+    const plain = makeRule({ id: "X-001", when: { op: "method", in: ["get", "post"] } });
+    const strict = makeRule({
+      id: "X-001",
+      when: { op: "method", in: ["get", "post"] },
+      appliesFrom: "stable",
+    });
+    const run = (rules: Rule[]): string =>
+      JSON.stringify(
+        evaluate({ specs: [spec], packs: [{ id: "e", version: "1", rules }] }).findings,
+      );
+    expect(run([strict])).toBe(run([plain]));
+  });
+
   it("isRuleActive mirrors engine activation", () => {
     const base = makeRule({ id: "A-001" });
     expect(isRuleActive(base, new Set())).toBe(true);

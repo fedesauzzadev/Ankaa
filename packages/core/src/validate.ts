@@ -219,6 +219,7 @@ const ruleSchema = z.strictObject({
   source: sourceSchema.optional(),
   fix: z.string().optional(),
   examples: examplesSchema.optional(),
+  appliesFrom: z.enum(["draft", "beta", "stable"]).optional(),
   enabledByDefault: z.boolean().optional(),
   deprecated: z.boolean().optional(),
   packId: z.string().min(1),

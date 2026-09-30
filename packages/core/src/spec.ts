@@ -17,6 +17,8 @@ export interface Spec {
   parseWarnings: ParseWarning[];
 }
 
+export type Stability = "draft" | "beta" | "stable";
+
 export interface Operation {
   method: string;
   path: string;
@@ -31,6 +33,8 @@ export interface Operation {
   security: SecurityRequirement[] | undefined;
   extensions: Record<string, unknown>;
   externalDocs?: { url?: string; description?: string };
+  /** Effective x-stability-level (operation ?? path-item ?? root); absent = unmarked. */
+  stability?: Stability;
   jsonPointer: string;
 }
 

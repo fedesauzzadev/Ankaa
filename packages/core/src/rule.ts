@@ -1,6 +1,6 @@
-import type { Spec } from "./spec.js";
+import type { Spec, Stability } from "./spec.js";
 
-export type { Spec } from "./spec.js";
+export type { Spec, Stability } from "./spec.js";
 
 export type Severity = "error" | "warning" | "info";
 
@@ -145,6 +145,7 @@ export interface Rule {
   source?: SourceRef;
   fix?: string;
   examples?: RuleExamples;
+  appliesFrom?: Stability;
   enabledByDefault?: boolean;
   deprecated?: boolean;
   packId: string;
