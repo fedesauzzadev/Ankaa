@@ -372,5 +372,5 @@ Ver [docs/SDD.md §7](docs/SDD.md).
 - **F9 (cerrada, sin publicar):** papeles OSS ✅ (`f9-launch-oss`: Apache-2.0 + community key + marca).
 - **F10 (cerrada):** visor local ✅ (`f10-dashboard`, OSS).
 - **F7 (backlog, `f7-enterprise` draft):** packs por cliente · self-host compose completo · edge Cloudflare (opcional) · export enterprise (`f10-export` como M7.4) — export JSON v1 implementado; el gate por tier espera la definición de F7.
-- **F14 (implementada):** revisor local de cambios API para personas y agentes (`specs/f14-agent-api-gate.md`): `review` CLI + evaluador compartido, tool MCP `review_api_change`, Action con `review-ref`, corpus + benchmark con resultados medidos.
+- **F14 (cerrada):** revisor local de cambios API para personas y agentes (`specs/f14-agent-api-gate.md`): `review` CLI + evaluador compartido, tool MCP `review_api_change`, Action con `review-ref`, corpus + benchmark con resultados medidos.
 - **F15 (M15.1 cerrado):** `scan-org --resume` y `--from-scratch` guardan historial local y reutilizan solo revisiones verificadas. Workspace web y wizard siguen en los próximos milestones (`specs/f15-local-workspace.md`).

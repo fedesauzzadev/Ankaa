@@ -2,7 +2,7 @@
 
 | Campo         | Valor                                                                     |
 | ------------- | ------------------------------------------------------------------------- |
-| Estado        | implementada                                                              |
+| Estado        | cerrada                                                                   |
 | Fase          | 14                                                                        |
 | Deriva de     | `f1-analyze`, `f4-mcp-tools`, `f5-action`, `f12-breaking`, INV-1/2/3/5/7  |
 | Investigación | [product discovery 2026-09](../docs/product-discovery-backlog-2026-09.md) |
@@ -271,3 +271,6 @@ antes de una comunicación de lanzamiento; no bloquean construir el producto.
   9/9·0 perdidos·0 inesperados) y resultados publicados en
   `docs/benchmarks/review-benchmark-2026-09.{json,md}` sin claims de ahorro.
   Estado → `implementada` (AC-14.1–14.12 completos).
+- 2026-09-30 · Fase cerrada: `pnpm check` verde en el cierre de cada milestone,
+  paridad CLI ↔ MCP ↔ Action sobre el mismo evaluador verificada por tests, y
+  resultados del benchmark publicados sin claims. Estado → `cerrada`.
