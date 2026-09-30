@@ -1,7 +1,7 @@
 # ApiGovScan — air-gap image from the packed tarball.
 # Build: docker build -f docker/Dockerfile --build-arg TARBALL=apigovscan-cli-<version>.tgz .
 # (place the tarball produced by scripts/pack-cli.mjs in the build context)
-FROM node:20-alpine
+FROM node:22-alpine
 
 ARG TARBALL=apigovscan-cli-0.0.0-dev.tgz
 COPY ${TARBALL} /tmp/apigovscan-cli.tgz

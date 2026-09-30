@@ -4,7 +4,7 @@
 | --------------------- | --------------------------------------------------- |
 | Spec                  | [specs/f0-foundation.md](../specs/f0-foundation.md) |
 | Esfuerzo estimado     | 0.5–1 día                                           |
-| Dependencias externas | pnpm ≥ 9, Node ≥ 20, cuenta GitHub para CI          |
+| Dependencias externas | pnpm ≥ 9, Node ≥ 22, cuenta GitHub para CI          |
 | Milestones            | M0.1–M0.3                                           |
 
 ## Objetivo del plan

@@ -7,7 +7,7 @@
   "author": "fedesauzzadev (https://github.com/fedesauzzadev)",
   "type": "module",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "packageManager": "pnpm@9.15.4",
   "scripts": {
@@ -26,7 +26,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
-    "@types/node": "^20.17.10",
+    "@types/node": "^22.0.0",
     "docx": "^9.7.2",
     "eslint": "^9.17.0",
     "pdfkit": "^0.20.2",

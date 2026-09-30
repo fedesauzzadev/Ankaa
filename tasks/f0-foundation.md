@@ -39,3 +39,9 @@ Plan: [plans/f0-foundation.md](../plans/f0-foundation.md) · Spec: [specs/f0-fou
 
 - [x] Todos los AC f0 verificados localmente
 - [x] Plan checklist cerrado
+
+## M0 mantenimiento — baseline de runtime (2026-09-30)
+
+- [x] Actualizar Node mínimo a 22 en manifests, bundle, Docker, Action y workflows CI.
+- [x] Alinear `@types/node` a 22 y lockfile al runtime soportado.
+- [x] Verificar `pnpm check` local; CI declara Node 22 y 24 en los tres OS.

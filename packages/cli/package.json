@@ -31,7 +31,7 @@
     "LICENSE.md"
   ],
   "scripts": {
-    "build": "tsc -b && node ./scripts/copy-packs.mjs && esbuild dist/index.js --bundle --platform=node --format=esm --target=node20 --outfile=dist/apigovscan.mjs --banner:js=\"import{createRequire as __apigovscanCreateRequire}from'node:module';const require=__apigovscanCreateRequire(import.meta.url);\"",
+    "build": "tsc -b && node ./scripts/copy-packs.mjs && esbuild dist/index.js --bundle --platform=node --format=esm --target=node22 --outfile=dist/apigovscan.mjs --banner:js=\"import{createRequire as __apigovscanCreateRequire}from'node:module';const require=__apigovscanCreateRequire(import.meta.url);\"",
     "test": "vitest run",
     "typecheck": "tsc -b --pretty"
   },
@@ -54,6 +54,6 @@
     "vitest": "^2.1.8"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   }
 }

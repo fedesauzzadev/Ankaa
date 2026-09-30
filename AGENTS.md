@@ -27,7 +27,7 @@ Si un cambio viola un invariante → **detente** y pide ADR/SDD update. No "rara
 
 ## 2. Stack y comandos
 
-- TypeScript strict, ESM, Node ≥ 20, pnpm workspaces.
+- TypeScript strict, ESM, Node ≥ 22, pnpm workspaces.
 - Tests: Vitest. Lint: ESLint + Prettier.
 - Comandos raíz:
 
