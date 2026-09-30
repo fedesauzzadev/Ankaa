@@ -1,0 +1,511 @@
+{
+  "schemaVersion": 1,
+  "toolVersion": "0.0.0-dev",
+  "tokenizer": "chars/4 (approximation; no model called)",
+  "runtime": "node v24.19.0 on win32",
+  "cases": [
+    {
+      "id": "openapi-brk-001-operation-removed",
+      "format": "openapi",
+      "comparison": {
+        "supported": true
+      },
+      "withContext": {
+        "tokens": 1348,
+        "contextChars": 5389
+      },
+      "withTruncatedContext": {
+        "tokens": 1357,
+        "totalFindings": 8,
+        "truncated": false
+      },
+      "withoutContext": {
+        "tokens": 1062,
+        "promptChars": 555,
+        "baselineChars": 2128,
+        "candidateChars": 1532
+      },
+      "detection": {
+        "expectedRuleIds": [
+          "BRK-001"
+        ],
+        "detectedRuleIds": [
+          "BRK-001"
+        ],
+        "unexpectedRuleIds": [],
+        "missedRuleIds": [],
+        "totalFindings": 8
+      },
+      "durationMs": 106
+    },
+    {
+      "id": "openapi-brk-002-required-param-added",
+      "format": "openapi",
+      "comparison": {
+        "supported": true
+      },
+      "withContext": {
+        "tokens": 1867,
+        "contextChars": 7468
+      },
+      "withTruncatedContext": {
+        "tokens": 1877,
+        "totalFindings": 12,
+        "truncated": false
+      },
+      "withoutContext": {
+        "tokens": 1256,
+        "promptChars": 555,
+        "baselineChars": 2128,
+        "candidateChars": 2310
+      },
+      "detection": {
+        "expectedRuleIds": [
+          "BRK-002"
+        ],
+        "detectedRuleIds": [
+          "BRK-002"
+        ],
+        "unexpectedRuleIds": [],
+        "missedRuleIds": [],
+        "totalFindings": 12
+      },
+      "durationMs": 68
+    },
+    {
+      "id": "openapi-brk-003-required-body-removed",
+      "format": "openapi",
+      "comparison": {
+        "supported": true
+      },
+      "withContext": {
+        "tokens": 1925,
+        "contextChars": 7700
+      },
+      "withTruncatedContext": {
+        "tokens": 1935,
+        "totalFindings": 12,
+        "truncated": false
+      },
+      "withoutContext": {
+        "tokens": 1174,
+        "promptChars": 555,
+        "baselineChars": 2128,
+        "candidateChars": 1983
+      },
+      "detection": {
+        "expectedRuleIds": [
+          "BRK-003"
+        ],
+        "detectedRuleIds": [
+          "BRK-003"
+        ],
+        "unexpectedRuleIds": [],
+        "missedRuleIds": [],
+        "totalFindings": 12
+      },
+      "durationMs": 75
+    },
+    {
+      "id": "openapi-brk-004-required-property-added",
+      "format": "openapi",
+      "comparison": {
+        "supported": true
+      },
+      "withContext": {
+        "tokens": 1878,
+        "contextChars": 7512
+      },
+      "withTruncatedContext": {
+        "tokens": 1888,
+        "totalFindings": 12,
+        "truncated": false
+      },
+      "withoutContext": {
+        "tokens": 1227,
+        "promptChars": 555,
+        "baselineChars": 2128,
+        "candidateChars": 2195
+      },
+      "detection": {
+        "expectedRuleIds": [
+          "BRK-004"
+        ],
+        "detectedRuleIds": [
+          "BRK-004"
+        ],
+        "unexpectedRuleIds": [],
+        "missedRuleIds": [],
+        "totalFindings": 12
+      },
+      "durationMs": 56
+    },
+    {
+      "id": "openapi-brk-005-response-removed",
+      "format": "openapi",
+      "comparison": {
+        "supported": true
+      },
+      "withContext": {
+        "tokens": 1859,
+        "contextChars": 7434
+      },
+      "withTruncatedContext": {
+        "tokens": 1868,
+        "totalFindings": 12,
+        "truncated": false
+      },
+      "withoutContext": {
+        "tokens": 1199,
+        "promptChars": 555,
+        "baselineChars": 2128,
+        "candidateChars": 2082
+      },
+      "detection": {
+        "expectedRuleIds": [
+          "BRK-005"
+        ],
+        "detectedRuleIds": [
+          "BRK-005"
+        ],
+        "unexpectedRuleIds": [],
+        "missedRuleIds": [],
+        "totalFindings": 12
+      },
+      "durationMs": 72
+    },
+    {
+      "id": "openapi-brk-006-enum-value-removed",
+      "format": "openapi",
+      "comparison": {
+        "supported": true
+      },
+      "withContext": {
+        "tokens": 2022,
+        "contextChars": 8085
+      },
+      "withTruncatedContext": {
+        "tokens": 2031,
+        "totalFindings": 13,
+        "truncated": false
+      },
+      "withoutContext": {
+        "tokens": 1214,
+        "promptChars": 555,
+        "baselineChars": 2128,
+        "candidateChars": 2142
+      },
+      "detection": {
+        "expectedRuleIds": [
+          "BRK-006"
+        ],
+        "detectedRuleIds": [
+          "BRK-006"
+        ],
+        "unexpectedRuleIds": [],
+        "missedRuleIds": [],
+        "totalFindings": 13
+      },
+      "durationMs": 217
+    },
+    {
+      "id": "openapi-brk-007-type-changed",
+      "format": "openapi",
+      "comparison": {
+        "supported": true
+      },
+      "withContext": {
+        "tokens": 2022,
+        "contextChars": 8085
+      },
+      "withTruncatedContext": {
+        "tokens": 2031,
+        "totalFindings": 13,
+        "truncated": false
+      },
+      "withoutContext": {
+        "tokens": 1209,
+        "promptChars": 555,
+        "baselineChars": 2128,
+        "candidateChars": 2122
+      },
+      "detection": {
+        "expectedRuleIds": [
+          "BRK-007"
+        ],
+        "detectedRuleIds": [
+          "BRK-007"
+        ],
+        "unexpectedRuleIds": [],
+        "missedRuleIds": [],
+        "totalFindings": 13
+      },
+      "durationMs": 680
+    },
+    {
+      "id": "openapi-brk-008-auth-added",
+      "format": "openapi",
+      "comparison": {
+        "supported": true
+      },
+      "withContext": {
+        "tokens": 1997,
+        "contextChars": 7986
+      },
+      "withTruncatedContext": {
+        "tokens": 2006,
+        "totalFindings": 13,
+        "truncated": false
+      },
+      "withoutContext": {
+        "tokens": 1245,
+        "promptChars": 555,
+        "baselineChars": 2128,
+        "candidateChars": 2265
+      },
+      "detection": {
+        "expectedRuleIds": [
+          "BRK-008"
+        ],
+        "detectedRuleIds": [
+          "BRK-008"
+        ],
+        "unexpectedRuleIds": [],
+        "missedRuleIds": [],
+        "totalFindings": 13
+      },
+      "durationMs": 397
+    },
+    {
+      "id": "openapi-no-breaking-changes",
+      "format": "openapi",
+      "comparison": {
+        "supported": true
+      },
+      "withContext": {
+        "tokens": 2555,
+        "contextChars": 10217
+      },
+      "withTruncatedContext": {
+        "tokens": 2564,
+        "totalFindings": 17,
+        "truncated": false
+      },
+      "withoutContext": {
+        "tokens": 1485,
+        "promptChars": 555,
+        "baselineChars": 2128,
+        "candidateChars": 3227
+      },
+      "detection": {
+        "expectedRuleIds": [],
+        "detectedRuleIds": [],
+        "unexpectedRuleIds": [],
+        "missedRuleIds": [],
+        "totalFindings": 17
+      },
+      "durationMs": 454
+    },
+    {
+      "id": "openapi-realistic-petstore-type-changed",
+      "format": "openapi",
+      "comparison": {
+        "supported": true
+      },
+      "withContext": {
+        "tokens": 27081,
+        "contextChars": 108321
+      },
+      "withTruncatedContext": {
+        "tokens": 3402,
+        "totalFindings": 179,
+        "truncated": true
+      },
+      "withoutContext": {
+        "tokens": 8695,
+        "promptChars": 555,
+        "baselineChars": 17106,
+        "candidateChars": 17089
+      },
+      "detection": {
+        "expectedRuleIds": [
+          "BRK-007"
+        ],
+        "detectedRuleIds": [
+          "BRK-007"
+        ],
+        "unexpectedRuleIds": [],
+        "missedRuleIds": [],
+        "totalFindings": 179
+      },
+      "durationMs": 123
+    },
+    {
+      "id": "swagger-additive-operation",
+      "format": "swagger",
+      "comparison": {
+        "supported": true
+      },
+      "withContext": {
+        "tokens": 1867,
+        "contextChars": 7468
+      },
+      "withTruncatedContext": {
+        "tokens": 1877,
+        "totalFindings": 13,
+        "truncated": false
+      },
+      "withoutContext": {
+        "tokens": 468,
+        "promptChars": 555,
+        "baselineChars": 438,
+        "candidateChars": 848
+      },
+      "detection": {
+        "expectedRuleIds": [],
+        "detectedRuleIds": [],
+        "unexpectedRuleIds": [],
+        "missedRuleIds": [],
+        "totalFindings": 13
+      },
+      "durationMs": 84
+    },
+    {
+      "id": "graphql-argument-default-changed",
+      "format": "graphql",
+      "comparison": {
+        "supported": false,
+        "reason": "Compatibility comparison currently supports OpenAPI and Swagger only."
+      },
+      "withContext": {
+        "tokens": 690,
+        "contextChars": 2760
+      },
+      "withTruncatedContext": {
+        "tokens": 699,
+        "totalFindings": 4,
+        "truncated": false
+      },
+      "withoutContext": {
+        "tokens": 782,
+        "promptChars": 555,
+        "baselineChars": 1270,
+        "candidateChars": 1270
+      },
+      "detection": {
+        "expectedRuleIds": [],
+        "detectedRuleIds": [],
+        "unexpectedRuleIds": [],
+        "missedRuleIds": [],
+        "totalFindings": 4
+      },
+      "durationMs": 85
+    },
+    {
+      "id": "grpc-field-type-changed",
+      "format": "grpc",
+      "comparison": {
+        "supported": false,
+        "reason": "Compatibility comparison currently supports OpenAPI and Swagger only."
+      },
+      "withContext": {
+        "tokens": 1523,
+        "contextChars": 6090
+      },
+      "withTruncatedContext": {
+        "tokens": 1532,
+        "totalFindings": 10,
+        "truncated": false
+      },
+      "withoutContext": {
+        "tokens": 1325,
+        "promptChars": 555,
+        "baselineChars": 2356,
+        "candidateChars": 2356
+      },
+      "detection": {
+        "expectedRuleIds": [],
+        "detectedRuleIds": [],
+        "unexpectedRuleIds": [],
+        "missedRuleIds": [],
+        "totalFindings": 10
+      },
+      "durationMs": 77
+    },
+    {
+      "id": "asyncapi-enum-value-removed",
+      "format": "asyncapi",
+      "comparison": {
+        "supported": false,
+        "reason": "Compatibility comparison currently supports OpenAPI and Swagger only."
+      },
+      "withContext": {
+        "tokens": 569,
+        "contextChars": 2273
+      },
+      "withTruncatedContext": {
+        "tokens": 578,
+        "totalFindings": 3,
+        "truncated": false
+      },
+      "withoutContext": {
+        "tokens": 1301,
+        "promptChars": 555,
+        "baselineChars": 2318,
+        "candidateChars": 2299
+      },
+      "detection": {
+        "expectedRuleIds": [],
+        "detectedRuleIds": [],
+        "unexpectedRuleIds": [],
+        "missedRuleIds": [],
+        "totalFindings": 3
+      },
+      "durationMs": 78
+    },
+    {
+      "id": "webhooks-payload-type-changed",
+      "format": "webhooks",
+      "comparison": {
+        "supported": false,
+        "reason": "Compatibility comparison currently supports OpenAPI and Swagger only."
+      },
+      "withContext": {
+        "tokens": 826,
+        "contextChars": 3303
+      },
+      "withTruncatedContext": {
+        "tokens": 835,
+        "totalFindings": 5,
+        "truncated": false
+      },
+      "withoutContext": {
+        "tokens": 616,
+        "promptChars": 555,
+        "baselineChars": 937,
+        "candidateChars": 939
+      },
+      "detection": {
+        "expectedRuleIds": [],
+        "detectedRuleIds": [],
+        "unexpectedRuleIds": [],
+        "missedRuleIds": [],
+        "totalFindings": 5
+      },
+      "durationMs": 69
+    }
+  ],
+  "totals": {
+    "cases": 15,
+    "comparable": 11,
+    "nonComparable": 4,
+    "withContextTokens": 50029,
+    "withTruncatedContextTokens": 26480,
+    "withoutContextTokens": 24258,
+    "expectedFindings": 9,
+    "detectedFindings": 9,
+    "missedFindings": 0,
+    "unexpectedFindings": 0
+  },
+  "note": "Token counts are chars/4 approximations of the reference prompt path vs the ApiGovScan context package; no model was called. Detection is the deterministic engine against corpus ground truth. durationMs is machine-dependent. No savings percentage is claimed without measured model results."
+}

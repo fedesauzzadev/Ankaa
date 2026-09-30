@@ -1,0 +1,124 @@
+openapi: 3.1.0
+info:
+  title: Orders API
+  version: 1.1.0
+  description: Candidate with only additive, compatible changes (negative case for every BRK).
+servers:
+  - url: https://api.example.com/v1
+tags:
+  - name: orders
+paths:
+  /orders:
+    get:
+      operationId: listOrders
+      summary: List orders with pagination
+      description: Returns one page of orders for the caller.
+      tags: [orders]
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of orders to return.
+          schema:
+            type: integer
+            minimum: 1
+        - name: fields
+          in: query
+          required: false
+          description: Optional field selection for the response.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A page of orders.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderList"
+        "404":
+          description: Unknown resource requested.
+        "500":
+          description: Unexpected server error.
+    post:
+      operationId: createOrder
+      summary: Create a new order from a cart
+      description: Creates an order and returns the stored representation.
+      tags: [orders]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderCreate"
+      responses:
+        "201":
+          description: Order created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "500":
+          description: Unexpected server error.
+    put:
+      operationId: replaceOrder
+      summary: Replace an existing order
+      description: Replaces the stored representation of one order.
+      tags: [orders]
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          description: Identifier of the order to replace.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderCreate"
+      responses:
+        "200":
+          description: Order replaced.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "500":
+          description: Unexpected server error.
+components:
+  schemas:
+    Order:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, paid, shipped, cancelled]
+        total:
+          type: number
+          format: double
+    OrderCreate:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            type: string
+        note:
+          type: string
+        coupon:
+          type: string
+    OrderList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Order"
+        total:
+          type: integer

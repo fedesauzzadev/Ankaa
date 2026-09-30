@@ -114,7 +114,9 @@ apigovscan review openapi-base.yaml openapi-candidate.yaml --format json --outpu
 respecto del contrato base en una sola salida. La comparación de cambios está
 implementada para OpenAPI/Swagger; formatos no comparables producen un error
 explícito, nunca una revisión limpia. No invoca un LLM. Ver
-[`specs/f14-agent-api-gate.md`](specs/f14-agent-api-gate.md).
+[`specs/f14-agent-api-gate.md`](specs/f14-agent-api-gate.md). Corpus de casos y
+benchmark de consumo (tokens chars/4, sin LLM): [`fixtures/review-corpus/`](fixtures/review-corpus/README.md)
+y [`docs/benchmarks/`](docs/benchmarks/review-benchmark-2026-09.md).
 
 #### MCP (Claude / Cursor / opencode)
 
@@ -370,5 +372,5 @@ Ver [docs/SDD.md §7](docs/SDD.md).
 - **F9 (cerrada, sin publicar):** papeles OSS ✅ (`f9-launch-oss`: Apache-2.0 + community key + marca).
 - **F10 (cerrada):** visor local ✅ (`f10-dashboard`, OSS).
 - **F7 (backlog, `f7-enterprise` draft):** packs por cliente · self-host compose completo · edge Cloudflare (opcional) · export enterprise (`f10-export` como M7.4) — export JSON v1 implementado; el gate por tier espera la definición de F7.
-- **F14 (en ejecución):** revisor local de cambios API para personas y agentes, con resultado verificable en CI (`specs/f14-agent-api-gate.md`).
+- **F14 (implementada):** revisor local de cambios API para personas y agentes (`specs/f14-agent-api-gate.md`): `review` CLI + evaluador compartido, tool MCP `review_api_change`, Action con `review-ref`, corpus + benchmark con resultados medidos.
 - **F15 (M15.1 cerrado):** `scan-org --resume` y `--from-scratch` guardan historial local y reutilizan solo revisiones verificadas. Workspace web y wizard siguen en los próximos milestones (`specs/f15-local-workspace.md`).

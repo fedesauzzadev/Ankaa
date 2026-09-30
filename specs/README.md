@@ -58,7 +58,7 @@ Especificaciones **spec-driven** derivadas del [SDD v1.0](../docs/SDD.md). El SD
 | [f11-coverage](f11-coverage.md)                 | 11   | Métrica de cobertura de gobernanza (% de la spec inspeccionada por reglas)           | cerrada      |
 | [f12-breaking](f12-breaking.md)                 | 12   | Diff spec-vs-spec: breaking changes base..head (BRK-001…008)                         | cerrada      |
 | [f13-mini-validator](f13-mini-validator.md)     | 13   | Épica futura: validación offline de ejemplos contra schemas                          | draft        |
-| [f14-agent-api-gate](f14-agent-api-gate.md)     | 14   | Revisión local de cambios API para personas/agentes, con salida CI verificable       | ready        |
+| [f14-agent-api-gate](f14-agent-api-gate.md)     | 14   | Revisión local de cambios API para personas/agentes, con salida CI verificable       | implementada |
 | [f15-local-workspace](f15-local-workspace.md)   | 15   | Workspace local guiado con historial, comparación y reanudación                      | ready        |
 
 ## Orden de implementación sugerido

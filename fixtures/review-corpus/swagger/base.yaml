@@ -1,0 +1,19 @@
+swagger: "2.0"
+info:
+  title: Users
+  version: 1.0.0
+  description: Baseline Swagger 2.0 contract for the review corpus.
+host: api.example.com
+basePath: /v1
+schemes: [https]
+paths:
+  /users:
+    get:
+      operationId: listUsers
+      summary: List users of the tenant
+      description: Returns the users registered for the tenant.
+      tags: [users]
+      responses:
+        "200":
+          description: The user list.
+components: {}

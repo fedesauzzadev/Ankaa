@@ -1,0 +1,38 @@
+version: "1"
+info:
+  title: Billing webhooks
+  version: 1.4.0
+  description: Webhooks emitted by billing for adapter tests.
+servers:
+  - url: https://hooks.example.com
+    description: Production receiver.
+webhooks:
+  user.created:
+    description: Fires when a user signs up, after email verification.
+    payload:
+      type: object
+      required:
+        - userId
+      properties:
+        userId:
+          type: string
+          description: Identifier of the user.
+    headers:
+      - name: webhook-signature
+        required: true
+        description: HMAC signature of the payload.
+  BadEvent:
+    description: TODO document this.
+    headers:
+      - name: x-other
+        required: false
+  order.created:
+    description: Fires when an order is created by checkout.
+    payload:
+      type: object
+      properties:
+        order_id:
+          type: string
+    headers:
+      - name: webhook-signature
+        required: true

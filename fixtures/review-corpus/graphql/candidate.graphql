@@ -1,0 +1,75 @@
+"Petstore schema for ApiGovScan GraphQL adapter tests."
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+"Operations to read pets."
+type Query {
+  "List all pets, optionally filtered."
+  pets(status: Status, limit: Int = 50): [Pet!]!
+  "Find one pet by identifier."
+  petById(petId: ID!): Pet
+  legacySearch(query: String): [Pet!]! @deprecated(reason: "Use pets instead.")
+}
+
+"Operations to change pets."
+type Mutation {
+  "Create a pet and return it."
+  createPet(input: PetInput!): Pet!
+  "Delete a pet by identifier."
+  deletePet(petId: ID!): Boolean
+}
+
+type Subscription {
+  "Emitted whenever a pet is created."
+  petCreated: Pet!
+}
+
+extend type Query {
+  "Total number of pets."
+  petCount: Int!
+  _internalStats(format_type: String): String
+}
+
+"A pet in the store."
+type Pet implements Node {
+  id: ID!
+  name: String!
+  status: Status!
+  owner: Owner
+}
+
+interface Node {
+  id: ID!
+}
+
+"Pet owner, people or shelters."
+union Owner = Person | Shelter
+
+type Person {
+  name: String!
+}
+
+type Shelter {
+  name: String!
+}
+
+"Known pet states."
+enum Status {
+  AVAILABLE
+  ADOPTED
+}
+
+"Input to create a pet."
+input PetInput {
+  name: String!
+  status: Status = AVAILABLE
+}
+
+"Timestamp with timezone."
+scalar DateTime
+
+type QueryExtra @tag(name: "extra") {
+  ping: String
+}

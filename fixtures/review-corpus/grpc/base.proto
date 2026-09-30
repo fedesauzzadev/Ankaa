@@ -1,0 +1,114 @@
+syntax = "proto3";
+
+package pet.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option java_package = "com.example.pet.v1";
+
+// Pet store service for ApiGovScan gRPC adapter tests.
+service PetService {
+  // List all pets with pagination.
+  rpc ListPets(ListPetsRequest) returns (ListPetsResponse);
+  // Get one pet by identifier.
+  rpc GetPet(GetPetRequest) returns (Pet);
+  // Create a pet and return it.
+  rpc CreatePet(CreatePetRequest) returns (Pet);
+  // Delete a pet by identifier.
+  rpc DeletePet(DeletePetRequest) returns (DeletePetResponse);
+  // Watch pet events as they happen.
+  rpc WatchPets(WatchPetsRequest) returns (stream PetEvent);
+  // Legacy lookup, do not use.
+  rpc LookupPet(LookupPetRequest) returns (Pet) {
+    option deprecated = true;
+  }
+  rpc custom_verb(CustomRequest) returns (Pet);
+  rpc Ping(PingRequest) returns (PongResponse);
+}
+
+// Request to list pets.
+message ListPetsRequest {
+  // Page size, capped server-side.
+  int32 page_size = 1;
+  string page_token = 2;
+  Status status = 3;
+  // Badly named field on purpose.
+  string FormatType = 4;
+}
+
+// Response with one page of pets.
+message ListPetsResponse {
+  repeated Pet pets = 1;
+  string next_page_token = 2;
+}
+
+// Request for one pet.
+message GetPetRequest {
+  string pet_id = 1;
+}
+
+// Payload to create a pet.
+message CreatePetRequest {
+  // Pet attributes.
+  message Attributes {
+    string color = 1;
+  }
+  string name = 1;
+  Status status = 2;
+  Attributes attributes = 3;
+  map<string, string> labels = 4;
+  oneof contact {
+    string email = 5;
+    string phone = 6;
+  }
+}
+
+// Request to delete a pet.
+message DeletePetRequest {
+  string pet_id = 1;
+}
+
+// Empty delete response.
+message DeletePetResponse {
+}
+
+// Watch request with custom option tolerated.
+message WatchPetsRequest {
+  string shelter_id = 1 [(validate.rules).string = {min_len: 1}];
+}
+
+// Legacy lookup request.
+message LookupPetRequest {
+  string query = 1;
+}
+
+// Custom verb request.
+message CustomRequest {
+  string name = 1;
+}
+
+message PingRequest {
+}
+
+message PongResponse {
+}
+
+// A pet in the store.
+message Pet {
+  string pet_id = 1;
+  string name = 2;
+  Status status = 3;
+  google.protobuf.Timestamp created_at = 4;
+}
+
+// An event emitted for pets.
+message PetEvent {
+  Pet pet = 1;
+}
+
+// Known pet states.
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  AVAILABLE = 1;
+  ADOPTED = 2;
+}

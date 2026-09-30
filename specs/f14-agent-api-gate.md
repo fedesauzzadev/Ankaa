@@ -2,7 +2,7 @@
 
 | Campo         | Valor                                                                     |
 | ------------- | ------------------------------------------------------------------------- |
-| Estado        | ready                                                                     |
+| Estado        | implementada                                                              |
 | Fase          | 14                                                                        |
 | Deriva de     | `f1-analyze`, `f4-mcp-tools`, `f5-action`, `f12-breaking`, INV-1/2/3/5/7  |
 | Investigación | [product discovery 2026-09](../docs/product-discovery-backlog-2026-09.md) |
@@ -175,7 +175,7 @@ type ApiChangeReview = ApiChangeReviewSuccess | ApiChangeReviewError;
 - [x] **AC-14.2** Una revisión ejecuta governance del candidato más
       compatibilidad base-candidato; no duplica checks ni modifica `analyze` o
       `diff` existentes.
-- [ ] **AC-14.3** Fixtures por formato documentan y prueban qué comparación se
+- [x] **AC-14.3** Fixtures por formato documentan y prueban qué comparación se
       soporta; cada BRK aplicable tiene caso positivo y negativo, y los formatos
       no comparables se reportan sin éxito-shaped fallback.
 - [x] **AC-14.4** Mismo par, configuración, skills y versiones ⇒ mismos
@@ -191,7 +191,7 @@ type ApiChangeReview = ApiChangeReviewSuccess | ApiChangeReviewError;
 - [x] **AC-14.9** La Action/CI usa el mismo evaluador sobre el candidato final,
       y la documentación diferencia el check publicado de configurarlo como
       required.
-- [ ] **AC-14.10** El benchmark versionado compara revisión con y sin contexto
+- [x] **AC-14.10** El benchmark versionado compara revisión con y sin contexto
       ApiGovScan, registra token-count del modelo de referencia, tiempo,
       findings detectados y falsos positivos; no se promete porcentaje de ahorro
       sin resultados del benchmark. La revisión normal no llama LLM ni hace red.
@@ -263,3 +263,11 @@ antes de una comunicación de lanzamiento; no bloquean construir el producto.
   hallazgos adyacentes) y de mensajes distinguibles clean/findings/unsupported/
   error. Fix de privacidad central: los errores de parse YAML ya no citan el
   snippet del contrato (AC-14.11, INV-7; aplica a analyze/diff/review).
+- 2026-09-30 · M14.5 implementado y fase completa: corpus determinista
+  `fixtures/review-corpus/` (positivo+negativo por BRK-001…008, Swagger
+  comparable, 4 formatos no comparables, 1 caso realista Petstore 17 KB) con
+  manifest versionado; benchmark repetible `scripts/review-benchmark.mjs`
+  (full/truncated/raw, tokens chars/4 sin LLM ni red, detección vs ground truth
+  9/9·0 perdidos·0 inesperados) y resultados publicados en
+  `docs/benchmarks/review-benchmark-2026-09.{json,md}` sin claims de ahorro.
+  Estado → `implementada` (AC-14.1–14.12 completos).

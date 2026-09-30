@@ -1,0 +1,87 @@
+asyncapi: 2.6.0
+info:
+  title: Pet Events API
+  version: 1.0.0
+  description: Events emitted by the pet store for AsyncAPI adapter tests.
+servers:
+  production:
+    url: kafka.example.com:9092
+    protocol: kafka-secure
+    description: Production broker.
+channels:
+  pet/created:
+    description: Emitted whenever a pet is created.
+    parameters:
+      shelterId:
+        description: Shelter that created the pet.
+        schema:
+          type: string
+    publish:
+      operationId: publishPetCreated
+      summary: Publish pet created
+      description: Publishes a pet-created event to subscribers.
+      tags:
+        - name: pets
+      message:
+        name: PetCreated
+        title: Pet created
+        summary: A pet was created.
+        description: Event payload when a new pet enters the store.
+        payload:
+          type: object
+          required:
+            - petId
+          properties:
+            petId:
+              type: string
+              description: Identifier of the pet.
+            status:
+              $ref: '#/components/schemas/Status'
+        headers:
+          type: object
+          properties:
+            ceType:
+              type: string
+              description: CloudEvent type.
+  pet/adopted:
+    subscribe:
+      operationId: onPetAdopted
+      summary: Receive pet adopted
+      description: Receives pet-adopted events from the broker.
+      message:
+        $ref: '#/components/messages/PetAdopted'
+  BadChannel:
+    publish:
+      description: Undocumented legacy channel.
+      message:
+        payload:
+          type: object
+          properties:
+            FormatType:
+              type: string
+components:
+  messages:
+    PetAdopted:
+      name: PetAdopted
+      title: Pet adopted
+      summary: A pet was adopted.
+      description: Event payload when a pet leaves the store.
+      payload:
+        type: object
+        required:
+          - petId
+        properties:
+          petId:
+            type: string
+      headers:
+        $ref: '#/components/schemas/CloudHeaders'
+  schemas:
+    Status:
+      type: string
+      enum:
+        - AVAILABLE
+    CloudHeaders:
+      type: object
+      properties:
+        ceSource:
+          type: string

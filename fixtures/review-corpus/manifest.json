@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "description": "Deterministic review corpus: baseline/candidate pairs per format and change case. expectDiffRuleIds is the ground truth for BRK (compatibility) findings; comparable=false means review must report an explicit unsupported-comparison error, never a clean outcome.",
+  "cases": [
+    {
+      "id": "openapi-brk-001-operation-removed",
+      "format": "openapi",
+      "comparable": true,
+      "baseline": "openapi/base.yaml",
+      "candidate": "openapi/brk-001-operation-removed.yaml",
+      "expectDiffRuleIds": ["BRK-001"]
+    },
+    {
+      "id": "openapi-brk-002-required-param-added",
+      "format": "openapi",
+      "comparable": true,
+      "baseline": "openapi/base.yaml",
+      "candidate": "openapi/brk-002-required-param-added.yaml",
+      "expectDiffRuleIds": ["BRK-002"]
+    },
+    {
+      "id": "openapi-brk-003-required-body-removed",
+      "format": "openapi",
+      "comparable": true,
+      "baseline": "openapi/base.yaml",
+      "candidate": "openapi/brk-003-required-body-removed.yaml",
+      "expectDiffRuleIds": ["BRK-003"]
+    },
+    {
+      "id": "openapi-brk-004-required-property-added",
+      "format": "openapi",
+      "comparable": true,
+      "baseline": "openapi/base.yaml",
+      "candidate": "openapi/brk-004-required-property-added.yaml",
+      "expectDiffRuleIds": ["BRK-004"]
+    },
+    {
+      "id": "openapi-brk-005-response-removed",
+      "format": "openapi",
+      "comparable": true,
+      "baseline": "openapi/base.yaml",
+      "candidate": "openapi/brk-005-response-removed.yaml",
+      "expectDiffRuleIds": ["BRK-005"]
+    },
+    {
+      "id": "openapi-brk-006-enum-value-removed",
+      "format": "openapi",
+      "comparable": true,
+      "baseline": "openapi/base.yaml",
+      "candidate": "openapi/brk-006-enum-value-removed.yaml",
+      "expectDiffRuleIds": ["BRK-006"]
+    },
+    {
+      "id": "openapi-brk-007-type-changed",
+      "format": "openapi",
+      "comparable": true,
+      "baseline": "openapi/base.yaml",
+      "candidate": "openapi/brk-007-type-changed.yaml",
+      "expectDiffRuleIds": ["BRK-007"]
+    },
+    {
+      "id": "openapi-brk-008-auth-added",
+      "format": "openapi",
+      "comparable": true,
+      "baseline": "openapi/base.yaml",
+      "candidate": "openapi/brk-008-auth-added.yaml",
+      "expectDiffRuleIds": ["BRK-008"]
+    },
+    {
+      "id": "openapi-no-breaking-changes",
+      "format": "openapi",
+      "comparable": true,
+      "baseline": "openapi/base.yaml",
+      "candidate": "openapi/no-breaking-changes.yaml",
+      "expectDiffRuleIds": []
+    },
+    {
+      "id": "openapi-realistic-petstore-type-changed",
+      "format": "openapi",
+      "comparable": true,
+      "baseline": "openapi-realistic/base.json",
+      "candidate": "openapi-realistic/candidate.json",
+      "expectDiffRuleIds": ["BRK-007"]
+    },
+    {
+      "id": "swagger-additive-operation",
+      "format": "swagger",
+      "comparable": true,
+      "baseline": "swagger/base.yaml",
+      "candidate": "swagger/candidate.yaml",
+      "expectDiffRuleIds": []
+    },
+    {
+      "id": "graphql-argument-default-changed",
+      "format": "graphql",
+      "comparable": false,
+      "baseline": "graphql/base.graphql",
+      "candidate": "graphql/candidate.graphql",
+      "expectDiffRuleIds": []
+    },
+    {
+      "id": "grpc-field-type-changed",
+      "format": "grpc",
+      "comparable": false,
+      "baseline": "grpc/base.proto",
+      "candidate": "grpc/candidate.proto",
+      "expectDiffRuleIds": []
+    },
+    {
+      "id": "asyncapi-enum-value-removed",
+      "format": "asyncapi",
+      "comparable": false,
+      "baseline": "asyncapi/base.yaml",
+      "candidate": "asyncapi/candidate.yaml",
+      "expectDiffRuleIds": []
+    },
+    {
+      "id": "webhooks-payload-type-changed",
+      "format": "webhooks",
+      "comparable": false,
+      "baseline": "webhooks/base.yaml",
+      "candidate": "webhooks/candidate.yaml",
+      "expectDiffRuleIds": []
+    }
+  ]
+}

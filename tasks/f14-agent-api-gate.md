@@ -44,9 +44,9 @@ Plan: [f14-agent-api-review](../plans/f14-agent-api-gate.md)
 
 ## M14.5 — Evidencia y cierre
 
-- [ ] Añadir corpus determinista de contratos por formato y caso de cambio.
-- [ ] Construir benchmark repetible de revisión con/sin paquete de contexto:
+- [x] Añadir corpus determinista de contratos por formato y caso de cambio.
+- [x] Construir benchmark repetible de revisión con/sin paquete de contexto:
       tokens, tiempo, detección y falsos positivos.
-- [ ] Publicar límites soportados y resultados medidos; no incluir claims de
+- [x] Publicar límites soportados y resultados medidos; no incluir claims de
       ahorro sin evidencia.
-- [ ] Ejecutar `pnpm check` y cerrar AC/documentación del release.
+- [x] Ejecutar `pnpm check` y cerrar AC/documentación del release.
