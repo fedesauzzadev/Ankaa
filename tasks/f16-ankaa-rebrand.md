@@ -102,6 +102,8 @@ Plan: — (spec directa)
 - [x] Actualizar `repository.url` de packages, badges, `uses: ./action` docs
 -      y URLs de `npm.pkg.github.com` (`@ankaa/*`). **(ya apuntaban a Ankaa
 -      desde M16.1/M16.6; verificado tras el rename)**
-- [ ] Correr el workflow dogfood del repo sobre sí mismo post-rename y
-      verificar el release de `@ankaa/cli` en el registry privado.
-      **(requiere push de los commits locales)**
+- [x] Correr el workflow dogfood del repo sobre sí mismo post-rename.
+-      (runs 36756227500 dogfood + 36756227450 CI, ambos verdes en la matriz)
+- [ ] Verificar el release de `@ankaa/cli` en el registry privado.
+      **(pendiente del próximo release; el token de CI actual no tiene scope
+      `packages`)**
