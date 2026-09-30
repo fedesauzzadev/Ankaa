@@ -68,6 +68,7 @@ export interface RuleExplanation {
   severity: Rule["severity"];
   message: string;
   fix?: string;
+  examples?: Rule["examples"];
   source?: Rule["source"];
   packId: string;
   packVersion: string;
@@ -86,6 +87,7 @@ export function explainRule(
     severity: rule.severity,
     message: rule.message,
     ...(rule.fix !== undefined ? { fix: rule.fix } : {}),
+    ...(rule.examples !== undefined ? { examples: rule.examples } : {}),
     ...(rule.source !== undefined ? { source: rule.source } : {}),
     packId: rule.packId,
     packVersion: rule.packVersion,

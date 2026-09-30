@@ -40,6 +40,7 @@ function buildFinding(
     location: op ? op.location : `/paths`,
     apiLocation: op ? `${op.method.toUpperCase()} ${op.path}` : undefined,
     fix: rule.fix,
+    examples: rule.examples,
     source: rule.source,
     packId: rule.packId,
     packVersion: rule.packVersion,

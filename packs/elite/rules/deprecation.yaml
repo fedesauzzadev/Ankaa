@@ -4,6 +4,14 @@
   severity: warning
   message: "Deprecated operations should include `x-sunset` or sunset documentation."
   fix: "Add `x-sunset: YYYY-MM-DD` (or document sunset in description)."
+  examples:
+    bad: |
+      deprecated: true
+      summary: Old endpoint
+    good: |
+      deprecated: true
+      x-sunset: "2026-12-31"
+      summary: Old endpoint
   source:
     title: Microsoft REST API Guidelines
     url: https://github.com/microsoft/api-guidelines

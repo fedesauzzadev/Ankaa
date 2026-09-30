@@ -33,6 +33,7 @@ export type {
 export type {
   Rule,
   RulePack,
+  RuleExamples,
   Matcher,
   AtomMatcher,
   Finding,

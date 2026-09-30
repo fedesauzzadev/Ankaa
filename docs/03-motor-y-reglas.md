@@ -26,6 +26,13 @@ rules:
       Resource path segments should be plural nouns (e.g. /users not /user).
     fix: >
       Rename the segment to the plural form; keep query params singular if needed.
+    examples:
+      bad: |
+        paths:
+          /user:
+      good: |
+        paths:
+          /users:
     source:
       title: Microsoft REST API Guidelines
       url: https://github.com/microsoft/api-guidelines
@@ -47,7 +54,7 @@ rules:
 | `when`     | árbol DSL (§3)                                                               |
 | `source`   | **obligatorio en packs elite**; `title` + `url` (+ `section` opcional)       |
 
-Opcionales: `fix`, `deprecated`, `enabledByDefault`, `since`, `related` (ids).
+Opcionales: `fix`, `examples` (`{bad, good}`: fragmentos YAML/JSON que violan/cumplen la regla; alimentan docs, prompt LLM y fixtures), `deprecated`, `enabledByDefault`, `since`, `related` (ids).
 
 ## 3. DSL de reglas (declarativa, whitelist)
 

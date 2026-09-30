@@ -51,6 +51,11 @@ const sourceSchema = z.strictObject({
   section: z.string().optional(),
 });
 
+const examplesSchema = z.strictObject({
+  bad: z.string().min(1).max(1000).optional(),
+  good: z.string().min(1).max(1000).optional(),
+});
+
 const atomSchema = z.discriminatedUnion("op", [
   z.strictObject({
     op: z.literal("method"),
@@ -213,6 +218,7 @@ const ruleSchema = z.strictObject({
   when: matcherSchema,
   source: sourceSchema.optional(),
   fix: z.string().optional(),
+  examples: examplesSchema.optional(),
   enabledByDefault: z.boolean().optional(),
   deprecated: z.boolean().optional(),
   packId: z.string().min(1),
@@ -303,6 +309,11 @@ export function validateRule(raw: unknown, opts?: { strictSource?: boolean }): V
 
   if (opts?.strictSource && !parsed.data.source) {
     issues.push("source is required when strictSource is enabled");
+  }
+
+  const examples = parsed.data.examples;
+  if (examples !== undefined && examples.bad === undefined && examples.good === undefined) {
+    issues.push("examples: at least one of bad|good is required");
   }
 
   const scope = detectScope(parsed.data.when);

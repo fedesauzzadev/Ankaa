@@ -3,6 +3,7 @@ import {
   computeFingerprint,
   dedupeFindings,
   evaluate,
+  explainRule,
   messageKey,
   severityRank,
   sortFindings,
@@ -492,6 +493,79 @@ describe("MIXED_SCOPE", () => {
     if (!result.ok) {
       expect(result.issues.some((i) => i.includes("MIXED_SCOPE"))).toBe(true);
     }
+  });
+});
+
+describe("AC-E.13 rule examples", () => {
+  it("accepts valid examples (bad and/or good)", () => {
+    const both = validateRule(
+      makeRule({
+        id: "NAMING-001",
+        examples: { bad: "paths:\n  /user:", good: "paths:\n  /users:" },
+      }),
+    );
+    expect(both.ok).toBe(true);
+    const onlyBad = validateRule(makeRule({ id: "NAMING-002", examples: { bad: "x" } }));
+    expect(onlyBad.ok).toBe(true);
+    const onlyGood = validateRule(makeRule({ id: "NAMING-003", examples: { good: "x" } }));
+    expect(onlyGood.ok).toBe(true);
+  });
+
+  it("rejects empty examples and unknown keys", () => {
+    const empty = validateRule(makeRule({ id: "NAMING-004", examples: {} }));
+    expect(empty.ok).toBe(false);
+    if (!empty.ok) {
+      expect(empty.issues.some((i) => i.includes("bad|good"))).toBe(true);
+    }
+    const unknown = validateRule(
+      makeRule({ id: "NAMING-005", examples: { bad: "x", nope: "y" } as never }),
+    );
+    expect(unknown.ok).toBe(false);
+  });
+
+  it("rejects examples over 1000 chars", () => {
+    const big = `x${"y".repeat(1000)}`;
+    const over = validateRule(makeRule({ id: "NAMING-006", examples: { bad: big } }));
+    expect(over.ok).toBe(false);
+  });
+
+  it("propagates examples to findings without changing fingerprints (INV-2/INV-5)", () => {
+    const spec = makeSpec();
+    const withEx = makeRule({
+      id: "STRUCT-001",
+      when: { op: "method", in: ["get"] },
+      message: "GET operations require documentation",
+      examples: { bad: "get without docs", good: "get with docs" },
+    });
+    const withoutEx = makeRule({
+      id: "STRUCT-001",
+      when: { op: "method", in: ["get"] },
+      message: "GET operations require documentation",
+    });
+    const pack = { id: "elite", version: "1.0.0", rules: [withEx] };
+    const plainPack = { id: "elite", version: "1.0.0", rules: [withoutEx] };
+    const a = evaluate({ specs: [spec], packs: [pack] });
+    const b = evaluate({ specs: [spec], packs: [plainPack] });
+    expect(a.errors).toEqual([]);
+    expect(a.findings).toHaveLength(b.findings.length);
+    expect(a.findings[0]!.examples).toEqual({ bad: "get without docs", good: "get with docs" });
+    expect(a.findings.map((f) => f.fingerprint)).toEqual(
+      b.findings.map((f) => f.fingerprint),
+    );
+    const rerun = evaluate({ specs: [spec], packs: [pack] });
+    expect(JSON.stringify(rerun)).toBe(JSON.stringify(a));
+  });
+
+  it("explainRule includes examples when present", () => {
+    const pack = {
+      id: "elite",
+      version: "1.0.0",
+      rules: [makeRule({ id: "STRUCT-001", examples: { good: "g" } })],
+    };
+    const explanation = explainRule(pack.rules, "STRUCT-001");
+    expect(explanation?.examples).toEqual({ good: "g" });
+    const plain = explainRule([makeRule({ id: "STRUCT-002" })], "STRUCT-002");
+    expect(plain?.examples).toBeUndefined();
   });
 });
 

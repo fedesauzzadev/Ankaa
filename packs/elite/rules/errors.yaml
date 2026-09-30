@@ -4,6 +4,19 @@
   severity: warning
   message: "Write operations should document at least one 4xx response."
   fix: "Document a 400/401/403/404/409 response for mutating operations."
+  examples:
+    bad: |
+      post:
+        responses:
+          "201":
+            description: Created
+    good: |
+      post:
+        responses:
+          "201":
+            description: Created
+          "400":
+            description: Bad request
   source:
     title: Zalando RESTful API Guidelines
     url: https://opensource.zalando.com/restful-api-guidelines/

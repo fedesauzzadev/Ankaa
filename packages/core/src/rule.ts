@@ -25,6 +25,11 @@ export interface SourceRef {
   section?: string;
 }
 
+export interface RuleExamples {
+  bad?: string;
+  good?: string;
+}
+
 export type OperationField =
   | "operationId"
   | "summary"
@@ -139,6 +144,7 @@ export interface Rule {
   when: Matcher;
   source?: SourceRef;
   fix?: string;
+  examples?: RuleExamples;
   enabledByDefault?: boolean;
   deprecated?: boolean;
   packId: string;
@@ -160,6 +166,7 @@ export interface Finding {
   location: string;
   apiLocation?: string;
   fix?: string;
+  examples?: RuleExamples;
   source?: SourceRef;
   packId: string;
   packVersion: string;

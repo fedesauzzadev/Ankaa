@@ -1,5 +1,6 @@
 import { parse as parseYaml } from "yaml";
 import { redactText } from "@apigovscan/reporters";
+import type { RuleExamples } from "@apigovscan/core";
 import type { ChatMessage } from "./llm.js";
 
 export type FixConfidence = "low" | "medium" | "high";
@@ -158,6 +159,7 @@ export function buildFixMessages(opts: {
   message: string;
   location: string;
   fixHint?: string;
+  examples?: RuleExamples;
   source?: { title: string; url?: string };
   fragment: string;
 }): ChatMessage[] {
@@ -179,6 +181,12 @@ export function buildFixMessages(opts: {
   ];
   if (opts.fixHint !== undefined) {
     lines.push(`fix hint: ${redactText(opts.fixHint)}`);
+  }
+  if (opts.examples?.bad !== undefined) {
+    lines.push(`bad example:\n${redactText(opts.examples.bad)}`);
+  }
+  if (opts.examples?.good !== undefined) {
+    lines.push(`good example:\n${redactText(opts.examples.good)}`);
   }
   if (opts.source !== undefined) {
     lines.push(

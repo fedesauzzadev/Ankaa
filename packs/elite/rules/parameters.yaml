@@ -42,6 +42,17 @@
   severity: warning
   message: "Boolean query parameters should be typed as boolean and documented."
   fix: "Set `schema.type: boolean` and a clear description for flag parameters."
+  examples:
+    bad: |
+      name: verbose
+      in: query
+      schema:
+        type: string
+    good: |
+      name: verbose
+      in: query
+      schema:
+        type: boolean
   source:
     title: Zalando RESTful API Guidelines
     url: https://opensource.zalando.com/restful-api-guidelines/

@@ -17,6 +17,14 @@
   severity: error
   message: "OpenAPI document must declare `info.title`."
   fix: "Add a human-readable title under `info`."
+  examples:
+    bad: |
+      info:
+        version: "1.0.0"
+    good: |
+      info:
+        title: Pet Store
+        version: "1.0.0"
   source:
     title: OpenAPI Specification
     url: https://spec.openapis.org/oas/v3.1.0

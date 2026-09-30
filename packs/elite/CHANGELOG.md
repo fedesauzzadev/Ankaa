@@ -2,6 +2,10 @@
 
 Formato: CalVer `YYYY.MM.PATCH`. Breaking = quitar regla o cambiar severidad default de error↔otro.
 
+## 2026.09.3 · unreleased
+
+- M8.6 (`f8-elite-100`): `examples: {bad, good}` en 8 reglas (NAMING-001/002/004, STRUCT-002, DEPR-001, ERR-001, PARAM-004, RESP-003). Requiere core con AC-E.13 (`Rule.examples` opcional). Sin cambios de severidad ni reglas nuevas: no breaking.
+
 ## 2026.09.2 · unreleased
 
 - M8.5 (`f8-elite-100`): segunda oleada de curación — **23 reglas nuevas** (88 activas en total), solo con átomos DSL existentes, sin tocar `packages/core`.

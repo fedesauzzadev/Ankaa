@@ -1697,6 +1697,7 @@ async function runFixCommand(
           message: finding.message,
           location: finding.location,
           ...(explanation.fix !== undefined ? { fixHint: explanation.fix } : {}),
+          ...(explanation.examples !== undefined ? { examples: explanation.examples } : {}),
           ...(explanation.source !== undefined
             ? {
                 source: {

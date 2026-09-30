@@ -46,6 +46,11 @@ interface SourceRef {
 
 type Matcher = { all: Matcher[] } | { any: Matcher[] } | { not: Matcher } | AtomMatcher;
 
+interface RuleExamples {
+  bad?: string; // fragmento YAML/JSON que viola la regla (máx 1000 chars)
+  good?: string; // fragmento YAML/JSON que la cumple (máx 1000 chars)
+}
+
 // Whitelist v1 — cada átomo declara op discriminante
 type DocField =
   "info.title" | "info.version" | "info.description" | "servers" | "tags" | "components.schemas";
@@ -124,6 +129,7 @@ interface Rule {
   when: Matcher;
   source?: SourceRef; // requerido si pack.vía "elite" | pack.strictSource
   fix?: string;
+  examples?: RuleExamples; // opcional: bad/good para docs + prompt LLM + fixtures
   enabledByDefault?: boolean; // default true
   deprecated?: boolean;
   packId: string;
@@ -149,6 +155,7 @@ interface Finding {
   location: string; // JSON Pointer al doc fuente
   apiLocation?: string; // "GET /users/{id}"
   fix?: string;
+  examples?: RuleExamples; // de la regla, si la hay
   source?: SourceRef;
   packId: string;
   packVersion: string;
@@ -243,6 +250,7 @@ Comparar por:
 - [x] **AC-E.10** Operación A true, B false ⇒ findings solo en A con `apiLocation` correcto.
 - [x] **AC-E.11** Performance smoke: 500 operaciones × 50 reglas < 500 ms en CI (medición orientativa, no flaky-hard).
 - [x] **AC-E.12** Perf slice: mismo input + packs ⇒ findings **byte-idénticos** antes/después (golden suites + bench 500/2000 ops con conteo idéntico); bench orientativo neutro en esta forma (techo: sha256 puro + validación, INV-3), sin flaky-hard.
+- [x] **AC-E.13** `examples?: { bad?, good? }` opcional en `Rule`: cada string 1–1000 chars, object strict, al menos una de `bad`/`good`. Se propaga a `Finding` y a `explainRule`/`explain`. **No** altera fingerprint, orden de sort ni `reportHash` cuando el pack no la usa (compatibilidad byte-a-byte, INV-2/INV-5). `validateRule` rechaza `examples: {}` vacío.
 
 ## 5. Test plan
 
@@ -275,3 +283,4 @@ Comparar por:
 - 2026-09-23 · M1.5: átomos de gap para pack ≥50 (operación + doc scope); `DocField` += `info.description`, `tags`; `Spec` += `rootTags?`, `security?`, `inputBytes?`; `Operation` += `externalDocs?`; `Parameter` += `style?`, `explode?`; `SchemaNode` += `description?`, `additionalProperties?`, `maximum?`, `items?`; `ComponentIndex` += `schemaNodes?`, `securitySchemeDefs?`.
 - 2026-09-28 · M-perf (spec primero): cache RegExp + precompilación por regla + cache por operación; `evaluate()` sin cambio de firma ni semántica observable; AC-E.12 equivalencia + bench.
 - 2026-09-28 · M-perf implementado: suites verdes (core 19, cli 437, invariantes 16); bench 2000 ops × elite antes ~357ms vs después ~420ms mediana (ruido-dominado, neutro); techo real: sha256 puro (INV-3) + validación zod por corrida.
+- 2026-09-30 · `Rule.examples?: { bad?, good? }` (AC-E.13, backlog M8.6): ejemplos bueno/malo opcionales por regla; se propagan a `Finding` y `RuleExplanation` y alimentan el prompt de `fix` (CLI/MCP) y el "Copy prompt for LLM" del dashboard. Estricto (zod strict, ≤1000 chars, no vacío). Sin impacto en fingerprint/sort/reportHash para packs que no la usan.

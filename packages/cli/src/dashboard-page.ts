@@ -409,6 +409,8 @@ details.glossary th { background: var(--card); }
       "Message: " + f.message
     ];
     if (f.fix) lines.push("Fix hint: " + f.fix);
+    if (f.examples && f.examples.bad) lines.push("Bad example:\n" + f.examples.bad);
+    if (f.examples && f.examples.good) lines.push("Good example:\n" + f.examples.good);
     if (f.apiLocation) lines.push("Endpoint: " + f.apiLocation);
     lines.push("Spec pointer: " + f.location);
     if (f.source) lines.push("Source: " + f.source.title + (f.source.section ? " — " + f.source.section : "") + " (" + f.source.url + ")");

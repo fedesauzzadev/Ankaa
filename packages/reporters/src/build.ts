@@ -93,6 +93,17 @@ function redactFinding(finding: Finding): Finding {
     ...finding,
     message: redactText(finding.message),
     fix: finding.fix === undefined ? undefined : redactText(finding.fix),
+    examples:
+      finding.examples === undefined
+        ? undefined
+        : {
+            ...(finding.examples.bad !== undefined
+              ? { bad: redactText(finding.examples.bad) }
+              : {}),
+            ...(finding.examples.good !== undefined
+              ? { good: redactText(finding.examples.good) }
+              : {}),
+          },
   };
 }
 

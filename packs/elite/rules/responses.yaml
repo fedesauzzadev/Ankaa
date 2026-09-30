@@ -32,6 +32,17 @@
   severity: warning
   message: "204 No Content responses must not declare a response body."
   fix: "Remove `content` from 204 responses."
+  examples:
+    bad: |
+      "204":
+        description: Deleted
+        content:
+          application/json:
+            schema:
+              type: object
+    good: |
+      "204":
+        description: Deleted
   source:
     title: RFC 9110 HTTP Semantics
     url: https://www.rfc-editor.org/rfc/rfc9110

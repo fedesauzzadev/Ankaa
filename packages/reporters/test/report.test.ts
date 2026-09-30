@@ -217,6 +217,31 @@ describe("formatConsole (AC-R.6, AC-R.9)", () => {
   });
 });
 
+describe("rule examples in reports (AC-E.13)", () => {
+  it("includes examples in the JSON report when the finding carries them", () => {
+    const examples = { bad: "paths:\n  /user:", good: "paths:\n  /users:" };
+    const report = makeReport({ results: [result([finding({ examples })])] });
+    expect(report.findings[0]!.examples).toEqual(examples);
+    expect(computeReportHash(report)).toBe(report.reportHash);
+    const parsed = JSON.parse(formatJson(report)) as { findings: Finding[] };
+    expect(parsed.findings[0]!.examples).toEqual(examples);
+  });
+
+  it("omits examples when absent (legacy shape unchanged)", () => {
+    const report = makeReport();
+    expect(report.findings[0]!.examples).toBeUndefined();
+    expect(JSON.stringify(report.findings[0])).not.toContain("examples");
+  });
+
+  it("redacts secret-looking text inside examples", () => {
+    const report = makeReport({
+      results: [result([finding({ examples: { bad: "token AKIAIOSFODNN7EXAMPLE" } })])],
+    });
+    expect(report.findings[0]!.examples?.bad).not.toContain("AKIAIOSFODNN7EXAMPLE");
+    expect(report.findings[0]!.examples?.bad).toContain("***REDACTED***");
+  });
+});
+
 describe("redactText (AC-R.8)", () => {
   it("redacts PEM blocks", () => {
     const input = "key=-----BEGIN PRIVATE KEY-----\nsecretmaterial\n-----END PRIVATE KEY-----";
