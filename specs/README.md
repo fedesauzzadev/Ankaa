@@ -51,7 +51,8 @@ Especificaciones **spec-driven** derivadas del [SDD v1.0](../docs/SDD.md). El SD
 | [f9-launch-oss](f9-launch-oss.md)               | 9    | Lanzamiento OSS gratuito (papeles, sin publicar)                                     | cerrada      |
 | [f10-dashboard](f10-dashboard.md)               | 10   | Visor local de reportes + tracking, OSS para todos (loopback, sin nube)              | cerrada      |
 | [f10-export](f10-export.md)                     | 7    | Contrato JSON para integraciones, edición empresarial (F7/M7.4)                      | ready        |
-| [f11-coverage](f11-coverage.md)                 | 11   | Métrica de cobertura de gobernanza (% de la spec inspeccionada por reglas)          | ready        |
+| [f11-coverage](f11-coverage.md)                 | 11   | Métrica de cobertura de gobernanza (% de la spec inspeccionada por reglas)          | cerrada      |
+| [f12-breaking](f12-breaking.md)                 | 12   | Diff spec-vs-spec: breaking changes base..head (BRK-001…008)                        | cerrada      |
 
 ## Orden de implementación sugerido
 

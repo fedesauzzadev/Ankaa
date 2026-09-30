@@ -59,7 +59,7 @@ export type AnalyzeOutcome =
     }
   | { ok: false; exitCode: 2; error: string };
 
-function describeSuppression(sup: SuppressionEntry): string {
+export function describeSuppression(sup: SuppressionEntry): string {
   const target =
     sup.fingerprint !== undefined
       ? `fp ${sup.fingerprint.slice(0, 12)}`
@@ -86,7 +86,7 @@ function prefixFindings(result: EvaluationResult, label: string, multi: boolean)
   };
 }
 
-function computeExitCode(report: Report, failOn: FailOn): 0 | 1 {
+export function computeExitCode(report: Report, failOn: FailOn): 0 | 1 {
   if (failOn === "never") return 0;
   const { error, warning, total } = report.summary;
   if (failOn === "error") return error > 0 ? 1 : 0;
@@ -123,6 +123,32 @@ function protocolForInput(path: string, bytes: Uint8Array): InputProtocol {
     if (looksLikeWebhooks(bytes)) return "webhooks";
   }
   return null;
+}
+
+/**
+ * Parse one input file to a normalized Spec using the same protocol
+ * dispatch as analyze (OpenAPI-first, multi-protocol via adapters).
+ */
+export function parseSpecInput(
+  path: string,
+  bytes: Uint8Array,
+  label: string,
+): { ok: true; spec: Spec } | { ok: false; error: string } {
+  const protocol = protocolForInput(path, bytes);
+  const parsed =
+    protocol === "graphql"
+      ? parseGraphQL(bytes, { sourceLabel: label })
+      : protocol === "grpc"
+        ? parseProto(bytes, { sourceLabel: label })
+        : protocol === "asyncapi"
+          ? parseAsyncAPI(bytes, { sourceLabel: label })
+          : protocol === "webhooks"
+            ? parseWebhooks(bytes, { sourceLabel: label })
+            : parseSpec(bytes, { sourceLabel: label });
+  if (!parsed.ok) {
+    return { ok: false, error: formatParseErrors(label, parsed.errors) };
+  }
+  return { ok: true, spec: parsed.spec };
 }
 
 export async function analyzeUseCase(

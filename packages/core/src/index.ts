@@ -66,6 +66,13 @@ export {
 export { evaluate } from "./evaluate.js";
 
 export {
+  diffSpecs,
+  DIFF_PACK_ID,
+  type DiffOptions,
+  type DiffResult,
+} from "./diff.js";
+
+export {
   computeCoverage,
   isRuleActive,
   mergeCoverages,

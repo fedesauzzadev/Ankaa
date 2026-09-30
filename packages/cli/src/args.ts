@@ -465,6 +465,123 @@ export function parseSuppressArgs(argv: readonly string[]): ParseSuppressArgsRes
   return { ok: true, args };
 }
 
+export interface DiffArgs {
+  oldPath: string;
+  newPath: string;
+  format: OutputFormat;
+  output?: string;
+  failOn?: FailOn;
+  skillsDir?: string;
+  config?: string;
+  licenseKey?: string;
+  noColor: boolean;
+}
+
+export type ParseDiffArgsResult = { ok: true; args: DiffArgs } | { ok: false; error: string };
+
+export function parseDiffArgs(argv: readonly string[]): ParseDiffArgsResult {
+  const args: DiffArgs = { oldPath: "", newPath: "", format: "console", noColor: false };
+  const positionals: string[] = [];
+
+  for (let i = 0; i < argv.length; i++) {
+    const token = argv[i]!;
+
+    if (token === "--format") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return {
+          ok: false,
+          error: `--format requires a value (${ANALYZE_FORMAT_LIST})`,
+        };
+      }
+      if (!ANALYZE_FORMATS.has(value as OutputFormat)) {
+        return {
+          ok: false,
+          error: `invalid --format "${value}" (expected ${ANALYZE_FORMAT_LIST})`,
+        };
+      }
+      args.format = value as OutputFormat;
+      continue;
+    }
+
+    if (token === "--output") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--output requires a file path" };
+      }
+      args.output = value;
+      continue;
+    }
+
+    if (token === "--fail-on") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return {
+          ok: false,
+          error: "--fail-on requires a value (error | warning | info | never)",
+        };
+      }
+      if (!FAIL_ON.has(value as FailOn)) {
+        return {
+          ok: false,
+          error: `invalid --fail-on "${value}" (expected error | warning | info | never)`,
+        };
+      }
+      args.failOn = value as FailOn;
+      continue;
+    }
+
+    if (token === "--skills-dir") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--skills-dir requires a directory path" };
+      }
+      args.skillsDir = value;
+      continue;
+    }
+
+    if (token === "--config") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--config requires a file path" };
+      }
+      args.config = value;
+      continue;
+    }
+
+    if (token === "--license-key") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--license-key requires a value" };
+      }
+      args.licenseKey = value;
+      continue;
+    }
+
+    if (token === "--no-color") {
+      args.noColor = true;
+      continue;
+    }
+
+    if (token === "--help" || token === "-h" || token === "--version" || token === "-V") {
+      return { ok: false, error: `unexpected ${token} after diff` };
+    }
+
+    if (isFlag(token)) {
+      return { ok: false, error: `unknown option: ${token}` };
+    }
+
+    positionals.push(token);
+  }
+
+  if (positionals.length !== 2) {
+    return { ok: false, error: "diff requires exactly two specs: diff <old> <new>" };
+  }
+  args.oldPath = positionals[0]!;
+  args.newPath = positionals[1]!;
+  return { ok: true, args };
+}
+
 export type DriftFormat = "console" | "json";
 
 export interface DriftArgs {

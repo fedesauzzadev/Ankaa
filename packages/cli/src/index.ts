@@ -8,18 +8,27 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { isAbsolute, join, relative, resolve, sep } from "node:path";
-import { explain, packageVersion, type Rule } from "@apigovscan/core";
+import {
+  DIFF_PACK_ID,
+  diffSpecs,
+  explain,
+  packageVersion,
+  sortFindings,
+  type Rule,
+} from "@apigovscan/core";
+import { buildReport } from "@apigovscan/reporters";
 import {
   parseAnalyzeArgs,
   parseDashboardArgs,
   parseSuppressArgs,
+  parseDiffArgs,
   parseDriftArgs,
   parseFixArgs,
   parseRulesArgs,
   parseScanOrgArgs,
   type FailOn,
 } from "./args.js";
-import { analyzeUseCase } from "./analyze.js";
+import { analyzeUseCase, computeExitCode, describeSuppression, parseSpecInput } from "./analyze.js";
 import { prepareAnalysis } from "./analyze-setup.js";
 import {
   buildFixMessages,
@@ -77,7 +86,7 @@ import {
   validateRulesFiles,
   type RulesSource,
 } from "./custom-rules.js";
-import { listSkills, promoteDraft } from "./skills.js";
+import { applySkillSuppressions, listSkills, promoteDraft } from "./skills.js";
 import {
   buildLearnPatch,
   loadExistingSeverities,
@@ -119,8 +128,9 @@ export function getHelp(): string {
     "  apigovscan skills promote <draftId>",
     "  apigovscan license [--key <AGS-...>]",
     "  apigovscan fix <path> [--fingerprint <fp>]",
-    "  apigovscan drift <dir> [--spec <file>]",
-    "  apigovscan scan-org <dir> [--github <org>]",
+  "  apigovscan drift <dir> [--spec <file>]",
+  "  apigovscan diff <old> <new> [--format <fmt>] [--output <file>]",
+  "  apigovscan scan-org <dir> [--github <org>]",
     "  apigovscan dashboard <report.json> [--port <n>]",
     "  apigovscan mcp [--help]",
     "  apigovscan --version",
@@ -2228,6 +2238,175 @@ async function runDashboardCommand(
   return 0;
 }
 
+async function runDiffCommand(
+  argv: readonly string[],
+  io: {
+    stdout: (text: string) => void;
+    stderr: (text: string) => void;
+    env: Record<string, string | undefined>;
+    cwd: string;
+    isTTY: boolean;
+  },
+): Promise<number> {
+  if (argv.includes("--help") || argv.includes("-h")) {
+    io.stdout(
+      "usage: apigovscan diff <old> <new> [--format <fmt>] [--output <file>] [--fail-on <sev>] [--skills-dir <dir>] [--config <file>] [--license-key <key>] [--no-color]\n",
+    );
+    return 0;
+  }
+  const parsedArgs = parseDiffArgs(argv);
+  if (!parsedArgs.ok) {
+    io.stderr(`error: ${parsedArgs.error}\n`);
+    return 2;
+  }
+  const args = parsedArgs.args;
+  if (args.oldPath === "-" || args.newPath === "-") {
+    io.stderr("error: diff does not support stdin (pass two spec files)\n");
+    return 2;
+  }
+
+  const configResult = loadConfig(io.cwd, args.config);
+  if (!configResult.ok) {
+    io.stderr(`error: ${configResult.error}\n`);
+    return 2;
+  }
+  const config = configResult.config;
+
+  const license = checkLicense({
+    flag: args.licenseKey,
+    env: io.env.APIGOVSCAN_LICENSE_KEY,
+    config: config.license?.key,
+  });
+  if (!license.ok) {
+    io.stderr(`error: ${licenseErrorMessage(license)}\n`);
+    return 2;
+  }
+
+  const failOn = mergeFailOn(args.failOn, config, io.stderr);
+
+  const oldAbs = resolve(io.cwd, args.oldPath);
+  const newAbs = resolve(io.cwd, args.newPath);
+  if (!existsSync(oldAbs)) {
+    io.stderr(`error: input not found: ${args.oldPath}\n`);
+    return 2;
+  }
+  if (!existsSync(newAbs)) {
+    io.stderr(`error: input not found: ${args.newPath}\n`);
+    return 2;
+  }
+  const oldLabel = normalizeLabel(oldAbs, io.cwd);
+  const newLabel = normalizeLabel(newAbs, io.cwd);
+
+  let oldBytes: Uint8Array;
+  let newBytes: Uint8Array;
+  try {
+    oldBytes = readFileSync(oldAbs);
+    newBytes = readFileSync(newAbs);
+  } catch (err) {
+    io.stderr(`error: cannot read spec: ${err instanceof Error ? err.message : String(err)}\n`);
+    return 2;
+  }
+
+  const oldParsed = parseSpecInput(args.oldPath, oldBytes, oldLabel);
+  if (!oldParsed.ok) {
+    io.stderr(`error: ${oldParsed.error}\n`);
+    return 2;
+  }
+  const newParsed = parseSpecInput(args.newPath, newBytes, newLabel);
+  if (!newParsed.ok) {
+    io.stderr(`error: ${newParsed.error}\n`);
+    return 2;
+  }
+
+  const prepared = prepareAnalysis(io.cwd, config, {
+    rulesFiles: [],
+    skillsDir: args.skillsDir,
+    baselineMode: "off",
+  });
+  if (!prepared.ok) {
+    io.stderr(`error: ${prepared.error}\n`);
+    return 2;
+  }
+  const setup = prepared.setup;
+
+  const started = performance.now();
+  let findings = diffSpecs(oldParsed.spec, newParsed.spec, {
+    oldLabel,
+    newLabel,
+    packVersion: packageVersion(),
+  }).findings;
+
+  findings = findings.filter((f) => !setup.disabledRuleIds.has(f.ruleId));
+  if (setup.severityOverrides.size > 0) {
+    findings = findings.map((f) =>
+      setup.severityOverrides.has(f.ruleId)
+        ? { ...f, severity: setup.severityOverrides.get(f.ruleId)! }
+        : f,
+    );
+    findings = sortFindings(findings);
+  }
+
+  let skillsSuppressedCount = 0;
+  const skillsWarnings: string[] = [];
+  if (
+    setup.skillsSuppressions !== undefined &&
+    setup.skillsSuppressions.suppressions.length > 0
+  ) {
+    const { suppressions, matchRegexes } = setup.skillsSuppressions;
+    const applied = applySkillSuppressions(findings, suppressions, matchRegexes);
+    skillsSuppressedCount = applied.suppressed;
+    findings = applied.visible;
+    const matched = new Set(applied.matchedIndexes);
+    const expired = new Set(applied.expiredIndexes);
+    for (const i of applied.expiredIndexes) {
+      const sup = suppressions[i]!;
+      skillsWarnings.push(
+        `suppression expired (ignored): ${describeSuppression(sup)} (expires ${sup.expires})`,
+      );
+    }
+    for (let i = 0; i < suppressions.length; i++) {
+      if (!matched.has(i) && !expired.has(i)) {
+        skillsWarnings.push(
+          `suppression matches no findings: ${describeSuppression(suppressions[i]!)}`,
+        );
+      }
+    }
+  }
+
+  const report = buildReport({
+    results: [{ findings, errors: [] }],
+    inputs: [
+      { path: oldLabel, sha256: `sha256:${oldParsed.spec.inputHash}` },
+      { path: newLabel, sha256: `sha256:${newParsed.spec.inputHash}` },
+    ],
+    packs: [{ id: DIFF_PACK_ID, version: packageVersion() }],
+    toolVersion: packageVersion(),
+    meta: { durationMs: Math.round(performance.now() - started) },
+    ...(skillsSuppressedCount > 0 ? { skillsSuppressed: skillsSuppressedCount } : {}),
+  });
+
+  const noColor = args.noColor || (io.env.NO_COLOR !== undefined && io.env.NO_COLOR !== "");
+  const color = !noColor && io.isTTY;
+  const pretty = args.format === "json" && io.isTTY && args.output === undefined;
+  try {
+    await createReportSink({
+      format: args.format,
+      color,
+      pretty,
+      output: args.output !== undefined ? resolve(io.cwd, args.output) : undefined,
+      stdout: io.stdout,
+    }).write(report);
+  } catch (err) {
+    io.stderr(`error: ${err instanceof Error ? err.message : String(err)}\n`);
+    return 2;
+  }
+
+  for (const w of skillsWarnings) {
+    io.stderr(`warning: ${w}\n`);
+  }
+  return computeExitCode(report, failOn);
+}
+
 async function runScanOrgCommand(
   argv: readonly string[],
   io: {
@@ -2575,6 +2754,15 @@ export async function run(argv: readonly string[], io?: RunIO): Promise<number> 
       stderr,
       env,
       cwd,
+    });
+  }
+  if (first === "diff") {
+    return runDiffCommand(args.slice(1), {
+      stdout,
+      stderr,
+      env,
+      cwd,
+      isTTY,
     });
   }
   if (first === "dashboard") {
