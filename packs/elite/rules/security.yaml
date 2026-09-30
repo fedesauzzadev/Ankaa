@@ -34,3 +34,23 @@
     section: "Security"
   when:
     op: sensitiveFieldInResponse
+
+- id: SEC-004
+  category: security
+  severity: warning
+  message: "OAuth scopes in security requirements must be defined by the scheme flows."
+  fix: "Add the missing scopes to the OAuth2 flow definitions or remove them from requirements."
+  examples:
+    bad: |
+      security:
+        - oauth: [write]
+      # flow defines only: read
+    good: |
+      security:
+        - oauth: [read]
+  source:
+    title: RFC 6749 OAuth 2.0
+    url: https://www.rfc-editor.org/rfc/rfc6749
+    section: "Access Token Scope"
+  when:
+    op: undefinedOAuthScopes

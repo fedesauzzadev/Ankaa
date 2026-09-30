@@ -2,6 +2,13 @@
 
 Formato: CalVer `YYYY.MM.PATCH`. Breaking = quitar regla o cambiar severidad default de error↔otro.
 
+## 2026.09.5 · unreleased
+
+- M8.6-A (`f8-elite-100`): higiene de contrato, **4 reglas nuevas** (94 activas en total). 3 átomos DSL nuevos (spec primero, `f1-engine` AC-E.15): `unusedComponents` (doc, solo schemas v1), `undefinedOAuthScopes` (operation, scopes del requirement vs flows; requiere `SecuritySchemeDef.scopes` del parser), `ambiguousPaths` (doc, colisión de templates por método).
+- Nuevas: STRUCT-008 (schemas sin usar), SEC-004 (scopes OAuth indefinidos, RFC 6749; `sources.yaml` += `rfc6749`), NAMING-012 (templates que colisionan), DOCS-009 (placeholders example.com, mismo patrón que DOCS-007). Todas con `examples` (AC-E.13).
+- Fuera de v1 (documentado, sin átomo honesto barato): ejemplos-vs-schema (requiere mini-validador), enums duplicados cross-schema (ruido, no breakage), servers con example.com (sin átomo de URL).
+- Ruido medido: cero findings nuevos en los 4 fixtures (mini 14 = 0/6/8; públicas 74/74); score `{74, C}` y thresholds ≤60/≤80 intactos.
+
 ## 2026.09.4 · unreleased
 
 - M8.6-B2 (`f8-elite-100`): **2 reglas nuevas** (90 activas en total), solo con átomos DSL existentes, sin tocar `packages/core`.

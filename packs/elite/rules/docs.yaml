@@ -98,10 +98,33 @@
   fix: "Expand the response description beyond a few words."
   source:
     title: Microsoft REST API Guidelines
-    url: https://github.com/microsoft/api-guidelines
+    url: https://spec.openapis.org/oas/v3.1.0
     section: "Response descriptions"
   when:
     not:
       op: descriptionMinLength
       target: response
       min: 10
+
+- id: DOCS-009
+  category: docs
+  severity: info
+  message: "Remove example.com placeholders from documentation."
+  fix: "Replace example.com with the real host or a neutral description."
+  examples:
+    bad: |
+      description: See https://example.com/docs for details
+    good: |
+      description: See the pagination guide for details
+  source:
+    title: Microsoft REST API Guidelines
+    url: https://github.com/microsoft/api-guidelines
+    section: "Descriptions"
+  when:
+    any:
+      - op: descriptionMatches
+        target: summary
+        pattern: "example\\.com"
+      - op: descriptionMatches
+        target: description
+        pattern: "example\\.com"

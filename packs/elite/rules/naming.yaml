@@ -173,3 +173,24 @@
   when:
     op: pathMatches
     pattern: "[?]"
+
+- id: NAMING-012
+  category: naming
+  severity: warning
+  message: "Path templates must not collide for the same method."
+  fix: "Disambiguate colliding templates (rename a parameter or merge the operations)."
+  examples:
+    bad: |
+      paths:
+        /users/{id}:
+        /users/{name}:
+    good: |
+      paths:
+        /users:
+        /users/{id}:
+  source:
+    title: OpenAPI Specification
+    url: https://spec.openapis.org/oas/v3.1.0
+    section: "Path Templating"
+  when:
+    op: ambiguousPaths

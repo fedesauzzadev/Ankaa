@@ -28,3 +28,6 @@ sources:
   - id: ietf-ratelimit
     title: IETF RateLimit Header Fields for HTTP
     url: https://datatracker.ietf.org/doc/draft-ietf-httpapi-ratelimit-headers/
+  - id: rfc6749
+    title: RFC 6749 OAuth 2.0
+    url: https://www.rfc-editor.org/rfc/rfc6749

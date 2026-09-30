@@ -20,7 +20,7 @@ Fuente: comparativa Spectral/Vacuum/Redocly/Zally/oasdiff + serie 2026 de API Ev
 ### Golpes rápidos (días/semanas, casi puro YAML)
 
 - [x] [AHORA] Ejemplos bueno/malo por regla (`examples: {bad, good}` en el schema): alimenta docs, prompts LLM y fixtures de un tiro — hecho 2026-09-30: AC-E.13 en `f1-engine` (schema + Finding + explain), prompt `fix`/MCP, "Copy prompt" del dashboard, redacción en reportes, 8 reglas elite sembradas (pack 2026.09.3 unreleased)
-- [ ] Higiene de contrato: componentes sin usar, paths ambiguos/duplicados, trailing slash, ejemplos vs schema, enums duplicados, scopes OAuth indefinidos, URLs example.com olvidadas
+- [x] Higiene de contrato: componentes sin usar, paths ambiguos/duplicados, trailing slash, ejemplos vs schema, enums duplicados, scopes OAuth indefinidos, URLs example.com olvidadas — hecho 2026-09-30: 3 átomos nuevos (AC-E.15) + STRUCT-008/SEC-004/NAMING-012/DOCS-009 (94 reglas, ruido cero); trailing-slash/duplicados ya cubiertos (NAMING-002/003, PARAM-006); ejemplos-vs-schema y enums-dup fuera de v1 (ver CHANGELOG 2026.09.5)
 - [x] Niveles de estabilidad (`x-stability-level: draft/beta/stable`): las estrictas no muerden endpoints en draft (ideal antes de sumar reglas estrictas nuevas) — hecho 2026-09-30: AC-O.15/AC-E.14 (mecanismo en parser+engine, cero cambios al pack)
 - [x] Engordar dominios flacos (PERF/CONS/DEPR/PAG/SEC/VER) con joyas baratas de los catálogos rivales, con medición de ruido por fixture (playbook f8-elite-100) — hecho 2026-09-30: PAG-004 + PERF-002 (90 reglas, ruido cero); SEC/CONS/DEPR/VER sin cambios deliberados (ver CHANGELOG 2026.09.4)
 

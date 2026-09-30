@@ -117,11 +117,15 @@ const NEW_RULES: Array<{ id: string; severity: "warning" | "info" }> = [
   { id: "DEPR-003", severity: "warning" },
   { id: "PAG-004", severity: "warning" },
   { id: "PERF-002", severity: "warning" },
+  { id: "STRUCT-008", severity: "warning" },
+  { id: "SEC-004", severity: "warning" },
+  { id: "NAMING-012", severity: "warning" },
+  { id: "DOCS-009", severity: "info" },
 ];
 
 describe("elite-100 inventory (M8.5)", () => {
-  it("holds 90 active rules (88 + 2)", () => {
-    expect(loaded.pack.rules).toHaveLength(90);
+  it("holds 94 active rules (90 + 4)", () => {
+    expect(loaded.pack.rules).toHaveLength(94);
   });
 
   it("contains every new rule id with the expected severity", () => {
@@ -560,5 +564,70 @@ describe("PAG/PERF new rules (M8.6-B2)", () => {
     expect(fires("PERF-002", bad)).toBe(true);
     expect(fires("PERF-002", good)).toBe(false);
     expect(fires("PERF-002", partial)).toBe(false);
+  });
+});
+
+describe("STRUCT/SEC/NAMING/DOCS hygiene rules (M8.6-A)", () => {
+  it("STRUCT-008 fires on unused component schemas", () => {
+    const bad = JSON.stringify({
+      openapi: "3.1.0",
+      info: {
+        title: "T",
+        version: "1.0.0",
+        description: "Inline fixture spec with a proper description.",
+      },
+      paths: { "/pets": { get: opBase() } },
+      components: { schemas: { Orphan: { type: "object" } } },
+    });
+    expect(fires("STRUCT-008", bad)).toBe(true);
+    expect(fires("STRUCT-008", doc({ "/pets": { get: opBase() } }))).toBe(false);
+  });
+
+  it("SEC-004 fires on undefined OAuth scopes", () => {
+    const flows = {
+      authorizationCode: {
+        authorizationUrl: "https://auth.example.com/authorize",
+        tokenUrl: "https://auth.example.com/token",
+        scopes: { read: "Read access" },
+      },
+    };
+    const secured = (scopes: string[]): string =>
+      JSON.stringify({
+        openapi: "3.1.0",
+        info: {
+          title: "T",
+          version: "1.0.0",
+          description: "Inline fixture spec with a proper description.",
+        },
+        paths: { "/pets": { get: { ...opBase(), security: [{ oauth: scopes }] } } },
+        components: { securitySchemes: { oauth: { type: "oauth2", flows } } },
+      });
+    expect(fires("SEC-004", secured(["write"]))).toBe(true);
+    expect(fires("SEC-004", secured(["read"]))).toBe(false);
+  });
+
+  it("NAMING-012 fires on colliding templates", () => {
+    const bad = doc({
+      "/users/{id}": { get: opBase() },
+      "/users/{name}": { get: opBase() },
+    });
+    const good = doc({
+      "/users": { get: opBase() },
+      "/users/{id}": { get: opBase() },
+    });
+    expect(fires("NAMING-012", bad)).toBe(true);
+    expect(fires("NAMING-012", good)).toBe(false);
+  });
+
+  it("DOCS-009 fires on example.com placeholders", () => {
+    const bad = doc({
+      "/pets": { get: opBase({ description: "See https://example.com/docs for details." }) },
+    });
+    const badSummary = doc({
+      "/pets": { get: opBase({ summary: "List from example.com" }) },
+    });
+    expect(fires("DOCS-009", bad)).toBe(true);
+    expect(fires("DOCS-009", badSummary)).toBe(true);
+    expect(fires("DOCS-009", doc({ "/pets": { get: opBase() } }))).toBe(false);
   });
 });
