@@ -16,16 +16,18 @@ import {
 } from "./pack-fs.js";
 import type { OutputFormat } from "./args.js";
 
-export function createFsSpecLoader(stdinBytes?: () => Promise<Uint8Array>): SpecLoader {
+export function createFsSpecLoader(
+  stdinBytes?: (signal?: AbortSignal) => Promise<Uint8Array>,
+): SpecLoader {
   return {
-    async load(path: string): Promise<Uint8Array> {
+    async load(path: string, signal?: AbortSignal): Promise<Uint8Array> {
       if (path === "-") {
         if (!stdinBytes) {
           throw new Error("stdin is not available");
         }
-        return stdinBytes();
+        return stdinBytes(signal);
       }
-      const buf = await readFile(path);
+      const buf = await readFile(path, signal === undefined ? undefined : { signal });
       return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
     },
   };
@@ -85,9 +87,12 @@ function renderReport(report: Report, opts: SinkOptions, toFile: boolean): strin
 
 export function createReportSink(opts: SinkOptions): ReportSink {
   return {
-    async write(report: Report): Promise<void> {
+    async write(report: Report, signal?: AbortSignal): Promise<void> {
       if (opts.output !== undefined) {
-        await writeFile(opts.output, renderReport(report, opts, true), "utf8");
+        await writeFile(opts.output, renderReport(report, opts, true), {
+          encoding: "utf8",
+          ...(signal === undefined ? {} : { signal }),
+        });
         if (opts.format === "console") {
           opts.stdout(shortSummary(report));
         }

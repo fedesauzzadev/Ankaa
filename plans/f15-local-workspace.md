@@ -22,11 +22,15 @@ focalizada verde. Sin endpoints web todavía.
 
 ## M15.2 — Operaciones tipadas y progreso
 
-1. Extraer operaciones compartidas por los adapters, sin duplicar lógica CLI.
-2. Definir estados de job, progreso estructurado, cancelación y errores.
-3. Probar paridad de resultados CLI y operaciones internas.
+1. Exponer `analyze` como operación compartida tipada para CLI/adapters, sin
+   duplicar el pipeline existente.
+2. Definir el contrato de estados, progreso estructurado, cancelación y errores;
+   emitirlo en `analyze` con contadores reales.
+3. Probar paridad de salida/reporte con CLI. Los runners de otras acciones se
+   incorporan al extraerlas para sus adapters guiados.
 
-**DoD:** AC-15.1/2/6 parcial, engine y core sin I/O.
+**DoD:** contrato AC-15.1/2 para `analyze`, progreso/cancelación por fase como
+base de AC-15.6; engine y core sin I/O.
 
 ## M15.3 — Workspace web local
 
@@ -78,3 +82,6 @@ focalizada verde. Sin endpoints web todavía.
 - 2026-10-01 · M15.1 implementado: historial atómico, lock por organización,
   `--resume`/`--from-scratch`, verificación por SHA/config/versión/pack y
   cobertura e2e más `pnpm check`.
+- 2026-10-01 · M15.2 implementado para `analyze`: contrato tipado exportado,
+  estados, progreso por fase y cancelación por `AbortSignal`; CLI preserva
+  salida y report hash.

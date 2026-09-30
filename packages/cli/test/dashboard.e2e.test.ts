@@ -42,6 +42,34 @@ function payloadFor(_trackingPath: string): DashboardPayload {
 }
 
 describe("dashboard server e2e (f10-dashboard)", () => {
+  it("includes the copy suppress action and posts the report path for its command", async () => {
+    const html = renderDashboardPage();
+    expect(html).toContain('class="copysuppress"');
+    expect(html).toContain("Copy suppress command");
+    expect(html).toContain("apigovscan suppress --report");
+    expect(html).toContain("--decision wontfix --reason");
+
+    const dir = tempDir();
+    const trackingPath = join(dir, "t.json");
+    const started = await startDashboardServer(
+      {
+        payload: () => ({
+          ...payloadFor(trackingPath),
+          reportFile: "reports/current.json",
+        }),
+        trackingPath,
+        pageHtml: html,
+      },
+      0,
+    );
+    try {
+      const response = await fetch(`${started.url}/api/report`);
+      expect(await response.json()).toMatchObject({ reportFile: "reports/current.json" });
+    } finally {
+      await new Promise<void>((resolvePromise) => started.server.close(() => resolvePromise()));
+    }
+  });
+
   it("AC-DB.1 serves the page on loopback only", async () => {
     const dir = tempDir();
     const started = await startDashboardServer(

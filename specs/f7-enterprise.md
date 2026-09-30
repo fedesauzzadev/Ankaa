@@ -37,7 +37,7 @@ Como organización con ApiGovScan instalado quiero (a) **mis propios packs de re
 
 ### In — M7.4 Export enterprise (absorbido de ex-M10.2)
 
-- Comando `apigovscan export <reporte.json> [--group-by <file>] [--since <viejo.json>] [--out export.json]`: contrato `export.json` v1 ruteado por dueño, solo nuevos con `--since` (dedupe por fingerprint), determinista salvo `exportedAt`.
+- Comando `apigovscan export <reporte.json> [--group-by <file>] [--since <viejo.json>] [--out export.json]`: contrato `export.json` v1 ruteado por dueño, cada finding etiquetado `new`/`repeated` por fingerprint con `--since`, determinista y sin timestamp.
 - `examples/integrations/` (jira/stub, slack, csv) como referencia sin garantías.
 - Puro, sin red, sin LLM; el gate por tier se agrega cuando F7 los defina, sin cambiar el contrato.
 - Spec de detalle: `f10-export` (conserva el nombre por trazabilidad; su milestone es M7.4).
@@ -77,4 +77,5 @@ A definir por milestone (patrón: unit + e2e CLI + invariants INV-1/2/7).
 ## Changelog
 
 - 2026-09-26 · Spec creado consolidando el pendiente (packs por cliente, self-host, Cloudflare) en una única fase 7; F6 declarada cerrada en `v0.6.0-private`.
-- 2026-09-29 · Absorbe ex-M10.2 como M7.4 (export enterprise, spec `f10-export` en `ready`); tendencia con UI pasa a candidata M7.5.
+- 2026-09-29 · Absorbe ex-M10.2 como M7.4 (export enterprise; detalle en `f10-export`); tendencia con UI pasa a candidata M7.5.
+- 2026-09-30 · M7.4 implementado según `f10-export` cerrada; F7 permanece en draft por M7.1–M7.3.

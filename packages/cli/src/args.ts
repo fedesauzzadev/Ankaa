@@ -376,8 +376,7 @@ export interface SuppressArgs {
 }
 
 export type ParseSuppressArgsResult =
-  | { ok: true; args: SuppressArgs }
-  | { ok: false; error: string };
+  { ok: true; args: SuppressArgs } | { ok: false; error: string };
 
 function takeValue(
   argv: readonly string[],
@@ -397,10 +396,17 @@ export function parseSuppressArgs(argv: readonly string[]): ParseSuppressArgsRes
   for (let i = 0; i < argv.length; i++) {
     const token = argv[i]!;
 
-    if (token === "--report" || token === "--fingerprint" || token === "--decision" ||
-        token === "--severity" || token === "--reason" || token === "--expires" ||
-        token === "--owner" || token === "--skills-dir" ||
-        token === "--config") {
+    if (
+      token === "--report" ||
+      token === "--fingerprint" ||
+      token === "--decision" ||
+      token === "--severity" ||
+      token === "--reason" ||
+      token === "--expires" ||
+      token === "--owner" ||
+      token === "--skills-dir" ||
+      token === "--config"
+    ) {
       const taken = takeValue(argv, i, token);
       if (!taken.ok) return taken;
       i = taken.next;
@@ -419,8 +425,7 @@ export function parseSuppressArgs(argv: readonly string[]): ParseSuppressArgsRes
           return { ok: false, error: "--severity must be error | warning | info" };
         }
         args.severity = taken.value;
-      }
-      else if (token === "--reason") args.reason = taken.value;
+      } else if (token === "--reason") args.reason = taken.value;
       else if (token === "--expires") args.expires = taken.value;
       else if (token === "--owner") args.owner = taken.value;
       else if (token === "--skills-dir") args.skillsDir = taken.value;
@@ -580,6 +585,20 @@ export function parseDiffArgs(argv: readonly string[]): ParseDiffArgsResult {
   args.oldPath = positionals[0]!;
   args.newPath = positionals[1]!;
   return { ok: true, args };
+}
+
+export function parseReviewArgs(argv: readonly string[]): ParseDiffArgsResult {
+  const parsed = parseDiffArgs(argv);
+  if (!parsed.ok) {
+    return { ok: false, error: parsed.error.replace(/\bdiff\b/g, "review") };
+  }
+  if (parsed.args.format !== "console" && parsed.args.format !== "json") {
+    return {
+      ok: false,
+      error: `review supports console or json output (received "${parsed.args.format}")`,
+    };
+  }
+  return parsed;
 }
 
 export type DriftFormat = "console" | "json";
@@ -897,6 +916,100 @@ export interface DashboardArgs {
   tracking?: string;
   against?: string;
   groupBy?: string;
+}
+
+export interface ExportArgs {
+  report: string;
+  groupBy?: string;
+  since?: string;
+  out?: string;
+  force: boolean;
+}
+
+export interface ScanRepoArgs {
+  url: string;
+  format: "console" | "json";
+  force: boolean;
+  out?: string;
+  workdir?: string;
+  config?: string;
+  licenseKey?: string;
+}
+
+export type ParseScanRepoArgsResult =
+  { ok: true; args: ScanRepoArgs } | { ok: false; error: string };
+
+export function parseScanRepoArgs(argv: readonly string[]): ParseScanRepoArgsResult {
+  const args: ScanRepoArgs = { url: "", format: "console", force: false };
+  let urlSeen = false;
+  for (let i = 0; i < argv.length; i++) {
+    const token = argv[i]!;
+    if (
+      token === "--out" ||
+      token === "--workdir" ||
+      token === "--config" ||
+      token === "--license-key" ||
+      token === "--format"
+    ) {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value))
+        return { ok: false, error: `${token} requires a value` };
+      if (token === "--out") args.out = value;
+      else if (token === "--workdir") args.workdir = value;
+      else if (token === "--config") args.config = value;
+      else if (token === "--license-key") args.licenseKey = value;
+      else if (value === "console" || value === "json") args.format = value;
+      else return { ok: false, error: `invalid --format "${value}" (expected console | json)` };
+      continue;
+    }
+    if (token === "--force") {
+      args.force = true;
+      continue;
+    }
+    if (token === "--help" || token === "-h" || token === "--version" || token === "-V") {
+      return { ok: false, error: `unexpected ${token} after scan-repo` };
+    }
+    if (isFlag(token)) return { ok: false, error: `unknown option: ${token}` };
+    if (urlSeen) return { ok: false, error: `unexpected argument: ${token}` };
+    args.url = token;
+    urlSeen = true;
+  }
+  if (!urlSeen) return { ok: false, error: "missing required argument <git-url>" };
+  return { ok: true, args };
+}
+
+export type ParseExportArgsResult = { ok: true; args: ExportArgs } | { ok: false; error: string };
+
+export function parseExportArgs(argv: readonly string[]): ParseExportArgsResult {
+  const args: ExportArgs = { report: "", force: false };
+  let reportSeen = false;
+
+  for (let i = 0; i < argv.length; i++) {
+    const token = argv[i]!;
+    if (token === "--group-by" || token === "--since" || token === "--out") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: `${token} requires a file path` };
+      }
+      if (token === "--group-by") args.groupBy = value;
+      else if (token === "--since") args.since = value;
+      else args.out = value;
+      continue;
+    }
+    if (token === "--force") {
+      args.force = true;
+      continue;
+    }
+    if (token === "--help" || token === "-h" || token === "--version" || token === "-V") {
+      return { ok: false, error: `unexpected ${token} after export` };
+    }
+    if (isFlag(token)) return { ok: false, error: `unknown option: ${token}` };
+    if (reportSeen) return { ok: false, error: `unexpected argument: ${token}` };
+    args.report = token;
+    reportSeen = true;
+  }
+  if (!reportSeen) return { ok: false, error: "missing required argument <report.json>" };
+  return { ok: true, args };
 }
 
 export type ParseDashboardArgsResult =

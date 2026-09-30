@@ -100,6 +100,23 @@ abrir un navegador para usar ApiGovScan.
 - Correlación/compare solo se ofrece cuando los dos artefactos son compatibles;
   diferencias de formato o datos insuficientes se explican explícitamente.
 
+### Operación compartida inicial: `analyze`
+
+- **Inputs:** archivo local, directorio local o `-` (stdin en CLI), junto con
+  las opciones de análisis ya soportadas.
+- **Output:** reporte y exit code según `fail-on`; el adapter puede recibir
+  eventos tipados de estado y progreso.
+- **Errors:** argumentos/configuración inválidos, lectura o parseo fallido,
+  evaluación/reporte fallidos y cancelación.
+- **Writes:** ninguna por defecto; `--output` y `--write-baseline` escriben
+  solo en los destinos explícitos existentes.
+- **Network:** no. Usa el pipeline local compartido por CLI y MCP.
+- **Progreso:** eventos con fase, elemento actual y contadores reales
+  `completed`/`total`; nunca porcentajes estimados.
+- **Cancelación:** `AbortSignal` cancela entre fases y puede abortar lectura o
+  escritura local cuando el adapter lo soporta. Una cancelación termina en
+  estado `cancelled`, exit code 2 y no presenta el reporte como exitoso.
+
 ### Seguridad del servidor local
 
 - Bind exclusivo a loopback, puerto efímero por defecto, validación de `Host` y
@@ -195,3 +212,6 @@ abrir un navegador para usar ApiGovScan.
 - 2026-10-01 · M15.1 implementado: `scan-org` conserva runs/checkpoints
   atómicamente y reutiliza solo repos con revisión/configuración/herramientas
   verificadas; `--from-scratch` crea otro run sin borrar el historial.
+- 2026-10-01 · M15.2 implementado para el caso de uso `analyze`: contrato
+  tipado de operación, fases/contadores reales, estados terminales y
+  cancelación compartidos con el adapter CLI; sin cambios al reporte.

@@ -11,7 +11,8 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
-import { run } from "../src/index.js";
+import { ANALYZE_OPERATION, run } from "../src/index.js";
+import type { OperationContext, OperationEvent } from "../src/operations.js";
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const fixtures = join(repoRoot, "fixtures");
@@ -43,6 +44,7 @@ async function runCapture(
     env?: Record<string, string | undefined>;
     isTTY?: boolean;
     stdin?: () => Promise<Uint8Array>;
+    operation?: OperationContext;
   } = {},
 ): Promise<{ code: number; stdout: string; stderr: string }> {
   let stdout = "";
@@ -69,6 +71,17 @@ function extractJson(stdout: string): Record<string, unknown> | null {
 }
 
 describe("analyze e2e (f1-analyze)", () => {
+  it("publishes the local analyze operation contract for adapters", () => {
+    expect(ANALYZE_OPERATION).toMatchObject({
+      id: "analyze",
+      network: false,
+      inputs: expect.any(Array),
+      output: expect.any(String),
+      errors: expect.any(Array),
+      writes: expect.any(Array),
+    });
+  });
+
   it("AC-A.1 happy path on petstore-mini exits 0 or 1 without crashing", async () => {
     const { code, stdout, stderr } = await runCapture(["analyze", petstore, "--no-color"]);
     expect([0, 1]).toContain(code);
@@ -86,6 +99,61 @@ describe("analyze e2e (f1-analyze)", () => {
     expect(a).not.toBeNull();
     expect(b).not.toBeNull();
     expect(a!.reportHash).toBe(b!.reportHash);
+  });
+
+  it("reports typed analysis progress without changing CLI output", async () => {
+    const plain = await runCapture(["analyze", petstore, "--format", "json"]);
+    const events: OperationEvent[] = [];
+    const observed = await runCapture(["analyze", petstore, "--format", "json"], {
+      operation: { onEvent: (event) => events.push(event) },
+    });
+
+    expect(observed.code).toBe(plain.code);
+    expect(JSON.parse(observed.stdout).reportHash).toBe(JSON.parse(plain.stdout).reportHash);
+    expect(events.filter((event) => event.type === "state").map((event) => event.state)).toEqual([
+      "running",
+      "succeeded",
+    ]);
+    expect(
+      events
+        .filter((event) => event.type === "progress" && event.phase === "loading-input")
+        .map(({ completed, total }) => [completed, total]),
+    ).toEqual([
+      [0, 1],
+      [1, 1],
+    ]);
+    expect(events.some((event) => event.type === "progress" && "percent" in event)).toBe(false);
+  });
+
+  it("cancels analysis between inputs without emitting a successful report", async () => {
+    const dir = tempDir();
+    const openapiDir = join(dir, "openapi");
+    mkdirSync(join(openapiDir, "second"), { recursive: true });
+    copyFileSync(petstore, join(openapiDir, "openapi.yaml"));
+    copyFileSync(petstore, join(openapiDir, "second", "openapi.yaml"));
+    const controller = new AbortController();
+    const states: string[] = [];
+    const observed = await runCapture(["analyze", dir, "--format", "json"], {
+      operation: {
+        signal: controller.signal,
+        onEvent: (event) => {
+          if (event.type === "state") states.push(event.state);
+          if (
+            event.type === "progress" &&
+            event.phase === "evaluating" &&
+            event.completed === 1 &&
+            event.total === 2
+          ) {
+            controller.abort();
+          }
+        },
+      },
+    });
+
+    expect(observed.code).toBe(2);
+    expect(observed.stdout).toBe("");
+    expect(observed.stderr).toContain("analysis cancelled");
+    expect(states).toEqual(["running", "cancelled"]);
   });
 
   it("AC-A.3 does not attempt network calls (INV-1)", async () => {
@@ -180,11 +248,19 @@ describe("analyze e2e (f1-analyze)", () => {
   });
 
   it("AC-A.6 malformed spec exits 2 with pointer, no raw stack", async () => {
-    const { code, stderr } = await runCapture(["analyze", malformed]);
+    const states: string[] = [];
+    const { code, stderr } = await runCapture(["analyze", malformed], {
+      operation: {
+        onEvent: (event) => {
+          if (event.type === "state") states.push(event.state);
+        },
+      },
+    });
     expect(code).toBe(2);
     expect(stderr).toContain("failed to parse");
     expect(stderr).not.toContain("at Object.");
     expect(stderr).not.toContain("node:internal");
+    expect(states).toEqual(["running", "failed"]);
   });
 
   it("AC-A.7 --rule with invalid JSON exits 2 without analyzing", async () => {

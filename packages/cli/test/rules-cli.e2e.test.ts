@@ -246,7 +246,7 @@ describe("analyze with custom rules (AC-R2.4, AC-R2.5, AC-R2.8)", () => {
   it("AC-R2.11 rules export dumps an AGENTS.md block to stdout", async () => {
     const { code, stdout } = await runCapture(["rules", "export"]);
     expect(code).toBe(0);
-    expect(stdout).toContain("Packs: elite@2026.09.1 (94 rules).");
+    expect(stdout).toContain("Packs: elite@2026.09.1 (95 rules).");
     expect(stdout).toContain("## MUST");
     expect(stdout).toContain("## SHOULD");
     expect(stdout).toContain("## MAY");
@@ -263,7 +263,7 @@ describe("analyze with custom rules (AC-R2.4, AC-R2.5, AC-R2.8)", () => {
       prompts: Array<{ ruleId: string; keyword: string; prompt: string }>;
     };
     expect(parsed.tool).toBe("apigovscan");
-    expect(parsed.prompts).toHaveLength(94);
+    expect(parsed.prompts).toHaveLength(95);
     const naming = parsed.prompts.find((p) => p.ruleId === "NAMING-001")!;
     expect(naming.keyword).toBe("MUST");
     expect(naming.prompt).toContain("plural nouns");

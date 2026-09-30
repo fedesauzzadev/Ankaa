@@ -17,6 +17,7 @@ import { looksLikeWebhooks, parseWebhooks } from "@apigovscan/webhooks";
 import { buildReport, type Report } from "@apigovscan/reporters";
 import type { FailOn } from "./args.js";
 import type { PackRepository, ReportSink, SpecLoader } from "./ports.js";
+import type { AnalyzeProgressPhase, OperationContext, OperationState } from "./operations.js";
 import { applySkillSuppressions, todayYmd, type SuppressionEntry } from "./skills.js";
 
 export interface AnalyzeOptions {
@@ -43,6 +44,7 @@ export interface AnalyzeOptions {
    * Default is the current UTC date. Tests inject a fixed date (INV-2).
    */
   nowYmd?: string;
+  operation?: OperationContext;
 }
 
 export type AnalyzeOutcome =
@@ -57,7 +59,7 @@ export type AnalyzeOutcome =
       /** Expired/orphan waiver notices (stderr material, exit code unaffected). */
       skillsWarnings: string[];
     }
-  | { ok: false; exitCode: 2; error: string };
+  | { ok: false; exitCode: 2; error: string; cancelled?: true };
 
 export function describeSuppression(sup: SuppressionEntry): string {
   const target =
@@ -107,9 +109,10 @@ export function isGrpcInput(path: string): boolean {
   return path.toLowerCase().endsWith(".proto");
 }
 
-type InputProtocol = "graphql" | "grpc" | "asyncapi" | "webhooks" | null;
+export type InputProtocol = "graphql" | "grpc" | "asyncapi" | "webhooks" | null;
+export type ParsedProtocol = Exclude<InputProtocol, null> | "openapi";
 
-function protocolForInput(path: string, bytes: Uint8Array): InputProtocol {
+export function protocolForInput(path: string, bytes: Uint8Array): InputProtocol {
   if (isGraphqlInput(path)) return "graphql";
   if (isGrpcInput(path)) return "grpc";
   const lower = path.toLowerCase();
@@ -133,7 +136,7 @@ export function parseSpecInput(
   path: string,
   bytes: Uint8Array,
   label: string,
-): { ok: true; spec: Spec } | { ok: false; error: string } {
+): { ok: true; spec: Spec; protocol: ParsedProtocol } | { ok: false; error: string } {
   const protocol = protocolForInput(path, bytes);
   const parsed =
     protocol === "graphql"
@@ -148,7 +151,7 @@ export function parseSpecInput(
   if (!parsed.ok) {
     return { ok: false, error: formatParseErrors(label, parsed.errors) };
   }
-  return { ok: true, spec: parsed.spec };
+  return { ok: true, spec: parsed.spec, protocol: protocol ?? "openapi" };
 }
 
 export async function analyzeUseCase(
@@ -161,8 +164,42 @@ export async function analyzeUseCase(
 ): Promise<AnalyzeOutcome> {
   const debug = opts.debug ?? (() => {});
   const started = performance.now();
+  const signal = opts.operation?.signal;
+  const emitState = (state: OperationState): void => {
+    opts.operation?.onEvent?.({ type: "state", operation: "analyze", state });
+  };
+  const emitProgress = (
+    phase: AnalyzeProgressPhase,
+    completed: number,
+    total: number,
+    item?: string,
+  ): void => {
+    opts.operation?.onEvent?.({
+      type: "progress",
+      operation: "analyze",
+      phase,
+      completed,
+      total,
+      ...(item === undefined ? {} : { item }),
+    });
+  };
+  const fail = (error: string, cancelled = false): AnalyzeOutcome => {
+    emitState(cancelled ? "cancelled" : "failed");
+    return {
+      ok: false,
+      exitCode: 2,
+      error,
+      ...(cancelled ? { cancelled: true as const } : {}),
+    };
+  };
+  const isCancelled = (): boolean => signal?.aborted === true;
+
+  emitState("running");
+  if (isCancelled()) return fail("analysis cancelled", true);
 
   let packList: RulePack[];
+  emitProgress("loading-packs", 0, 1);
+  if (isCancelled()) return fail("analysis cancelled", true);
   try {
     const t = performance.now();
     packList = await deps.packs.loadActive();
@@ -170,12 +207,12 @@ export async function analyzeUseCase(
       `load packs ${packList.map((p) => `${p.id}@${p.version}`).join(", ")} ${(performance.now() - t).toFixed(2)}ms`,
     );
   } catch (err) {
-    return {
-      ok: false,
-      exitCode: 2,
-      error: err instanceof Error ? err.message : String(err),
-    };
+    return isCancelled()
+      ? fail("analysis cancelled", true)
+      : fail(err instanceof Error ? err.message : String(err));
   }
+  if (isCancelled()) return fail("analysis cancelled", true);
+  emitProgress("loading-packs", 1, 1);
 
   const sortedInputs = [...opts.inputs].sort(cmp);
   const multi = sortedInputs.length > 1;
@@ -189,22 +226,31 @@ export async function analyzeUseCase(
   const failures: string[] = [];
   const single = sortedInputs.length === 1;
 
-  for (const path of sortedInputs) {
+  for (const [index, path] of sortedInputs.entries()) {
+    if (isCancelled()) return fail("analysis cancelled", true);
     const label = opts.labelFor(path);
 
     let bytes: Uint8Array;
+    emitProgress("loading-input", index, sortedInputs.length, label);
+    if (isCancelled()) return fail("analysis cancelled", true);
     try {
       const t = performance.now();
-      bytes = await deps.loader.load(path);
+      bytes = await deps.loader.load(path, signal);
       debug(`load ${label} ${bytes.byteLength}B ${(performance.now() - t).toFixed(2)}ms`);
     } catch (err) {
+      if (isCancelled()) return fail("analysis cancelled", true);
       const detail = err instanceof Error ? err.message : String(err);
       failures.push(single ? detail : `failed to load ${label}: ${detail}`);
       continue;
     }
+    if (isCancelled()) return fail("analysis cancelled", true);
+    emitProgress("loading-input", index + 1, sortedInputs.length, label);
+    if (isCancelled()) return fail("analysis cancelled", true);
 
     const protocol = protocolForInput(path, bytes);
     const tParse = performance.now();
+    emitProgress("parsing", index, sortedInputs.length, label);
+    if (isCancelled()) return fail("analysis cancelled", true);
     let parsed:
       | ReturnType<typeof parseSpec>
       | ReturnType<typeof parseGraphQL>
@@ -218,12 +264,11 @@ export async function analyzeUseCase(
         try {
           protocolPack = await deps.packs.loadProtocol(protocol);
         } catch (err) {
-          return {
-            ok: false,
-            exitCode: 2,
-            error: err instanceof Error ? err.message : String(err),
-          };
+          return isCancelled()
+            ? fail("analysis cancelled", true)
+            : fail(err instanceof Error ? err.message : String(err));
         }
+        if (isCancelled()) return fail("analysis cancelled", true);
         protocolPacks.set(protocol, protocolPack);
       }
       activePacks = [protocolPack];
@@ -240,12 +285,17 @@ export async function analyzeUseCase(
       for (const pack of packList) usedPacks.set(pack.id, pack.version);
       parsed = parseSpec(bytes, { sourceLabel: label });
     }
+    if (isCancelled()) return fail("analysis cancelled", true);
+    emitProgress("parsing", index + 1, sortedInputs.length, label);
+    if (isCancelled()) return fail("analysis cancelled", true);
     if (!parsed.ok) {
       failures.push(formatParseErrors(label, parsed.errors));
       continue;
     }
     debug(`parse ${label} ${(performance.now() - tParse).toFixed(2)}ms`);
 
+    emitProgress("evaluating", index, sortedInputs.length, label);
+    if (isCancelled()) return fail("analysis cancelled", true);
     const tEval = performance.now();
     const result = evaluate({
       specs: [parsed.spec],
@@ -268,6 +318,7 @@ export async function analyzeUseCase(
     debug(
       `evaluate ${label} ${(performance.now() - tEval).toFixed(2)}ms (${result.findings.length} findings)`,
     );
+    emitProgress("evaluating", index + 1, sortedInputs.length, label);
 
     inputs.push({ path: label, sha256: `sha256:${parsed.spec.inputHash}` });
     results.push(prefixFindings(result, label, multi));
@@ -275,14 +326,13 @@ export async function analyzeUseCase(
   }
 
   if (failures.length > 0) {
-    return {
-      ok: false,
-      exitCode: 2,
-      error: single ? failures[0]! : failures.join("\n"),
-    };
+    return fail(single ? failures[0]! : failures.join("\n"));
   }
 
+  if (isCancelled()) return fail("analysis cancelled", true);
   const tReport = performance.now();
+  emitProgress("building-report", 0, 1);
+  if (isCancelled()) return fail("analysis cancelled", true);
 
   const allFindings = results.flatMap((r) => r.findings);
 
@@ -352,16 +402,21 @@ export async function analyzeUseCase(
     coverage,
   });
   debug(`report ${report.findings.length} findings ${Math.round(performance.now() - tReport)}ms`);
+  emitProgress("building-report", 1, 1);
+  if (isCancelled()) return fail("analysis cancelled", true);
 
+  emitProgress("writing-report", 0, 1);
+  if (isCancelled()) return fail("analysis cancelled", true);
   try {
-    await deps.sink.write(report);
+    await deps.sink.write(report, signal);
   } catch (err) {
-    return {
-      ok: false,
-      exitCode: 2,
-      error: err instanceof Error ? err.message : String(err),
-    };
+    return isCancelled()
+      ? fail("analysis cancelled", true)
+      : fail(err instanceof Error ? err.message : String(err));
   }
+  if (isCancelled()) return fail("analysis cancelled", true);
+  emitProgress("writing-report", 1, 1);
+  emitState("succeeded");
 
   return {
     ok: true,

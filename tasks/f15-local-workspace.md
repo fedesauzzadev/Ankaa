@@ -16,9 +16,9 @@ Plan: [plans/f15-local-workspace.md](../plans/f15-local-workspace.md) · Spec:
 
 ## M15.2 — Operaciones tipadas y progreso
 
-- [ ] Extraer operaciones compartidas para CLI y adapters guiados (AC-15.1–2)
-- [ ] Definir estados estructurados, cancelación y progreso real (AC-15.6)
-- [ ] Probar paridad de las operaciones con CLI (AC-15.2)
+- [x] Extraer el contrato compartido de `analyze` para CLI y adapters guiados (AC-15.1–2)
+- [x] Definir estados, cancelación y progreso real de `analyze` sin porcentajes ficticios (base AC-15.6)
+- [x] Probar paridad de salida y hash con CLI, además de cancelación entre inputs (AC-15.2)
 
 ## M15.3 — Workspace web local
 

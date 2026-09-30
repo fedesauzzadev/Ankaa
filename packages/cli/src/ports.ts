@@ -2,7 +2,7 @@ import type { RulePack } from "@apigovscan/core";
 import type { Report } from "@apigovscan/reporters";
 
 export interface SpecLoader {
-  load(path: string): Promise<Uint8Array>;
+  load(path: string, signal?: AbortSignal): Promise<Uint8Array>;
 }
 
 export interface PackRepository {
@@ -11,5 +11,5 @@ export interface PackRepository {
 }
 
 export interface ReportSink {
-  write(report: Report): Promise<void>;
+  write(report: Report, signal?: AbortSignal): Promise<void>;
 }

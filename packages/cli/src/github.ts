@@ -11,6 +11,56 @@ export type ListReposResult = { ok: true; repos: GithubRepo[] } | { ok: false; e
 const FETCH_TIMEOUT_MS = 30000;
 const CLONE_TIMEOUT_MS = 120000;
 
+function hasControlCharacter(value: string): boolean {
+  return Array.from(value).some((character) => {
+    const codePoint = character.codePointAt(0)!;
+    return codePoint <= 0x1f || (codePoint >= 0x7f && codePoint <= 0x9f);
+  });
+}
+
+export function validateGitRemoteUrl(value: string): { ok: true } | { ok: false; error: string } {
+  if (value.length === 0 || /\s/u.test(value) || hasControlCharacter(value)) {
+    return { ok: false, error: "invalid git URL" };
+  }
+  if (/^(?:https|ssh):\/\//i.test(value)) {
+    let url: URL;
+    try {
+      url = new URL(value);
+    } catch {
+      return { ok: false, error: "invalid git URL" };
+    }
+    const isHttps = url.protocol === "https:";
+    const isSsh = url.protocol === "ssh:";
+    const pathSegments = url.pathname.split("/").filter(Boolean);
+    if (
+      (!isHttps && !isSsh) ||
+      url.hostname === "" ||
+      (isHttps && (url.username !== "" || url.password !== "")) ||
+      (isSsh && url.password !== "") ||
+      url.search !== "" ||
+      url.hash !== "" ||
+      pathSegments.length < 1
+    ) {
+      return { ok: false, error: "git URL must be an HTTPS or SSH repository URL without secrets" };
+    }
+    return { ok: true };
+  }
+  if (value.includes("://")) {
+    return { ok: false, error: "git URL must use HTTPS or SSH" };
+  }
+  const scp = /^(?:[A-Za-z0-9._-]+@)?([A-Za-z0-9.-]+):([^?#\s]+)$/.exec(value);
+  if (scp?.[1] !== undefined && scp[2] !== undefined) {
+    const validHost = scp[1]
+      .split(".")
+      .every((label) => /^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?$/.test(label));
+    if (validHost && scp[2].split("/").filter(Boolean).length >= 1) return { ok: true };
+  }
+  return {
+    ok: false,
+    error: "git URL must use HTTPS or SSH (ssh:// or user@host:path) without inline secrets",
+  };
+}
+
 function nextLink(header: string | null): string | undefined {
   if (header === null) {
     return undefined;
@@ -154,5 +204,38 @@ export async function cloneRepo(
       ok: false,
       error: `git clone failed: ${err instanceof Error ? err.message.split("\n")[0] : String(err)}`,
     };
+  }
+}
+
+export async function cloneRemoteRepo(
+  remoteUrl: string,
+  destDir: string,
+  timeoutMs = CLONE_TIMEOUT_MS,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const validated = validateGitRemoteUrl(remoteUrl);
+  if (!validated.ok) return validated;
+  const isSsh = /^ssh:\/\//i.test(remoteUrl) || /^[^/]+@[^/:]+:/.test(remoteUrl);
+  try {
+    await execFileAsync("git", ["clone", "--depth", "1", "--", remoteUrl, destDir], {
+      timeout: timeoutMs,
+      env: {
+        ...process.env,
+        GIT_TERMINAL_PROMPT: "0",
+        ...(isSsh
+          ? {
+              GIT_SSH_COMMAND: process.env.GIT_SSH_COMMAND
+                ? `${process.env.GIT_SSH_COMMAND} -o BatchMode=yes`
+                : "ssh -o BatchMode=yes",
+            }
+          : {}),
+      },
+    });
+    return { ok: true };
+  } catch (err) {
+    const code = err instanceof Error ? (err as NodeJS.ErrnoException).code : undefined;
+    if (code === "ENOENT")
+      return { ok: false, error: "git not found: install git to use scan-repo" };
+    if (code === "ETIMEDOUT") return { ok: false, error: "git clone timed out" };
+    return { ok: false, error: "git clone failed; verify the URL and local Git credentials" };
   }
 }
