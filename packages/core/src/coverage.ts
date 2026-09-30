@@ -48,6 +48,7 @@ const ATOM_CLASS: Record<AtomOp, CoverageClass> = {
   parameterNamingPattern: "parameter",
   exampleRequired: "operation",
   sensitiveExample: "response",
+  examplePii: "response",
   deprecatedWithoutSunset: "operation",
   docFieldMissing: "doc",
   specExtensionPresent: "operation",

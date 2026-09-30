@@ -73,6 +73,7 @@ type AtomMatcher =
   | { op: "parameterNamingPattern"; pattern: string; in?: ParameterIn | "any" }
   | { op: "exampleRequired"; target: "operation" | "response"; status?: string }
   | { op: "sensitiveExample" }
+  | { op: "examplePii" } // M17.5: PII values (email/phone/card) in examples; excludes placeholder domains
   | { op: "deprecatedWithoutSunset" }
   | { op: "docFieldMissing"; field: DocField }
   | { op: "specExtensionPresent"; name: string } // x-sunset etc.
@@ -289,6 +290,12 @@ Comparar por:
 
 ## Changelog
 
+- 2026-09-30 · M17.5 (f17-compliance-pack): átomo `examplePii` (scope
+  operación, cobertura clase `response` como `sensitiveExample`): true si el
+  texto JSON de la operación contiene valores con PII obvia — email (excluye
+  dominios placeholder `example.com/org/net`, `test`, `localhost`), teléfono
+  E.164 (≥ 8 dígitos tras `+`), tarjeta Visa/MC/Amex prefijada. Whitelist y
+  spec actualizados antes del código (AGENTS.md §6).
 - 2026-09-23 · Spec creado desde SDD v1.0.
 - 2026-09-23 · M1.2 implementado: AC-E.1…11 verdes; sha256 TS puro (AC-E.8); zod strict; whitelist de átomos.
 - 2026-09-23 · M1.3: átomos de gap del pack elite (`pathParamUndeclared`, `pathParamNotRequired`, `responseDescriptionMissing`, `operationIdDuplicate`, `securitySchemeMissing`, `openapiVersionMismatch`, `serverInsecure`); `Spec.components.securitySchemes` + `servers` en parser.

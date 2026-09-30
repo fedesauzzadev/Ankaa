@@ -96,7 +96,7 @@ ankaa analyze ./specs --baseline --ratchet --ratchet-severity warning
 - 2026-09-30: decisiones resueltas por delegación del dueño (arranque T2):
   gate default `error`, severidad única, skills cuentan como resueltos.
   Scope v0 = gate + reporte; trends de scan-org/dashboard movidos a follow-up
-  M17.5 con changelog → `ready`.
+  (sin milestone asignado) con changelog → `ready`.
 - 2026-09-30 · M17.4 implementado: `computeRatchetStats` en `baseline.ts` +
   flags `--ratchet`/`--ratchet-severity` + `summary.ratchet` (hashed) + nota
   console/markdown + exit combinado + 8 tests (AC-RA.1…6) · `pnpm check`

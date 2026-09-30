@@ -329,6 +329,10 @@ const PAGINATION_PARAM_RE =
 const TOTAL_FIELD_RE = /^(total|totalCount|total_count|count|numberOfResults|totalItems)$/i;
 const SENSITIVE_FIELD_RE =
   /(password|passwd|secret|token|apiKey|api_key|creditCard|credit_card|ssn|privateKey)/i;
+const PII_EMAIL_RE = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i;
+const PII_EMAIL_PLACEHOLDER_DOMAIN_RE = /@(example\.(com|org|net)|test\.com|localhost)$/i;
+const PII_PHONE_RE = /\+\d{1,3}[-. ]?(?:\d[-. ]?){7,12}\d/;
+const PII_CARD_RE = /\b(?:4\d{3}|5[1-5]\d{2}|3[47]\d{2})[- ]?(?:\d{4}[- ]?){2}\d{4}\b/;
 const PROBLEM_MEDIA = "application/problem+json";
 
 function schemaHasTotal(spec: Spec, op: Operation): boolean {
@@ -591,6 +595,12 @@ export function evaluateAtom(
     case "sensitiveExample": {
       const text = opJsonText(cache, op);
       return /(password|secret|token|api[_-]?key)\s*[:=]\s*["'][^"']+["']/i.test(text);
+    }
+    case "examplePii": {
+      const text = opJsonText(cache, op);
+      const email = PII_EMAIL_RE.exec(text);
+      const hasRealEmail = email !== null && !PII_EMAIL_PLACEHOLDER_DOMAIN_RE.test(email[0]);
+      return hasRealEmail || PII_PHONE_RE.test(text) || PII_CARD_RE.test(text);
     }
     case "deprecatedWithoutSunset": {
       if (!op.deprecated) return false;

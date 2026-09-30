@@ -1,0 +1,25 @@
+# rules/privacy.yaml — M17.5 (f17-compliance-pack)
+- id: PRIV-001
+  category: security
+  severity: warning
+  message: "Examples must not contain obvious PII (real-looking emails, phone numbers, card numbers)."
+  fix: "Replace example values with placeholders (user@example.com, +1-555-0100) or synthetic data."
+  examples:
+    bad: |
+      responses:
+        "200":
+          content:
+            application/json:
+              example: { "email": "jane.doe@acme-corp.com", "phone": "+5491155550123" }
+    good: |
+      responses:
+        "200":
+          content:
+            application/json:
+              example: { "email": "user@example.com", "phone": "+1-555-0100" }
+  source:
+    title: "GDPR (Regulation EU 2016/679)"
+    url: https://eur-lex.europa.eu/eli/reg/2016/679/oj
+    section: "Art. 5(1)(c) — data minimisation"
+  when:
+    op: examplePii

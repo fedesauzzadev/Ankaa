@@ -2,6 +2,12 @@
 
 Formato: CalVer `YYYY.MM.PATCH`. Breaking = quitar regla o cambiar severidad default de error↔otro.
 
+## 2026.09.7 · unreleased
+
+- M17.5 (`f17-compliance-pack`): **PRIV-001** (PII obvia en examples: email/teléfono E.164/tarjeta; dominios placeholder excluidos) — **96 reglas activas**. Átomo DSL nuevo `examplePii` (spec `f1-engine` primero; coverage class `response`). `sources.yaml` += `gdpr` (EUR-Lex).
+- Nuevo **`compliance-mappings.yaml`** (v1): catálogo OWASP API Top 10 2023 + GDPR art. 25/32 y mapping curado de PRIV-001/SEC-001..004/AUTH-001..003; lo consume `ankaa export --controls`.
+- Ruido: cero findings nuevos en fixtures existentes (sin PII); fixture dedicado en tests.
+
 ## 2026.09.5 · unreleased
 
 - M8.6-A (`f8-elite-100`): higiene de contrato, **4 reglas nuevas** (94 activas en total). 3 átomos DSL nuevos (spec primero, `f1-engine` AC-E.15): `unusedComponents` (doc, solo schemas v1), `undefinedOAuthScopes` (operation, scopes del requirement vs flows; requiere `SecuritySchemeDef.scopes` del parser), `ambiguousPaths` (doc, colisión de templates por método).

@@ -977,6 +977,7 @@ export interface ExportArgs {
   since?: string;
   out?: string;
   force: boolean;
+  controls?: string[];
 }
 
 export interface ScanRepoArgs {
@@ -1047,6 +1048,18 @@ export function parseExportArgs(argv: readonly string[]): ParseExportArgsResult 
       if (token === "--group-by") args.groupBy = value;
       else if (token === "--since") args.since = value;
       else args.out = value;
+      continue;
+    }
+    if (token === "--controls") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--controls requires a comma-separated framework list" };
+      }
+      const list = [...new Set(value.split(",").map((s) => s.trim()).filter((s) => s.length > 0))];
+      if (list.length === 0) {
+        return { ok: false, error: "--controls requires at least one framework" };
+      }
+      args.controls = list;
       continue;
     }
     if (token === "--force") {

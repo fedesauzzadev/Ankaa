@@ -82,11 +82,14 @@ diff (oasdiff) ni en generación de docs (anti-alcance SDD §4).
    redocly+vacuum) — `ankaa migrate` escribe `skills/migrated/<origin>.yaml`
    idempotente; piezas Spectral son follow-up documentado en el spec (reglas:
    gated a `f8-spectral-import`; disables: requieren mapper de líneas).
-5. `f17-compliance-pack`: pendiente — frameworks de v0 (propuesta: OWASP API
-   Top 10 2023 + GDPR) y reglas PII iniciales.
+5. `f17-compliance-pack`: **resuelta e implementada** (M17.5) — frameworks v0
+   OWASP API 2023 + GDPR; `PRIV-001` en elite (96 reglas) con átomo
+   `examplePii` (spec `f1-engine` primero); `PRIV-002` configurable queda
+   follow-up documentado en el spec.
 6. `f17-ratchet`: **resuelta e implementada** (M17.4) — gate default
    `error`, severidad única, skills cuentan como resueltos; trends de
-   scan-org/dashboard quedaron como follow-up M17.5 documentado en el spec.
+   scan-org/dashboard quedaron como follow-up (sin milestone asignado)
+   documentado en el spec.
 7. `f17-ci-reporters`: pendiente — viabilidad del mapper pointer → line/col
    para checkstyle.
 8. `f17-lsp`: pendiente — alcance v0 single-file y canal de distribución de la
@@ -118,3 +121,7 @@ diff (oasdiff) ni en generación de docs (anti-alcance SDD §4).
 - 2026-09-30: `f17-ratchet` (M17.4) implementado: `--ratchet` /
   `--ratchet-severity` + `summary.ratchet` + 8 tests · spec → `implementada`.
   T2 restante: `f17-compliance-pack` y `f13-mini-validator`.
+- 2026-09-30: `f17-compliance-pack` (M17.5) implementado: átomo `examplePii`
+  + `PRIV-001` (elite 96) + `compliance-mappings.yaml` + `export --controls`
+  + 9 tests · spec → `implementada`. T2 restante: `f13-mini-validator`
+  (draft).

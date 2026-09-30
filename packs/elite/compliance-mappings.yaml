@@ -1,0 +1,36 @@
+# compliance-mappings.yaml — elite pack (f17-compliance-pack, M17.5)
+# Declarative mapping ruleId → framework controls. Versioned with the pack:
+# a new OWASP/GDPR edition bumps `version` + packs/elite/CHANGELOG.md.
+version: 1
+frameworks:
+  owasp-api:
+    - { id: "API1:2023", title: "Broken Object Level Authorization" }
+    - { id: "API2:2023", title: "Broken Authentication" }
+    - { id: "API3:2023", title: "Broken Object Property Level Authorization" }
+    - { id: "API4:2023", title: "Unrestricted Resource Consumption" }
+    - { id: "API5:2023", title: "Function Level Authorization" }
+    - { id: "API6:2023", title: "Unrestricted Access to Sensitive Business Flows" }
+    - { id: "API7:2023", title: "Server Side Request Forgery" }
+    - { id: "API8:2023", title: "Security Misconfiguration" }
+    - { id: "API9:2023", title: "Improper Inventory Management" }
+    - { id: "API10:2023", title: "Unsafe Consumption of APIs" }
+  gdpr:
+    - { id: "art. 25", title: "Data protection by design and by default" }
+    - { id: "art. 32", title: "Security of processing" }
+mappings:
+  - ruleId: PRIV-001
+    controls: ["owasp-api:API3:2023", "gdpr:art. 25"]
+  - ruleId: SEC-001
+    controls: ["owasp-api:API8:2023", "gdpr:art. 32"]
+  - ruleId: SEC-002
+    controls: ["owasp-api:API8:2023", "gdpr:art. 32"]
+  - ruleId: SEC-003
+    controls: ["owasp-api:API3:2023", "gdpr:art. 25"]
+  - ruleId: SEC-004
+    controls: ["owasp-api:API5:2023"]
+  - ruleId: AUTH-001
+    controls: ["owasp-api:API2:2023"]
+  - ruleId: AUTH-002
+    controls: ["owasp-api:API2:2023"]
+  - ruleId: AUTH-003
+    controls: ["owasp-api:API2:2023"]

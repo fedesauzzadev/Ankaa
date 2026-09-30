@@ -221,6 +221,16 @@ node examples/integrations/csv.mjs integration.json > findings.csv
 
 El `owners.yaml` reutiliza el mapping del dashboard (`ruta-de-spec: equipo`). Ejemplos Jira y Slack usan variables de entorno para endpoint/credenciales y deben revisarse antes de conectarlos a un servicio real. Spec: [`specs/f10-export.md`](specs/f10-export.md).
 
+Evidencia de compliance (f17-compliance-pack): la regla `PRIV-001` detecta PII
+obvia en examples (emails reales, teléfonos E.164, tarjetas) y
+`compliance-mappings.yaml` (versionado con el pack) mapea reglas a controles
+OWASP API Top 10 2023 y GDPR:
+
+```bash
+ankaa export report.json --controls owasp-api,gdpr
+# controls[]: cada control del catálogo con status pass|fail y fingerprints — evidencia local para auditores
+```
+
 #### Local dashboard (sin análisis, sin red más allá de loopback)
 
 ```bash

@@ -125,8 +125,8 @@ const NEW_RULES: Array<{ id: string; severity: "warning" | "info" }> = [
 ];
 
 describe("elite-100 inventory (M8.5)", () => {
-  it("holds 95 active rules (94 + SCHEMA-007)", () => {
-    expect(loaded.pack.rules).toHaveLength(95);
+  it("holds 96 active rules (95 + PRIV-001)", () => {
+    expect(loaded.pack.rules).toHaveLength(96);
   });
 
   it("contains every new rule id with the expected severity", () => {

@@ -31,6 +31,7 @@ Planes de implementación derivados de los [specs](../specs/README.md). Un plan 
 | [f8-certify](f8-certify.md)                   | Attestations ed25519 certify/verify (M17.2, backlog f17)        | f8-certify          |
 | [f17-migration-kit](f17-migration-kit.md)     | Migrar excepciones redocly/vacuum → skills/migrated (M17.3)     | f17-migration-kit   |
 | [f17-ratchet](f17-ratchet.md)                 | Gate de deuda no creciente --ratchet (M17.4, backlog f17)       | f17-ratchet         |
+| [f17-compliance-pack](f17-compliance-pack.md) | PRIV-001 + mappings + export --controls (M17.5, backlog f17)    | f17-compliance-pack |
 | [f17-diferenciales](f17-diferenciales.md)     | Backlog T1–T3 de diferenciales competitivos (specs en draft)    | f17-* + drafts f8/f13 |
 
 ## Convención

@@ -23,4 +23,4 @@ Methodology: static OpenAPI analysis can prove **hygiene** (auth declared, TLS, 
 | API9:2023 Improper Inventory Management                   | partial  | STRUCT-001, STRUCT-002, STRUCT-003, STRUCT-004, VER-001, VER-002, VER-003, DEPR-001, DEPR-002, DEPR-003 | Versions, hosts, deprecation and sunset documented; staging/prod parity and zombie APIs need runtime inventory. |
 | API10:2023 Unsafe Consumption of APIs                     | none     | —                                                                                                       | Outward third-party calls are not modeled in service specs.                                                     |
 
-Table audited 2026-09-30 against elite@2026.09.1 (95 rules). Re-audit on every pack minor.
+Table audited 2026-09-30 against elite@2026.09.1 (96 rules). Re-audit on every pack minor.

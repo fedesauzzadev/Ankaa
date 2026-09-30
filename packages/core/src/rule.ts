@@ -83,6 +83,7 @@ export type AtomMatcher =
     }
   | { op: "exampleRequired"; target: "operation" | "response"; status?: string }
   | { op: "sensitiveExample" }
+  | { op: "examplePii" }
   | { op: "deprecatedWithoutSunset" }
   | { op: "docFieldMissing"; field: DocField }
   | { op: "specExtensionPresent"; name: string }

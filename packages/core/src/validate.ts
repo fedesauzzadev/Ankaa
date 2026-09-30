@@ -122,6 +122,7 @@ const atomSchema = z.discriminatedUnion("op", [
     status: z.string().optional(),
   }),
   z.strictObject({ op: z.literal("sensitiveExample") }),
+  z.strictObject({ op: z.literal("examplePii") }),
   z.strictObject({ op: z.literal("deprecatedWithoutSunset") }),
   z.strictObject({
     op: z.literal("docFieldMissing"),

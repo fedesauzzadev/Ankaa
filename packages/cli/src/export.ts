@@ -1,9 +1,141 @@
 import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { parse as parseYaml } from "yaml";
 import type { Finding } from "@ankaa/core";
 import type { Report } from "@ankaa/reporters";
 import { ownerOf } from "./dashboard.js";
 
 export type ExportableReport = Pick<Report, "tool" | "input" | "findings">;
+
+export interface ControlEntry {
+  framework: string;
+  control: string;
+  title: string;
+  status: "pass" | "fail";
+  findings: string[];
+}
+
+export interface ComplianceMappings {
+  version: number;
+  frameworks: Record<string, Array<{ id: string; title: string }>>;
+  mappings: Array<{ ruleId: string; controls: string[] }>;
+}
+
+export type LoadComplianceMappingsResult =
+  | { ok: true; mappings: ComplianceMappings }
+  | { ok: false; error: string };
+
+export function loadComplianceMappings(packDir: string): LoadComplianceMappingsResult {
+  const path = join(packDir, "compliance-mappings.yaml");
+  let text: string;
+  try {
+    text = readFileSync(path, "utf8");
+  } catch {
+    return { ok: false, error: `compliance mappings not found: ${path}` };
+  }
+  let raw: unknown;
+  try {
+    raw = parseYaml(text);
+  } catch (err) {
+    return {
+      ok: false,
+      error: `compliance mappings ${path}: ${err instanceof Error ? err.message : String(err)}`,
+    };
+  }
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
+    return { ok: false, error: `compliance mappings ${path}: root must be a mapping` };
+  }
+  const obj = raw as Record<string, unknown>;
+  if (obj.version !== 1) {
+    return { ok: false, error: `compliance mappings ${path}: unsupported version ${String(obj.version)}` };
+  }
+  const frameworksRaw = obj.frameworks;
+  if (frameworksRaw === null || typeof frameworksRaw !== "object" || Array.isArray(frameworksRaw)) {
+    return { ok: false, error: `compliance mappings ${path}: frameworks must be a mapping` };
+  }
+  const frameworks: ComplianceMappings["frameworks"] = {};
+  for (const [name, entries] of Object.entries(frameworksRaw as Record<string, unknown>)) {
+    if (!Array.isArray(entries)) {
+      return { ok: false, error: `compliance mappings ${path}: framework "${name}" must be a list` };
+    }
+    const catalog: Array<{ id: string; title: string }> = [];
+    for (const entry of entries) {
+      if (
+        entry === null ||
+        typeof entry !== "object" ||
+        typeof (entry as { id?: unknown }).id !== "string" ||
+        typeof (entry as { title?: unknown }).title !== "string"
+      ) {
+        return {
+          ok: false,
+          error: `compliance mappings ${path}: framework "${name}" entries need id and title`,
+        };
+      }
+      catalog.push({ id: (entry as { id: string }).id, title: (entry as { title: string }).title });
+    }
+    frameworks[name] = catalog;
+  }
+  const mappingsRaw = obj.mappings;
+  if (!Array.isArray(mappingsRaw)) {
+    return { ok: false, error: `compliance mappings ${path}: mappings must be a list` };
+  }
+  const mappings: ComplianceMappings["mappings"] = [];
+  for (const entry of mappingsRaw) {
+    if (
+      entry === null ||
+      typeof entry !== "object" ||
+      typeof (entry as { ruleId?: unknown }).ruleId !== "string" ||
+      !Array.isArray((entry as { controls?: unknown }).controls)
+    ) {
+      return { ok: false, error: `compliance mappings ${path}: mapping entries need ruleId and controls` };
+    }
+    const controls = (entry as { controls: unknown[] }).controls;
+    if (!controls.every((c): c is string => typeof c === "string")) {
+      return { ok: false, error: `compliance mappings ${path}: controls must be strings` };
+    }
+    mappings.push({ ruleId: (entry as { ruleId: string }).ruleId, controls });
+  }
+  return { ok: true, mappings: { version: 1, frameworks, mappings } };
+}
+
+export function buildControlsSection(
+  findings: readonly Finding[],
+  mappings: ComplianceMappings,
+  frameworks: readonly string[],
+): ControlEntry[] {
+  const fingerprintsByRule = new Map<string, string[]>();
+  for (const finding of findings) {
+    const list = fingerprintsByRule.get(finding.ruleId) ?? [];
+    list.push(finding.fingerprint);
+    fingerprintsByRule.set(finding.ruleId, list);
+  }
+  const controlsByRule = new Map<string, string[]>();
+  for (const mapping of mappings.mappings) {
+    controlsByRule.set(mapping.ruleId, mapping.controls);
+  }
+  const entries: ControlEntry[] = [];
+  for (const framework of frameworks) {
+    for (const control of mappings.frameworks[framework] ?? []) {
+      const key = `${framework}:${control.id}`;
+      const fingerprints: string[] = [];
+      for (const [ruleId, ruleFindings] of fingerprintsByRule) {
+        const mapped = controlsByRule.get(ruleId);
+        if (mapped !== undefined && mapped.includes(key)) {
+          fingerprints.push(...ruleFindings);
+        }
+      }
+      fingerprints.sort();
+      entries.push({
+        framework,
+        control: control.id,
+        title: control.title,
+        status: fingerprints.length > 0 ? "fail" : "pass",
+        findings: fingerprints,
+      });
+    }
+  }
+  return entries;
+}
 
 export interface ExportFinding extends Finding {
   trend: "new" | "repeated";
@@ -21,6 +153,8 @@ export interface IntegrationExport {
   schemaVersion: 1;
   version: string;
   groups: ExportGroup[];
+  /** Present only with `export --controls` (additive; f17-compliance-pack). */
+  controls?: ControlEntry[];
   summary: {
     error: number;
     warning: number;

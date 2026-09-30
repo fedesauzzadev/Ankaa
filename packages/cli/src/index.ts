@@ -109,7 +109,12 @@ import {
   listOrgRepos,
   validateGitRemoteUrl,
 } from "./github.js";
-import { buildIntegrationExport, loadExportReportFile } from "./export.js";
+import {
+  buildControlsSection,
+  buildIntegrationExport,
+  loadComplianceMappings,
+  loadExportReportFile,
+} from "./export.js";
 import { formatInitEntries, runInit } from "./init.js";
 import {
   collectCustomRules,
@@ -3361,7 +3366,7 @@ async function runExportCommand(
 ): Promise<number> {
   if (argv.includes("--help") || argv.includes("-h")) {
     io.stdout(
-      "usage: ankaa export <report.json> [--group-by <file>] [--since <old.json>] [--out <file>] [--force]\n",
+      "usage: ankaa export <report.json> [--group-by <file>] [--since <old.json>] [--controls owasp-api,gdpr] [--out <file>] [--force]\n",
     );
     return 0;
   }
@@ -3407,6 +3412,29 @@ async function runExportCommand(
   }
 
   const result = buildIntegrationExport(loaded.report, previous, mapping);
+
+  if (args.controls !== undefined) {
+    const eliteDir = findElitePackDir(defaultPackSearchRoots(io.cwd));
+    if (!eliteDir) {
+      io.stderr("error: elite pack not found (compliance mappings ship with it)\n");
+      return 2;
+    }
+    const loadedMappings = loadComplianceMappings(eliteDir);
+    if (!loadedMappings.ok) {
+      io.stderr(`error: ${loadedMappings.error}\n`);
+      return 2;
+    }
+    const known = Object.keys(loadedMappings.mappings.frameworks);
+    const unknown = args.controls.filter((framework) => !known.includes(framework));
+    if (unknown.length > 0) {
+      io.stderr(
+        `error: unknown --controls framework(s): ${unknown.join(", ")} (known: ${known.join(" | ")})\n`,
+      );
+      return 2;
+    }
+    result.controls = buildControlsSection(loaded.report.findings, loadedMappings.mappings, args.controls);
+  }
+
   const text = `${JSON.stringify(result, null, 2)}\n`;
   if (args.out !== undefined) {
     const outputPath = resolve(io.cwd, args.out);
