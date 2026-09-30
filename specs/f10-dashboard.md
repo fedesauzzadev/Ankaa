@@ -48,14 +48,15 @@ Como responsable de APIs con un `report.json` de 112 findings quiero `apigovscan
 
 ## 4. Criterios de aceptación
 
-- [ ] AC-DB.1: `dashboard report.json` levanta en loopback y `GET /` devuelve 200 con las tarjetas (smoke con el disaster-report de 112 findings).
-- [ ] AC-DB.2: agrupadores pack + dueño + regla + archivo + severidad + tendencia + tracking, con conteos correctos contra el JSON.
-- [ ] AC-DB.3: marcar `in_progress`/`resolved` persiste en el sidecar explícito; reabrir el dashboard lo conserva.
-- [ ] AC-DB.4: `--against` clasifica nuevo/repetido/resuelto por fingerprint; determinista (mismo par ⇒ misma vista).
-- [ ] AC-DB.5: no escucha en interfaces externas (bind 127.0.0.1); el HTML no pide red (test: sin CDN, todo inline).
-- [ ] AC-DB.6: INV-7 (solo escribe sidecar); `pnpm check` verde; spec `cerrada` + índices.
-- [ ] AC-DB.7: revisión visual manual (checklist): sentence case en chrome, paleta por severidad consistente, contraste legible, 112 findings del disaster sin tirones al filtrar/paginar.
-- [ ] AC-DB.8: `--port` fijo ocupado ⇒ exit 2 con hint a `--port 0` (sin stack crudo).
+- [x] AC-DB.1: `dashboard report.json` levanta en loopback y `GET /` devuelve 200 con las tarjetas (smoke con el disaster-report de 112 findings).
+- [x] AC-DB.2: agrupadores pack + dueño + regla + archivo + severidad + tendencia + tracking, con conteos correctos contra el JSON.
+- [x] AC-DB.3: marcar `in_progress`/`resolved` persiste en el sidecar explícito; reabrir el dashboard lo conserva.
+- [x] AC-DB.4: `--against` clasifica nuevo/repetido/resuelto por fingerprint; determinista (mismo par ⇒ misma vista).
+- [x] AC-DB.5: no escucha en interfaces externas (bind 127.0.0.1); el HTML no pide red (test: sin CDN, todo inline).
+- [x] AC-DB.6: INV-7 (solo escribe sidecar); `pnpm check` verde; spec `cerrada` + índices.
+- [x] AC-DB.7: revisión visual manual (checklist): sentence case en chrome, paleta por severidad consistente, contraste legible, 112 findings del disaster sin tirones al filtrar/paginar.
+- [x] AC-DB.8: `--port` fijo ocupado ⇒ exit 2 con hint a `--port 0` (sin stack crudo).
+- [x] AC-DB.9: cada tarjeta ofrece "Copy suppress command", que solo copia un comando editable y nunca modifica skills/specs.
 
 ## 5. Test plan
 
@@ -84,3 +85,4 @@ E2E CLI (server efímero + fetch a `/` y `/api/*`) + unit del comparador por fin
 - 2026-09-29 · Botón "Copy suppress command" por tarjeta: copia `apigovscan suppress --report "<reporte>" --fingerprint <12 chars> --decision wontfix --reason "..."` (el usuario completa decisión y motivo en terminal; el servidor expone `reportFile` en `/api/report`). Solo clipboard, sin mutación.
 - 2026-09-30 · "Copy prompt for LLM" incluye los `examples` (bad/good) del finding cuando el reporte los trae (AC-E.13); sin ejemplos el prompt es idéntico al anterior.
 - 2026-09-30 · Badge de cobertura en el header (AC-CV.4/5): `coverage NN% (i/t nodes)` + tooltip por clase + nota en la leyenda; reportes sin `coverage` no muestran nada (compatibilidad).
+- 2026-09-30 · AC-DB.9 `Copy suppress command`: tarjeta copia el comando CLI con report path + prefijo único; el humano elige/edita la decisión y razón en terminal. Solo clipboard, no escribe skills/specs.
