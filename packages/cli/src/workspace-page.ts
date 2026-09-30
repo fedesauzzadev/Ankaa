@@ -56,7 +56,7 @@ export function renderWorkspacePage(token: string): string {
     <button data-view="new">New analysis</button>
     <button data-view="progress">Progress</button>
     <button data-view="result">Results</button>
-    <button data-view="compare" class="upcoming" disabled>Compare</button>
+    <button data-view="compare" id="nav-compare">Compare</button>
     <button data-view="ci" class="upcoming" disabled>Prepare CI</button>
   </nav>
 </header>
@@ -109,10 +109,23 @@ export function renderWorkspacePage(token: string): string {
       <h2>Results</h2>
       <div id="result-body"><p class="hint">No result yet.</p></div>
     </div>
+    <div class="card">
+      <h2>Run history</h2>
+      <div id="history"><p class="hint">Loading history…</p></div>
+    </div>
   </section>
 
   <section id="compare" hidden>
-    <div class="card"><h2>Compare</h2><p class="hint">Coming in an upcoming milestone.</p></div>
+    <div class="card">
+      <h2>Compare two runs</h2>
+      <label for="cmp-left">Baseline run (left)</label>
+      <select id="cmp-left"></select>
+      <label for="cmp-right">Current run (right)</label>
+      <select id="cmp-right"></select>
+      <p class="hint">Only succeeded runs over the same inputs can be compared.</p>
+      <button class="primary" id="cmp-btn" type="button">Compare runs</button>
+      <div id="cmp-body"></div>
+    </div>
   </section>
 
   <section id="ci" hidden>
@@ -141,7 +154,8 @@ export function renderWorkspacePage(token: string): string {
       sections[j].hidden = sections[j].id !== name;
     }
     if (name === "progress") startPolling(); else stopPolling();
-    if (name === "result") loadResult();
+    if (name === "result") { loadResult(); loadHistory(); }
+    if (name === "compare") loadCompareOptions();
   }
 
   function api(path, options) {
@@ -216,45 +230,10 @@ export function renderWorkspacePage(token: string): string {
   function loadResult() {
     api("/api/result").then(function (res) {
       var box = el("result-body");
-      clear(box);
       var payload = res.payload || {};
       if (payload.ok !== true) { text(box, payload.error || "No result yet."); return; }
       var report = payload.report || {};
-      var summary = report.summary || { error: 0, warning: 0, info: 0, total: 0 };
-      var head = document.createElement("p");
-      var score = report.score ? (" · score " + report.score.value + " (" + report.score.grade + ")") : "";
-      head.textContent = summary.error + " errors · " + summary.warning + " warnings · " + summary.info + " info" + score;
-      box.appendChild(head);
-      var hash = document.createElement("p"); hash.className = "mono hint"; hash.textContent = "reportHash " + (report.reportHash || "");
-      box.appendChild(hash);
-      var inputs = document.createElement("p"); hash.className = "mono hint";
-      inputs.textContent = "inputs: " + (report.input || []).map(function (i) { return i.path; }).join(", ");
-      box.appendChild(inputs);
-      var findings = report.findings || [];
-      if (findings.length === 0) { var ok = document.createElement("p"); ok.textContent = "No findings."; box.appendChild(ok); return; }
-      var table = document.createElement("table");
-      var thead = document.createElement("thead");
-      var hr = document.createElement("tr");
-      ["severity", "rule", "location", "message"].forEach(function (h) {
-        var th = document.createElement("th"); th.textContent = h; hr.appendChild(th);
-      });
-      thead.appendChild(hr); table.appendChild(thead);
-      var tbody = document.createElement("tbody");
-      findings.slice(0, 50).forEach(function (f) {
-        var tr = document.createElement("tr");
-        var sevd = document.createElement("td"); sevd.className = "sev-" + f.severity; sevd.textContent = f.severity;
-        var ruled = document.createElement("td"); ruled.textContent = f.ruleId;
-        var locd = document.createElement("td"); locd.className = "mono"; locd.textContent = f.location;
-        var msgd = document.createElement("td"); msgd.textContent = f.message;
-        tr.appendChild(sevd); tr.appendChild(ruled); tr.appendChild(locd); tr.appendChild(msgd);
-        tbody.appendChild(tr);
-      });
-      table.appendChild(tbody); box.appendChild(table);
-      if (findings.length > 50) {
-        var more = document.createElement("p"); more.className = "hint";
-        more.textContent = "Showing 50 of " + findings.length + " findings.";
-        box.appendChild(more);
-      }
+      renderReportInto(box, report, "current run", "succeeded", undefined);
     });
   }
 
@@ -281,6 +260,186 @@ export function renderWorkspacePage(token: string): string {
       button.addEventListener("click", function () { view(button.getAttribute("data-view")); });
     })(navButtons[i]);
   }
+
+  function loadHistory() {
+    api("/api/runs").then(function (res) {
+      var box = el("history");
+      clear(box);
+      var payload = res.payload || {};
+      if (payload.ok !== true) { text(box, payload.error || "History unavailable."); return; }
+      var runs = payload.runs || [];
+      if (runs.length === 0) { text(box, "No runs yet. Start an analysis to build history."); return; }
+      if (payload.invalidFiles > 0) {
+        var warn = document.createElement("p"); warn.className = "hint";
+        warn.textContent = payload.invalidFiles + " unreadable run file(s) were skipped.";
+        box.appendChild(warn);
+      }
+      var table = document.createElement("table");
+      var thead = document.createElement("thead");
+      var hr = document.createElement("tr");
+      ["run", "state", "source", "started", "findings", ""].forEach(function (h) {
+        var th = document.createElement("th"); th.textContent = h; hr.appendChild(th);
+      });
+      thead.appendChild(hr); table.appendChild(thead);
+      var tbody = document.createElement("tbody");
+      runs.forEach(function (run) {
+        var tr = document.createElement("tr");
+        var idd = document.createElement("td"); idd.className = "mono"; idd.textContent = run.id;
+        var std = document.createElement("td");
+        var badge = document.createElement("span"); badge.className = "status " + run.state; badge.textContent = run.state;
+        std.appendChild(badge);
+        var srcd = document.createElement("td"); srcd.className = "mono"; srcd.textContent = run.source;
+        var whend = document.createElement("td"); whend.className = "mono"; whend.textContent = run.startedAt;
+        var find = document.createElement("td");
+        find.textContent = run.summary ? (run.summary.total + " (" + run.summary.error + " err)") : "—";
+        var opend = document.createElement("td");
+        var btn = document.createElement("button"); btn.type = "button"; btn.textContent = "Open";
+        (function (runId) {
+          btn.addEventListener("click", function () { openRun(runId); });
+        })(run.id);
+        opend.appendChild(btn);
+        tr.appendChild(idd); tr.appendChild(std); tr.appendChild(srcd); tr.appendChild(whend); tr.appendChild(find); tr.appendChild(opend);
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody); box.appendChild(table);
+    });
+  }
+
+  function openRun(runId) {
+    api("/api/runs/" + encodeURIComponent(runId)).then(function (res) {
+      var box = el("result-body");
+      clear(box);
+      var payload = res.payload || {};
+      if (payload.ok !== true) { text(box, payload.error || "Run unavailable."); return; }
+      renderReportInto(box, payload.run.report, payload.run.id, payload.run.state, payload.run.error);
+    });
+  }
+
+  function renderReportInto(box, report, runId, runState, runError) {
+    clear(box);
+    var head = document.createElement("p");
+    head.textContent = "run " + runId + " · " + runState;
+    box.appendChild(head);
+    if (runError) { var e = document.createElement("p"); e.className = "err mono"; e.textContent = runError; box.appendChild(e); }
+    if (!report) {
+      var none = document.createElement("p"); none.className = "hint";
+      none.textContent = "This run produced no report.";
+      box.appendChild(none); return;
+    }
+    var summary = report.summary || { error: 0, warning: 0, info: 0, total: 0 };
+    var counts = document.createElement("p");
+    var score = report.score ? (" · score " + report.score.value + " (" + report.score.grade + ")") : "";
+    counts.textContent = summary.error + " errors · " + summary.warning + " warnings · " + summary.info + " info" + score;
+    box.appendChild(counts);
+    var hash = document.createElement("p"); hash.className = "mono hint"; hash.textContent = "reportHash " + (report.reportHash || "");
+    box.appendChild(hash);
+    var inputs = document.createElement("p"); inputs.className = "mono hint";
+    inputs.textContent = "inputs: " + (report.input || []).map(function (i) { return i.path; }).join(", ");
+    box.appendChild(inputs);
+    var findings = report.findings || [];
+    if (findings.length === 0) { var ok = document.createElement("p"); ok.textContent = "No findings."; box.appendChild(ok); return; }
+    var table = document.createElement("table");
+    var thead = document.createElement("thead");
+    var hr = document.createElement("tr");
+    ["severity", "rule", "location", "message"].forEach(function (h) {
+      var th = document.createElement("th"); th.textContent = h; hr.appendChild(th);
+    });
+    thead.appendChild(hr); table.appendChild(thead);
+    var tbody = document.createElement("tbody");
+    findings.slice(0, 50).forEach(function (f) {
+      var tr = document.createElement("tr");
+      var sevd = document.createElement("td"); sevd.className = "sev-" + f.severity; sevd.textContent = f.severity;
+      var ruled = document.createElement("td"); ruled.textContent = f.ruleId;
+      var locd = document.createElement("td"); locd.className = "mono"; locd.textContent = f.location;
+      var msgd = document.createElement("td"); msgd.textContent = f.message;
+      tr.appendChild(sevd); tr.appendChild(ruled); tr.appendChild(locd); tr.appendChild(msgd);
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody); box.appendChild(table);
+    if (findings.length > 50) {
+      var more = document.createElement("p"); more.className = "hint";
+      more.textContent = "Showing 50 of " + findings.length + " findings.";
+      box.appendChild(more);
+    }
+  }
+
+  function loadCompareOptions() {
+    api("/api/runs").then(function (res) {
+      var payload = res.payload || {};
+      var succeeded = payload.ok === true
+        ? (payload.runs || []).filter(function (r) { return r.state === "succeeded" && r.summary; })
+        : [];
+      [el("cmp-left"), el("cmp-right")].forEach(function (select) {
+        clear(select);
+        succeeded.forEach(function (run) {
+          var option = document.createElement("option");
+          option.value = run.id;
+          option.textContent = run.id + " · " + run.startedAt + " · " + run.summary.total + " findings";
+          select.appendChild(option);
+        });
+        if (select.options.length > 1 && select === el("cmp-right")) select.selectedIndex = 1;
+      });
+      var body = el("cmp-body");
+      clear(body);
+      if (succeeded.length < 2) {
+        var note = document.createElement("p"); note.className = "hint";
+        note.textContent = "Need at least two succeeded runs over the same inputs to compare.";
+        body.appendChild(note);
+      }
+    });
+  }
+
+  el("cmp-btn").addEventListener("click", function () {
+    var left = el("cmp-left").value;
+    var right = el("cmp-right").value;
+    var body = el("cmp-body");
+    clear(body);
+    if (!left || !right || left === right) {
+      var pick = document.createElement("p"); pick.className = "hint";
+      pick.textContent = "Pick two different runs.";
+      body.appendChild(pick);
+      return;
+    }
+    api("/api/compare?left=" + encodeURIComponent(left) + "&right=" + encodeURIComponent(right)).then(function (res) {
+      var payload = res.payload || {};
+      if (payload.ok !== true) {
+        var err = document.createElement("p"); err.className = "err";
+        err.textContent = payload.error || "Comparison failed.";
+        body.appendChild(err);
+        return;
+      }
+      var s = payload.summary || { newCount: 0, repeatedCount: 0, resolvedCount: 0 };
+      var head = document.createElement("p");
+      head.textContent = payload.left.id + " → " + payload.right.id + " · new " + s.newCount + " · repeated " + s.repeatedCount + " · resolved " + s.resolvedCount;
+      body.appendChild(head);
+      var news = payload.newFindings || [];
+      if (news.length > 0) {
+        var h = document.createElement("h3"); h.textContent = "New findings"; body.appendChild(h);
+        var table = document.createElement("table");
+        var thead = document.createElement("thead");
+        var hr = document.createElement("tr");
+        ["severity", "rule", "location", "message"].forEach(function (col) {
+          var th = document.createElement("th"); th.textContent = col; hr.appendChild(th);
+        });
+        thead.appendChild(hr); table.appendChild(thead);
+        var tbody = document.createElement("tbody");
+        news.forEach(function (f) {
+          var tr = document.createElement("tr");
+          var sevd = document.createElement("td"); sevd.className = "sev-" + f.severity; sevd.textContent = f.severity;
+          var ruled = document.createElement("td"); ruled.textContent = f.ruleId;
+          var locd = document.createElement("td"); locd.className = "mono"; locd.textContent = f.location;
+          var msgd = document.createElement("td"); msgd.textContent = f.message;
+          tr.appendChild(sevd); tr.appendChild(ruled); tr.appendChild(locd); tr.appendChild(msgd);
+          tbody.appendChild(tr);
+        });
+        table.appendChild(tbody); body.appendChild(table);
+      } else {
+        var noNew = document.createElement("p"); noNew.className = "hint";
+        noNew.textContent = "No new findings in the current run.";
+        body.appendChild(noNew);
+      }
+    });
+  });
 
   loadCatalog();
 })();

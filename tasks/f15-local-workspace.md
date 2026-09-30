@@ -30,9 +30,9 @@ Plan: [plans/f15-local-workspace.md](../plans/f15-local-workspace.md) · Spec:
 
 ## M15.4 — Historial y comparación
 
-- [ ] Listar historial persistido sin revelar secrets (AC-15.9, .11)
-- [ ] Abrir resultados guardados y comparar dos runs compatibles (AC-15.9)
-- [ ] Explicar formatos/resultados no comparables sin declararlos limpios
+- [x] Listar historial persistido sin revelar secrets (AC-15.9, .11)
+- [x] Abrir resultados guardados y comparar dos runs compatibles (AC-15.9)
+- [x] Explicar formatos/resultados no comparables sin declararlos limpios
 
 ## M15.5 — Asistente de terminal y CI
 

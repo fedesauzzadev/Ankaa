@@ -153,11 +153,11 @@ abrir un navegador para usar ApiGovScan.
 - [ ] **AC-15.8** Continuar reutiliza un resultado únicamente si identidad,
       revisión, versión, packs y configuración efectiva coinciden; incertidumbre
       implica reanalizar o reportar error explícito.
-- [ ] **AC-15.9** Desde cero analiza todo y conserva los resultados anteriores;
+- [x] **AC-15.9** Desde cero analiza todo y conserva los resultados anteriores;
       historial permite abrir un reporte y comparar dos ejecuciones compatibles.
 - [ ] **AC-15.10** Preparar CI previsualiza cambios y requiere confirmación; no
       habilita branch protection ni altera settings de plataformas.
-- [ ] **AC-15.11** Historial, progreso y errores no guardan/exponen credenciales
+- [x] **AC-15.11** Historial, progreso y errores no guardan/exponen credenciales
       ni contenidos completos de contratos fuera de reportes elegidos por el usuario.
 - [ ] **AC-15.12** INV-1/2/3/4/7, compatibilidad Windows/macOS/Linux, tests
       focalizados y `pnpm check` pasan.
@@ -219,5 +219,12 @@ abrir un navegador para usar ApiGovScan.
   app guiada en loopback (puerto efímero por defecto) con token por proceso,
   validación Host/Origin en mutaciones, endpoints allowlistados tipados
   (`/api/catalog`, `/api/state`, `/api/result`, `/api/analyze/start|cancel`) y
-  UI inline sin CDN; `analyze` corre con progreso real y paridad de reportHash
+  UI inline sin CDN;   `analyze` corre con progreso real y paridad de reportHash
   con la CLI; `dashboard` existente sin cambios (AC-15.3/15.4).
+- 2026-10-01 · M15.4 implementado: historial de runs persistido bajo
+  `.apigovscan/workspace/runs/` (un JSON atómico por ejecución, estados
+  terminales, resultados íntegros), endpoints `/api/runs`, `/api/runs/:id` y
+  `/api/compare` con compatibilidad estricta (ambos succeeded + mismos inputs;
+  incompatibilidad explicada, nunca presentada como limpia), vista de historial
+  y comparación por fingerprints (new/repeated/resolved reutilizando el
+  comparador del dashboard), sin persistir cuerpos de contratos (AC-15.9/15.11).

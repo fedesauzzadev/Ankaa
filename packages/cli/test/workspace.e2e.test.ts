@@ -1,4 +1,4 @@
-import { copyFileSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -6,6 +6,7 @@ import http from "node:http";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { startWorkspaceServer, type WorkspaceServer } from "../src/workspace.js";
 import { DEV_LICENSE_KEY } from "../src/license.js";
+import { analyzeRunsDir } from "../src/workspace-runs.js";
 import { run } from "../src/index.js";
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
@@ -283,5 +284,178 @@ describe("workspace command (f15 M15.3)", () => {
     const unknown = await runCapture(["workspace", "--turbo"]);
     expect(unknown.code).toBe(2);
     expect(unknown.stderr).toContain("unknown option");
+  });
+});
+
+describe("workspace history and compare (f15 M15.4, AC-15.9/.11)", () => {
+  let server2: WorkspaceServer;
+  let cwd2: string;
+  let token2 = "";
+
+  async function fetch2(
+    path: string,
+    init?: RequestInit & { headers?: Record<string, string> },
+  ): Promise<{ status: number; body: Record<string, unknown> }> {
+    const res = await fetch(`${server2.url}${path}`, init);
+    return { status: res.status, body: (await res.json()) as Record<string, unknown> };
+  }
+
+  async function start2(path: string): Promise<void> {
+    const res = await fetch2("/api/analyze/start", {
+      method: "POST",
+      headers: { "x-apigovscan-token": token2, "content-type": "application/json" },
+      body: JSON.stringify({ path, failOn: "never" }),
+    });
+    expect(res.status, JSON.stringify(res.body)).toBe(200);
+  }
+
+  async function waitForRuns(count: number): Promise<void> {
+    const started = Date.now();
+    for (;;) {
+      const { body } = await fetch2("/api/runs");
+      if (((body["runs"] as unknown[]) ?? []).length >= count) return;
+      if (Date.now() - started > 15000) throw new Error(`history did not reach ${count} runs`);
+      await new Promise((r) => setTimeout(r, 100));
+    }
+  }
+
+  beforeAll(async () => {
+    cwd2 = tempDir();
+    copyFileSync(petstore, join(cwd2, "openapi.yaml"));
+    writeFileSync(
+      join(cwd2, "leaky.yaml"),
+      [
+        "openapi: 3.1.0",
+        "info:",
+        "  title: Leaky",
+        "  version: 1.0.0",
+        "  description: XMARKERX-DO-NOT-PERSIST internal notes",
+        "paths:",
+        "  /items:",
+        "    get:",
+        "      operationId: listItems",
+        "      responses:",
+        '        "200":',
+        "          description: OK",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+    server2 = await startWorkspaceServer({ cwd: cwd2 }, 0);
+    const page = await (await fetch(`${server2.url}/`)).text();
+    token2 = extractToken(page);
+  });
+
+  afterAll(async () => {
+    await server2.close();
+  });
+
+  it("persists runs with full results and lists them without bodies (AC-15.9/.11)", async () => {
+    await start2("openapi.yaml");
+    await waitForRuns(1);
+
+    const listed = await fetch2("/api/runs");
+    expect(listed.body["ok"]).toBe(true);
+    const runs = listed.body["runs"] as Array<Record<string, unknown>>;
+    expect(runs.length).toBe(1);
+    expect(runs[0]!["state"]).toBe("succeeded");
+    expect(runs[0]!["source"]).toBe("openapi.yaml");
+    expect(typeof runs[0]!["reportHash"]).toBe("string");
+    expect(runs[0]!["summary"]).toMatchObject({ total: expect.any(Number) });
+    expect(runs[0]!["report"]).toBeUndefined();
+
+    const opened = await fetch2("/api/runs/run-1");
+    expect(opened.status).toBe(200);
+    const runPayload = opened.body["run"] as Record<string, unknown>;
+    const report = runPayload["report"] as { reportHash: string; summary: { total: number } };
+    expect(report.summary.total).toBeGreaterThan(0);
+    expect(runPayload["reportHash"]).toBe(report.reportHash);
+    expect(existsSync(join(analyzeRunsDir(cwd2), "run-1.json"))).toBe(true);
+
+    const runFile = readFileSync(join(analyzeRunsDir(cwd2), "run-1.json"), "utf8");
+    expect(runFile).toContain('"source": "openapi.yaml"');
+    expect(runFile).not.toContain("XMARKERX-DO-NOT-PERSIST");
+  });
+
+  it("does not persist spec bodies from analyzed contracts (AC-15.11)", async () => {
+    await start2("leaky.yaml");
+    await waitForRuns(2);
+    const runFile = readFileSync(join(analyzeRunsDir(cwd2), "run-2.json"), "utf8");
+    expect(runFile).not.toContain("XMARKERX-DO-NOT-PERSIST");
+  });
+
+  it("compares two compatible runs by fingerprint with explicit deltas (AC-15.9)", async () => {
+    const original = readFileSync(join(cwd2, "openapi.yaml"), "utf8");
+    writeFileSync(
+      join(cwd2, "openapi.yaml"),
+      original.replace(
+        "paths:",
+        [
+          "paths:",
+          "  /user:",
+          "    get:",
+          "      operationId: getUser",
+          "      responses:",
+          '        "200":',
+          "          description: OK",
+          "",
+        ].join("\n"),
+      ),
+      "utf8",
+    );
+    await start2("openapi.yaml");
+    await waitForRuns(3);
+
+    const compared = await fetch2("/api/compare?left=run-1&right=run-3");
+    expect(compared.status).toBe(200);
+    expect(compared.body["ok"]).toBe(true);
+    const summary = compared.body["summary"] as Record<string, number>;
+    expect(summary["newCount"]).toBeGreaterThan(0);
+    const newFindings = compared.body["newFindings"] as Array<{ ruleId: string }>;
+    expect(newFindings.map((f) => f.ruleId)).toContain("NAMING-001");
+    expect(Array.isArray(compared.body["resolvedFingerprints"])).toBe(true);
+
+    writeFileSync(join(cwd2, "openapi.yaml"), original, "utf8");
+  });
+
+  it("rejects comparisons with missing results or different inputs, never clean (AC-15.9)", async () => {
+    writeFileSync(join(cwd2, "broken.yaml"), "openapi: [not: valid\n", "utf8");
+    await start2("broken.yaml");
+    await waitForRuns(4);
+    const failedRun = (await fetch2("/api/runs")).body["runs"] as Array<Record<string, unknown>>;
+    const failed = failedRun.find((r) => r["state"] === "failed");
+    expect(failed).toBeDefined();
+
+    const noResult = await fetch2(`/api/compare?left=run-1&right=${failed!["id"]}`);
+    expect(noResult.status).toBe(409);
+    expect(noResult.body["error"]).toContain("has no result to compare");
+    expect(noResult.body["error"]).toContain("failed");
+
+    const differentInputs = await fetch2("/api/compare?left=run-1&right=run-2");
+    expect(differentInputs.status).toBe(409);
+    expect(differentInputs.body["error"]).toContain("different inputs");
+
+    const unknown = await fetch2("/api/compare?left=run-1&right=run-999");
+    expect(unknown.status).toBe(404);
+    expect(unknown.body["error"]).toContain("run not found");
+
+    const traversal = await fetch2("/api/runs/..%2Fescape");
+    expect(traversal.status).toBe(404);
+    expect(traversal.body["error"]).toContain("invalid run id");
+  });
+
+  it("skips unreadable run files honestly and survives restarts (AC-15.9)", async () => {
+    writeFileSync(join(analyzeRunsDir(cwd2), "garbage.json"), "{not json", "utf8");
+    const listed = await fetch2("/api/runs");
+    expect(listed.body["ok"]).toBe(true);
+    expect(listed.body["invalidFiles"]).toBe(1);
+    expect((listed.body["runs"] as unknown[]).length).toBeGreaterThanOrEqual(4);
+
+    await server2.close();
+    server2 = await startWorkspaceServer({ cwd: cwd2 }, 0);
+    const page = await (await fetch(`${server2.url}/`)).text();
+    token2 = extractToken(page);
+    const afterRestart = await fetch2("/api/runs");
+    expect((afterRestart.body["runs"] as unknown[]).length).toBeGreaterThanOrEqual(4);
   });
 });

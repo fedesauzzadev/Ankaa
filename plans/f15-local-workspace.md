@@ -88,3 +88,7 @@ base de AC-15.6; engine y core sin I/O.
 - 2026-10-01 · M15.3 implementado: `workspace` en loopback con token/Host/Origin,
   endpoints tipados allowlistados, UI sin CDN y analyze con progreso real y
   paridad de hash con la CLI; `dashboard` intacto.
+- 2026-10-01 · M15.4 implementado: runs persistidos atómicamente bajo
+  `.apigovscan/workspace/runs/`, historial/apertura en la web, comparación por
+  fingerprints solo entre runs compatibles y archivos ilegibles saltados con
+  aviso honesto.

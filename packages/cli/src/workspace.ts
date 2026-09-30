@@ -10,6 +10,13 @@ import { prepareAnalysis } from "./analyze-setup.js";
 import { loadConfig } from "./config.js";
 import { discoverSpecs } from "./discovery.js";
 import { createFsPackRepository, createFsSpecLoader } from "./loaders.js";
+import { compareReports } from "./dashboard.js";
+import {
+  listAnalyzeRuns,
+  loadAnalyzeRun,
+  saveAnalyzeRun,
+  type WorkspaceAnalyzeRun,
+} from "./workspace-runs.js";
 import { renderWorkspacePage } from "./workspace-page.js";
 
 const MAX_BODY_BYTES = 8_192;
@@ -213,13 +220,7 @@ export function startWorkspaceServer(opts: WorkspaceServerOptions, port: number)
             signal: controller.signal,
             onEvent: (event) => {
               if (event.type === "state") {
-                state.state = event.state;
-                if (event.state !== "running" && event.state !== "queued") {
-                  state.finishedAt = new Date().toISOString();
-                }
-                if (event.state === "cancelled") {
-                  state.error = "analysis cancelled";
-                }
+                if (event.state === "running") state.state = "running";
                 return;
               }
               state.phase = event.phase;
@@ -230,17 +231,45 @@ export function startWorkspaceServer(opts: WorkspaceServerOptions, port: number)
           },
         },
       );
+      // Terminal states are stamped after the run is persisted so /api/state
+      // never reports a finished run before its result is durable.
+      const finishedAt = new Date().toISOString();
+      const persisted: WorkspaceAnalyzeRun = {
+        schemaVersion: 1,
+        id: state.id,
+        operation: "analyze",
+        source: typedPath,
+        inputs: outcome.ok
+          ? outcome.report.input.map((i) => i.path)
+          : inputs.map((p) => normalizeLabel(p, opts.cwd)),
+        state: "failed",
+        startedAt: state.startedAt,
+        finishedAt,
+        failOn,
+      };
       if (outcome.ok) {
         run.report = outcome.report;
+        persisted.state = "succeeded";
+        persisted.reportHash = outcome.report.reportHash;
+        persisted.summary = outcome.report.summary;
+        persisted.report = outcome.report;
         state.state = "succeeded";
       } else if (outcome.cancelled === true) {
+        persisted.state = "cancelled";
+        persisted.error = "analysis cancelled";
         state.state = "cancelled";
         state.error = "analysis cancelled";
       } else {
+        persisted.state = "failed";
+        persisted.error = outcome.error;
         state.state = "failed";
         state.error = outcome.error;
       }
-      state.finishedAt = new Date().toISOString();
+      state.finishedAt = finishedAt;
+      const saved = saveAnalyzeRun(opts.cwd, persisted);
+      if (!saved.ok) {
+        state.error = saved.error;
+      }
     })();
 
     json(res, 200, { ok: true, runId: state.id });
@@ -271,7 +300,7 @@ export function startWorkspaceServer(opts: WorkspaceServerOptions, port: number)
       json(res, 200, {
         ok: true,
         operations: [ANALYZE_OPERATION],
-        upcoming: ["review", "scan-repo", "scan-org", "compare", "prepare-ci"],
+        upcoming: ["review", "scan-repo", "scan-org", "prepare-ci"],
       });
       return;
     }
@@ -328,6 +357,89 @@ export function startWorkspaceServer(opts: WorkspaceServerOptions, port: number)
       }
       active.controller.abort();
       json(res, 200, { ok: true, runId: active.state.id });
+      return;
+    }
+    if (req.method === "GET" && path === "/api/runs") {
+      if (!guard(req, res, false)) return;
+      const listed = listAnalyzeRuns(opts.cwd);
+      if (!listed.ok) {
+        json(res, 500, { ok: false, error: listed.error });
+        return;
+      }
+      json(res, 200, { ok: true, runs: listed.runs, invalidFiles: listed.invalidFiles });
+      return;
+    }
+    if (req.method === "GET" && path.startsWith("/api/runs/")) {
+      if (!guard(req, res, false)) return;
+      const id = decodeURIComponent(path.slice("/api/runs/".length));
+      const loaded = loadAnalyzeRun(opts.cwd, id);
+      if (!loaded.ok) {
+        json(res, 404, { ok: false, error: loaded.error });
+        return;
+      }
+      json(res, 200, { ok: true, run: loaded.run });
+      return;
+    }
+    if (req.method === "GET" && path === "/api/compare") {
+      if (!guard(req, res, false)) return;
+      const left = url.searchParams.get("left") ?? "";
+      const right = url.searchParams.get("right") ?? "";
+      if (left === "" || right === "") {
+        json(res, 422, { ok: false, error: "left and right run ids are required" });
+        return;
+      }
+      const loadedLeft = loadAnalyzeRun(opts.cwd, left);
+      if (!loadedLeft.ok) {
+        json(res, 404, { ok: false, error: loadedLeft.error });
+        return;
+      }
+      const loadedRight = loadAnalyzeRun(opts.cwd, right);
+      if (!loadedRight.ok) {
+        json(res, 404, { ok: false, error: loadedRight.error });
+        return;
+      }
+      const leftRun = loadedLeft.run;
+      const rightRun = loadedRight.run;
+      if (leftRun.report === undefined || rightRun.report === undefined) {
+        const culprit = leftRun.report === undefined ? left : right;
+        const culpritState = leftRun.report === undefined ? leftRun.state : rightRun.state;
+        json(res, 409, {
+          ok: false,
+          error: `run ${culprit} has no result to compare (state: ${culpritState}); only succeeded runs can be compared`,
+        });
+        return;
+      }
+      const leftInputs = [...leftRun.inputs].sort().join("\n");
+      const rightInputs = [...rightRun.inputs].sort().join("\n");
+      if (leftInputs !== rightInputs) {
+        json(res, 409, {
+          ok: false,
+          error:
+            `runs analyze different inputs and are not comparable: ${left} covers [${leftRun.inputs.join(", ")}], ${right} covers [${rightRun.inputs.join(", ")}]`,
+        });
+        return;
+      }
+      const trends = compareReports(rightRun.report, leftRun.report);
+      const newFindings = rightRun.report.findings.filter((f) => trends.byFingerprint[f.fingerprint] === "new");
+      json(res, 200, {
+        ok: true,
+        left: { id: leftRun.id, startedAt: leftRun.startedAt, reportHash: leftRun.reportHash },
+        right: { id: rightRun.id, startedAt: rightRun.startedAt, reportHash: rightRun.reportHash },
+        inputs: rightRun.inputs,
+        summary: {
+          newCount: newFindings.length,
+          repeatedCount: rightRun.report.findings.length - newFindings.length,
+          resolvedCount: trends.resolved.length,
+        },
+        newFindings: newFindings.map((f) => ({
+          fingerprint: f.fingerprint,
+          ruleId: f.ruleId,
+          severity: f.severity,
+          message: f.message,
+          location: f.location,
+        })),
+        resolvedFingerprints: trends.resolved,
+      });
       return;
     }
     json(res, 404, { ok: false, error: "not found" });
