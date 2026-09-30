@@ -144,13 +144,13 @@ abrir un navegador para usar ApiGovScan.
       ausente/incorrecto; no hay rutas genéricas de shell ni filesystem.
 - [ ] **AC-15.5** El usuario puede elegir directorio local, URL de repo o
       organización; cada origen remoto deja clara la acción de red antes de iniciar.
-- [ ] **AC-15.6** El progreso muestra fase, elemento actual y contadores
+- [x] **AC-15.6** El progreso muestra fase, elemento actual y contadores
       reales; errores, cancelación y reanudación se distinguen de una ejecución
       exitosa.
-- [ ] **AC-15.7** Una ejecución interrumpida puede reanudarse sin perder
+- [x] **AC-15.7** Una ejecución interrumpida puede reanudarse sin perder
       resultados/checkpoints ya escritos; resultados parciales no se presentan como
       completos.
-- [ ] **AC-15.8** Continuar reutiliza un resultado únicamente si identidad,
+- [x] **AC-15.8** Continuar reutiliza un resultado únicamente si identidad,
       revisión, versión, packs y configuración efectiva coinciden; incertidumbre
       implica reanalizar o reportar error explícito.
 - [x] **AC-15.9** Desde cero analiza todo y conserva los resultados anteriores;
@@ -159,7 +159,7 @@ abrir un navegador para usar ApiGovScan.
       habilita branch protection ni altera settings de plataformas.
 - [x] **AC-15.11** Historial, progreso y errores no guardan/exponen credenciales
       ni contenidos completos de contratos fuera de reportes elegidos por el usuario.
-- [ ] **AC-15.12** INV-1/2/3/4/7, compatibilidad Windows/macOS/Linux, tests
+- [x] **AC-15.12** INV-1/2/3/4/7, compatibilidad Windows/macOS/Linux, tests
       focalizados y `pnpm check` pasan.
 
 ## 5. Secuencia de entrega
@@ -235,3 +235,11 @@ abrir un navegador para usar ApiGovScan.
   que previsualiza el workflow completo (modo analyze o review con `review-ref`)
   y escribe un solo archivo tras confirmación, rehusando pisar existentes sin
   confirmación explícita y sin tocar branch protection/settings (AC-15.1/15.2/15.10).
+- 2026-10-01 · M15.6 cierre: accesibilidad de la web (landmarks, labels,
+  `aria-live` en progreso/resultados/historial, estados vacíos/loading/error
+  verificados por test), verificación multi-OS vía matriz CI (ubuntu/windows/
+  macos × Node 22/24 con gates de invariantes) y `pnpm check` verde. AC-15.6–8
+  quedan cubiertos por los estados distinguibles del workspace y el resume
+  verificado de `scan-org` (M15.1). **Pendiente:** AC-15.5 (orígenes remotos
+  Git/org en las superficies guiadas, con consentimiento de red explícito) para
+  poder cerrar la fase.

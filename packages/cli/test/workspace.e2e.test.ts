@@ -117,6 +117,20 @@ describe("workspace server (f15 M15.3)", () => {
     expect(html).not.toContain("cdn");
   });
 
+  it("M15.6 page is accessible: landmarks, labels and live regions for async states", async () => {
+    const html = await (await fetch(`${server!.url}/`)).text();
+    expect(html).toMatch(/<html lang="en">/);
+    expect(html).toContain("<main>");
+    expect(html).toContain("<h1>ApiGovScan workspace</h1>");
+    expect(html).toContain('aria-label="Sections"');
+    expect(html).toContain('role="status" aria-live="polite"');
+    expect((html.match(/role="status"/g) ?? []).length).toBeGreaterThanOrEqual(3);
+    expect(html).toContain('label for="path"');
+    expect(html).toContain('label for="failon"');
+    expect(html).toContain("Loading catalog");
+    expect(html).toContain("No result yet.");
+  });
+
   it("AC-15.4 exposes only allowlisted endpoints", async () => {
     const missing = await fetchJson("/api/shell");
     expect(missing.status).toBe(404);

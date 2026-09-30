@@ -99,7 +99,7 @@ export function renderWorkspacePage(token: string): string {
   <section id="progress" hidden>
     <div class="card">
       <h2>Progress</h2>
-      <p id="prog-state"><span class="hint">No run yet.</span></p>
+      <p id="prog-state" role="status" aria-live="polite"><span class="hint">No run yet.</span></p>
       <button class="primary" id="cancel-btn" type="button">Cancel run</button>
     </div>
   </section>
@@ -107,11 +107,11 @@ export function renderWorkspacePage(token: string): string {
   <section id="result" hidden>
     <div class="card">
       <h2>Results</h2>
-      <div id="result-body"><p class="hint">No result yet.</p></div>
+      <div id="result-body" role="status" aria-live="polite"><p class="hint">No result yet.</p></div>
     </div>
     <div class="card">
       <h2>Run history</h2>
-      <div id="history"><p class="hint">Loading history…</p></div>
+      <div id="history" role="status" aria-live="polite"><p class="hint">Loading history…</p></div>
     </div>
   </section>
 
@@ -124,7 +124,7 @@ export function renderWorkspacePage(token: string): string {
       <select id="cmp-right"></select>
       <p class="hint">Only succeeded runs over the same inputs can be compared.</p>
       <button class="primary" id="cmp-btn" type="button">Compare runs</button>
-      <div id="cmp-body"></div>
+      <div id="cmp-body" role="status" aria-live="polite"></div>
     </div>
   </section>
 

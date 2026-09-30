@@ -43,7 +43,12 @@ Plan: [plans/f15-local-workspace.md](../plans/f15-local-workspace.md) · Spec:
 
 ## M15.6 — Cierre
 
-- [ ] Revisar accesibilidad y UX en estados vacíos, loading y error
-- [ ] Verificar rutas/sesiones en Windows, macOS y Linux (AC-15.12)
-- [ ] Verificar INV-1/2/3/4/7 y `pnpm check` (AC-15.12)
-- [ ] Actualizar docs/índices y estado de spec al cerrar cada milestone
+- [x] Revisar accesibilidad y UX en estados vacíos, loading y error
+- [x] Verificar rutas/sesiones en Windows, macOS y Linux (AC-15.12)
+- [x] Verificar INV-1/2/3/4/7 y `pnpm check` (AC-15.12)
+- [x] Actualizar docs/índices y estado de spec al cerrar cada milestone
+
+## Pendiente de fase
+
+- [ ] AC-15.5: añadir orígenes remotos (URL de repo / organización GitHub) a
+      `guided`/`workspace` con consentimiento de red explícito antes de iniciar.
