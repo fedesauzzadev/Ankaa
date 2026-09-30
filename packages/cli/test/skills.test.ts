@@ -6,9 +6,12 @@ import type { Finding } from "@apigovscan/core";
 import {
   applySkillSuppressions,
   compileMatchRegexes,
+  isExpiredWaiver,
+  isValidExpiryDate,
   loadSkills,
   mergeSeverityOverrides,
   resolveSkillsDir,
+  todayYmd,
   type SuppressionEntry,
 } from "../src/skills.js";
 
@@ -224,6 +227,114 @@ describe("applySkillSuppressions (AC-S.1, AC-S.2, AC-S.8)", () => {
     const a = applySkillSuppressions([finding()], fingerprintSup, new Map());
     const b = applySkillSuppressions([finding()], fingerprintSup, new Map());
     expect(a).toEqual(b);
+  });
+});
+
+describe("waiver expiry + owner (AC-S.11…13)", () => {
+  it("isValidExpiryDate accepts real dates, rejects garbage", () => {
+    expect(isValidExpiryDate("2026-12-31")).toBe(true);
+    expect(isValidExpiryDate("2024-02-29")).toBe(true);
+    expect(isValidExpiryDate("2023-02-29")).toBe(false);
+    expect(isValidExpiryDate("2026-13-01")).toBe(false);
+    expect(isValidExpiryDate("2026-00-10")).toBe(false);
+    expect(isValidExpiryDate("2026-1-1")).toBe(false);
+    expect(isValidExpiryDate("tomorrow")).toBe(false);
+    expect(isValidExpiryDate("")).toBe(false);
+    expect(todayYmd()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it("isExpiredWaiver compares strictly against the given day", () => {
+    expect(isExpiredWaiver(undefined, "2026-09-30")).toBe(false);
+    expect(isExpiredWaiver("2026-09-29", "2026-09-30")).toBe(true);
+    expect(isExpiredWaiver("2026-09-30", "2026-09-30")).toBe(false);
+    expect(isExpiredWaiver("2026-10-01", "2026-09-30")).toBe(false);
+  });
+
+  it("loads expires + owner (AC-S.11)", () => {
+    const dir = tempDir();
+    const skillsDir = writeSkills(dir, {
+      "suppressions.yaml": [
+        "version: 1",
+        "suppressions:",
+        `  - fingerprint: ${"b".repeat(64)}`,
+        "    reason: freeze",
+        "    owner: payments-team",
+        "    expires: 2099-12-31",
+      ].join("\n"),
+    });
+    const result = loadSkills(skillsDir, "0.0.0-dev");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.skills.suppressions[0]).toMatchObject({
+      owner: "payments-team",
+      expires: "2099-12-31",
+    });
+  });
+
+  it("rejects bad expires and empty owner at load (AC-S.11)", () => {
+    for (const bad of ["tomorrow", "2026-13-40", "2023-02-29", "2026-1-1"]) {
+      const dir = tempDir();
+      const skillsDir = writeSkills(dir, {
+        "suppressions.yaml": [
+          "version: 1",
+          "suppressions:",
+          `  - fingerprint: ${"b".repeat(64)}`,
+          "    reason: freeze",
+          `    expires: ${bad}`,
+        ].join("\n"),
+      });
+      const result = loadSkills(skillsDir, "0.0.0-dev");
+      expect(result.ok).toBe(false);
+      if (result.ok) continue;
+      expect(result.error).toContain("expires must be YYYY-MM-DD");
+    }
+    const dir = tempDir();
+    const skillsDir = writeSkills(dir, {
+      "suppressions.yaml": ["version: 1", "suppressions:", `  - fingerprint: ${"b".repeat(64)}`, "    reason: freeze", "    owner: '   '"].join(
+        "\n",
+      ),
+    });
+    const empty = loadSkills(skillsDir, "0.0.0-dev");
+    expect(empty.ok).toBe(false);
+    if (!empty.ok) expect(empty.error).toContain("owner must be a non-empty string");
+  });
+
+  it("expired waiver does not suppress and is reported (AC-S.12)", () => {
+    const sup: SuppressionEntry[] = [
+      { fingerprint: "a".repeat(64), reason: "old", expires: "2000-01-01" },
+    ];
+    const out = applySkillSuppressions([finding()], sup, new Map(), "2026-09-30");
+    expect(out.suppressed).toBe(0);
+    expect(out.visible).toHaveLength(1);
+    expect(out.expiredIndexes).toEqual([0]);
+    expect(out.matchedIndexes).toEqual([]);
+  });
+
+  it("future waiver suppresses normally (AC-S.12)", () => {
+    const sup: SuppressionEntry[] = [
+      { fingerprint: "a".repeat(64), reason: "freeze", expires: "2099-01-01", owner: "t" },
+    ];
+    const out = applySkillSuppressions([finding()], sup, new Map(), "2026-09-30");
+    expect(out.suppressed).toBe(1);
+    expect(out.visible).toHaveLength(0);
+    expect(out.matchedIndexes).toEqual([0]);
+    expect(out.expiredIndexes).toEqual([]);
+  });
+
+  it("same-day expiry is still active (strict <)", () => {
+    const sup: SuppressionEntry[] = [
+      { fingerprint: "a".repeat(64), reason: "today", expires: "2026-09-30" },
+    ];
+    const out = applySkillSuppressions([finding()], sup, new Map(), "2026-09-30");
+    expect(out.suppressed).toBe(1);
+  });
+
+  it("unmatched entry is neither matched nor expired (orphan input, AC-S.13)", () => {
+    const sup: SuppressionEntry[] = [{ fingerprint: "f".repeat(64), reason: "ghost" }];
+    const out = applySkillSuppressions([finding()], sup, new Map(), "2026-09-30");
+    expect(out.suppressed).toBe(0);
+    expect(out.matchedIndexes).toEqual([]);
+    expect(out.expiredIndexes).toEqual([]);
   });
 });
 

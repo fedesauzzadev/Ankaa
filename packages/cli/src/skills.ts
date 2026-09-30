@@ -21,7 +21,35 @@ export interface SuppressionEntry {
   match?: SuppressionMatch;
   reason: string;
   by?: string;
+  /** Waiver owner (team/person accountable). Metadata only. */
+  owner?: string;
+  /** Waiver expiry as YYYY-MM-DD. Expired entries are ignored at analyze time. */
+  expires?: string;
   createdAt?: string;
+}
+
+/** YYYY-MM-DD with a real calendar date (leap years included). */
+export function isValidExpiryDate(value: string): boolean {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (m === null) return false;
+  const year = Number(m[1]);
+  const month = Number(m[2]);
+  const day = Number(m[3]);
+  if (month < 1 || month > 12 || day < 1 || day > 31) return false;
+  const dt = new Date(Date.UTC(year, month - 1, day));
+  return (
+    dt.getUTCFullYear() === year && dt.getUTCMonth() === month - 1 && dt.getUTCDate() === day
+  );
+}
+
+/** Current UTC date as YYYY-MM-DD (wall-clock; inject `nowYmd` in tests). */
+export function todayYmd(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+/** True when the waiver expired strictly before the given day (ISO dates compare lexicographically). */
+export function isExpiredWaiver(expires: string | undefined, nowYmd: string): boolean {
+  return expires !== undefined && expires < nowYmd;
 }
 
 export interface SeverityOverride {
@@ -158,6 +186,24 @@ function loadSuppressions(
       }
       const sup: SuppressionEntry = { fingerprint: entry.fingerprint, reason: entry.reason };
       if (typeof entry.by === "string") sup.by = entry.by;
+      if (entry.owner !== undefined) {
+        if (typeof entry.owner !== "string" || entry.owner.trim().length === 0) {
+          return {
+            ok: false,
+            error: `skills ${path}: suppressions[${i}].owner must be a non-empty string`,
+          };
+        }
+        sup.owner = entry.owner;
+      }
+      if (entry.expires !== undefined) {
+        if (typeof entry.expires !== "string" || !isValidExpiryDate(entry.expires)) {
+          return {
+            ok: false,
+            error: `skills ${path}: suppressions[${i}].expires must be YYYY-MM-DD (got ${String(entry.expires).slice(0, 20)})`,
+          };
+        }
+        sup.expires = entry.expires;
+      }
       if (typeof entry.createdAt === "string") sup.createdAt = entry.createdAt;
       entries.push(sup);
       continue;
@@ -186,6 +232,24 @@ function loadSuppressions(
     }
     const sup: SuppressionEntry = { match: supMatch, reason: entry.reason };
     if (typeof entry.by === "string") sup.by = entry.by;
+    if (entry.owner !== undefined) {
+      if (typeof entry.owner !== "string" || entry.owner.trim().length === 0) {
+        return {
+          ok: false,
+          error: `skills ${path}: suppressions[${i}].owner must be a non-empty string`,
+        };
+      }
+      sup.owner = entry.owner;
+    }
+    if (entry.expires !== undefined) {
+      if (typeof entry.expires !== "string" || !isValidExpiryDate(entry.expires)) {
+        return {
+          ok: false,
+          error: `skills ${path}: suppressions[${i}].expires must be YYYY-MM-DD (got ${String(entry.expires).slice(0, 20)})`,
+        };
+      }
+      sup.expires = entry.expires;
+    }
     if (typeof entry.createdAt === "string") sup.createdAt = entry.createdAt;
     entries.push(sup);
   }
@@ -336,45 +400,70 @@ function suppressionSubject(finding: Finding): string {
   return finding.location;
 }
 
-export function isSuppressedBySkills(
+export function matchSuppressionIndex(
   finding: Finding,
   suppressions: readonly SuppressionEntry[],
   matchRegexes: ReadonlyMap<number, RegExp>,
-): boolean {
+  nowYmd: string = todayYmd(),
+): number | undefined {
   for (let i = 0; i < suppressions.length; i++) {
     const sup = suppressions[i]!;
+    if (isExpiredWaiver(sup.expires, nowYmd)) continue;
     if (sup.fingerprint !== undefined) {
-      if (sup.fingerprint === finding.fingerprint) return true;
+      if (sup.fingerprint === finding.fingerprint) return i;
       continue;
     }
     if (sup.match === undefined) continue;
     if (sup.match.ruleId !== finding.ruleId) continue;
     if (sup.match.apiPath === undefined) {
-      return true;
+      return i;
     }
     const re = matchRegexes.get(i);
     if (re === undefined) continue;
     re.lastIndex = 0;
-    if (re.test(suppressionSubject(finding))) return true;
+    if (re.test(suppressionSubject(finding))) return i;
   }
-  return false;
+  return undefined;
+}
+
+export function isSuppressedBySkills(
+  finding: Finding,
+  suppressions: readonly SuppressionEntry[],
+  matchRegexes: ReadonlyMap<number, RegExp>,
+  nowYmd: string = todayYmd(),
+): boolean {
+  return matchSuppressionIndex(finding, suppressions, matchRegexes, nowYmd) !== undefined;
 }
 
 export function applySkillSuppressions(
   findings: readonly Finding[],
   suppressions: readonly SuppressionEntry[],
   matchRegexes: ReadonlyMap<number, RegExp>,
-): { visible: Finding[]; suppressed: number } {
+  nowYmd: string = todayYmd(),
+): {
+  visible: Finding[];
+  suppressed: number;
+  matchedIndexes: number[];
+  expiredIndexes: number[];
+} {
   const visible: Finding[] = [];
   let suppressed = 0;
+  const matched = new Set<number>();
+  const expired = new Set<number>();
+  for (let i = 0; i < suppressions.length; i++) {
+    if (isExpiredWaiver(suppressions[i]!.expires, nowYmd)) expired.add(i);
+  }
   for (const f of findings) {
-    if (isSuppressedBySkills(f, suppressions, matchRegexes)) {
-      suppressed += 1;
-    } else {
+    const idx = matchSuppressionIndex(f, suppressions, matchRegexes, nowYmd);
+    if (idx === undefined) {
       visible.push(f);
+    } else {
+      suppressed += 1;
+      matched.add(idx);
     }
   }
-  return { visible, suppressed };
+  const sorted = (s: Set<number>): number[] => [...s].sort((a, b) => a - b);
+  return { visible, suppressed, matchedIndexes: sorted(matched), expiredIndexes: sorted(expired) };
 }
 
 /**

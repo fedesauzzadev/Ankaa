@@ -239,6 +239,8 @@ suppressions:
   - fingerprint: "ab12…" # exacta
     reason: "Legacy endpoint frozen until v2 migration"
     by: "lead@team" # opcional, string libre
+    owner: "payments-team" # opcional, dueño del waiver
+    expires: "2026-12-31" # opcional, YYYY-MM-DD; vencido ⇒ se ignora + warning
     createdAt: "2026-09-23" # metadata; no afecta eval
   - match: # query (más amplia, con cuidado)
       ruleId: NAMING-001

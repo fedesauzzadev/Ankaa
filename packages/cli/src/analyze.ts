@@ -14,7 +14,7 @@ import { looksLikeWebhooks, parseWebhooks } from "@apigovscan/webhooks";
 import { buildReport, type Report } from "@apigovscan/reporters";
 import type { FailOn } from "./args.js";
 import type { PackRepository, ReportSink, SpecLoader } from "./ports.js";
-import { applySkillSuppressions, type SuppressionEntry } from "./skills.js";
+import { applySkillSuppressions, todayYmd, type SuppressionEntry } from "./skills.js";
 
 export interface AnalyzeOptions {
   inputs: readonly string[];
@@ -35,6 +35,11 @@ export interface AnalyzeOptions {
     suppressions: readonly SuppressionEntry[];
     matchRegexes: ReadonlyMap<number, RegExp>;
   };
+  /**
+   * Override "today" (YYYY-MM-DD) for waiver expiry checks.
+   * Default is the current UTC date. Tests inject a fixed date (INV-2).
+   */
+  nowYmd?: string;
 }
 
 export type AnalyzeOutcome =
@@ -46,8 +51,20 @@ export type AnalyzeOutcome =
       allFindings: Finding[];
       suppressedCount: number;
       skillsSuppressedCount: number;
+      /** Expired/orphan waiver notices (stderr material, exit code unaffected). */
+      skillsWarnings: string[];
     }
   | { ok: false; exitCode: 2; error: string };
+
+function describeSuppression(sup: SuppressionEntry): string {
+  const target =
+    sup.fingerprint !== undefined
+      ? `fp ${sup.fingerprint.slice(0, 12)}`
+      : sup.match !== undefined
+        ? `match ${sup.match.ruleId}`
+        : "entry";
+  return `${target} "${sup.reason}"`;
+}
 
 function formatParseErrors(label: string, errors: ParseError[]): string {
   const lines = errors.map((e) => {
@@ -240,20 +257,35 @@ export async function analyzeUseCase(
 
   // Skills: severity overrides already applied at evaluate; suppress post-evaluate.
   let skillsSuppressedCount = 0;
+  const skillsWarnings: string[] = [];
   let afterSkills = results;
   if (opts.skillsSuppressions !== undefined && opts.skillsSuppressions.suppressions.length > 0) {
     const { suppressions, matchRegexes } = opts.skillsSuppressions;
+    const nowYmd = opts.nowYmd ?? todayYmd();
+    const matched = new Set<number>();
+    const expired = new Set<number>();
     const kept: EvaluationResult[] = [];
     for (const r of results) {
-      const { visible, suppressed } = applySkillSuppressions(
-        r.findings,
-        suppressions,
-        matchRegexes,
-      );
-      skillsSuppressedCount += suppressed;
-      kept.push({ ...r, findings: visible });
+      const applied = applySkillSuppressions(r.findings, suppressions, matchRegexes, nowYmd);
+      skillsSuppressedCount += applied.suppressed;
+      for (const i of applied.matchedIndexes) matched.add(i);
+      for (const i of applied.expiredIndexes) expired.add(i);
+      kept.push({ ...r, findings: applied.visible });
     }
     afterSkills = kept;
+    for (const i of [...expired].sort((a, b) => a - b)) {
+      const sup = suppressions[i]!;
+      skillsWarnings.push(
+        `suppression expired (ignored): ${describeSuppression(sup)} (expires ${sup.expires})`,
+      );
+    }
+    for (let i = 0; i < suppressions.length; i++) {
+      if (!matched.has(i) && !expired.has(i)) {
+        skillsWarnings.push(
+          `suppression matches no findings: ${describeSuppression(suppressions[i]!)}`,
+        );
+      }
+    }
   }
 
   let filteredResults = afterSkills;
@@ -297,5 +329,6 @@ export async function analyzeUseCase(
     allFindings,
     suppressedCount,
     skillsSuppressedCount,
+    skillsWarnings,
   };
 }

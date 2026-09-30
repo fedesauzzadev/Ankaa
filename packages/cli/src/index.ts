@@ -377,6 +377,10 @@ async function runAnalyze(
     return outcome.exitCode;
   }
 
+  for (const w of outcome.skillsWarnings) {
+    io.stderr(`warning: ${w}\n`);
+  }
+
   // Hash checks after we know report.input labels/sha256
   if (baselineMode === "read" && setup.loadedBaseline !== undefined) {
     const complaints = checkInputHashes(setup.loadedBaseline, outcome.report.input, hashMode);
@@ -1174,7 +1178,7 @@ async function runSuppressCommand(
 ): Promise<number> {
   if (argv.includes("--help") || argv.includes("-h")) {
     io.stdout(
-      "usage: apigovscan suppress --report <r.json> --fingerprint <fp> --decision false_positive|wontfix|severity_change [--severity <level>] [--reason \"...\"] [--skills-dir <dir>] [--config <file>] [--dry-run]\n",
+      "usage: apigovscan suppress --report <r.json> --fingerprint <fp> --decision false_positive|wontfix|severity_change [--severity <level>] [--reason \"...\"] [--expires YYYY-MM-DD] [--owner <name>] [--skills-dir <dir>] [--config <file>] [--dry-run]\n",
     );
     return 0;
   }
@@ -1212,6 +1216,8 @@ async function runSuppressCommand(
           decision: args.decision as "false_positive" | "wontfix" | "severity_change",
           ...(args.reason !== undefined ? { comment: args.reason } : {}),
           ...(args.severity !== undefined ? { severity: args.severity } : {}),
+          ...(args.expires !== undefined ? { expires: args.expires } : {}),
+          ...(args.owner !== undefined ? { owner: args.owner } : {}),
         },
       ],
     },
@@ -1366,11 +1372,16 @@ function runSkillsCommand(
     const lines: string[] = [`skills: ${skillsDir}`, ""];
     lines.push(`suppressions: ${suppressions.length}`);
     for (const s of suppressions) {
+      const extra = [
+        ...(s.owner !== undefined ? [`owner=${s.owner}`] : []),
+        ...(s.expires !== undefined ? [`expires=${s.expires}`] : []),
+      ].join(" ");
+      const suffix = extra === "" ? "" : `  [${extra}]`;
       if (s.fingerprint !== undefined) {
-        lines.push(`  fp ${s.fingerprint.slice(0, 12)}…  ${s.reason}`);
+        lines.push(`  fp ${s.fingerprint.slice(0, 12)}…  ${s.reason}${suffix}`);
       } else if (s.match !== undefined) {
         const api = s.match.apiPath !== undefined ? ` apiPath=${s.match.apiPath}` : "";
-        lines.push(`  match ${s.match.ruleId}${api}  ${s.reason}`);
+        lines.push(`  match ${s.match.ruleId}${api}  ${s.reason}${suffix}`);
       }
     }
     lines.push(`overrides: ${severities.length}`);

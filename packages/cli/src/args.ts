@@ -368,6 +368,8 @@ export interface SuppressArgs {
   decision?: SuppressDecision;
   severity?: "error" | "warning" | "info";
   reason?: string;
+  expires?: string;
+  owner?: string;
   skillsDir?: string;
   config?: string;
   dryRun: boolean;
@@ -396,7 +398,8 @@ export function parseSuppressArgs(argv: readonly string[]): ParseSuppressArgsRes
     const token = argv[i]!;
 
     if (token === "--report" || token === "--fingerprint" || token === "--decision" ||
-        token === "--severity" || token === "--reason" || token === "--skills-dir" ||
+        token === "--severity" || token === "--reason" || token === "--expires" ||
+        token === "--owner" || token === "--skills-dir" ||
         token === "--config") {
       const taken = takeValue(argv, i, token);
       if (!taken.ok) return taken;
@@ -418,6 +421,8 @@ export function parseSuppressArgs(argv: readonly string[]): ParseSuppressArgsRes
         args.severity = taken.value;
       }
       else if (token === "--reason") args.reason = taken.value;
+      else if (token === "--expires") args.expires = taken.value;
+      else if (token === "--owner") args.owner = taken.value;
       else if (token === "--skills-dir") args.skillsDir = taken.value;
       else args.config = taken.value;
       continue;

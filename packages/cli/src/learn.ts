@@ -6,6 +6,7 @@ import { resolveFingerprint } from "./fix.js";
 import {
   DEFAULT_SKILLS_DIR,
   SKILLS_SCHEMA_VERSION,
+  isValidExpiryDate,
   type SeverityOverride,
   type SuppressionEntry,
 } from "./skills.js";
@@ -29,6 +30,10 @@ export interface FeedbackItem {
   decision: FeedbackDecision;
   comment?: string;
   severity?: Severity;
+  /** Waiver expiry (YYYY-MM-DD). Only applies to false_positive|wontfix. */
+  expires?: string;
+  /** Waiver owner. Only applies to false_positive|wontfix. */
+  owner?: string;
   draft?: Record<string, unknown>;
 }
 
@@ -132,6 +137,24 @@ export function loadFeedbackFile(path: string): LoadFeedbackResult {
       }
       fb.comment = entry.comment;
     }
+    if (entry.expires !== undefined) {
+      if (typeof entry.expires !== "string" || !isValidExpiryDate(entry.expires)) {
+        return {
+          ok: false,
+          error: `feedback ${path}: items[${i}].expires must be YYYY-MM-DD (got ${String(entry.expires).slice(0, 20)})`,
+        };
+      }
+      fb.expires = entry.expires;
+    }
+    if (entry.owner !== undefined) {
+      if (typeof entry.owner !== "string" || entry.owner.trim().length === 0) {
+        return {
+          ok: false,
+          error: `feedback ${path}: items[${i}].owner must be a non-empty string`,
+        };
+      }
+      fb.owner = entry.owner;
+    }
     if (decision === "severity_change") {
       if (typeof entry.severity !== "string" || !SEVERITIES.has(entry.severity as Severity)) {
         return {
@@ -197,6 +220,8 @@ function serializeSuppressions(list: SuppressionEntry[]): string {
     }
     out.reason = e.reason;
     if (e.by !== undefined) out.by = e.by;
+    if (e.owner !== undefined) out.owner = e.owner;
+    if (e.expires !== undefined) out.expires = e.expires;
     if (e.createdAt !== undefined) out.createdAt = e.createdAt;
     return out;
   });
@@ -284,7 +309,20 @@ export function buildLearnPatch(input: {
   const sevIndex = new Map<string, number>();
   severities.forEach((s, i) => sevIndex.set(s.ruleId, i));
 
-  for (const item of input.feedback.items) {
+  for (let n = 0; n < input.feedback.items.length; n++) {
+    const item = input.feedback.items[n]!;
+    if (item.expires !== undefined && !isValidExpiryDate(item.expires)) {
+      return {
+        ok: false,
+        error: `items[${n}].expires must be YYYY-MM-DD (got ${item.expires.slice(0, 20)})`,
+      };
+    }
+    if (
+      item.owner !== undefined &&
+      (typeof item.owner !== "string" || item.owner.trim().length === 0)
+    ) {
+      return { ok: false, error: `items[${n}].owner must be a non-empty string` };
+    }
     // Short prefixes resolve against the report; files always store the full
     // fingerprint. A full fingerprint absent from the report keeps the legacy
     // behavior (warning + apply); an unresolvable prefix is an honest error
@@ -301,6 +339,17 @@ export function buildLearnPatch(input: {
     const finding = findingsByFp.get(fingerprint);
     if (finding === undefined) {
       warnings.push(`fingerprint ${fingerprint} not in report (possible stale feedback)`);
+    }
+
+    if (
+      (item.expires !== undefined || item.owner !== undefined) &&
+      item.decision !== "false_positive" &&
+      item.decision !== "wontfix"
+    ) {
+      return {
+        ok: false,
+        error: `expires/owner only apply to false_positive|wontfix (got ${item.decision})`,
+      };
     }
 
     if (item.decision === "confirm") {
@@ -321,6 +370,8 @@ export function buildLearnPatch(input: {
         fingerprint,
         reason,
       };
+      if (item.expires !== undefined) entry.expires = item.expires;
+      if (item.owner !== undefined) entry.owner = item.owner;
       if (existing !== undefined) {
         suppressions[existing] = entry;
       } else {

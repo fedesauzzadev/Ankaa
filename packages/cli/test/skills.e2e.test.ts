@@ -382,6 +382,105 @@ describe("skills e2e (AC-S.*)", () => {
     expect(summary.skillsSuppressed).toBeGreaterThanOrEqual(1);
   });
 
+  it("AC-S.12 expired waiver is ignored with a warning; future waiver applies", async () => {
+    const dir = tempDir();
+    writeFileSync(join(dir, "openapi.yaml"), SPEC_WITH_DEBT, "utf8");
+    const before = await analyzeOnce(dir);
+    const fp = firstFingerprint(before.report!);
+    const total = (before.report!.summary as { total: number }).total;
+
+    const skillsDir = join(dir, ".apigovscan", "skills");
+    mkdirSync(skillsDir, { recursive: true });
+    writeFileSync(
+      join(skillsDir, "suppressions.yaml"),
+      [
+        "version: 1",
+        "suppressions:",
+        `  - fingerprint: ${fp}`,
+        "    reason: long past waiver",
+        "    owner: team-a",
+        "    expires: 2000-01-01",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+
+    const expired = await analyzeOnce(dir);
+    expect([0, 1]).toContain(expired.code);
+    const summary = expired.report!.summary as { total: number; skillsSuppressed?: number };
+    expect(summary.total).toBe(total);
+    expect(summary.skillsSuppressed).toBeUndefined();
+    expect(expired.stderr).toContain("suppression expired");
+    expect(expired.stderr).toContain("long past waiver");
+
+    writeFileSync(
+      join(skillsDir, "suppressions.yaml"),
+      [
+        "version: 1",
+        "suppressions:",
+        `  - fingerprint: ${fp}`,
+        "    reason: far future waiver",
+        "    expires: 2099-12-31",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+    const active = await analyzeOnce(dir);
+    const activeSummary = active.report!.summary as { total: number; skillsSuppressed?: number };
+    expect(activeSummary.skillsSuppressed).toBeGreaterThanOrEqual(1);
+    expect(activeSummary.total).toBe(total - activeSummary.skillsSuppressed!);
+    expect(active.stderr).not.toContain("suppression expired");
+  });
+
+  it("AC-S.13 orphan waiver warns but keeps exit behavior", async () => {
+    const dir = tempDir();
+    writeFileSync(join(dir, "openapi.yaml"), SPEC_WITH_DEBT, "utf8");
+    const before = await analyzeOnce(dir);
+    const total = (before.report!.summary as { total: number }).total;
+
+    const skillsDir = join(dir, ".apigovscan", "skills");
+    mkdirSync(skillsDir, { recursive: true });
+    writeFileSync(
+      join(skillsDir, "suppressions.yaml"),
+      [
+        "version: 1",
+        "suppressions:",
+        `  - fingerprint: "${"0".repeat(64)}"`,
+        "    reason: ghost waiver",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+
+    const { code, report, stderr } = await analyzeOnce(dir);
+    expect([0, 1]).toContain(code);
+    expect((report!.summary as { total: number }).total).toBe(total);
+    expect(stderr).toContain("suppression matches no findings");
+    expect(stderr).toContain("ghost waiver");
+  });
+
+  it("AC-S.11 invalid expires in YAML is exit 2", async () => {
+    const dir = tempDir();
+    writeFileSync(join(dir, "openapi.yaml"), SPEC_WITH_DEBT, "utf8");
+    const skillsDir = join(dir, ".apigovscan", "skills");
+    mkdirSync(skillsDir, { recursive: true });
+    writeFileSync(
+      join(skillsDir, "suppressions.yaml"),
+      [
+        "version: 1",
+        "suppressions:",
+        `  - fingerprint: "${"0".repeat(64)}"`,
+        "    reason: bad date",
+        "    expires: next-friday",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+    const { code, stderr } = await analyzeOnce(dir);
+    expect(code).toBe(2);
+    expect(stderr).toContain("expires must be YYYY-MM-DD");
+  });
+
   it("config skillsDir is honored", async () => {
     const dir = tempDir();
     writeFileSync(join(dir, "openapi.yaml"), SPEC_WITH_DEBT, "utf8");

@@ -59,6 +59,8 @@ suppressions:
   - fingerprint: "<64 hex>"
     reason: "Legacy endpoint frozen until v2"
     by: "lead@team" # opcional
+    owner: "payments-team" # opcional; dueño del waiver
+    expires: "2026-12-31" # opcional; YYYY-MM-DD (fecha real); vencido ⇒ se ignora + warning
     createdAt: "2026-09-24" # metadata; no participa de hashes de reporte
   - match:
       ruleId: NAMING-001
@@ -69,6 +71,10 @@ suppressions:
 - `version` debe ser `1`; otro número ⇒ exit 2 `unsupported skills version`.
 - Cada entry exige `reason` no vacío.
 - `fingerprint` o `match` (exactamente uno); `match.ruleId` obligatorio.
+- `expires` (opcional): `YYYY-MM-DD` con fecha de calendario real; formato inválido ⇒ exit 2 al cargar. Vencido (`expires` < fecha UTC del día del análisis) ⇒ el waiver **se ignora** (el finding queda visible, no cuenta en `skillsSuppressed`) + `warning: suppression expired …` en stderr.
+- `owner` (opcional): string no vacío; solo metadata (quién responde por el waiver).
+- Waiver huérfano (no matchea ningún finding del reporte actual, sin estar vencido) ⇒ `warning: suppression matches no findings …` en stderr (no exit 2).
+- Determinismo (INV-2): la expiración se evalúa contra la fecha UTC del día **al momento del análisis** (dependencia wall-clock inherente); mismo instante ⇒ byte-idéntico. Tests inyectan `nowYmd`.
 - `apiPath` se evalúa contra `finding.apiLocation` (`"GET /legacy/x"`) o contra path extraído — decisión: matchea si `apiLocation` completo o solo path cumple la regex; test fija comportamiento: **regex sobre el path de apiLocation sin method** (extraer path tras primer espacio) o si no hay apiLocation, sobre `location` JSON pointer. Simplificar: regex contra `apiLocation ?? location`.
 
 ### severities.yaml
@@ -118,6 +124,10 @@ Severidad de skills **sobre** la del pack; si config `rules:` también overridea
 - [ ] **AC-S.8** Orden de load de suppressions vs severities no cambia reportHash (INV-2 / snapshot).
 - [ ] **AC-S.9** e2e: re-analyze tras agregar suppression manual al YAML refleja el cambio sin `learn` (FR-34).
 - [ ] **AC-S.10** Console muestra `(skills: N suppressed)` cuando N>0.
+- [x] **AC-S.11** Entry con `expires` válido + `owner` carga ok; `expires` con formato/fecha inválida u `owner` vacío ⇒ exit 2 al cargar.
+- [x] **AC-S.12** Waiver vencido ⇒ finding visible, `skillsSuppressed` no lo cuenta, stderr trae `suppression expired`.
+- [x] **AC-S.13** Waiver (no vencido) que no matchea nada ⇒ stderr trae `suppression matches no findings`; el análisis sigue exit normal.
+- [x] **AC-S.14** `suppress --expires YYYY-MM-DD --owner NAME` y feedback `learn` con `expires`/`owner` escriben el entry; `expires` inválido ⇒ error honesto exit 2.
 
 ## 5. Test plan
 
@@ -153,3 +163,4 @@ Severidad de skills **sobre** la del pack; si config `rules:` también overridea
 - 2026-09-24 · Spec creado desde SDD v1.0 §7 Fase 3 + FR-33/34 + doc 03 §8.
 - 2026-09-24 · M3.1 implementado: `skills.ts` loader + wire analyze + reporters `skillsSuppressed` + tests AC-S.1…10. Flag `--skills-dir` agregado a analyze.
 - 2026-09-24 · Cierre fase 3 con M3.3 → `cerrada`.
+- 2026-09-30 · Waivers con expiración (AC-S.11…14, backlog M8.6): `expires` + `owner` opcionales en suppressions; vencido ⇒ ignorado + warning; huérfano ⇒ warning; `suppress --expires/--owner` y feedback `learn` los escriben.

@@ -183,6 +183,87 @@ describe("learn unit (AC-L.*)", () => {
     expect(result.patch.suppressions.map((s) => s.reason)).toEqual(["false_positive", "wontfix"]);
   });
 
+  it("AC-S.14 feedback expires/owner land on the waiver entry", () => {
+    const path = join(tempDir(), "fb-exp.json");
+    writeJson(path, {
+      items: [
+        {
+          fingerprint: "a".repeat(64),
+          decision: "wontfix",
+          comment: "freeze",
+          expires: "2099-06-30",
+          owner: "payments-team",
+        },
+      ],
+    });
+    const loaded = loadFeedbackFile(path);
+    expect(loaded.ok).toBe(true);
+    if (!loaded.ok) return;
+    const result = buildLearnPatch({
+      report: REPORT,
+      feedback: loaded.feedback,
+      existingSuppressions: [],
+      existingSeverities: [],
+      toolVersion: "0.0.0-dev",
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.patch.suppressions[0]).toEqual({
+      fingerprint: "a".repeat(64),
+      reason: "freeze",
+      expires: "2099-06-30",
+      owner: "payments-team",
+    });
+  });
+
+  it("AC-S.14 bad expires in feedback is a load error", () => {
+    const path = join(tempDir(), "fb-badexp.json");
+    writeJson(path, {
+      items: [{ fingerprint: "a".repeat(64), decision: "wontfix", expires: "soon" }],
+    });
+    const loaded = loadFeedbackFile(path);
+    expect(loaded.ok).toBe(false);
+    if (loaded.ok) return;
+    expect(loaded.error).toContain("expires must be YYYY-MM-DD");
+  });
+
+  it("AC-S.14 expires/owner on non-waiver decisions is an honest error", () => {
+    const result = buildLearnPatch({
+      report: REPORT,
+      feedback: {
+        items: [
+          {
+            fingerprint: "b".repeat(64),
+            decision: "severity_change",
+            severity: "info",
+            expires: "2099-01-01",
+          },
+        ],
+      },
+      existingSuppressions: [],
+      existingSeverities: [],
+      toolVersion: "0.0.0-dev",
+    });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error).toContain("only apply to false_positive|wontfix");
+  });
+
+  it("AC-S.14 buildLearnPatch rejects raw bad expires (suppress path)", () => {
+    const result = buildLearnPatch({
+      report: REPORT,
+      feedback: {
+        items: [{ fingerprint: "a".repeat(64), decision: "wontfix", expires: "13/13/13" }],
+      },
+      existingSuppressions: [],
+      existingSeverities: [],
+      toolVersion: "0.0.0-dev",
+    });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error).toContain("expires must be YYYY-MM-DD");
+  });
+
   it("AC-L.4 unknown decision → load error", () => {
     const path = join(tempDir(), "bad.json");
     writeJson(path, {
@@ -683,6 +764,56 @@ describe("learn + skills e2e (AC-L.8–12)", () => {
     const yaml = readFileSync(join(skills, "suppressions.yaml"), "utf8");
     expect(yaml).toContain("a".repeat(64));
     expect(yaml).toContain("hotfix");
+  });
+
+  it("suppress --expires/--owner writes a dated waiver (AC-S.14)", async () => {
+    const dir = tempDir();
+    const reportPath = join(dir, "report.json");
+    writeJson(reportPath, REPORT);
+    const skills = join(dir, "skills");
+    const out = await runCapture(
+      [
+        "suppress",
+        "--report",
+        reportPath,
+        "--fingerprint",
+        "a".repeat(12),
+        "--decision",
+        "wontfix",
+        "--reason",
+        "freeze",
+        "--expires",
+        "2099-12-31",
+        "--owner",
+        "payments-team",
+        "--skills-dir",
+        skills,
+      ],
+      { cwd: dir },
+    );
+    expect(out.code).toBe(0);
+    const yaml = readFileSync(join(skills, "suppressions.yaml"), "utf8");
+    expect(yaml).toContain("expires: 2099-12-31");
+    expect(yaml).toContain("owner: payments-team");
+
+    const bad = await runCapture(
+      [
+        "suppress",
+        "--report",
+        reportPath,
+        "--fingerprint",
+        "a".repeat(12),
+        "--decision",
+        "wontfix",
+        "--expires",
+        "someday",
+        "--skills-dir",
+        skills,
+      ],
+      { cwd: dir },
+    );
+    expect(bad.code).toBe(2);
+    expect(bad.stderr).toContain("expires must be YYYY-MM-DD");
   });
 
   it("suppress --dry-run writes nothing and validates honestly", async () => {
