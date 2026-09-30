@@ -2,6 +2,13 @@
 
 Formato: CalVer `YYYY.MM.PATCH`. Breaking = quitar regla o cambiar severidad default de error↔otro.
 
+## 2026.09.4 · unreleased
+
+- M8.6-B2 (`f8-elite-100`): **2 reglas nuevas** (90 activas en total), solo con átomos DSL existentes, sin tocar `packages/core`.
+- Nuevas: PAG-004 (206 sin Content-Range, RFC 9110), PERF-002 (429 sin headers RateLimit, IETF draft; `sources.yaml` += `ietf-ratelimit`). Ambas con `examples` (estándar AC-E.13).
+- Dominios SEC/CONS/DEPR/VER sin cambios deliberados: los candidatos con átomos existentes duplican reglas vigentes (SEC-004≈AUTH-004, `exampleRequired` rompería thresholds, `pathHasPrefix` contradice VER-001, DEPR sin átomo de polaridad). Calidad sobre conteo.
+- Ruido medido: cero findings nuevos en los 4 fixtures (mini 14 = 0/6/8; públicas 74/74); score `{74, C}` y thresholds ≤60/≤80 intactos.
+
 ## 2026.09.3 · unreleased
 
 - M8.6 (`f8-elite-100`): `examples: {bad, good}` en 8 reglas (NAMING-001/002/004, STRUCT-002, DEPR-001, ERR-001, PARAM-004, RESP-003). Requiere core con AC-E.13 (`Rule.examples` opcional). Sin cambios de severidad ni reglas nuevas: no breaking.

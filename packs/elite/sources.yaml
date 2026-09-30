@@ -25,3 +25,6 @@ sources:
   - id: owasp-api
     title: OWASP API Security Top 10
     url: https://owasp.org/API-Security/
+  - id: ietf-ratelimit
+    title: IETF RateLimit Header Fields for HTTP
+    url: https://datatracker.ietf.org/doc/draft-ietf-httpapi-ratelimit-headers/

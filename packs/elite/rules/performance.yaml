@@ -11,3 +11,40 @@
   when:
     op: inputSizeExceeds
     maxBytes: 2000000
+
+- id: PERF-002
+  category: performance
+  severity: warning
+  message: "429 responses should document RateLimit headers."
+  fix: "Declare RateLimit-Limit (and ideally RateLimit-Remaining/Reset) response headers on 429 responses."
+  examples:
+    bad: |
+      "429":
+        description: Too many requests
+    good: |
+      "429":
+        description: Too many requests
+        headers:
+          RateLimit-Limit:
+            description: Request quota per window.
+            schema:
+              type: integer
+  source:
+    title: IETF RateLimit Header Fields for HTTP
+    url: https://datatracker.ietf.org/doc/draft-ietf-httpapi-ratelimit-headers/
+    section: "RateLimit-Limit"
+  when:
+    all:
+      - op: responsePresent
+        status: "429"
+      - not:
+          any:
+            - op: headerRequired
+              name: RateLimit-Limit
+              in: response
+            - op: headerRequired
+              name: RateLimit-Remaining
+              in: response
+            - op: headerRequired
+              name: RateLimit-Reset
+              in: response

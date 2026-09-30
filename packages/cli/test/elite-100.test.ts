@@ -115,11 +115,13 @@ const NEW_RULES: Array<{ id: string; severity: "warning" | "info" }> = [
   { id: "SCHEMA-006", severity: "warning" },
   { id: "STRUCT-007", severity: "info" },
   { id: "DEPR-003", severity: "warning" },
+  { id: "PAG-004", severity: "warning" },
+  { id: "PERF-002", severity: "warning" },
 ];
 
 describe("elite-100 inventory (M8.5)", () => {
-  it("holds 88 active rules (65 + 23)", () => {
-    expect(loaded.pack.rules).toHaveLength(88);
+  it("holds 90 active rules (88 + 2)", () => {
+    expect(loaded.pack.rules).toHaveLength(90);
   });
 
   it("contains every new rule id with the expected severity", () => {
@@ -506,5 +508,57 @@ describe("DOCS/SCHEMA/STRUCT/DEPR new rules", () => {
     });
     expect(fires("DEPR-003", bad)).toBe(true);
     expect(fires("DEPR-003", good)).toBe(false);
+  });
+});
+
+describe("PAG/PERF new rules (M8.6-B2)", () => {
+  it("PAG-004 fires on 206 without Content-Range", () => {
+    const bad = doc({
+      "/pets": { get: opBase({ responses: { "206": resp("Partial content.") } }) },
+    });
+    const good = doc({
+      "/pets": {
+        get: opBase({
+          responses: {
+            "206": resp("Partial content.", {
+              headers: { "Content-Range": resp("Byte range.") },
+            }),
+          },
+        }),
+      },
+    });
+    expect(fires("PAG-004", bad)).toBe(true);
+    expect(fires("PAG-004", good)).toBe(false);
+  });
+
+  it("PERF-002 fires on 429 without RateLimit headers", () => {
+    const bad = doc({
+      "/pets": { get: opBase({ responses: { "429": resp("Too many requests.") } }) },
+    });
+    const good = doc({
+      "/pets": {
+        get: opBase({
+          responses: {
+            "429": resp("Too many requests.", {
+              headers: { "RateLimit-Limit": resp("Quota per window.") },
+            }),
+          },
+        }),
+      },
+    });
+    const partial = doc({
+      "/pets": {
+        get: opBase({
+          responses: {
+            "429": resp("Too many requests.", {
+              headers: { "RateLimit-Remaining": resp("Quota left.") },
+            }),
+          },
+        }),
+      },
+    });
+    expect(fires("PERF-002", bad)).toBe(true);
+    expect(fires("PERF-002", good)).toBe(false);
+    expect(fires("PERF-002", partial)).toBe(false);
   });
 });

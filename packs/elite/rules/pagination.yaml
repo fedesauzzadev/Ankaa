@@ -34,3 +34,33 @@
     section: "List methods"
   when:
     op: paginationTotalMissing
+
+- id: PAG-004
+  category: pagination
+  severity: warning
+  message: "206 Partial Content responses must document a Content-Range header."
+  fix: "Declare the Content-Range response header on 206 responses."
+  examples:
+    bad: |
+      "206":
+        description: Partial content
+    good: |
+      "206":
+        description: Partial content
+        headers:
+          Content-Range:
+            description: Byte range returned.
+            schema:
+              type: string
+  source:
+    title: RFC 9110 HTTP Semantics
+    url: https://www.rfc-editor.org/rfc/rfc9110
+    section: "206 Partial Content"
+  when:
+    all:
+      - op: responsePresent
+        status: "206"
+      - not:
+          op: headerRequired
+          name: Content-Range
+          in: response
