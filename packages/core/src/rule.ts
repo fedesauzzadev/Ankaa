@@ -115,6 +115,7 @@ export type AtomMatcher =
   | { op: "emptyObjectSchema" }
   | { op: "schemaTypeAmbiguous" }
   | { op: "enumWithoutDescription" }
+  | { op: "enumTypeMismatch" }
   | { op: "additionalPropertiesAbsent" }
   | { op: "enumCasingInconsistent" }
   | { op: "nonStandardDateTimeFormat" }

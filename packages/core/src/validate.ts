@@ -169,6 +169,7 @@ const atomSchema = z.discriminatedUnion("op", [
   z.strictObject({ op: z.literal("emptyObjectSchema") }),
   z.strictObject({ op: z.literal("schemaTypeAmbiguous") }),
   z.strictObject({ op: z.literal("enumWithoutDescription") }),
+  z.strictObject({ op: z.literal("enumTypeMismatch") }),
   z.strictObject({ op: z.literal("additionalPropertiesAbsent") }),
   z.strictObject({ op: z.literal("enumCasingInconsistent") }),
   z.strictObject({ op: z.literal("nonStandardDateTimeFormat") }),

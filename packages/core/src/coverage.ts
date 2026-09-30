@@ -2,12 +2,7 @@ import type { Matcher, Rule, RulePack, Spec } from "./rule.js";
 import { validateRule } from "./validate.js";
 
 export type CoverageClass =
-  | "operation"
-  | "parameter"
-  | "requestBody"
-  | "response"
-  | "schema"
-  | "doc";
+  "operation" | "parameter" | "requestBody" | "response" | "schema" | "doc";
 
 export interface CoverageByClass {
   total: number;
@@ -81,6 +76,7 @@ const ATOM_CLASS: Record<AtomOp, CoverageClass> = {
   emptyObjectSchema: "schema",
   schemaTypeAmbiguous: "schema",
   enumWithoutDescription: "schema",
+  enumTypeMismatch: "schema",
   additionalPropertiesAbsent: "schema",
   enumCasingInconsistent: "schema",
   nonStandardDateTimeFormat: "schema",

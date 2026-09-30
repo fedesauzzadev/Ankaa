@@ -59,6 +59,18 @@
   when:
     op: additionalPropertiesAbsent
 
+- id: SCHEMA-007
+  category: schemas
+  severity: warning
+  message: "Enum values must match the declared schema type."
+  fix: "Remove invalid enum values or change the schema type to match the allowed values."
+  source:
+    title: OpenAPI Specification
+    url: https://spec.openapis.org/oas/v3.1.0
+    section: "Schema Object"
+  when:
+    op: enumTypeMismatch
+
 - id: SCHEMA-006
   category: schemas
   severity: warning

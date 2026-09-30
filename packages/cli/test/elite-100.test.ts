@@ -113,6 +113,7 @@ const NEW_RULES: Array<{ id: string; severity: "warning" | "info" }> = [
   { id: "DOCS-007", severity: "info" },
   { id: "DOCS-008", severity: "info" },
   { id: "SCHEMA-006", severity: "warning" },
+  { id: "SCHEMA-007", severity: "warning" },
   { id: "STRUCT-007", severity: "info" },
   { id: "DEPR-003", severity: "warning" },
   { id: "PAG-004", severity: "warning" },
@@ -124,8 +125,8 @@ const NEW_RULES: Array<{ id: string; severity: "warning" | "info" }> = [
 ];
 
 describe("elite-100 inventory (M8.5)", () => {
-  it("holds 94 active rules (90 + 4)", () => {
-    expect(loaded.pack.rules).toHaveLength(94);
+  it("holds 95 active rules (94 + SCHEMA-007)", () => {
+    expect(loaded.pack.rules).toHaveLength(95);
   });
 
   it("contains every new rule id with the expected severity", () => {
@@ -485,8 +486,42 @@ describe("DOCS/SCHEMA/STRUCT/DEPR new rules", () => {
         }),
       },
     });
+
     expect(fires("SCHEMA-006", bad)).toBe(true);
     expect(fires("SCHEMA-006", doc({ "/pets": { get: opBase() } }))).toBe(false);
+  });
+
+  it("SCHEMA-007 fires when an enum value violates its declared type", () => {
+    const bad = doc({
+      "/pets": {
+        get: opBase({
+          responses: {
+            "200": resp("The successful operation result payload here.", {
+              content: jsonContent({
+                type: "object",
+                properties: { status: { type: "string", enum: ["ready", 2] } },
+              }),
+            }),
+          },
+        }),
+      },
+    });
+    const good = doc({
+      "/pets": {
+        get: opBase({
+          responses: {
+            "200": resp("The successful operation result payload here.", {
+              content: jsonContent({
+                type: "object",
+                properties: { status: { type: "string", enum: ["ready", "done"] } },
+              }),
+            }),
+          },
+        }),
+      },
+    });
+    expect(fires("SCHEMA-007", bad)).toBe(true);
+    expect(fires("SCHEMA-007", good)).toBe(false);
   });
 
   it("STRUCT-007 fires on OpenAPI 3.0 documents", () => {

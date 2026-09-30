@@ -9,6 +9,13 @@ Formato: CalVer `YYYY.MM.PATCH`. Breaking = quitar regla o cambiar severidad def
 - Fuera de v1 (documentado, sin átomo honesto barato): ejemplos-vs-schema (requiere mini-validador), enums duplicados cross-schema (ruido, no breakage), servers con example.com (sin átomo de URL).
 - Ruido medido: cero findings nuevos en los 4 fixtures (mini 14 = 0/6/8; públicas 74/74); score `{74, C}` y thresholds ≤60/≤80 intactos.
 
+## 2026.09.6 · unreleased
+
+- M8.6-C: `SCHEMA-007` detects enum values that do not match their declared schema type,
+  including parameters, nested properties, arrays, local `$ref`s and siblings, and OpenAPI 3.1
+  type unions.
+- No example-vs-schema validation is included; that remains part of the future mini-validator epic.
+
 ## 2026.09.4 · unreleased
 
 - M8.6-B2 (`f8-elite-100`): **2 reglas nuevas** (90 activas en total), solo con átomos DSL existentes, sin tocar `packages/core`.

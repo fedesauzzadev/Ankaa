@@ -23,6 +23,7 @@ Fuente: comparativa Spectral/Vacuum/Redocly/Zally/oasdiff + serie 2026 de API Ev
 - [x] Higiene de contrato: componentes sin usar, paths ambiguos/duplicados, trailing slash, ejemplos vs schema, enums duplicados, scopes OAuth indefinidos, URLs example.com olvidadas — hecho 2026-09-30: 3 átomos nuevos (AC-E.15) + STRUCT-008/SEC-004/NAMING-012/DOCS-009 (94 reglas, ruido cero); trailing-slash/duplicados ya cubiertos (NAMING-002/003, PARAM-006); ejemplos-vs-schema y enums-dup fuera de v1 (ver CHANGELOG 2026.09.5)
 - [x] Niveles de estabilidad (`x-stability-level: draft/beta/stable`): las estrictas no muerden endpoints en draft (ideal antes de sumar reglas estrictas nuevas) — hecho 2026-09-30: AC-O.15/AC-E.14 (mecanismo en parser+engine, cero cambios al pack)
 - [x] Engordar dominios flacos (PERF/CONS/DEPR/PAG/SEC/VER) con joyas baratas de los catálogos rivales, con medición de ruido por fixture (playbook f8-elite-100) — hecho 2026-09-30: PAG-004 + PERF-002 (90 reglas, ruido cero); SEC/CONS/DEPR/VER sin cambios deliberados (ver CHANGELOG 2026.09.4)
+- [x] [AHORA] Átomo `enumTypeMismatch` + `SCHEMA-007` — hecho 2026-09-29; ejemplos-vs-schema queda fuera para una épica futura con spec propia.
 
 ### Estructurales (un mes+ c/u; spec primero por AGENTS.md)
 
@@ -34,6 +35,6 @@ Fuente: comparativa Spectral/Vacuum/Redocly/Zally/oasdiff + serie 2026 de API Ev
 ### Estratégicas (apuestas; spike o historia de consumidor antes de codear)
 
 - [x] Auditoría OWASP API Top 10 2023 regla por regla, publicada como tabla (artefacto de confianza enterprise, no código) — hecho 2026-09-30: tabla en `packs/elite/README.md` (full: API2/API8; partial ×6; none: API7/API10, con rationale honesto)
-- [x] Import de rulesets Spectral — spike de diseño hecho 2026-09-30 → ADR-014 (docs/02-arquitectura.md): motor JSONPath rechazado (INV-4); transpilador determinista offline aceptado (modo de `rules import`, ~20 reglas) + épica de port curado (serverUrlMatches, DocField contacto/licencia, duplicateEnumValues, arrayItemsMissing, refWithSiblings, …). Pendiente: spec `f8-spectral-import` + épica (no codeado).
-- [ ] Certificación tamper-evident (`certify` sobre reportHash+score+pack; falta historia de quién verifica del lado consumidor)
-- [ ] Presupuesto de falsos positivos por regla (auto-flag si se suprime >X%; requiere datos de uso primero)
+- [x] Import de rulesets Spectral — spike de diseño hecho 2026-09-30 → ADR-014 (docs/02-arquitectura.md): motor JSONPath rechazado (INV-4); transpilador determinista offline aceptado. Spec draft [`f8-spectral-import`](../specs/f8-spectral-import.md); falta acordar subset/mapping antes de implementar.
+- [ ] Certificación de integridad/autenticidad — spec draft [`f8-certify`](../specs/f8-certify.md); falta historia del consumidor, raíz de confianza, formato y custodia de claves.
+- [ ] Presupuesto de falsos positivos por regla — spec draft [`f8-fp-budget`](../specs/f8-fp-budget.md); falta definir datos, unidad de conteo, umbral/ventana y acción no-mutante.

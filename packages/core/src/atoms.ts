@@ -119,13 +119,18 @@ export interface OpEvalCache {
   jsonText?: string;
   segments?: string[];
   source?: Operation;
+  schemaResults?: WeakMap<SchemaNode, boolean>;
 }
 
-export function buildOpCache(op: Operation): OpEvalCache {
+export function buildOpCache(
+  op: Operation,
+  schemaResults?: WeakMap<SchemaNode, boolean>,
+): OpEvalCache {
   return {
     jsonText: undefined,
     segments: op.path.split("/").filter((s) => s.length > 0),
     source: op,
+    schemaResults,
   };
 }
 
@@ -220,6 +225,88 @@ function deepResolve(spec: Spec, node: SchemaNode | undefined, depth = 0): Schem
     if (target) return deepResolve(spec, target, depth + 1);
   }
   return node;
+}
+
+function enumValueMatchesType(value: unknown, type: string): boolean {
+  switch (type) {
+    case "string":
+      return typeof value === "string";
+    case "number":
+      return typeof value === "number" && Number.isFinite(value);
+    case "integer":
+      return typeof value === "number" && Number.isInteger(value);
+    case "boolean":
+      return typeof value === "boolean";
+    case "null":
+      return value === null;
+    case "object":
+      return typeof value === "object" && value !== null && !Array.isArray(value);
+    case "array":
+      return Array.isArray(value);
+    default:
+      return true;
+  }
+}
+
+function schemaHasEnumTypeMismatch(
+  spec: Spec,
+  node: SchemaNode | undefined,
+  cache?: WeakMap<SchemaNode, boolean>,
+  active = new Set<SchemaNode>(),
+): boolean {
+  if (node === undefined) return false;
+  const cached = cache?.get(node);
+  if (cached !== undefined) return cached;
+  if (active.has(node)) return false;
+  active.add(node);
+  const chain = [node];
+  const chainNodes = new Set<SchemaNode>(chain);
+  let current = node;
+  while (current.ref !== undefined) {
+    const target = resolveSchemaRef(spec, current.ref);
+    if (target === undefined || chainNodes.has(target)) break;
+    chain.push(target);
+    chainNodes.add(target);
+    current = target;
+  }
+  const typeConstraints = chain
+    .map((schema) =>
+      Array.isArray(schema.type) ? schema.type : schema.type !== undefined ? [schema.type] : [],
+    )
+    .filter((types) => types.length > 0);
+  if (
+    chain.some(
+      (schema) =>
+        schema.enum !== undefined &&
+        typeConstraints.length > 0 &&
+        schema.enum.some((value) =>
+          typeConstraints.some((types) => !types.some((type) => enumValueMatchesType(value, type))),
+        ),
+    )
+  ) {
+    active.delete(node);
+    cache?.set(node, true);
+    return true;
+  }
+  for (const schema of chain) {
+    if (
+      Object.values(schema.properties ?? {}).some((child) =>
+        schemaHasEnumTypeMismatch(spec, child, cache, active),
+      )
+    ) {
+      active.delete(node);
+      cache?.set(node, true);
+      return true;
+    }
+    if (schemaHasEnumTypeMismatch(spec, schema.items, cache, active)) {
+      active.delete(node);
+      cache?.set(node, true);
+      return true;
+    }
+  }
+  active.delete(node);
+  cache?.set(node, false);
+  return false;
 }
 
 function allDocSchemas(spec: Spec): Array<{ name: string; schema: SchemaNode }> {
@@ -693,6 +780,14 @@ export function evaluateAtom(
         }
         return true;
       });
+    }
+    case "enumTypeMismatch": {
+      return (
+        op.parameters.some((parameter) =>
+          schemaHasEnumTypeMismatch(spec, parameter.schema, cache?.schemaResults),
+        ) ||
+        collectOpSchemas(op).some((n) => schemaHasEnumTypeMismatch(spec, n, cache?.schemaResults))
+      );
     }
     case "additionalPropertiesAbsent": {
       return collectOpSchemas(op).some((n) => {

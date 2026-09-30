@@ -102,6 +102,7 @@ type AtomMatcher =
   | { op: "emptyObjectSchema" }
   | { op: "schemaTypeAmbiguous" }
   | { op: "enumWithoutDescription" }
+  | { op: "enumTypeMismatch" }
   | { op: "additionalPropertiesAbsent" }
   | { op: "enumCasingInconsistent" }
   | { op: "nonStandardDateTimeFormat" }
@@ -240,6 +241,7 @@ Comparar por:
   1. **Cache de RegExp** (flyweight): patrones compilados una vez por `evaluate`, reutilizados por operación × regla.
   2. **Precompilación por regla**: `validateRule` + `detectScope` una vez por regla (no por spec).
   3. **Cache por operación**: `JSON.stringify(op)`, segmentos de path y schemas colectados una vez por operación y reusados por todas las reglas (`OpEvalCache` opcional en `evaluateMatcher`; sin él se calcula como antes).
+  4. **Resultados de schemas compartidos**: el átomo `enumTypeMismatch` memoiza por identidad de `SchemaNode` en un `WeakMap` local a cada spec/evaluación, reutilizando subárboles referenciados por muchas operaciones sin retenerlos globalmente.
 - Prohibido: `Date.now()`/`Math.random()` en paths de hash/sort (INV-2); imports `node:*` en `core` (INV-3/AC-E.8).
 
 ## 4. Criterios de aceptación
@@ -256,7 +258,9 @@ Comparar por:
 - [x] **AC-E.10** Operación A true, B false ⇒ findings solo en A con `apiLocation` correcto.
 - [x] **AC-E.11** Performance smoke: 500 operaciones × 50 reglas < 500 ms en CI (medición orientativa, no flaky-hard).
 - [x] **AC-E.12** Perf slice: mismo input + packs ⇒ findings **byte-idénticos** antes/después (golden suites + bench 500/2000 ops con conteo idéntico); bench orientativo neutro en esta forma (techo: sha256 puro + validación, INV-3), sin flaky-hard.
-- [ ] **AC-E.15** Átomos M8.6-A2 con true+false: `unusedComponents` (solo schemas v1; `$ref` transitivos cuentan como uso), `undefinedOAuthScopes` (scopes del requirement ausentes en los flows del scheme; sin def o sin scopes ⇒ no juzga), `ambiguousPaths` (mismo método + misma forma normalizada con distinto raw).
+- [x] **AC-E.15** Átomos M8.6-A2 con true+false: `unusedComponents` (solo schemas v1; `$ref` transitivos cuentan como uso), `undefinedOAuthScopes` (scopes del requirement ausentes en los flows del scheme; sin def o sin scopes ⇒ no juzga), `ambiguousPaths` (mismo método + misma forma normalizada con distinto raw).
+- [x] **AC-E.16** `enumTypeMismatch` detecta enums cuyos valores no coinciden con `type`, incluyendo parámetros, propiedades anidadas, `$ref` locales (también siblings 3.1) y uniones de tipos 3.1; enums sin `type` explícito ni tipo heredado por `$ref` no se juzgan.
+- [x] **AC-E.17** Schemas compartidos por 300 operaciones (200 propiedades, incluyendo un enum inválido) producen el mismo resultado con/sin memoización; el smoke compara el átomo cacheado contra el recorrido sin caché y comprueba la mejora.
 - [x] **AC-E.14** `Rule.appliesFrom?` (`draft|beta|stable`, default `draft`): valor desconocido ⇒ issue en `validateRule`; regla estricta se salta en operaciones menos estables (true+false por nivel); regla doc-scope no se ve afectada; spec sin marcas ⇒ findings idénticos.
 - [x] **AC-E.13** `examples?: { bad?, good? }` opcional en `Rule`: cada string 1–1000 chars, object strict, al menos una de `bad`/`good`. Se propaga a `Finding` y a `explainRule`/`explain`. **No** altera fingerprint, orden de sort ni `reportHash` cuando el pack no la usa (compatibilidad byte-a-byte, INV-2/INV-5). `validateRule` rechaza `examples: {}` vacío.
 
@@ -293,3 +297,4 @@ Comparar por:
 - 2026-09-28 · M-perf implementado: suites verdes (core 19, cli 437, invariantes 16); bench 2000 ops × elite antes ~357ms vs después ~420ms mediana (ruido-dominado, neutro); techo real: sha256 puro (INV-3) + validación zod por corrida.
 - 2026-09-30 · `Rule.examples?: { bad?, good? }` (AC-E.13, backlog M8.6): ejemplos bueno/malo opcionales por regla; se propagan a `Finding` y `RuleExplanation` y alimentan el prompt de `fix` (CLI/MCP) y el "Copy prompt for LLM" del dashboard. Estricto (zod strict, ≤1000 chars, no vacío). Sin impacto en fingerprint/sort/reportHash para packs que no la usan.
 - 2026-09-30 · `Rule.appliesFrom?` + skip por estabilidad (AC-E.14, backlog M8.6): `draft|beta|stable` (default `draft`); doc-scope sin cambios; specs sin marcas ⇒ byte-idéntico.
+- 2026-09-30 · AC-E.17: `enumTypeMismatch` reutiliza resultados por identidad de schema durante una evaluación; benchmark compartido verifica igualdad de matches y menor tiempo frente al recorrido sin caché.

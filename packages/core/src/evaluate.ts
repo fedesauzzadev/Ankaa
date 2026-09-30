@@ -1,7 +1,7 @@
 import { buildOpCache, evaluateMatcher } from "./atoms.js";
 import { computeFingerprint, dedupeFindings, sortFindings } from "./finding.js";
 import type { EvaluateOptions, EvaluationResult, Finding, Rule, RuleEvalError } from "./rule.js";
-import type { Operation, Stability } from "./spec.js";
+import type { Operation, SchemaNode, Stability } from "./spec.js";
 import { detectScope, validateRule } from "./validate.js";
 import { isRuleActive } from "./coverage.js";
 
@@ -70,9 +70,10 @@ export function evaluate(opts: EvaluateOptions): EvaluationResult {
   // Pure derivation, so findings and sort order are identical.
   const specCaches = opts.specs.map((spec) => {
     const byPointer = new Map<string, ReturnType<typeof buildOpCache>>();
+    const schemaResults = new WeakMap<SchemaNode, boolean>();
     for (const operation of spec.operations) {
       if (!byPointer.has(operation.jsonPointer)) {
-        byPointer.set(operation.jsonPointer, buildOpCache(operation));
+        byPointer.set(operation.jsonPointer, buildOpCache(operation, schemaResults));
       }
     }
     return byPointer;

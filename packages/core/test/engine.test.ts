@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { buildOpCache, evaluateMatcher } from "../src/atoms.js";
 import {
   computeCoverage,
   computeFingerprint,
@@ -12,7 +13,7 @@ import {
   sortFindings,
   validateRule,
 } from "../src/index.js";
-import type { Finding, Rule, Spec } from "../src/index.js";
+import type { Finding, Rule, SchemaNode, Spec } from "../src/index.js";
 
 function makeSpec(overrides?: Partial<Spec>): Spec {
   const base: Spec = {
@@ -477,6 +478,105 @@ describe("AC-E.11 performance smoke", () => {
     for (const s of samples) expect(s.result.errors).toEqual([]);
     expect(best).toBeLessThan(500);
   });
+
+  it("reuses results for schemas shared by many operations", () => {
+    const sharedSchema = {
+      type: "object" as const,
+      properties: Object.fromEntries(
+        Array.from({ length: 200 }, (_, index) => [
+          `field${index}`,
+          {
+            type: "string" as const,
+            enum: index === 199 ? [199] : [`value${index}`],
+          },
+        ]),
+      ),
+    };
+    const operations = Array.from({ length: 300 }, (_, index) => ({
+      method: "get" as const,
+      path: `/resource${index}`,
+      operationId: `getResource${index}`,
+      summary: "Get resource",
+      description: "Returns a resource",
+      tags: [],
+      deprecated: false,
+      parameters: [],
+      responses: [
+        {
+          status: "200",
+          description: "OK",
+          content: [
+            {
+              mediaType: "application/json",
+              schema: { ref: "#/components/schemas/Shared" },
+            },
+          ],
+          headers: [],
+          jsonPointer: `/paths/~1resource${index}/get/responses/200`,
+        },
+      ],
+      security: undefined,
+      extensions: {},
+      jsonPointer: `/paths/~1resource${index}/get`,
+    }));
+    const spec = makeSpec({
+      operations: operations as Spec["operations"],
+      components: {
+        schemas: ["Shared"],
+        schemaNodes: { Shared: sharedSchema },
+      },
+    });
+    const pack = {
+      id: "benchmark",
+      version: "1.0.0",
+      rules: [
+        makeRule({
+          id: "SCHEMA-007",
+          when: { op: "enumTypeMismatch" },
+        }),
+      ],
+    };
+    const schemaRule = pack.rules[0]!;
+    const runOnce = () => {
+      const start = performance.now();
+      const result = evaluate({ specs: [spec], packs: [pack] });
+      return { elapsed: performance.now() - start, result };
+    };
+
+    runOnce();
+    const samples = [runOnce(), runOnce(), runOnce()];
+    const best = Math.min(...samples.map((sample) => sample.elapsed));
+
+    for (const sample of samples) {
+      expect(sample.result.errors).toEqual([]);
+      expect(sample.result.findings).toHaveLength(300);
+    }
+    expect(best).toBeLessThan(500);
+
+    const runAtomChecks = (reuseSchemas: boolean) => {
+      const schemaResults = reuseSchemas ? new WeakMap<SchemaNode, boolean>() : undefined;
+      const start = performance.now();
+      let matches = 0;
+      for (const operation of spec.operations) {
+        if (
+          evaluateMatcher(schemaRule.when, operation, spec, buildOpCache(operation, schemaResults))
+        ) {
+          matches += 1;
+        }
+      }
+      return { elapsed: performance.now() - start, matches };
+    };
+
+    runAtomChecks(true);
+    runAtomChecks(false);
+    const cachedSamples = [runAtomChecks(true), runAtomChecks(true), runAtomChecks(true)];
+    const uncachedSamples = [runAtomChecks(false), runAtomChecks(false), runAtomChecks(false)];
+    const cachedBest = Math.min(...cachedSamples.map((sample) => sample.elapsed));
+    const uncachedBest = Math.min(...uncachedSamples.map((sample) => sample.elapsed));
+    expect(cachedSamples.every((sample) => sample.matches === 300)).toBe(true);
+    expect(uncachedSamples.every((sample) => sample.matches === 300)).toBe(true);
+    expect(cachedBest).toBeLessThan(uncachedBest);
+  });
 });
 
 describe("MIXED_SCOPE", () => {
@@ -552,9 +652,7 @@ describe("AC-E.13 rule examples", () => {
     expect(a.errors).toEqual([]);
     expect(a.findings).toHaveLength(b.findings.length);
     expect(a.findings[0]!.examples).toEqual({ bad: "get without docs", good: "get with docs" });
-    expect(a.findings.map((f) => f.fingerprint)).toEqual(
-      b.findings.map((f) => f.fingerprint),
-    );
+    expect(a.findings.map((f) => f.fingerprint)).toEqual(b.findings.map((f) => f.fingerprint));
     const rerun = evaluate({ specs: [spec], packs: [pack] });
     expect(JSON.stringify(rerun)).toBe(JSON.stringify(a));
   });
@@ -717,9 +815,7 @@ describe("AC-CV.1/2 coverage", () => {
     const pack = (appliesFrom: "draft" | "beta" | "stable") => ({
       id: "elite",
       version: "2026.09.1",
-      rules: [
-        makeRule({ id: "X-001", when: { op: "method", in: ["get", "post"] }, appliesFrom }),
-      ],
+      rules: [makeRule({ id: "X-001", when: { op: "method", in: ["get", "post"] }, appliesFrom })],
     });
     const run = (appliesFrom: "draft" | "beta" | "stable"): string[] => {
       const result = evaluate({ specs: [spec], packs: [pack(appliesFrom)] });
@@ -743,7 +839,10 @@ describe("AC-CV.1/2 coverage", () => {
       when: { op: "docFieldMissing", field: "info.description" },
       appliesFrom: "stable",
     });
-    const result = evaluate({ specs: [spec], packs: [{ id: "e", version: "1", rules: [docRule] }] });
+    const result = evaluate({
+      specs: [spec],
+      packs: [{ id: "e", version: "1", rules: [docRule] }],
+    });
     expect(result.errors).toEqual([]);
     expect(result.findings).toHaveLength(1);
   });
@@ -767,6 +866,144 @@ describe("AC-CV.1/2 coverage", () => {
     for (const op of ["unusedComponents", "undefinedOAuthScopes", "ambiguousPaths"] as const) {
       expect(validateRule(makeRule({ id: "X-001", when: { op } })).ok).toBe(true);
     }
+  });
+
+  it("enumTypeMismatch detects invalid nested enum values", () => {
+    const base = makeSpec().operations[0]!;
+    const rule = makeRule({
+      id: "SCHEMA-007",
+      category: "schemas",
+      severity: "warning",
+      when: { op: "enumTypeMismatch" },
+    });
+    const operation = {
+      ...base,
+      responses: [
+        {
+          ...base.responses[0]!,
+          content: [
+            {
+              mediaType: "application/json",
+              schema: {
+                type: "object",
+                properties: { status: { type: "string", enum: ["ready", 2] } },
+              },
+            },
+          ],
+        },
+      ],
+    };
+    expect(validateRule(rule).ok).toBe(true);
+    expect(
+      evaluate({
+        specs: [makeSpec({ operations: [operation] })],
+        packs: [{ id: "e", version: "1", rules: [rule] }],
+      }).findings,
+    ).toHaveLength(1);
+
+    const valid = {
+      ...operation,
+      responses: [
+        {
+          ...operation.responses[0]!,
+          content: [
+            {
+              mediaType: "application/json",
+              schema: {
+                type: "object",
+                properties: { status: { type: ["string", "null"], enum: ["ready", null] } },
+              },
+            },
+          ],
+        },
+      ],
+    };
+    expect(
+      evaluate({
+        specs: [makeSpec({ operations: [valid] })],
+        packs: [{ id: "e", version: "1", rules: [rule] }],
+      }).findings,
+    ).toEqual([]);
+
+    const parameterSchema = {
+      ...base,
+      parameters: [
+        {
+          ...base.parameters[0]!,
+          schema: { type: "string", enum: ["small", 3] },
+        },
+      ],
+    };
+    expect(
+      evaluate({
+        specs: [makeSpec({ operations: [parameterSchema] })],
+        packs: [{ id: "e", version: "1", rules: [rule] }],
+      }).findings,
+    ).toHaveLength(1);
+
+    const refSibling = {
+      ...base,
+      responses: [
+        {
+          ...base.responses[0]!,
+          content: [
+            {
+              mediaType: "application/json",
+              schema: { ref: "#/components/schemas/Status", enum: [3] },
+            },
+          ],
+        },
+      ],
+    };
+    expect(
+      evaluate({
+        specs: [
+          makeSpec({
+            operations: [refSibling],
+            components: {
+              schemas: ["Status"],
+              responses: [],
+              parameters: [],
+              securitySchemes: [],
+              schemaNodes: { Status: { type: "string" } },
+            },
+          }),
+        ],
+        packs: [{ id: "e", version: "1", rules: [rule] }],
+      }).findings,
+    ).toHaveLength(1);
+
+    const refTarget = {
+      ...refSibling,
+      responses: [
+        {
+          ...refSibling.responses[0]!,
+          content: [
+            {
+              mediaType: "application/json",
+              schema: { ref: "#/components/schemas/Status" },
+            },
+          ],
+        },
+      ],
+    };
+    expect(
+      evaluate({
+        specs: [
+          makeSpec({
+            operations: [refTarget],
+            components: {
+              schemas: ["Status"],
+              responses: [],
+              parameters: [],
+              securitySchemes: [],
+              schemaNodes: { Status: { type: "string", enum: [3] } },
+            },
+          }),
+        ],
+        packs: [{ id: "e", version: "1", rules: [rule] }],
+      }).findings,
+    ).toHaveLength(1);
   });
 
   it("AC-E.15 unusedComponents fires only with orphan schemas", () => {
@@ -805,13 +1042,9 @@ describe("AC-CV.1/2 coverage", () => {
       components: { schemas: ["A"], responses: [], parameters: [], securitySchemes: [] },
       operations: [refOp("#/components/schemas/A")],
     });
-    expect(
-      evaluate({ specs: [allUsed], packs: [pack("STRUCT-008")] }).findings,
-    ).toEqual([]);
+    expect(evaluate({ specs: [allUsed], packs: [pack("STRUCT-008")] }).findings).toEqual([]);
     const noneDeclared = makeSpec({ operations: [refOp("#/components/schemas/A")] });
-    expect(
-      evaluate({ specs: [noneDeclared], packs: [pack("STRUCT-008")] }).findings,
-    ).toEqual([]);
+    expect(evaluate({ specs: [noneDeclared], packs: [pack("STRUCT-008")] }).findings).toEqual([]);
   });
 
   it("AC-E.15 undefinedOAuthScopes fires on unknown scopes only", () => {
@@ -847,7 +1080,7 @@ describe("AC-CV.1/2 coverage", () => {
         (f) => f.ruleId,
       ),
     ).toEqual(["SEC-004"]);
-      expect(evaluate({ specs: [withDefs([secured(["read"])])], packs: [pack] }).findings).toEqual(
+    expect(evaluate({ specs: [withDefs([secured(["read"])])], packs: [pack] }).findings).toEqual(
       [],
     );
     const noDef = makeSpec({ operations: [secured(["write"])] });
@@ -873,9 +1106,9 @@ describe("AC-CV.1/2 coverage", () => {
       rules: [makeRule({ id: "NAMING-012", when: { op: "ambiguousPaths" } })],
     };
     const colliding = makeSpec({ operations: [getOp("/users/{id}"), getOp("/users/{name}")] });
-    expect(
-      evaluate({ specs: [colliding], packs: [pack] }).findings.map((f) => f.ruleId),
-    ).toEqual(["NAMING-012"]);
+    expect(evaluate({ specs: [colliding], packs: [pack] }).findings.map((f) => f.ruleId)).toEqual([
+      "NAMING-012",
+    ]);
     const distinct = makeSpec({ operations: [getOp("/users"), getOp("/users/{id}")] });
     expect(evaluate({ specs: [distinct], packs: [pack] }).findings).toEqual([]);
   });
