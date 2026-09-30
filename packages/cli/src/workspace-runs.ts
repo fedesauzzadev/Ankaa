@@ -9,7 +9,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
-import type { Report } from "@apigovscan/reporters";
+import type { Report } from "@ankaa/reporters";
 import type { OperationState } from "./operations.js";
 
 export interface WorkspaceAnalyzeRun {
@@ -87,11 +87,11 @@ function isAnalyzeRun(value: unknown): value is WorkspaceAnalyzeRun {
 }
 
 export function analyzeRunsDir(cwd: string): string {
-  return join(cwd, ".apigovscan", "workspace", "runs");
+  return join(cwd, ".ankaa", "workspace", "runs");
 }
 
 function ensureRunsDir(cwd: string): void {
-  const segments = [".apigovscan", "workspace", "runs"];
+  const segments = [".ankaa", "workspace", "runs"];
   let current = cwd;
   for (const segment of segments) {
     current = join(current, segment);

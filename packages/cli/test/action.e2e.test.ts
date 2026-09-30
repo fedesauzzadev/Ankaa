@@ -17,7 +17,7 @@ const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..")
 const fixtures = join(repoRoot, "fixtures");
 const actionFile = join(repoRoot, "action", "action.yml");
 const actionReadme = join(repoRoot, "action", "README.md");
-const dogfoodWorkflow = join(repoRoot, ".github", "workflows", "apigovscan.yml");
+const dogfoodWorkflow = join(repoRoot, ".github", "workflows", "ankaa.yml");
 
 interface ActionDoc {
   name: string;
@@ -45,7 +45,7 @@ function loadAction(): ActionDoc {
 const tempRoots: string[] = [];
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-action-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-action-"));
   tempRoots.push(dir);
   return dir;
 }
@@ -92,7 +92,7 @@ async function simulateAction(
   outputs: string;
   gateCode: number;
 }> {
-  const sarifPath = join(cwd, "apigovscan.sarif");
+  const sarifPath = join(cwd, "ankaa.sarif");
   const artifact = await runCapture(
     ["analyze", specPath, "--fail-on", "never", "--format", "sarif", "--output", sarifPath],
     { cwd },
@@ -127,7 +127,7 @@ async function simulateAction(
 describe("action/action.yml structure (f5-action)", () => {
   it("AC-ACT.1 declares inputs, outputs and composite steps", () => {
     const action = loadAction();
-    expect(action.name).toBe("ApiGovScan");
+    expect(action.name).toBe("Ankaa");
     expect(Object.keys(action.inputs).sort()).toEqual([
       "baseline",
       "cli",
@@ -142,7 +142,7 @@ describe("action/action.yml structure (f5-action)", () => {
     expect(action.inputs.path.default).toBe(".");
     expect(action.inputs["fail-on"].default).toBe("error");
     expect(action.inputs.format.default).toBe("sarif");
-    expect(action.inputs.cli.default).toBe("npx -y @apigovscan/cli");
+    expect(action.inputs.cli.default).toBe("npx -y @ankaa/cli");
     expect(action.inputs.baseline.default).toBe("false");
     expect(action.inputs["review-ref"].default).toBe("");
     expect(Object.keys(action.outputs).sort()).toEqual(["exit-code", "sarif-path"]);
@@ -162,7 +162,7 @@ describe("action/action.yml structure (f5-action)", () => {
     const action = loadAction();
     expect(action.inputs["license-key"].default).toBe("");
     for (const step of action.runs.steps) {
-      expect(step.env?.APIGOVSCAN_LICENSE_KEY).toContain("${{ inputs.license-key }}");
+      expect(step.env?.ANKAA_LICENSE_KEY).toContain("${{ inputs.license-key }}");
     }
   });
 
@@ -223,7 +223,7 @@ describe("action/action.yml structure (f5-action)", () => {
     const workflow = readFileSync(dogfoodWorkflow, "utf8");
     expect(workflow).toContain("uses: ./action");
     expect(workflow).toContain("fixtures/petstore-mini.yaml");
-    expect(workflow).toContain("node packages/cli/bin/apigovscan.js");
+    expect(workflow).toContain("node packages/cli/bin/ankaa.js");
     expect(workflow).toContain("review-ref: main");
   });
 });
@@ -251,7 +251,7 @@ describe("action e2e simulation (AC-ACT.2–4)", () => {
     expect(sim.annotations).toMatch(/^::(error|warning|notice) /m);
     expect(sim.annotations).toContain("file=openapi.yaml");
 
-    expect(sim.summary.startsWith("# ApiGovScan report")).toBe(true);
+    expect(sim.summary.startsWith("# Ankaa report")).toBe(true);
     expect(sim.summary).toContain("reportHash");
     expect(sim.summary).toContain("| Score |");
     expect(sim.summary).toContain("## Findings");
@@ -268,8 +268,8 @@ describe("action e2e simulation (AC-ACT.2–4)", () => {
       { cwd },
     );
     expect(gate.code).toBe(0);
-    expect(gate.stdout).toContain("# ApiGovScan report");
-    expect(existsSync(join(cwd, "apigovscan.sarif"))).toBe(false);
+    expect(gate.stdout).toContain("# Ankaa report");
+    expect(existsSync(join(cwd, "ankaa.sarif"))).toBe(false);
   });
 
   it("AC-ACT.4 gate fails (exit-code=1) on error findings with fail-on error", async () => {
@@ -338,7 +338,7 @@ async function simulateReviewAction(
       "--format",
       "json",
       "--output",
-      "apigovscan-review.json",
+      "ankaa-review.json",
       "--baseline-label",
       label,
     ],
@@ -350,14 +350,14 @@ async function simulateReviewAction(
     { cwd },
   );
 
-  const artifactPath = join(cwd, "apigovscan-review.json");
+  const artifactPath = join(cwd, "ankaa-review.json");
   return {
     baselinePath: base,
     artifactPath,
     artifactJson: existsSync(artifactPath)
       ? (JSON.parse(readFileSync(artifactPath, "utf8")) as Record<string, unknown>)
       : undefined,
-    summary: `## ApiGovScan API change review\n\n${gate.stdout}`,
+    summary: `## Ankaa API change review\n\n${gate.stdout}`,
     outputs: `exit-code=${gate.code}\n`,
     gateCode: gate.code,
   };
@@ -391,7 +391,7 @@ describe("action review mode (f14 M14.3, AC-14.9)", () => {
     );
     expect(JSON.stringify(sim.artifactJson)).toContain("BRK-001");
 
-    expect(sim.summary).toContain("## ApiGovScan API change review");
+    expect(sim.summary).toContain("## Ankaa API change review");
     expect(sim.summary).toContain("review: findings");
     expect(sim.summary).toContain("baseline: main:candidate.yaml → candidate: candidate.yaml");
     expect(sim.outputs.trim()).toBe("exit-code=1");
@@ -460,7 +460,7 @@ describe("action review mode (f14 M14.3, AC-14.9)", () => {
     expect(artifact.env?.AG_REVIEW_REF).toBe("${{ inputs.review-ref }}");
     expect(artifact.run).toContain('review "$AG_REVIEW_BASE_PATH" "$AG_PATH"');
     expect(artifact.run).toContain('--baseline-label "$AG_REVIEW_REF:$AG_PATH"');
-    expect(artifact.run).toContain("--output apigovscan-review.json");
+    expect(artifact.run).toContain("--output ankaa-review.json");
 
     const annotations = action.runs.steps.find((s) => s.id === "annotations")!;
     expect(annotations.if).toBe("inputs.review-ref == ''");

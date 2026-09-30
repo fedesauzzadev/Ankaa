@@ -22,7 +22,7 @@ const tempRoots: string[] = [];
 const clonedDirs: string[] = [];
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-scan-repo-e2e-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-scan-repo-e2e-"));
   tempRoots.push(dir);
   return dir;
 }
@@ -74,7 +74,7 @@ describe("scan-repo CLI e2e", () => {
       ["node", "cli", "scan-repo", "https://github.com/example/api.git", "--format", "json"],
       {
         cwd,
-        env: { APIGOVSCAN_LICENSE_KEY: DEV_LICENSE_KEY },
+        env: { ANKAA_LICENSE_KEY: DEV_LICENSE_KEY },
         stdout: (text) => (stdout += text),
         stderr: (text) => (stderr += text),
         isTTY: false,
@@ -89,7 +89,7 @@ describe("scan-repo CLI e2e", () => {
       findings: unknown[];
     };
     expect(report).toMatchObject({
-      tool: { name: "apigovscan" },
+      tool: { name: "ankaa" },
       input: [{ path: expect.stringContaining("openapi.yaml") }],
     });
     expect(report.findings.length).toBeGreaterThan(0);
@@ -112,7 +112,7 @@ describe("scan-repo CLI e2e", () => {
       ["node", "cli", "scan-repo", "git@github.com:example/api.git", "--workdir", "checkout"],
       {
         cwd,
-        env: { APIGOVSCAN_LICENSE_KEY: DEV_LICENSE_KEY },
+        env: { ANKAA_LICENSE_KEY: DEV_LICENSE_KEY },
         stdout: (text) => (stdout += text),
         stderr: () => {},
         isTTY: false,
@@ -120,7 +120,7 @@ describe("scan-repo CLI e2e", () => {
     );
 
     expect(code).toBe(0);
-    expect(stdout).toContain("ApiGovScan");
+    expect(stdout).toContain("Ankaa");
     expect(readdirSync(workdir)).toEqual(["repo"]);
     expect(readFileSync(join(workdir, "repo", "openapi.yaml"), "utf8")).toContain("openapi:");
   });
@@ -143,7 +143,7 @@ describe("scan-repo CLI e2e", () => {
       ],
       {
         cwd,
-        env: { APIGOVSCAN_LICENSE_KEY: DEV_LICENSE_KEY },
+        env: { ANKAA_LICENSE_KEY: DEV_LICENSE_KEY },
         stdout: () => {},
         stderr: () => {},
         isTTY: false,
@@ -152,7 +152,7 @@ describe("scan-repo CLI e2e", () => {
 
     expect(code).toBe(0);
     expect(JSON.parse(readFileSync(output, "utf8"))).toMatchObject({
-      tool: { name: "apigovscan" },
+      tool: { name: "ankaa" },
       input: [expect.objectContaining({ path: expect.stringContaining("openapi.yaml") })],
     });
   });

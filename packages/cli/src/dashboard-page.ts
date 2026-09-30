@@ -4,7 +4,7 @@ export function renderDashboardPage(): string {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Findings dashboard · ApiGovScan</title>
+<title>Findings dashboard · Ankaa</title>
 <style>
 :root {
   --paper: #faf8f3;
@@ -345,7 +345,7 @@ details.glossary th { background: var(--card); }
       '<p class="msg">' + esc(f.message) + "</p>" + where + fix + src +
       '<div class="fp">fingerprint ' + esc(String(f.fingerprint).slice(0, 12)) + "…</div>" +
       '<div class="llmrow"><button class="copyllm" data-fp="' + esc(f.fingerprint) + '" title="Copy a ready-to-paste prompt for any LLM with this finding\u2019s rule, location and fix hint. No spec content is included — only metadata and pointers.">Copy prompt for LLM</button>' +
-      '<button class="copyfix" data-fp="' + esc(f.fingerprint) + '" data-loc="' + esc(f.location) + '" title="Copy the terminal command that asks your configured LLM for a patch draft of this finding (needs llm.baseUrl in apigovscan.yaml).">Copy fix command</button>' +
+      '<button class="copyfix" data-fp="' + esc(f.fingerprint) + '" data-loc="' + esc(f.location) + '" title="Copy the terminal command that asks your configured LLM for a patch draft of this finding (needs llm.baseUrl in ankaa.yaml).">Copy fix command</button>' +
       '<button class="copysuppress" data-fp="' + esc(f.fingerprint) + '" title="Copy the terminal command that records this finding as false-positive/wontfix with your reason (no hand-written JSON). Paste it in your terminal and set --decision/--reason.">Copy suppress command</button></div>' +
       '<div class="statusrow" data-fp="' + esc(f.fingerprint) + '">' +
       ["pending", "in_progress", "resolved"].map(function (s) {
@@ -403,7 +403,7 @@ details.glossary th { background: var(--card); }
   }
   function promptText(f) {
     var lines = [
-      "Help me fix an API governance finding reported by ApiGovScan.",
+      "Help me fix an API governance finding reported by Ankaa.",
       "",
       "Rule: " + f.ruleId + " [severity: " + f.severity + ", category: " + (f.category || "n/a") + ", pack: " + (f.packId || "unknown") + (f.packVersion ? " " + f.packVersion : "") + "]",
       "Message: " + f.message
@@ -456,7 +456,7 @@ details.glossary th { background: var(--card); }
   }
   function copySuppressCommand(fp, btn) {
     var report = state.reportFile || "report.json";
-    var cmd = 'apigovscan suppress --report "' + report + '" --fingerprint ' + String(fp).slice(0, 12) +
+    var cmd = 'ankaa suppress --report "' + report + '" --fingerprint ' + String(fp).slice(0, 12) +
       ' --decision wontfix --reason "why this stays as-is"';
     copyText(cmd, function (ok) { flash(btn, ok, "Copied — set --decision/--reason in your terminal"); });
   }
@@ -464,7 +464,7 @@ details.glossary th { background: var(--card); }
     var hash = String(loc || "").indexOf("#");
     var file = hash >= 0 ? String(loc).slice(0, hash) : String(loc || "");
     if (!file) file = (state.report.input && state.report.input[0] && state.report.input[0].path) || "spec.yaml";
-    var cmd = 'apigovscan fix "' + file + '" --fingerprint ' + String(fp).slice(0, 12);
+    var cmd = 'ankaa fix "' + file + '" --fingerprint ' + String(fp).slice(0, 12);
     copyText(cmd, function (ok) { flash(btn, ok, "Copied — paste it in your terminal"); });
   }
   function setStatus(fp, status) {

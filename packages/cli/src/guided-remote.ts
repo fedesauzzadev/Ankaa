@@ -1,8 +1,8 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { packageVersion, type Rule } from "@apigovscan/core";
-import type { Report } from "@apigovscan/reporters";
+import { packageVersion, type Rule } from "@ankaa/core";
+import type { Report } from "@ankaa/reporters";
 import { analyzeUseCase } from "./analyze.js";
 import { prepareAnalysis } from "./analyze-setup.js";
 import { loadConfig } from "./config.js";
@@ -89,7 +89,7 @@ export async function analyzeRemoteRepo(
   }
   let tempRoot: string | undefined;
   try {
-    tempRoot = mkdtempSync(join(tmpdir(), "apigovscan-guided-repo-"));
+    tempRoot = mkdtempSync(join(tmpdir(), "ankaa-guided-repo-"));
     const repoDir = join(tempRoot, "repo");
     note("cloning repository (network)…");
     const cloned = await cloneRemoteRepo(opts.url, repoDir);
@@ -126,7 +126,7 @@ export type AnalyzeGithubOrgResult =
 /**
  * List the repositories of a GitHub organization (network action, explicitly
  * consented by the caller), clone each one into a temporary directory and
- * analyze them locally. Fresh scan: nothing is persisted under .apigovscan;
+ * analyze them locally. Fresh scan: nothing is persisted under .ankaa;
  * resumable runs remain available via `scan-org --resume`.
  */
 export async function analyzeGithubOrg(
@@ -147,7 +147,7 @@ export async function analyzeGithubOrg(
   let tempRoot: string | undefined;
   const skipped: SkippedRepo[] = [];
   try {
-    tempRoot = mkdtempSync(join(tmpdir(), "apigovscan-guided-org-"));
+    tempRoot = mkdtempSync(join(tmpdir(), "ankaa-guided-org-"));
     const scans: RepoScan[] = [];
     for (const repo of listed.repos) {
       const dest = join(tempRoot, repo.name);
@@ -182,7 +182,7 @@ export async function analyzeGithubOrg(
     if (scans.length === 0) {
       return { ok: false, error: "no repositories with specs could be analyzed" };
     }
-    const report = aggregateScans(scans, undefined, "apigovscan", packageVersion(), opts.org);
+    const report = aggregateScans(scans, undefined, "ankaa", packageVersion(), opts.org);
     report.skipped = [...skipped, ...report.skipped].sort((a, b) =>
       a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
     );

@@ -7,7 +7,7 @@ export {
   type ParseOptions,
 } from "./parse.js";
 
-export const GRPC_PACKAGE = "@apigovscan/grpc";
+export const GRPC_PACKAGE = "@ankaa/grpc";
 
 export function grpcPackageId(): string {
   return GRPC_PACKAGE;

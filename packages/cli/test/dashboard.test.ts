@@ -59,7 +59,7 @@ describe("dashboard helpers (f10-dashboard)", () => {
   });
 
   it("tracking roundtrips through save/load", () => {
-    const dir = mkdtempSync(join(tmpdir(), "apigovscan-dashboard-"));
+    const dir = mkdtempSync(join(tmpdir(), "ankaa-dashboard-"));
     try {
       const tracking = setFindingStatus(emptyTracking(), "a".repeat(64), "resolved");
       const path = join(dir, "roundtrip.tracking.json");

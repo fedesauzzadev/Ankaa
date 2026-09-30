@@ -29,7 +29,7 @@ async function analyzeCase(input: string): Promise<string[]> {
       stdout += t;
     },
     stderr: () => {},
-    env: { ANKAA_LICENSE_KEY: DEV_LICENSE_KEY, APIGOVSCAN_LICENSE_KEY: DEV_LICENSE_KEY },
+    env: { ANKAA_LICENSE_KEY: DEV_LICENSE_KEY, ANKAA_LICENSE_KEY: DEV_LICENSE_KEY },
     cwd: repoRoot,
     isTTY: false,
   });

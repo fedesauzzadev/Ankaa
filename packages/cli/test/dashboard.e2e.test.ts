@@ -14,7 +14,7 @@ const smallReport = join(fixtures, "report-small.json");
 
 const tempRoots: string[] = [];
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-dashboard-e2e-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-dashboard-e2e-"));
   tempRoots.push(dir);
   return dir;
 }
@@ -46,7 +46,7 @@ describe("dashboard server e2e (f10-dashboard)", () => {
     const html = renderDashboardPage();
     expect(html).toContain('class="copysuppress"');
     expect(html).toContain("Copy suppress command");
-    expect(html).toContain("apigovscan suppress --report");
+    expect(html).toContain("ankaa suppress --report");
     expect(html).toContain("--decision wontfix --reason");
 
     const dir = tempDir();

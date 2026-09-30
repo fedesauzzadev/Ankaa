@@ -1,4 +1,4 @@
-name: "ApiGovScan"
+name: "Ankaa"
 description: "Local-first API governance check for OpenAPI specs (SARIF, annotations, job summary; optional API change review vs a base ref)"
 branding:
   icon: shield
@@ -16,12 +16,12 @@ inputs:
     default: "sarif"
   cli:
     description: "CLI command to invoke"
-    default: "npx -y @apigovscan/cli"
+    default: "npx -y @ankaa/cli"
   rules:
     description: "Custom rule files (space-separated paths; analyze mode only)"
     default: ""
   config:
-    description: "Path to apigovscan.yaml (optional)"
+    description: "Path to ankaa.yaml (optional)"
     default: ""
   baseline:
     description: "Apply baseline findings filter (true|false; analyze mode only)"
@@ -30,7 +30,7 @@ inputs:
     description: "Review mode: git ref (branch, tag or SHA) holding the baseline contract (empty = analyze mode)"
     default: ""
   license-key:
-    description: "License key (also via APIGOVSCAN_LICENSE_KEY env or config license.key)"
+    description: "License key (also via ANKAA_LICENSE_KEY env or config license.key)"
     default: ""
 
 outputs:
@@ -52,7 +52,7 @@ runs:
         AG_PATH: ${{ inputs.path }}
         AG_REVIEW_REF: ${{ inputs.review-ref }}
         AG_RULES: ${{ inputs.rules }}
-        APIGOVSCAN_LICENSE_KEY: ${{ inputs.license-key }}
+        ANKAA_LICENSE_KEY: ${{ inputs.license-key }}
       run: |
         set -euo pipefail
         if [ -n "$AG_RULES" ]; then
@@ -86,17 +86,17 @@ runs:
         AG_BASELINE: ${{ inputs.baseline }}
         AG_REVIEW_BASE_PATH: ${{ steps.review-base.outputs.baseline-path }}
         AG_REVIEW_REF: ${{ inputs.review-ref }}
-        APIGOVSCAN_LICENSE_KEY: ${{ inputs.license-key }}
+        ANKAA_LICENSE_KEY: ${{ inputs.license-key }}
       run: |
         set -euo pipefail
         if [ -n "$AG_REVIEW_BASE_PATH" ]; then
           flags=()
           if [ -n "$AG_CONFIG" ]; then flags+=(--config "$AG_CONFIG"); fi
-          $AG_CLI review "$AG_REVIEW_BASE_PATH" "$AG_PATH" --fail-on never --format json --output apigovscan-review.json --baseline-label "$AG_REVIEW_REF:$AG_PATH" "${flags[@]}"
-          echo "sarif-path=apigovscan-review.json" >> "$GITHUB_OUTPUT"
+          $AG_CLI review "$AG_REVIEW_BASE_PATH" "$AG_PATH" --fail-on never --format json --output ankaa-review.json --baseline-label "$AG_REVIEW_REF:$AG_PATH" "${flags[@]}"
+          echo "sarif-path=ankaa-review.json" >> "$GITHUB_OUTPUT"
           exit 0
         fi
-        if [ "$AG_FORMAT" = "json" ]; then out="apigovscan.json"; else out="apigovscan.sarif"; fi
+        if [ "$AG_FORMAT" = "json" ]; then out="ankaa.json"; else out="ankaa.sarif"; fi
         flags=()
         if [ -n "$AG_RULES" ]; then
           read -ra rule_files <<< "$AG_RULES"
@@ -117,7 +117,7 @@ runs:
         AG_RULES: ${{ inputs.rules }}
         AG_CONFIG: ${{ inputs.config }}
         AG_BASELINE: ${{ inputs.baseline }}
-        APIGOVSCAN_LICENSE_KEY: ${{ inputs.license-key }}
+        ANKAA_LICENSE_KEY: ${{ inputs.license-key }}
       run: |
         set -euo pipefail
         flags=()
@@ -141,13 +141,13 @@ runs:
         AG_BASELINE: ${{ inputs.baseline }}
         AG_REVIEW_BASE_PATH: ${{ steps.review-base.outputs.baseline-path }}
         AG_REVIEW_REF: ${{ inputs.review-ref }}
-        APIGOVSCAN_LICENSE_KEY: ${{ inputs.license-key }}
+        ANKAA_LICENSE_KEY: ${{ inputs.license-key }}
       run: |
         set -uo pipefail
         if [ -n "$AG_REVIEW_BASE_PATH" ]; then
           flags=()
           if [ -n "$AG_CONFIG" ]; then flags+=(--config "$AG_CONFIG"); fi
-          printf '## ApiGovScan API change review\n\n' >> "$GITHUB_STEP_SUMMARY"
+          printf '## Ankaa API change review\n\n' >> "$GITHUB_STEP_SUMMARY"
           $AG_CLI review "$AG_REVIEW_BASE_PATH" "$AG_PATH" --fail-on "$AG_FAIL_ON" --format console --baseline-label "$AG_REVIEW_REF:$AG_PATH" "${flags[@]}" >> "$GITHUB_STEP_SUMMARY"
           code=$?
           echo "exit-code=$code" >> "$GITHUB_OUTPUT"

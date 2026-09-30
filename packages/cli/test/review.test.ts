@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
-import { packageVersion } from "@apigovscan/core";
+import { packageVersion } from "@ankaa/core";
 import { loadConfig } from "../src/config.js";
 import { prepareAnalysis } from "../src/analyze-setup.js";
 import { createFsPackRepository, createFsSpecLoader } from "../src/loaders.js";
@@ -13,7 +13,7 @@ const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..")
 const tempRoots: string[] = [];
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-review-unit-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-review-unit-"));
   tempRoots.push(dir);
   return dir;
 }

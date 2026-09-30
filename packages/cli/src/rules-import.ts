@@ -2,8 +2,8 @@ import { extname } from "node:path";
 import { createRequire } from "node:module";
 import { stringify as stringifyYaml } from "yaml";
 import mammoth from "mammoth";
-import { redactText } from "@apigovscan/reporters";
-import { validateRule, type Rule } from "@apigovscan/core";
+import { redactText } from "@ankaa/reporters";
+import { validateRule, type Rule } from "@ankaa/core";
 import type { ChatMessage } from "./llm.js";
 
 // pdf-parse v1 runs a file-system self-test when imported as ESM

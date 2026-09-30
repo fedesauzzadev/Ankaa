@@ -23,11 +23,11 @@ describe("aggregateScans (AC-SO.1-3 parcial)", () => {
         repo({ name: "b", findings: 1, warnings: 1, score: 90, grade: "A", coverage: 90 }),
       ],
       undefined,
-      "apigovscan",
+      "ankaa",
       "0.0.0-dev",
       null,
     );
-    expect(report.tool).toBe("apigovscan");
+    expect(report.tool).toBe("ankaa");
     expect(report.org).toBeNull();
     expect(report.totals).toEqual({
       repos: 2,
@@ -53,7 +53,7 @@ describe("aggregateScans (AC-SO.1-3 parcial)", () => {
         repo({ name: "top", score: 99 }),
       ],
       undefined,
-      "apigovscan",
+      "ankaa",
       "0.0.0-dev",
       null,
     );
@@ -69,7 +69,7 @@ describe("aggregateScans (AC-SO.1-3 parcial)", () => {
         repo({ name: "misc", score: 80 }),
       ],
       { "pay-api": "checkout", "shop-api": "checkout" },
-      "apigovscan",
+      "ankaa",
       "0.0.0-dev",
       "acme",
     );

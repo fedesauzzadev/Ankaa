@@ -1,4 +1,4 @@
-export const MCP_PACKAGE = "@apigovscan/mcp";
+export const MCP_PACKAGE = "@ankaa/mcp";
 
 export function mcpPackageId(): string {
   return MCP_PACKAGE;

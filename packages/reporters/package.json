@@ -1,7 +1,7 @@
 {
-  "name": "@apigovscan/reporters",
+  "name": "@ankaa/reporters",
   "version": "0.0.0-dev",
-  "description": "Console and JSON reporters for ApiGovScan",
+  "description": "Console and JSON reporters for Ankaa",
   "license": "Apache-2.0",
   "author": "fedesauzzadev (https://github.com/fedesauzzadev)",
   "type": "module",
@@ -22,7 +22,7 @@
     "typecheck": "tsc -b --pretty"
   },
   "dependencies": {
-    "@apigovscan/core": "workspace:*"
+    "@ankaa/core": "workspace:*"
   },
   "devDependencies": {
     "vitest": "^2.1.8"

@@ -8,7 +8,7 @@ export {
   type ParseOptions,
 } from "./parse.js";
 
-export const ASYNCAPI_PACKAGE = "@apigovscan/asyncapi";
+export const ASYNCAPI_PACKAGE = "@ankaa/asyncapi";
 
 export function asyncapiPackageId(): string {
   return ASYNCAPI_PACKAGE;

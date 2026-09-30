@@ -35,7 +35,7 @@ describe("LLM boundary (AC-SF.9)", () => {
   it("rules import never touches the analyze use-case (AC-RI.11)", () => {
     const text = readFileSync(join(cliSrc, "rules-import.ts"), "utf8");
     expect(text).not.toMatch(/from\s+['"]\.\/analyze\.js['"]/);
-    expect(text).not.toMatch(/from\s+['"]@apigovscan\/openapi['"]/);
+    expect(text).not.toMatch(/from\s+['"]@ankaa\/openapi['"]/);
   });
 
   it("drift and route-signatures never import the analyze use-case (AC-DR.9)", () => {

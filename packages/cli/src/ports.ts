@@ -1,5 +1,5 @@
-import type { RulePack } from "@apigovscan/core";
-import type { Report } from "@apigovscan/reporters";
+import type { RulePack } from "@ankaa/core";
+import type { Report } from "@ankaa/reporters";
 
 export interface SpecLoader {
   load(path: string, signal?: AbortSignal): Promise<Uint8Array>;

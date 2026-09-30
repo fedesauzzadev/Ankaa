@@ -11,7 +11,7 @@ const petstore = join(repoRoot, "fixtures", "petstore-mini.yaml");
 const tempRoots: string[] = [];
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-cfg-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-cfg-"));
   tempRoots.push(dir);
   return dir;
 }
@@ -79,7 +79,7 @@ const INLINE_TEAM = JSON.stringify({
 describe("config e2e (AC-C.*)", () => {
   it("AC-C.1 unknown top-level key exits 2", async () => {
     const dir = tempDir();
-    writeFileSync(join(dir, "apigovscan.yaml"), "failOn: error\nwat: true\n", "utf8");
+    writeFileSync(join(dir, "ankaa.yaml"), "failOn: error\nwat: true\n", "utf8");
     const { code, stderr } = await runCapture(["analyze", petstore, "--no-color"], { cwd: dir });
     expect(code).toBe(2);
     expect(stderr).toContain('unknown key "wat"');
@@ -87,7 +87,7 @@ describe("config e2e (AC-C.*)", () => {
 
   it("AC-C.3 --fail-on overrides config failOn", async () => {
     const dir = tempDir();
-    writeFileSync(join(dir, "apigovscan.yaml"), "failOn: never\n", "utf8");
+    writeFileSync(join(dir, "ankaa.yaml"), "failOn: never\n", "utf8");
     const withFlag = await runCapture(
       ["analyze", petstore, "--fail-on", "warning", "--format", "json", "--no-color"],
       { cwd: dir },
@@ -107,7 +107,7 @@ describe("config e2e (AC-C.*)", () => {
     const dir = tempDir();
     writeFileSync(join(dir, "team.yaml"), TEAM_RULE, "utf8");
     writeFileSync(
-      join(dir, "apigovscan.yaml"),
+      join(dir, "ankaa.yaml"),
       ["failOn: never", "customRules:", "  - ./team.yaml"].join("\n"),
       "utf8",
     );
@@ -128,7 +128,7 @@ describe("config e2e (AC-C.*)", () => {
 
   it("AC-C.4 missing customRules path exits 2", async () => {
     const dir = tempDir();
-    writeFileSync(join(dir, "apigovscan.yaml"), "customRules:\n  - ./missing.yaml\n", "utf8");
+    writeFileSync(join(dir, "ankaa.yaml"), "customRules:\n  - ./missing.yaml\n", "utf8");
     const { code, stderr } = await runCapture(["analyze", petstore, "--no-color"], { cwd: dir });
     expect(code).toBe(2);
     expect(stderr).toContain("customRules not found");
@@ -141,7 +141,7 @@ describe("config e2e (AC-C.*)", () => {
     mkdirSync(nested, { recursive: true });
     writeFileSync(join(nested, "team.yaml"), TEAM_RULE, "utf8");
     writeFileSync(
-      join(nested, "apigovscan.yaml"),
+      join(nested, "ankaa.yaml"),
       ["failOn: never", "customRules:", "  - ./team.yaml"].join("\n"),
       "utf8",
     );
@@ -155,7 +155,7 @@ describe("config e2e (AC-C.*)", () => {
         "analyze",
         petstore,
         "--config",
-        join(nested, "apigovscan.yaml"),
+        join(nested, "ankaa.yaml"),
         "--format",
         "json",
         "--no-color",
@@ -195,7 +195,7 @@ describe("config e2e (AC-C.*)", () => {
       "utf8",
     );
     writeFileSync(
-      join(dir, "apigovscan.yaml"),
+      join(dir, "ankaa.yaml"),
       ["failOn: error", "rules:", "  NAMING-001: off"].join("\n"),
       "utf8",
     );
@@ -218,8 +218,8 @@ describe("config e2e (AC-C.*)", () => {
   it("AC-C.7 skillsDir is accepted (allowlist f3)", async () => {
     const dir = tempDir();
     writeFileSync(
-      join(dir, "apigovscan.yaml"),
-      "failOn: never\nskillsDir: .apigovscan/skills\n",
+      join(dir, "ankaa.yaml"),
+      "failOn: never\nskillsDir: .ankaa/skills\n",
       "utf8",
     );
     const { code, stderr } = await runCapture(["analyze", petstore, "--no-color"], { cwd: dir });
@@ -231,7 +231,7 @@ describe("config e2e (AC-C.*)", () => {
     const dir = tempDir();
     writeFileSync(join(dir, "team.yaml"), TEAM_RULE, "utf8");
     writeFileSync(
-      join(dir, "apigovscan.yaml"),
+      join(dir, "ankaa.yaml"),
       ["failOn: never", "customRules:", "  - ./team.yaml"].join("\n"),
       "utf8",
     );
@@ -272,8 +272,8 @@ describe("config e2e (AC-C.*)", () => {
     expect(ids).toContain("TEAM-900");
   });
 
-  it("AC-C.9 examples/apigovscan.yaml parses against f2 schema", async () => {
-    const example = join(repoRoot, "examples", "apigovscan.yaml");
+  it("AC-C.9 examples/ankaa.yaml parses against f2 schema", async () => {
+    const example = join(repoRoot, "examples", "ankaa.yaml");
     const { readFileSync } = await import("node:fs");
     const { loadConfigFromText } = await import("../src/config.js");
     const result = loadConfigFromText(readFileSync(example, "utf8"), example);
@@ -282,13 +282,13 @@ describe("config e2e (AC-C.*)", () => {
     expect(result.config.failOn).toBe("error");
     expect(result.config.customRules).toEqual(["./team-rules.yaml"]);
     expect(result.config.baseline?.enabled).toBe(false);
-    expect(result.config.skillsDir).toBe(".apigovscan/skills");
+    expect(result.config.skillsDir).toBe(".ankaa/skills");
   });
 
   it("warns when standards.version mismatches embedded pack", async () => {
     const dir = tempDir();
     writeFileSync(
-      join(dir, "apigovscan.yaml"),
+      join(dir, "ankaa.yaml"),
       ["failOn: never", "standards:", '  version: "1999.01.1"'].join("\n"),
       "utf8",
     );

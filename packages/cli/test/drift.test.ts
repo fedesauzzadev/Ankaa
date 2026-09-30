@@ -84,7 +84,7 @@ describe("buildSpecSkeleton (AC-DR.7 parcial)", () => {
       "demo",
     );
     expect(yaml).toContain("openapi: 3.1.0");
-    expect(yaml).toContain("Drafted by apigovscan drift from demo");
+    expect(yaml).toContain("Drafted by ankaa drift from demo");
     const doc = parseYaml(yaml) as {
       paths: Record<string, Record<string, { operationId: string; responses: unknown }>>;
     };

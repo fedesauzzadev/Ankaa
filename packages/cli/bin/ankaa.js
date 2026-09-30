@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { run } from "../dist/apigovscan.mjs";
+import { run } from "../dist/ankaa.mjs";
 
 // AC-A.16: un throw fuera de los paths conocidos nunca escupe stack crudo.
 try {

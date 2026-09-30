@@ -12,7 +12,7 @@ const execFileAsync = promisify(execFile);
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const tempRoots: string[] = [];
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-export-e2e-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-export-e2e-"));
   tempRoots.push(dir);
   return dir;
 }
@@ -36,7 +36,7 @@ describe("export CLI", () => {
       packVersion: "2026.09.1",
     };
     const report = {
-      tool: { name: "apigovscan", version: "1.0.0" },
+      tool: { name: "ankaa", version: "1.0.0" },
       input: [{ path: "openapi.yaml", sha256: "b".repeat(64) }],
       findings: [finding],
     };
@@ -89,13 +89,13 @@ describe("export CLI", () => {
       isTTY: false,
     });
     expect(invalid).toBe(2);
-    expect(stderr).toContain("not an apigovscan report");
+    expect(stderr).toContain("not an ankaa report");
 
     writeFileSync(join(dir, "existing.json"), "keep", "utf8");
     writeFileSync(
       join(dir, "valid.json"),
       JSON.stringify({
-        tool: { name: "apigovscan", version: "1.0.0" },
+        tool: { name: "ankaa", version: "1.0.0" },
         input: [],
         findings: [],
       }),
@@ -174,8 +174,8 @@ describe("export CLI", () => {
       expect(seen[0]).toMatchObject({
         fields: {
           project: { key: "API" },
-          summary: "[ApiGovScan] NAMING-001: GET /user",
-          labels: ["apigovscan", "a".repeat(64)],
+          summary: "[Ankaa] NAMING-001: GET /user",
+          labels: ["ankaa", "a".repeat(64)],
         },
       });
     } finally {

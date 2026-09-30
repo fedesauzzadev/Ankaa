@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
-import { packageVersion, type Rule, type Severity } from "@apigovscan/core";
+import { packageVersion, type Rule, type Severity } from "@ankaa/core";
 import { type AnalyzeConfig, resolveCustomRulePaths } from "./config.js";
 import { collectCustomRules, packRuleIds, type RulesSource } from "./custom-rules.js";
 import {

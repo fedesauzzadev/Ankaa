@@ -3,8 +3,8 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
 import { describe, expect, it } from "vitest";
-import { evaluate, flattenRuleLists, loadPack } from "@apigovscan/core";
-import { parseAsyncAPI } from "@apigovscan/asyncapi";
+import { evaluate, flattenRuleLists, loadPack } from "@ankaa/core";
+import { parseAsyncAPI } from "@ankaa/asyncapi";
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const packDir = join(repoRoot, "packs", "asyncapi");

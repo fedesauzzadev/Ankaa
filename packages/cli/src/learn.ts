@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
-import { validateRule, type Finding, type Severity } from "@apigovscan/core";
+import { validateRule, type Finding, type Severity } from "@ankaa/core";
 import { resolveFingerprint } from "./fix.js";
 import {
   DEFAULT_SKILLS_DIR,

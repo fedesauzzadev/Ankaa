@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import { createMcpServer } from "@apigovscan/mcp";
+import { createMcpServer } from "@ankaa/mcp";
 import { DEV_LICENSE_KEY } from "../src/license.js";
 import { run } from "../src/index.js";
 import { createCliMcpHandlers } from "../src/mcp.js";
@@ -15,7 +15,7 @@ const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..")
 const tempRoots: string[] = [];
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-review-mcp-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-review-mcp-"));
   tempRoots.push(dir);
   return dir;
 }
@@ -36,7 +36,7 @@ async function connect(
   const handlers = createCliMcpHandlers(cwd);
   const server = createMcpServer(handlers, {
     cwd,
-    name: "apigovscan",
+    name: "ankaa",
     version: "0.0.0-dev",
     ...(maxFindings !== undefined ? { maxFindings } : {}),
   });
@@ -79,7 +79,7 @@ async function runCliReview(
       stdout += t;
     },
     stderr: () => {},
-    env: { APIGOVSCAN_LICENSE_KEY: DEV_LICENSE_KEY },
+    env: { ANKAA_LICENSE_KEY: DEV_LICENSE_KEY },
     cwd,
     isTTY: false,
   });

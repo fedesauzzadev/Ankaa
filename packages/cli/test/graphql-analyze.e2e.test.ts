@@ -14,7 +14,7 @@ const invalid = join(gqlFixtures, "invalid.graphql");
 const tempRoots: string[] = [];
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-gql-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-gql-"));
   tempRoots.push(dir);
   return dir;
 }

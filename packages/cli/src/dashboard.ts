@@ -86,7 +86,7 @@ export function loadReportFile(
   if (!isRecord(raw) || !Array.isArray(raw["findings"]) || !isRecord(raw["summary"])) {
     return {
       ok: false,
-      error: `report file is not an apigovscan report: ${path} (missing findings/summary)`,
+      error: `report file is not an ankaa report: ${path} (missing findings/summary)`,
     };
   }
   return { ok: true, report: raw as unknown as DashboardReport };
@@ -375,7 +375,7 @@ async function handleRequest(
 
 export function dashboardHelp(): string {
   return [
-    "usage: apigovscan dashboard <report.json> [--port <n>] [--tracking <file>] [--against <old.json>] [--group-by <file>]",
+    "usage: ankaa dashboard <report.json> [--port <n>] [--tracking <file>] [--against <old.json>] [--group-by <file>]",
     "",
     "Serve a local read-only viewer for a report on 127.0.0.1.",
     "Tracking states persist to <report.json>.tracking.json unless --tracking is given.",

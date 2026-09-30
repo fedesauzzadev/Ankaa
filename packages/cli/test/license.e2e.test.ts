@@ -12,7 +12,7 @@ const petstore = join(repoRoot, "fixtures", "petstore-mini.yaml");
 const tempRoots: string[] = [];
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-lic-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-lic-"));
   tempRoots.push(dir);
   return dir;
 }
@@ -56,7 +56,7 @@ describe("license gating e2e (f6-distribution)", () => {
     const out = await runCapture(["analyze", "openapi.yaml"], { cwd: dir, env: {} });
     expect(out.code).toBe(2);
     expect(out.stderr).toContain("missing license");
-    expect(out.stderr).toContain("APIGOVSCAN_LICENSE_KEY");
+    expect(out.stderr).toContain("ANKAA_LICENSE_KEY");
   });
 
   it("AC-D.3 analyze with env license runs normally", async () => {
@@ -64,7 +64,7 @@ describe("license gating e2e (f6-distribution)", () => {
     copyFileSync(petstore, join(dir, "openapi.yaml"));
     const out = await runCapture(["analyze", "openapi.yaml"], {
       cwd: dir,
-      env: { APIGOVSCAN_LICENSE_KEY: DEV_LICENSE_KEY },
+      env: { ANKAA_LICENSE_KEY: DEV_LICENSE_KEY },
     });
     expect(out.code).toBe(0);
     expect(out.stdout).toContain("score");
@@ -75,7 +75,7 @@ describe("license gating e2e (f6-distribution)", () => {
     copyFileSync(petstore, join(dir, "openapi.yaml"));
     const out = await runCapture(
       ["analyze", "openapi.yaml", "--license-key", "AGS-evil-20991231-000000000000"],
-      { cwd: dir, env: { APIGOVSCAN_LICENSE_KEY: DEV_LICENSE_KEY } },
+      { cwd: dir, env: { ANKAA_LICENSE_KEY: DEV_LICENSE_KEY } },
     );
     expect(out.code).toBe(2);
     expect(out.stderr).toContain("bad signature");
@@ -84,7 +84,7 @@ describe("license gating e2e (f6-distribution)", () => {
   it("AC-D.2 config license.key is used when env is absent", async () => {
     const dir = tempDir();
     copyFileSync(petstore, join(dir, "openapi.yaml"));
-    writeFileSync(join(dir, "apigovscan.yaml"), `license:\n  key: "${DEV_LICENSE_KEY}"\n`, "utf8");
+    writeFileSync(join(dir, "ankaa.yaml"), `license:\n  key: "${DEV_LICENSE_KEY}"\n`, "utf8");
     const out = await runCapture(["analyze", "openapi.yaml"], {
       cwd: dir,
       env: {},
@@ -96,13 +96,13 @@ describe("license gating e2e (f6-distribution)", () => {
     const dir = tempDir();
     copyFileSync(petstore, join(dir, "openapi.yaml"));
     writeFileSync(
-      join(dir, "apigovscan.yaml"),
+      join(dir, "ankaa.yaml"),
       'license:\n  key: "AGS-wrong-20991231-000000000000"\n',
       "utf8",
     );
     const out = await runCapture(["analyze", "openapi.yaml"], {
       cwd: dir,
-      env: { APIGOVSCAN_LICENSE_KEY: DEV_LICENSE_KEY },
+      env: { ANKAA_LICENSE_KEY: DEV_LICENSE_KEY },
     });
     expect(out.code).toBe(0);
   });
@@ -113,7 +113,7 @@ describe("license gating e2e (f6-distribution)", () => {
     const expired = generateLicenseKey("acme", "20200101");
     const out = await runCapture(["analyze", "openapi.yaml"], {
       cwd: dir,
-      env: { APIGOVSCAN_LICENSE_KEY: expired },
+      env: { ANKAA_LICENSE_KEY: expired },
     });
     expect(out.code).toBe(2);
     expect(out.stderr).toContain("expired");
@@ -146,7 +146,7 @@ describe("license gating e2e (f6-distribution)", () => {
 
   it("AC-D.5 license command falls back to env", async () => {
     const out = await runCapture(["license"], {
-      env: { APIGOVSCAN_LICENSE_KEY: DEV_LICENSE_KEY },
+      env: { ANKAA_LICENSE_KEY: DEV_LICENSE_KEY },
     });
     expect(out.code).toBe(0);
     expect(out.stdout).toContain("valid");
@@ -156,7 +156,7 @@ describe("license gating e2e (f6-distribution)", () => {
     const dir = tempDir();
     const out = await runCapture(["analyze", "openapi.yaml", "--nope"], {
       cwd: dir,
-      env: { APIGOVSCAN_LICENSE_KEY: DEV_LICENSE_KEY },
+      env: { ANKAA_LICENSE_KEY: DEV_LICENSE_KEY },
     });
     expect(out.code).toBe(2);
     expect(out.stderr).toContain("unknown option");

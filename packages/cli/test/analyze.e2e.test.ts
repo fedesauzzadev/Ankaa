@@ -22,7 +22,7 @@ const malformed = join(fixtures, "malformed.yaml");
 const tempRoots: string[] = [];
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-e2e-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-e2e-"));
   tempRoots.push(dir);
   return dir;
 }
@@ -85,7 +85,7 @@ describe("analyze e2e (f1-analyze)", () => {
   it("AC-A.1 happy path on petstore-mini exits 0 or 1 without crashing", async () => {
     const { code, stdout, stderr } = await runCapture(["analyze", petstore, "--no-color"]);
     expect([0, 1]).toContain(code);
-    expect(stdout).toContain("ApiGovScan");
+    expect(stdout).toContain("Ankaa");
     expect(stdout).toContain("reportHash");
     expect(stderr).not.toContain("error:");
   });
@@ -188,7 +188,7 @@ describe("analyze e2e (f1-analyze)", () => {
     ]) {
       expect(keys).toContain(required);
     }
-    expect(parsed!.tool).toEqual({ name: "apigovscan", version: "0.0.0-dev" });
+    expect(parsed!.tool).toEqual({ name: "ankaa", version: "0.0.0-dev" });
     expect(Array.isArray(parsed!.findings)).toBe(true);
     expect(Array.isArray(parsed!.packs)).toBe(true);
     expect(Array.isArray(parsed!.input)).toBe(true);
@@ -303,7 +303,7 @@ describe("analyze e2e (f1-analyze)", () => {
       "utf8",
     );
     writeFileSync(
-      join(dir, "apigovscan.yaml"),
+      join(dir, "ankaa.yaml"),
       ["failOn: error", "rules:", "  NAMING-001: off"].join("\n"),
       "utf8",
     );
@@ -382,9 +382,9 @@ describe("analyze e2e (f1-analyze)", () => {
     ]);
     expect([0, 1]).toContain(code);
     expect(stdout).toContain("reportHash");
-    expect(stdout).not.toContain("ApiGovScan 0.0.0-dev · packs");
+    expect(stdout).not.toContain("Ankaa 0.0.0-dev · packs");
     const file = readFileSync(outPath, "utf8");
-    expect(file).toContain("ApiGovScan");
+    expect(file).toContain("Ankaa");
     expect(file).toContain("reportHash");
   });
 

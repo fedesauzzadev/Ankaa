@@ -2,8 +2,8 @@ import { randomBytes } from "node:crypto";
 import { existsSync, statSync } from "node:fs";
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import { isAbsolute, resolve } from "node:path";
-import { packageVersion, type Rule } from "@apigovscan/core";
-import type { Report } from "@apigovscan/reporters";
+import { packageVersion, type Rule } from "@ankaa/core";
+import type { Report } from "@ankaa/reporters";
 import { analyzeUseCase } from "./analyze.js";
 import { ANALYZE_OPERATION, type AnalyzeProgressPhase, type OperationState } from "./operations.js";
 import { prepareAnalysis } from "./analyze-setup.js";
@@ -112,7 +112,7 @@ export function startWorkspaceServer(opts: WorkspaceServerOptions, port: number)
         return false;
       }
     }
-    if (mutation && req.headers["x-apigovscan-token"] !== token) {
+    if (mutation && req.headers["x-ankaa-token"] !== token) {
       json(res, 403, { ok: false, error: "missing or invalid workspace token" });
       return false;
     }
@@ -473,10 +473,10 @@ export function startWorkspaceServer(opts: WorkspaceServerOptions, port: number)
 
 export function workspaceHelp(): string {
   return [
-    "usage: apigovscan workspace [--port <n>]",
+    "usage: ankaa workspace [--port <n>]",
     "",
     "Serve the guided local workspace app on 127.0.0.1 (ephemeral port by default).",
-    "Runs typed ApiGovScan operations (analyze) with live progress; loopback only,",
+    "Runs typed Ankaa operations (analyze) with live progress; loopback only,",
     "token-protected mutations, no external resources. Ctrl+C to stop.",
   ].join("\n");
 }

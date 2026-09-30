@@ -3,7 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-const binPath = join(dirname(fileURLToPath(import.meta.url)), "..", "bin", "apigovscan.js");
+const binPath = join(dirname(fileURLToPath(import.meta.url)), "..", "bin", "ankaa.js");
 
 describe("bin global guard (AC-A.16)", () => {
   it("wraps run in try/catch with internal failure exit 2 and no raw stack", () => {

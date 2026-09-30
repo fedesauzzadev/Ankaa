@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildReport, computeReportHash, computeScore, type ReportScore } from "../src/index.js";
-import type { EvaluationResult, Finding, Severity } from "@apigovscan/core";
+import type { EvaluationResult, Finding, Severity } from "@ankaa/core";
 
 function finding(severity: Severity): Finding {
   return {

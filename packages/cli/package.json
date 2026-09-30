@@ -1,16 +1,16 @@
 {
-  "name": "@apigovscan/cli",
+  "name": "@ankaa/cli",
   "version": "0.0.0-dev",
-  "description": "ApiGovScan CLI — local-first API governance analyzer",
+  "description": "Ankaa CLI — local-first API governance analyzer",
   "license": "Apache-2.0",
   "author": "fedesauzzadev (https://github.com/fedesauzzadev)",
   "type": "module",
   "bin": {
-    "apigovscan": "./bin/apigovscan.js"
+    "ankaa": "./bin/ankaa.js"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/fedesauzzadev/ApiGovScan.git",
+    "url": "https://github.com/fedesauzzadev/Ankaa.git",
     "directory": "packages/cli"
   },
   "publishConfig": {
@@ -31,19 +31,19 @@
     "LICENSE.md"
   ],
   "scripts": {
-    "build": "tsc -b && node ./scripts/copy-packs.mjs && esbuild dist/index.js --bundle --platform=node --format=esm --target=node22 --outfile=dist/apigovscan.mjs --banner:js=\"import{createRequire as __apigovscanCreateRequire}from'node:module';const require=__apigovscanCreateRequire(import.meta.url);\"",
+    "build": "tsc -b && node ./scripts/copy-packs.mjs && esbuild dist/index.js --bundle --platform=node --format=esm --target=node22 --outfile=dist/ankaa.mjs --banner:js=\"import{createRequire as __ankaaCreateRequire}from'node:module';const require=__ankaaCreateRequire(import.meta.url);\"",
     "test": "vitest run",
     "typecheck": "tsc -b --pretty"
   },
   "dependencies": {
-    "@apigovscan/core": "workspace:*",
-    "@apigovscan/asyncapi": "workspace:*",
-    "@apigovscan/webhooks": "workspace:*",
-    "@apigovscan/graphql": "workspace:*",
-    "@apigovscan/grpc": "workspace:*",
-    "@apigovscan/mcp": "workspace:*",
-    "@apigovscan/openapi": "workspace:*",
-    "@apigovscan/reporters": "workspace:*",
+    "@ankaa/core": "workspace:*",
+    "@ankaa/asyncapi": "workspace:*",
+    "@ankaa/webhooks": "workspace:*",
+    "@ankaa/graphql": "workspace:*",
+    "@ankaa/grpc": "workspace:*",
+    "@ankaa/mcp": "workspace:*",
+    "@ankaa/openapi": "workspace:*",
+    "@ankaa/reporters": "workspace:*",
     "mammoth": "^1.12.3",
     "pdf-parse": "1.1.1",
     "yaml": "^2.9.1"

@@ -1,4 +1,4 @@
-# Example team rules for ApiGovScan (see examples/apigovscan.yaml).
+# Example team rules for Ankaa (see examples/ankaa.yaml).
 rules:
   - id: TEAM-001
     category: custom

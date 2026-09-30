@@ -30,12 +30,12 @@ export function loadLlmConfig(
   env: Record<string, string | undefined>,
 ): LlmConfig | undefined {
   const raw = readMapping(config);
-  const baseUrl = clean(env.APIGOVSCAN_LLM_BASE_URL) ?? clean(raw.baseUrl);
+  const baseUrl = clean(env.ANKAA_LLM_BASE_URL) ?? clean(raw.baseUrl);
   if (baseUrl === undefined) {
     return undefined;
   }
-  const apiKey = clean(env.APIGOVSCAN_LLM_API_KEY) ?? clean(raw.apiKey);
-  const model = clean(env.APIGOVSCAN_LLM_MODEL) ?? clean(raw.model);
+  const apiKey = clean(env.ANKAA_LLM_API_KEY) ?? clean(raw.apiKey);
+  const model = clean(env.ANKAA_LLM_MODEL) ?? clean(raw.model);
   const cfg: LlmConfig = { baseUrl };
   if (apiKey !== undefined) {
     cfg.apiKey = apiKey;
@@ -52,7 +52,7 @@ export async function chatCompletion(
   opts?: { timeoutMs?: number },
 ): Promise<string> {
   if (cfg.model === undefined) {
-    throw new Error("llm.model is not configured (set llm.model or APIGOVSCAN_LLM_MODEL)");
+    throw new Error("llm.model is not configured (set llm.model or ANKAA_LLM_MODEL)");
   }
   const url = `${cfg.baseUrl.replace(/\/+$/, "")}/chat/completions`;
   let res: Response;

@@ -38,7 +38,7 @@ export type LoadScanOrgWorkspaceResult =
 
 export function scanOrgWorkspaceFile(cwd: string, org: string): string {
   const orgKey = createHash("sha256").update(org.toLowerCase()).digest("hex");
-  return join(cwd, ".apigovscan", "workspace", "orgs", orgKey, "history.json");
+  return join(cwd, ".ankaa", "workspace", "orgs", orgKey, "history.json");
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -94,7 +94,7 @@ function isWorkspace(value: unknown, org: string): value is ScanOrgWorkspace {
 
 function ensureWorkspaceParent(historyPath: string): void {
   const workspaceRoot = resolve(dirname(historyPath), "..", "..", "..", "..");
-  const directories = [".apigovscan", "workspace", "orgs", basename(dirname(historyPath))];
+  const directories = [".ankaa", "workspace", "orgs", basename(dirname(historyPath))];
   let current = workspaceRoot;
   for (const directory of directories) {
     current = join(current, directory);

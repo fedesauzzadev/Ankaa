@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { parse as parseYaml } from "yaml";
-import { validateRule, type Rule, type RulePack } from "@apigovscan/core";
+import { validateRule, type Rule, type RulePack } from "@ankaa/core";
 
 export type RulesSource = { kind: "file"; path: string } | { kind: "inline"; json: string };
 

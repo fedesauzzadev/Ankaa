@@ -7,7 +7,7 @@ import { collectCustomRules, loadRulesFile, validateRulesFiles } from "../src/cu
 const tempRoots: string[] = [];
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-rules-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-rules-"));
   tempRoots.push(dir);
   return dir;
 }

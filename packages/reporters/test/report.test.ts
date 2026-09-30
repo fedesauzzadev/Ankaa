@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { EvaluationResult, Finding } from "@apigovscan/core";
+import type { EvaluationResult, Finding } from "@ankaa/core";
 import {
   buildReport,
   canonicalJson,
@@ -172,7 +172,7 @@ describe("formatJson", () => {
       "tool",
     ]);
     expect(parsed.tool).toEqual({
-      name: "apigovscan",
+      name: "ankaa",
       version: "0.0.0-dev",
     });
     expect(parsed.score).toEqual({ value: 92, grade: "A" });

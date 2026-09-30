@@ -10,9 +10,9 @@ import {
   truncateAnalyzePayload,
 } from "../src/index.js";
 
-describe("@apigovscan/mcp", () => {
+describe("@ankaa/mcp", () => {
   it("exposes package id", () => {
-    expect(mcpPackageId()).toBe("@apigovscan/mcp");
+    expect(mcpPackageId()).toBe("@ankaa/mcp");
   });
 });
 
@@ -37,7 +37,7 @@ describe("resolveSandboxPath", () => {
   });
 
   it("keeps the lexical path through an inside symlink (CLI parity)", () => {
-    const root = mkdtempSync(join(tmpdir(), "apigovscan-sb-"));
+    const root = mkdtempSync(join(tmpdir(), "ankaa-sb-"));
     try {
       const realDir = join(root, "real");
       mkdirSync(realDir);
@@ -56,8 +56,8 @@ describe("resolveSandboxPath", () => {
   });
 
   it("rejects symlinks that escape cwd", () => {
-    const root = mkdtempSync(join(tmpdir(), "apigovscan-sb-"));
-    const outside = mkdtempSync(join(tmpdir(), "apigovscan-out-"));
+    const root = mkdtempSync(join(tmpdir(), "ankaa-sb-"));
+    const outside = mkdtempSync(join(tmpdir(), "ankaa-out-"));
     try {
       writeFileSync(join(outside, "openapi.yaml"), "openapi: 3.0.3\n");
       try {

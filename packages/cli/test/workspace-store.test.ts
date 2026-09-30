@@ -13,7 +13,7 @@ import {
 const roots: string[] = [];
 
 function makeRoot(): string {
-  const root = mkdtempSync(join(tmpdir(), "apigovscan-workspace-"));
+  const root = mkdtempSync(join(tmpdir(), "ankaa-workspace-"));
   roots.push(root);
   return root;
 }
@@ -23,7 +23,7 @@ afterEach(() => {
 });
 
 describe("scan-org workspace persistence", () => {
-  it("stores versioned history under the local ApiGovScan workspace", () => {
+  it("stores versioned history under the local Ankaa workspace", () => {
     const cwd = makeRoot();
     const filePath = scanOrgWorkspaceFile(cwd, "acme");
     const initial = loadScanOrgWorkspace(filePath, "acme");
@@ -55,7 +55,7 @@ describe("scan-org workspace persistence", () => {
 
   it("rejects a non-directory workspace parent", () => {
     const cwd = makeRoot();
-    const workspaceEntry = join(cwd, ".apigovscan");
+    const workspaceEntry = join(cwd, ".ankaa");
     writeFileSync(workspaceEntry, "preserve this file", "utf8");
     const result = acquireScanOrgWorkspaceLock(scanOrgWorkspaceFile(cwd, "acme"));
     expect(result.ok).toBe(false);

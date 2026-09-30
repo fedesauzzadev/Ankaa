@@ -5,7 +5,7 @@ import type {
   Response,
   SchemaNode,
   Spec,
-} from "@apigovscan/core";
+} from "@ankaa/core";
 import { createHash } from "node:crypto";
 
 export interface ParseLimits {

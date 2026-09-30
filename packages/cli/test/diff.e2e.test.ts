@@ -11,7 +11,7 @@ const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..")
 const tempRoots: string[] = [];
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-diff-e2e-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-diff-e2e-"));
   tempRoots.push(dir);
   return dir;
 }
@@ -49,7 +49,7 @@ async function runCapture(
 }
 
 function licEnv(): Env {
-  return { APIGOVSCAN_LICENSE_KEY: DEV_LICENSE_KEY };
+  return { ANKAA_LICENSE_KEY: DEV_LICENSE_KEY };
 }
 
 const BASE = [
@@ -179,7 +179,7 @@ describe("diff e2e (f12-breaking)", () => {
 
   it("AC-BK.5 rules off disables a check; fingerprint suppression hides it", async () => {
     const { dir, base, head } = setupPair();
-    writeFileSync(join(dir, "apigovscan.yaml"), "rules:\n  BRK-001: off\n", "utf8");
+    writeFileSync(join(dir, "ankaa.yaml"), "rules:\n  BRK-001: off\n", "utf8");
     const off = await runCapture(["diff", base, head, "--format", "json", "--no-color"], {
       cwd: dir,
       env: licEnv(),
@@ -197,7 +197,7 @@ describe("diff e2e (f12-breaking)", () => {
       findings: Array<{ ruleId: string; fingerprint: string }>;
     };
     const target = firstReport.findings.find((f) => f.ruleId === "BRK-005")!;
-    const skillsDir = join(dir2, ".apigovscan", "skills");
+    const skillsDir = join(dir2, ".ankaa", "skills");
     mkdirSync(skillsDir, { recursive: true });
     writeFileSync(
       join(skillsDir, "suppressions.yaml"),

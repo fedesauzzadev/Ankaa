@@ -1,4 +1,4 @@
-import type { Severity } from "@apigovscan/core";
+import type { Severity } from "@ankaa/core";
 import type { Report } from "./build.js";
 import { redactText } from "./redact.js";
 
@@ -38,7 +38,7 @@ export function formatMarkdown(report: Report): string {
       : "_(none)_";
 
   const lines: string[] = [];
-  lines.push("# ApiGovScan report");
+  lines.push("# Ankaa report");
   lines.push("");
   lines.push("| | |");
   lines.push("|---|---|");

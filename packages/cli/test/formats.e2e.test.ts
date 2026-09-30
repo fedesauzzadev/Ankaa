@@ -12,7 +12,7 @@ const petstore = join(fixtures, "petstore-mini.yaml");
 const tempRoots: string[] = [];
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-formats-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-formats-"));
   tempRoots.push(dir);
   return dir;
 }
@@ -125,7 +125,7 @@ describe("analyze output formats e2e (f5-reporters)", () => {
     ]);
     expect([0, 1]).toContain(code);
     expect(stdout).toMatch(/^::(error|warning|notice) /m);
-    expect(stdout).not.toContain("# ApiGovScan report");
+    expect(stdout).not.toContain("# Ankaa report");
     expect(stdout).not.toContain("reportHash");
   });
 
@@ -161,7 +161,7 @@ describe("analyze output formats e2e (f5-reporters)", () => {
       "markdown",
       "--no-color",
     ]);
-    expect(stdout.startsWith("# ApiGovScan report")).toBe(true);
+    expect(stdout.startsWith("# Ankaa report")).toBe(true);
     expect(stdout).toContain("reportHash");
     expect(stdout).toContain("## Findings");
     expect(stdout.endsWith("\n")).toBe(true);

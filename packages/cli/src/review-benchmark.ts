@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { packageVersion } from "@apigovscan/core";
+import { packageVersion } from "@ankaa/core";
 import { loadConfig } from "./config.js";
 import { prepareAnalysis } from "./analyze-setup.js";
 import { createFsPackRepository, createFsSpecLoader } from "./loaders.js";
@@ -8,7 +8,7 @@ import { reviewUseCase } from "./review.js";
 
 /**
  * Reference prompt a user would paste (plus both full contracts) to ask an LLM
- * for the same review without ApiGovScan context. English: global CI consumers.
+ * for the same review without Ankaa context. English: global CI consumers.
  */
 export const REFERENCE_REVIEW_PROMPT = [
   "You are reviewing an API change.",
@@ -231,6 +231,6 @@ export async function runReviewBenchmark(
         0,
       ),
     },
-    note: "Token counts are chars/4 approximations of the reference prompt path vs the ApiGovScan context package; no model was called. Detection is the deterministic engine against corpus ground truth. durationMs is machine-dependent. No savings percentage is claimed without measured model results.",
+    note: "Token counts are chars/4 approximations of the reference prompt path vs the Ankaa context package; no model was called. Detection is the deterministic engine against corpus ground truth. durationMs is machine-dependent. No savings percentage is claimed without measured model results.",
   };
 }

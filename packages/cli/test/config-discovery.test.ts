@@ -8,7 +8,7 @@ import { loadConfig, loadConfigFromText, resolveCustomRulePaths } from "../src/c
 const tempRoots: string[] = [];
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-unit-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-unit-"));
   tempRoots.push(dir);
   return dir;
 }
@@ -105,7 +105,7 @@ describe("loadConfig", () => {
         "  NAMING-001: off",
         "  ERR-010: warning",
       ].join("\n"),
-      "apigovscan.yaml",
+      "ankaa.yaml",
     );
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -127,14 +127,14 @@ describe("loadConfig", () => {
   });
 
   it("fails on invalid failOn", () => {
-    const result = loadConfigFromText("failOn: fatal", "apigovscan.yaml");
+    const result = loadConfigFromText("failOn: fatal", "ankaa.yaml");
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error).toContain("failOn");
   });
 
   it("fails on invalid rules value", () => {
-    const result = loadConfigFromText("rules:\n  X-001: nope", "apigovscan.yaml");
+    const result = loadConfigFromText("rules:\n  X-001: nope", "ankaa.yaml");
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error).toContain("rules.X-001");
@@ -149,25 +149,25 @@ describe("loadConfig", () => {
   });
 
   it("AC-C.1 rejects unknown top-level key", () => {
-    const result = loadConfigFromText("failOn: error\nwat: true\n", "apigovscan.yaml");
+    const result = loadConfigFromText("failOn: error\nwat: true\n", "ankaa.yaml");
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error).toContain('unknown key "wat"');
   });
 
   it("AC-C.7 allows skillsDir without deep validation", () => {
-    const result = loadConfigFromText("skillsDir: .apigovscan/skills\n", "apigovscan.yaml");
+    const result = loadConfigFromText("skillsDir: .ankaa/skills\n", "ankaa.yaml");
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.config.skillsDir).toBe(".apigovscan/skills");
+    expect(result.config.skillsDir).toBe(".ankaa/skills");
   });
 
   it("parses customRules as string or list", () => {
-    const single = loadConfigFromText("customRules: ./team.yaml\n", "apigovscan.yaml");
+    const single = loadConfigFromText("customRules: ./team.yaml\n", "ankaa.yaml");
     expect(single.ok).toBe(true);
     if (single.ok) expect(single.config.customRules).toEqual(["./team.yaml"]);
 
-    const multi = loadConfigFromText("customRules:\n  - a.yaml\n  - b.yaml\n", "apigovscan.yaml");
+    const multi = loadConfigFromText("customRules:\n  - a.yaml\n  - b.yaml\n", "ankaa.yaml");
     expect(multi.ok).toBe(true);
     if (multi.ok) expect(multi.config.customRules).toEqual(["a.yaml", "b.yaml"]);
   });
@@ -177,22 +177,22 @@ describe("loadConfig", () => {
       [
         "baseline:",
         "  enabled: true",
-        "  path: .apigovscan/baseline.json",
+        "  path: .ankaa/baseline.json",
         "  strictHash: true",
       ].join("\n"),
-      "apigovscan.yaml",
+      "ankaa.yaml",
     );
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.config.baseline).toEqual({
       enabled: true,
-      path: ".apigovscan/baseline.json",
+      path: ".ankaa/baseline.json",
       strictHash: true,
     });
   });
 
   it("rejects unknown key inside baseline", () => {
-    const result = loadConfigFromText("baseline:\n  enabled: true\n  nope: 1\n", "apigovscan.yaml");
+    const result = loadConfigFromText("baseline:\n  enabled: true\n  nope: 1\n", "ankaa.yaml");
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error).toContain('unknown key "nope"');
@@ -200,7 +200,7 @@ describe("loadConfig", () => {
 
   it("AC-C.5 sets configDir for path resolution", () => {
     const dir = tempDir();
-    const cfg = join(dir, "apigovscan.yaml");
+    const cfg = join(dir, "ankaa.yaml");
     writeFileSync(cfg, "customRules:\n  - ./team.yaml\n", "utf8");
     const result = loadConfig(dir);
     expect(result.ok).toBe(true);

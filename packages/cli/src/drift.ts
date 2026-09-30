@@ -1,7 +1,7 @@
 import { readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { stringify as stringifyYaml } from "yaml";
-import { redactText } from "@apigovscan/reporters";
+import { redactText } from "@ankaa/reporters";
 import type { ChatMessage } from "./llm.js";
 import { detectRoutes, type DetectedRoute } from "./route-signatures.js";
 
@@ -58,7 +58,7 @@ const SKIP_DIRS = new Set([
   "build",
   "coverage",
   "vendor",
-  ".apigovscan",
+  ".ankaa",
 ]);
 
 function byEndpoint(a: Endpoint, b: Endpoint): number {
@@ -231,14 +231,14 @@ export function buildSpecSkeleton(routes: DetectedRoute[], sourceLabel: string):
         operationId: toOperationId(method, path),
         summary: "TODO",
         responses: {
-          default: { description: "Drafted by apigovscan drift" },
+          default: { description: "Drafted by ankaa drift" },
         },
       };
     }
     paths[path] = operations;
   }
   return (
-    `# Drafted by apigovscan drift from ${sourceLabel} — review before use\n` +
+    `# Drafted by ankaa drift from ${sourceLabel} — review before use\n` +
     stringifyYaml({
       openapi: "3.1.0",
       info: { title: "Draft API", version: "0.1.0-draft" },

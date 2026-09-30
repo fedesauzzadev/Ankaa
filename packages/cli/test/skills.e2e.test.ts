@@ -10,7 +10,7 @@ const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..")
 const tempRoots: string[] = [];
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-skills-e2e-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-skills-e2e-"));
   tempRoots.push(dir);
   return dir;
 }
@@ -106,7 +106,7 @@ describe("skills e2e (AC-S.*)", () => {
     const before = await analyzeOnce(dir);
     const fp = firstFingerprint(before.report!);
 
-    const skillsDir = join(dir, ".apigovscan", "skills");
+    const skillsDir = join(dir, ".ankaa", "skills");
     mkdirSync(skillsDir, { recursive: true });
     writeFileSync(
       join(skillsDir, "suppressions.yaml"),
@@ -138,7 +138,7 @@ describe("skills e2e (AC-S.*)", () => {
     const before = await analyzeOnce(dir);
     const fp = firstFingerprint(before.report!);
 
-    const skillsDir = join(dir, ".apigovscan", "skills");
+    const skillsDir = join(dir, ".ankaa", "skills");
     mkdirSync(skillsDir, { recursive: true });
     writeFileSync(
       join(skillsDir, "suppressions.yaml"),
@@ -175,7 +175,7 @@ describe("skills e2e (AC-S.*)", () => {
     const target = findingsBefore[0]!;
     const newSev = target.severity === "error" ? "info" : "error";
 
-    const skillsDir = join(dir, ".apigovscan", "skills");
+    const skillsDir = join(dir, ".ankaa", "skills");
     mkdirSync(skillsDir, { recursive: true });
     writeFileSync(
       join(skillsDir, "severities.yaml"),
@@ -210,7 +210,7 @@ describe("skills e2e (AC-S.*)", () => {
   it("AC-S.6 invalid skills YAML → exit 2 with path", async () => {
     const dir = tempDir();
     writeFileSync(join(dir, "openapi.yaml"), SPEC_WITH_DEBT, "utf8");
-    const skillsDir = join(dir, ".apigovscan", "skills");
+    const skillsDir = join(dir, ".ankaa", "skills");
     mkdirSync(skillsDir, { recursive: true });
     writeFileSync(
       join(skillsDir, "suppressions.yaml"),
@@ -244,7 +244,7 @@ describe("skills e2e (AC-S.*)", () => {
     ].join("\n");
     writeFileSync(join(dir, "openapi.yaml"), spec, "utf8");
 
-    const skillsDir = join(dir, ".apigovscan", "skills", "drafts");
+    const skillsDir = join(dir, ".ankaa", "skills", "drafts");
     mkdirSync(skillsDir, { recursive: true });
     const draftRule = [
       "id: TEAM-001",
@@ -290,7 +290,7 @@ describe("skills e2e (AC-S.*)", () => {
     const before = await analyzeOnce(dir);
     const fp = firstFingerprint(before.report!);
 
-    const skillsDir = join(dir, ".apigovscan", "skills");
+    const skillsDir = join(dir, ".ankaa", "skills");
     mkdirSync(skillsDir, { recursive: true });
     // empty first
     writeFileSync(join(skillsDir, "suppressions.yaml"), "version: 1\nsuppressions: []\n", "utf8");
@@ -321,7 +321,7 @@ describe("skills e2e (AC-S.*)", () => {
     const first = await analyzeOnce(dir);
     const fp = firstFingerprint(first.report!);
 
-    const skillsDir = join(dir, ".apigovscan", "skills");
+    const skillsDir = join(dir, ".ankaa", "skills");
     mkdirSync(skillsDir, { recursive: true });
     writeFileSync(
       join(skillsDir, "suppressions.yaml"),
@@ -340,7 +340,7 @@ describe("skills e2e (AC-S.*)", () => {
     const b = await analyzeOnce(dir);
     expect(a.report!.reportHash).toBe(b.report!.reportHash);
     expect(fp).toMatch(/^[0-9a-f]{64}$/);
-    expect(existsSync(join(dir, ".apigovscan", "baseline.json"))).toBe(false);
+    expect(existsSync(join(dir, ".ankaa", "baseline.json"))).toBe(false);
     // skills only read, not written (INV-7)
     expect(readdirSync(skillsDir).sort()).toEqual(["severities.yaml", "suppressions.yaml"]);
   });
@@ -389,7 +389,7 @@ describe("skills e2e (AC-S.*)", () => {
     const fp = firstFingerprint(before.report!);
     const total = (before.report!.summary as { total: number }).total;
 
-    const skillsDir = join(dir, ".apigovscan", "skills");
+    const skillsDir = join(dir, ".ankaa", "skills");
     mkdirSync(skillsDir, { recursive: true });
     writeFileSync(
       join(skillsDir, "suppressions.yaml"),
@@ -438,7 +438,7 @@ describe("skills e2e (AC-S.*)", () => {
     const before = await analyzeOnce(dir);
     const total = (before.report!.summary as { total: number }).total;
 
-    const skillsDir = join(dir, ".apigovscan", "skills");
+    const skillsDir = join(dir, ".ankaa", "skills");
     mkdirSync(skillsDir, { recursive: true });
     writeFileSync(
       join(skillsDir, "suppressions.yaml"),
@@ -462,7 +462,7 @@ describe("skills e2e (AC-S.*)", () => {
   it("AC-S.11 invalid expires in YAML is exit 2", async () => {
     const dir = tempDir();
     writeFileSync(join(dir, "openapi.yaml"), SPEC_WITH_DEBT, "utf8");
-    const skillsDir = join(dir, ".apigovscan", "skills");
+    const skillsDir = join(dir, ".ankaa", "skills");
     mkdirSync(skillsDir, { recursive: true });
     writeFileSync(
       join(skillsDir, "suppressions.yaml"),
@@ -497,7 +497,7 @@ describe("skills e2e (AC-S.*)", () => {
       "utf8",
     );
     writeFileSync(
-      join(dir, "apigovscan.yaml"),
+      join(dir, "ankaa.yaml"),
       ["failOn: never", "skillsDir: team/skills", ""].join("\n"),
       "utf8",
     );

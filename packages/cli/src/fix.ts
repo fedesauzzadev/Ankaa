@@ -1,6 +1,6 @@
 import { parse as parseYaml } from "yaml";
-import { redactText } from "@apigovscan/reporters";
-import type { RuleExamples } from "@apigovscan/core";
+import { redactText } from "@ankaa/reporters";
+import type { RuleExamples } from "@ankaa/core";
 import type { ChatMessage } from "./llm.js";
 
 export type FixConfidence = "low" | "medium" | "high";

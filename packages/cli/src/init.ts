@@ -29,10 +29,10 @@ const CONFIG_SCAFFOLD = [
   "failOn: error",
   "standards:",
   "  pack: elite",
-  "skillsDir: .apigovscan/skills",
+  "skillsDir: .ankaa/skills",
   "baseline:",
   "  enabled: false",
-  "  path: .apigovscan/baseline.json",
+  "  path: .ankaa/baseline.json",
   "",
 ].join("\n");
 
@@ -43,22 +43,22 @@ const SUPPRESSIONS_SCAFFOLD = [`version: ${SKILLS_SCHEMA_VERSION}`, "suppression
 const SEVERITIES_SCAFFOLD = [`version: ${SKILLS_SCHEMA_VERSION}`, "overrides: []", ""].join("\n");
 
 const SKILLS_README = [
-  "# ApiGovScan skills",
+  "# Ankaa skills",
   "",
   "Local feedback loop (INV-5: idempotent learn):",
   "",
-  "1. `apigovscan analyze <spec> --format json --output report.json`",
+  "1. `ankaa analyze <spec> --format json --output report.json`",
   "2. Edit `feedback.json` items: `false_positive` | `wontfix` | `severity_change` | `confirm` | `suggest_rule`",
-  "3. `apigovscan learn --report report.json --feedback feedback.json`",
+  "3. `ankaa learn --report report.json --feedback feedback.json`",
   "4. Review diff, commit, re-run analyze",
   "",
   "- Fingerprint suppressions live in `suppressions.yaml` (reason required).",
   "- Severity overrides live in `severities.yaml`.",
-  "- Draft rules in `drafts/` stay inactive until `apigovscan skills promote <PREFIX-NNN>`.",
+  "- Draft rules in `drafts/` stay inactive until `ankaa skills promote <PREFIX-NNN>`.",
   "",
 ].join("\n");
 
-const CONFIG_KEY = "apigovscan.yaml";
+const CONFIG_KEY = "ankaa.yaml";
 const SUPPRESSIONS_KEY = "suppressions.yaml";
 const SEVERITIES_KEY = "severities.yaml";
 const SKILLS_README_KEY = "README.md";

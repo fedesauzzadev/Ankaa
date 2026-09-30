@@ -10,7 +10,7 @@ const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..")
 const tempRoots: string[] = [];
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-review-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-review-"));
   tempRoots.push(dir);
   return dir;
 }
@@ -34,7 +34,7 @@ async function runCapture(
     stderr: (text) => {
       stderr += text;
     },
-    env: { APIGOVSCAN_LICENSE_KEY: DEV_LICENSE_KEY },
+    env: { ANKAA_LICENSE_KEY: DEV_LICENSE_KEY },
     cwd,
     isTTY: false,
   });
@@ -199,9 +199,9 @@ describe("review UX quality (f14 M14.4)", () => {
     const brk = report.findings.find((f) => f.ruleId === "BRK-001")!;
     expect(brk).toBeDefined();
 
-    mkdirSync(join(dir, ".apigovscan", "skills"), { recursive: true });
+    mkdirSync(join(dir, ".ankaa", "skills"), { recursive: true });
     writeFileSync(
-      join(dir, ".apigovscan", "skills", "suppressions.yaml"),
+      join(dir, ".ankaa", "skills", "suppressions.yaml"),
       [`version: 1`, `suppressions:`, `  - fingerprint: "${brk.fingerprint}"`, `    reason: "Removal accepted for v2"`].join(
         "\n",
       ),
@@ -232,9 +232,9 @@ describe("review UX quality (f14 M14.4)", () => {
     writeFileSync(join(dir, "base.yaml"), fixture("/users"), "utf8");
     writeFileSync(join(dir, "candidate.yaml"), fixture("/user"), "utf8");
 
-    mkdirSync(join(dir, ".apigovscan", "skills"), { recursive: true });
+    mkdirSync(join(dir, ".ankaa", "skills"), { recursive: true });
     writeFileSync(
-      join(dir, ".apigovscan", "skills", "suppressions.yaml"),
+      join(dir, ".ankaa", "skills", "suppressions.yaml"),
       [
         "version: 1",
         "suppressions:",
@@ -274,9 +274,9 @@ describe("review UX quality (f14 M14.4)", () => {
       (JSON.parse(first.stdout) as { findings: Array<{ fingerprint: string }> }).findings ?? []
     ).map((f) => f.fingerprint);
     expect(fingerprints.length).toBeGreaterThan(0);
-    mkdirSync(join(dir, ".apigovscan", "skills"), { recursive: true });
+    mkdirSync(join(dir, ".ankaa", "skills"), { recursive: true });
     writeFileSync(
-      join(dir, ".apigovscan", "skills", "suppressions.yaml"),
+      join(dir, ".ankaa", "skills", "suppressions.yaml"),
       [
         "version: 1",
         "suppressions:",

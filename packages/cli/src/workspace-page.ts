@@ -4,7 +4,7 @@ export function renderWorkspacePage(token: string): string {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ApiGovScan workspace</title>
+<title>Ankaa workspace</title>
 <style>
   :root { color-scheme: light dark; }
   * { box-sizing: border-box; }
@@ -50,7 +50,7 @@ export function renderWorkspacePage(token: string): string {
 </head>
 <body>
 <header>
-  <h1>ApiGovScan workspace</h1>
+  <h1>Ankaa workspace</h1>
   <nav aria-label="Sections">
     <button data-view="home" aria-current="page">Home</button>
     <button data-view="new">New analysis</button>
@@ -159,7 +159,7 @@ export function renderWorkspacePage(token: string): string {
   }
 
   function api(path, options) {
-    var init = { headers: { "x-apigovscan-token": TOKEN } };
+    var init = { headers: { "x-ankaa-token": TOKEN } };
     if (options && options.method) init.method = options.method;
     if (options && options.body) init.body = JSON.stringify(options.body);
     return fetch(path, init).then(function (res) {

@@ -9,7 +9,7 @@ export {
 } from "./parse.js";
 export { convertSwagger1, convertSwagger2, isSwagger1Doc, isSwagger2Doc } from "./legacy.js";
 
-export const OPENAPI_PACKAGE = "@apigovscan/openapi";
+export const OPENAPI_PACKAGE = "@ankaa/openapi";
 
 export function openapiPackageId(): string {
   return OPENAPI_PACKAGE;

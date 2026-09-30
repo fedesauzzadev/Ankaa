@@ -14,7 +14,7 @@ const invalid = join(grpcFixtures, "invalid.proto");
 const tempRoots: string[] = [];
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-grpc-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-grpc-"));
   tempRoots.push(dir);
   return dir;
 }

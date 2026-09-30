@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync, writeFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
-import type { Finding } from "@apigovscan/core";
+import type { Finding } from "@ankaa/core";
 import {
   BASELINE_SCHEMA_VERSION,
   buildBaseline,
@@ -18,7 +18,7 @@ import {
 const tempRoots: string[] = [];
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-baseline-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-baseline-"));
   tempRoots.push(dir);
   return dir;
 }
@@ -99,7 +99,7 @@ describe("buildBaseline / serialize", () => {
 describe("writeBaselineFile / loadBaselineFile", () => {
   it("writes then loads roundtrip", () => {
     const dir = tempDir();
-    const path = join(dir, ".apigovscan", "baseline.json");
+    const path = join(dir, ".ankaa", "baseline.json");
     const baseline = buildBaseline({
       findings: [finding()],
       inputs: [{ path: "a.yaml", sha256: "sha256:1" }],
@@ -223,7 +223,7 @@ describe("resolveBaselinePath", () => {
 
   it("default path when nothing set", () => {
     const path = resolveBaselinePath(undefined, undefined, undefined, "/cwd");
-    expect(path).toBe(resolve("/cwd", ".apigovscan", "baseline.json"));
+    expect(path).toBe(resolve("/cwd", ".ankaa", "baseline.json"));
   });
 });
 

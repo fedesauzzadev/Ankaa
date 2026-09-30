@@ -17,7 +17,7 @@ export type LicenseCheck =
     };
 
 export function licenseSecret(): string {
-  return process.env.APIGOVSCAN_LICENSE_SECRET ?? DEFAULT_SECRET;
+  return process.env.ANKAA_LICENSE_SECRET ?? DEFAULT_SECRET;
 }
 
 export function generateLicenseKey(
@@ -77,7 +77,7 @@ export function verifyLicenseKey(key: string, today?: string): LicenseCheck {
 export function licenseErrorMessage(check: Exclude<LicenseCheck, { ok: true }>): string {
   switch (check.reason) {
     case "missing":
-      return "missing license: set --license-key, APIGOVSCAN_LICENSE_KEY or license.key in apigovscan.yaml";
+      return "missing license: set --license-key, ANKAA_LICENSE_KEY or license.key in ankaa.yaml";
     case "malformed":
       return "invalid license: malformed key (expected AGS-<customer>-<YYYYMMDD>-<sig>)";
     case "bad signature":

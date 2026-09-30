@@ -41,7 +41,7 @@ importers:
 
   packages/asyncapi:
     dependencies:
-      '@apigovscan/core':
+      '@ankaa/core':
         specifier: workspace:*
         version: link:../core
       yaml:
@@ -57,28 +57,28 @@ importers:
 
   packages/cli:
     dependencies:
-      '@apigovscan/asyncapi':
+      '@ankaa/asyncapi':
         specifier: workspace:*
         version: link:../asyncapi
-      '@apigovscan/core':
+      '@ankaa/core':
         specifier: workspace:*
         version: link:../core
-      '@apigovscan/graphql':
+      '@ankaa/graphql':
         specifier: workspace:*
         version: link:../graphql
-      '@apigovscan/grpc':
+      '@ankaa/grpc':
         specifier: workspace:*
         version: link:../grpc
-      '@apigovscan/mcp':
+      '@ankaa/mcp':
         specifier: workspace:*
         version: link:../mcp
-      '@apigovscan/openapi':
+      '@ankaa/openapi':
         specifier: workspace:*
         version: link:../openapi
-      '@apigovscan/reporters':
+      '@ankaa/reporters':
         specifier: workspace:*
         version: link:../reporters
-      '@apigovscan/webhooks':
+      '@ankaa/webhooks':
         specifier: workspace:*
         version: link:../webhooks
       mammoth:
@@ -113,7 +113,7 @@ importers:
 
   packages/graphql:
     dependencies:
-      '@apigovscan/core':
+      '@ankaa/core':
         specifier: workspace:*
         version: link:../core
       graphql:
@@ -129,7 +129,7 @@ importers:
 
   packages/grpc:
     dependencies:
-      '@apigovscan/core':
+      '@ankaa/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -155,7 +155,7 @@ importers:
 
   packages/openapi:
     dependencies:
-      '@apigovscan/core':
+      '@ankaa/core':
         specifier: workspace:*
         version: link:../core
       yaml:
@@ -171,7 +171,7 @@ importers:
 
   packages/reporters:
     dependencies:
-      '@apigovscan/core':
+      '@ankaa/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -181,7 +181,7 @@ importers:
 
   packages/webhooks:
     dependencies:
-      '@apigovscan/core':
+      '@ankaa/core':
         specifier: workspace:*
         version: link:../core
       yaml:
@@ -2262,6 +2262,14 @@ snapshots:
     optionalDependencies:
       vite: 5.4.21(@types/node@22.20.4)
 
+  '@vitest/mocker@2.1.9(vite@5.4.21(@types/node@25.9.8))':
+    dependencies:
+      '@vitest/spy': 2.1.9
+      estree-walker: 3.0.3
+      magic-string: 0.30.21
+    optionalDependencies:
+      vite: 5.4.21(@types/node@25.9.8)
+
   '@vitest/pretty-format@2.1.9':
     dependencies:
       tinyrainbow: 1.2.0
@@ -3349,7 +3357,7 @@ snapshots:
   vitest@2.1.9(@types/node@25.9.8):
     dependencies:
       '@vitest/expect': 2.1.9
-      '@vitest/mocker': 2.1.9(vite@5.4.21(@types/node@22.20.4))
+      '@vitest/mocker': 2.1.9(vite@5.4.21(@types/node@25.9.8))
       '@vitest/pretty-format': 2.1.9
       '@vitest/runner': 2.1.9
       '@vitest/snapshot': 2.1.9

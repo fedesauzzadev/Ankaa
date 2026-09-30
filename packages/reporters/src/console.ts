@@ -1,4 +1,4 @@
-import type { Finding, Severity } from "@apigovscan/core";
+import type { Finding, Severity } from "@ankaa/core";
 import { redactText } from "./redact.js";
 import type { Report } from "./build.js";
 
@@ -58,7 +58,7 @@ export function formatConsole(report: Report, opts: ConsoleOpts): string {
 
   const lines: string[] = [];
   lines.push(
-    `${paint("ApiGovScan", ANSI.bold, color)} ${report.tool.version} · packs ${packs} · input ${inputs}${duration}`,
+    `${paint("Ankaa", ANSI.bold, color)} ${report.tool.version} · packs ${packs} · input ${inputs}${duration}`,
   );
   lines.push("");
 

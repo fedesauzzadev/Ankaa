@@ -19,7 +19,7 @@ const petstore = join(repoRoot, "fixtures", "petstore-mini.yaml");
 const tempRoots: string[] = [];
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-bl-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-bl-"));
   tempRoots.push(dir);
   return dir;
 }
@@ -89,7 +89,7 @@ describe("baseline e2e (AC-B.*)", () => {
     const dir = tempDir();
     const spec = join(dir, "openapi.yaml");
     writeFileSync(spec, SPEC_WITH_DEBT, "utf8");
-    const blPath = join(dir, ".apigovscan", "baseline.json");
+    const blPath = join(dir, ".ankaa", "baseline.json");
 
     const { code } = await runCapture([
       "analyze",
@@ -458,7 +458,7 @@ describe("baseline e2e (AC-B.*)", () => {
 
     expect(readdirSafe(dir)).toEqual(before);
     expect(readFileSync(blPath, "utf8")).toBe(blStatBefore);
-    expect(existsSync(join(dir, ".apigovscan"))).toBe(false);
+    expect(existsSync(join(dir, ".ankaa"))).toBe(false);
   });
 
   it("AC-B.11 config baseline.enabled acts as --baseline", async () => {
@@ -479,7 +479,7 @@ describe("baseline e2e (AC-B.*)", () => {
     ]);
 
     writeFileSync(
-      join(dir, "apigovscan.yaml"),
+      join(dir, "ankaa.yaml"),
       [
         "failOn: never",
         "baseline:",

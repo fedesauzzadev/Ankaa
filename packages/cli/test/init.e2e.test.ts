@@ -12,7 +12,7 @@ const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..")
 const tempRoots: string[] = [];
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-init-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-init-"));
   tempRoots.push(dir);
   return dir;
 }
@@ -53,29 +53,29 @@ describe("init e2e (AC-I.*)", () => {
     const { code, stdout, stderr } = await runCapture(["init"], { cwd: dir });
     expect(code).toBe(0);
     expect(stderr).toBe("");
-    expect(existsSync(join(dir, "apigovscan.yaml"))).toBe(true);
-    expect(existsSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"))).toBe(true);
-    expect(existsSync(join(dir, ".apigovscan", "skills", "severities.yaml"))).toBe(true);
-    expect(existsSync(join(dir, ".apigovscan", "skills", "drafts", ".gitkeep"))).toBe(true);
-    expect(existsSync(join(dir, ".apigovscan", "skills", "README.md"))).toBe(true);
-    expect(stdout).toContain("created: apigovscan.yaml");
-    expect(stdout).toContain("created: .apigovscan/skills/suppressions.yaml");
+    expect(existsSync(join(dir, "ankaa.yaml"))).toBe(true);
+    expect(existsSync(join(dir, ".ankaa", "skills", "suppressions.yaml"))).toBe(true);
+    expect(existsSync(join(dir, ".ankaa", "skills", "severities.yaml"))).toBe(true);
+    expect(existsSync(join(dir, ".ankaa", "skills", "drafts", ".gitkeep"))).toBe(true);
+    expect(existsSync(join(dir, ".ankaa", "skills", "README.md"))).toBe(true);
+    expect(stdout).toContain("created: ankaa.yaml");
+    expect(stdout).toContain("created: .ankaa/skills/suppressions.yaml");
 
-    const config = parseYaml(readFileSync(join(dir, "apigovscan.yaml"), "utf8")) as Record<
+    const config = parseYaml(readFileSync(join(dir, "ankaa.yaml"), "utf8")) as Record<
       string,
       unknown
     >;
     expect(config.failOn).toBe("error");
-    expect(config.skillsDir).toBe(".apigovscan/skills");
+    expect(config.skillsDir).toBe(".ankaa/skills");
 
     const sup = parseYaml(
-      readFileSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"), "utf8"),
+      readFileSync(join(dir, ".ankaa", "skills", "suppressions.yaml"), "utf8"),
     ) as Record<string, unknown>;
     expect(sup.version).toBe(1);
     expect(sup.suppressions).toEqual([]);
 
     const sev = parseYaml(
-      readFileSync(join(dir, ".apigovscan", "skills", "severities.yaml"), "utf8"),
+      readFileSync(join(dir, ".ankaa", "skills", "severities.yaml"), "utf8"),
     ) as Record<string, unknown>;
     expect(sev.version).toBe(1);
     expect(sev.overrides).toEqual([]);
@@ -86,9 +86,9 @@ describe("init e2e (AC-I.*)", () => {
     await runCapture(["init"], { cwd: dir });
     const { code, stdout } = await runCapture(["init"], { cwd: dir });
     expect(code).toBe(0);
-    expect(stdout).toContain("ok: already present: apigovscan.yaml");
-    expect(stdout).toContain("ok: already present: .apigovscan/skills/suppressions.yaml");
-    expect(stdout).not.toContain("created: apigovscan.yaml");
+    expect(stdout).toContain("ok: already present: ankaa.yaml");
+    expect(stdout).toContain("ok: already present: .ankaa/skills/suppressions.yaml");
+    expect(stdout).not.toContain("created: ankaa.yaml");
   });
 
   it("AC-I.3 --force overwrites scaffold but never user skills content", async () => {
@@ -97,7 +97,7 @@ describe("init e2e (AC-I.*)", () => {
 
     // user puts a real suppression
     writeFileSync(
-      join(dir, ".apigovscan", "skills", "suppressions.yaml"),
+      join(dir, ".ankaa", "skills", "suppressions.yaml"),
       [
         "version: 1",
         "suppressions:",
@@ -107,21 +107,21 @@ describe("init e2e (AC-I.*)", () => {
       ].join("\n"),
       "utf8",
     );
-    const before = readFileSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"), "utf8");
+    const before = readFileSync(join(dir, ".ankaa", "skills", "suppressions.yaml"), "utf8");
 
     // corrupt config so force can re-scaffold only if it matches known scaffold — it won't
-    writeFileSync(join(dir, "apigovscan.yaml"), "failOn: warning\n", "utf8");
+    writeFileSync(join(dir, "ankaa.yaml"), "failOn: warning\n", "utf8");
 
     const { code, stdout } = await runCapture(["init", "--force"], { cwd: dir });
     expect(code).toBe(0);
     // user suppressions preserved
-    expect(readFileSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"), "utf8")).toBe(
+    expect(readFileSync(join(dir, ".ankaa", "skills", "suppressions.yaml"), "utf8")).toBe(
       before,
     );
     // config not overwritten (differs from scaffold)
-    expect(readFileSync(join(dir, "apigovscan.yaml"), "utf8")).toBe("failOn: warning\n");
-    expect(stdout).toContain("ok: already present: .apigovscan/skills/suppressions.yaml");
-    expect(stdout).toContain("ok: already present: apigovscan.yaml");
+    expect(readFileSync(join(dir, "ankaa.yaml"), "utf8")).toBe("failOn: warning\n");
+    expect(stdout).toContain("ok: already present: .ankaa/skills/suppressions.yaml");
+    expect(stdout).toContain("ok: already present: ankaa.yaml");
 
     // force on pristine scaffold overwrites README (alwaysForce) and empty skills
     const dir2 = tempDir();
@@ -130,8 +130,8 @@ describe("init e2e (AC-I.*)", () => {
       cwd: dir2,
     });
     expect(code2).toBe(0);
-    expect(out2).toContain("overwritten: apigovscan.yaml");
-    expect(out2).toContain("overwritten: .apigovscan/skills/README.md");
+    expect(out2).toContain("overwritten: ankaa.yaml");
+    expect(out2).toContain("overwritten: .ankaa/skills/README.md");
   });
 
   it("AC-I.4 init ./nope (missing dir) exits 2", async () => {
@@ -144,7 +144,7 @@ describe("init e2e (AC-I.*)", () => {
   it("AC-I.5 existing config skillsDir: custom/skills is respected", async () => {
     const dir = tempDir();
     writeFileSync(
-      join(dir, "apigovscan.yaml"),
+      join(dir, "ankaa.yaml"),
       ["failOn: error", "skillsDir: custom/skills", ""].join("\n"),
       "utf8",
     );
@@ -153,16 +153,16 @@ describe("init e2e (AC-I.*)", () => {
     expect(existsSync(join(dir, "custom", "skills", "suppressions.yaml"))).toBe(true);
     expect(existsSync(join(dir, "custom", "skills", "drafts", ".gitkeep"))).toBe(true);
     expect(stdout).toContain("created: custom/skills/suppressions.yaml");
-    expect(stdout).toContain("ok: already present: apigovscan.yaml");
+    expect(stdout).toContain("ok: already present: ankaa.yaml");
   });
 
   it("AC-I.6 help mentions init", async () => {
     const { code, stdout } = await runCapture(["--help"]);
     expect(code).toBe(0);
-    expect(stdout).toContain("apigovscan init [dir]");
+    expect(stdout).toContain("ankaa init [dir]");
     const sub = await runCapture(["init", "--help"]);
     expect(sub.code).toBe(0);
-    expect(sub.stdout).toContain("Scaffold apigovscan.yaml");
+    expect(sub.stdout).toContain("Scaffold ankaa.yaml");
   });
 
   it("--skills-dir flag overrides config path", async () => {
@@ -250,8 +250,8 @@ describe("phase 3 e2e S4: init → analyze → feedback → learn → re-analyze
       { cwd: dir },
     );
     expect(learn.code).toBe(0);
-    expect(existsSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"))).toBe(true);
-    const supText = readFileSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"), "utf8");
+    expect(existsSync(join(dir, ".ankaa", "skills", "suppressions.yaml"))).toBe(true);
+    const supText = readFileSync(join(dir, ".ankaa", "skills", "suppressions.yaml"), "utf8");
     expect(supText).toContain(fp);
     expect(supText).toContain("by design");
 
@@ -277,13 +277,13 @@ describe("phase 3 e2e S4: init → analyze → feedback → learn → re-analyze
     expect(report2.summary.skillsSuppressed).toBeGreaterThanOrEqual(1);
 
     // INV-5: second learn with same input is byte-identical
-    const before = readFileSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"), "utf8");
+    const before = readFileSync(join(dir, ".ankaa", "skills", "suppressions.yaml"), "utf8");
     const learn2 = await runCapture(
       ["learn", "--report", "report.json", "--feedback", "feedback.json"],
       { cwd: dir },
     );
     expect(learn2.code).toBe(0);
-    expect(readFileSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"), "utf8")).toBe(
+    expect(readFileSync(join(dir, ".ankaa", "skills", "suppressions.yaml"), "utf8")).toBe(
       before,
     );
   });

@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
-import type { Finding } from "@apigovscan/core";
+import type { Finding } from "@ankaa/core";
 import {
   applySkillSuppressions,
   compileMatchRegexes,
@@ -18,7 +18,7 @@ import {
 const tempRoots: string[] = [];
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-skills-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-skills-"));
   tempRoots.push(dir);
   return dir;
 }
@@ -34,7 +34,7 @@ afterAll(() => {
 });
 
 function writeSkills(dir: string, files: Record<string, string>): string {
-  const skillsDir = join(dir, ".apigovscan", "skills");
+  const skillsDir = join(dir, ".ankaa", "skills");
   mkdirSync(skillsDir, { recursive: true });
   for (const [name, content] of Object.entries(files)) {
     const full = join(skillsDir, name);
@@ -361,10 +361,10 @@ describe("mergeSeverityOverrides precedence", () => {
 });
 
 describe("resolveSkillsDir", () => {
-  it("default is .apigovscan/skills under cwd", () => {
+  it("default is .ankaa/skills under cwd", () => {
     const dir = tempDir();
     const resolved = resolveSkillsDir({}, dir);
-    expect(resolved).toBe(join(dir, ".apigovscan", "skills"));
+    expect(resolved).toBe(join(dir, ".ankaa", "skills"));
   });
 
   it("config skillsDir relative to configDir", () => {

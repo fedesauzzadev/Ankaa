@@ -20,7 +20,7 @@ if (tgz === undefined) {
 }
 const tgzPath = join(repoRoot, "dist-release", tgz);
 
-const work = mkdtempSync(join(tmpdir(), "apigovscan-verify-"));
+const work = mkdtempSync(join(tmpdir(), "ankaa-verify-"));
 try {
   const prefix = join(work, "prefix");
   execFileSync(
@@ -46,7 +46,7 @@ try {
   mkdirSync(fixtureDir, { recursive: true });
   cpSync(join(repoRoot, "fixtures", "petstore-mini.yaml"), join(fixtureDir, "openapi.yaml"));
 
-  const bin = join(prefix, "node_modules", "@apigovscan", "cli", "bin", "apigovscan.js");
+  const bin = join(prefix, "node_modules", "@ankaa", "cli", "bin", "ankaa.js");
   const out = execFileSync(
     process.execPath,
     [
@@ -56,7 +56,7 @@ try {
       "--format",
       "json",
       "--license-key",
-      process.env.APIGOVSCAN_DEV_LICENSE ?? "AGS-dev-20991231-2f6798197bf5",
+      process.env.ANKAA_DEV_LICENSE ?? "AGS-dev-20991231-2f6798197bf5",
     ],
     { encoding: "utf8", cwd: fixtureDir },
   );

@@ -1,4 +1,4 @@
-# ApiGovScan Action
+# Ankaa Action
 
 GitHub Action (composite) que corre el **mismo CLI** de este repo — cero lógica duplicada.
 Publica **anotaciones en el PR**, un **job summary** en Markdown y un **artefacto SARIF/JSON**,
@@ -11,13 +11,13 @@ name: API governance
 on: [pull_request]
 
 jobs:
-  apigovscan:
+  ankaa:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: ApiGovScan
-        id: apigovscan
+      - name: Ankaa
+        id: ankaa
         uses: owner/repo@v1 # en este repo: ./action
         with:
           path: specs/
@@ -27,7 +27,7 @@ jobs:
       - uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
-          sarif_file: ${{ steps.apigovscan.outputs.sarif-path }}
+          sarif_file: ${{ steps.ankaa.outputs.sarif-path }}
 ```
 
 `if: always()` en el upload es importante: `sarif-path` se escribe en el **paso 1 (artifact)**,
@@ -40,18 +40,18 @@ antes del gate, así que el artefacto existe aunque el job falle.
 | `path`        | `.`                      | Archivo o directorio de specs a analizar (en modo review: el contrato candidato) |
 | `fail-on`     | `error`                  | Umbral del gate: `error` \| `warning` \| `info` \| `never`                |
 | `format`      | `sarif`                  | Artefacto a producir: `sarif` \| `json` \| `none`                         |
-| `cli`         | `npx -y @apigovscan/cli` | Comando CLI a invocar (dogfood: `node packages/cli/bin/apigovscan.js`)    |
+| `cli`         | `npx -y @ankaa/cli` | Comando CLI a invocar (dogfood: `node packages/cli/bin/ankaa.js`)    |
 | `rules`       | `""`                     | Rutas a reglas custom, separadas por espacios (solo modo analyze)         |
-| `config`      | `""`                     | Ruta a `apigovscan.yaml` (opcional)                                       |
+| `config`      | `""`                     | Ruta a `ankaa.yaml` (opcional)                                       |
 | `baseline`    | `false`                  | Aplicar baseline (`true`/`false`; solo modo analyze)                      |
 | `review-ref`  | `""`                     | **Modo review:** ref git (branch/tag/SHA) con el contrato base; vacío = modo analyze |
-| `license-key` | `""`                     | License key (también vía `APIGOVSCAN_LICENSE_KEY` o config `license.key`) |
+| `license-key` | `""`                     | License key (también vía `ANKAA_LICENSE_KEY` o config `license.key`) |
 
 ## Outputs
 
 | Output       | Descripción                                                                          |
 | ------------ | ------------------------------------------------------------------------------------ |
-| `sarif-path` | Ruta del artefacto (`apigovscan.sarif`/`apigovscan.json`; `apigovscan-review.json` en modo review; vacío si `format: none`) |
+| `sarif-path` | Ruta del artefacto (`ankaa.sarif`/`ankaa.json`; `ankaa-review.json` en modo review; vacío si `format: none`) |
 | `exit-code`  | Exit code del gate: `0` ok · `1` findings ≥ `fail-on` · `2` error                    |
 
 ## Cómo funciona
@@ -74,7 +74,7 @@ Notas:
 
 Con `review-ref` definido, la Action revisa **el candidato final del check** (el checkout
 del PR/push) contra el contrato base extraído de ese ref git — el **mismo evaluador** que
-`apigovscan review` y la tool MCP `review_api_change`:
+`ankaa review` y la tool MCP `review_api_change`:
 
 ```yaml
 name: API change review
@@ -82,11 +82,11 @@ on: [pull_request]
 permissions:
   contents: read
 jobs:
-  apigovscan-review:
+  ankaa-review:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: ApiGovScan review
+      - name: Ankaa review
         id: review
         uses: owner/repo@v1 # en este repo: ./action
         with:
@@ -101,11 +101,11 @@ Comportamiento:
    ⇒ contrato base en un temp dir. Si el archivo no existe en ese ref (contrato nuevo),
    el job falla con exit 2 y un mensaje explícito: para contratos nuevos usá el modo
    analyze (sin `review-ref`).
-2. **artifact** — `review base candidate --format json --fail-on never` ⇒ `apigovscan-review.json`
+2. **artifact** — `review base candidate --format json --fail-on never` ⇒ `ankaa-review.json`
    (schemaVersion 1, hashes, comparabilidad, findings). Si `format: none`, se salta.
 3. **annotations** — se salta en modo review (`review` no tiene formato annotations).
 4. **gate** — `review base candidate --fail-on <umbral> --format console` ⇒ job summary
-   "ApiGovScan API change review" + exit code real (`0` clean · `1` findings ≥ umbral ·
+   "Ankaa API change review" + exit code real (`0` clean · `1` findings ≥ umbral ·
    `2` error operativo, incluida comparación no soportada — nunca se reporta como limpia).
 
 Restricciones del modo review: `path` debe ser un **archivo** (no directorio); `rules` y

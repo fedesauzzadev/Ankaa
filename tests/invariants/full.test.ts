@@ -2,9 +2,9 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { evaluate, flattenRuleLists, loadPack, type RulePack } from "@apigovscan/core";
-import { parseSpec } from "@apigovscan/openapi";
-import { buildReport, formatJson } from "@apigovscan/reporters";
+import { evaluate, flattenRuleLists, loadPack, type RulePack } from "@ankaa/core";
+import { parseSpec } from "@ankaa/openapi";
+import { buildReport, formatJson } from "@ankaa/reporters";
 import { parse as parseYaml } from "yaml";
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -219,7 +219,7 @@ describe("INV-4 no eval / Function / vm", () => {
   });
 
   it("malformed YAML fixture produces controlled parse error", async () => {
-    const { parseSpec: parse } = await import("@apigovscan/openapi");
+    const { parseSpec: parse } = await import("@ankaa/openapi");
     const raw = readFileSync(join(fixturesDir, "malformed.yaml"), "utf8");
     const result = parse(raw, { sourceLabel: "malformed.yaml" });
     expect(result.ok).toBe(false);
@@ -234,7 +234,7 @@ describe("INV-4 no eval / Function / vm", () => {
 
 describe("INV-5 fingerprint stability and sort idempotence", () => {
   it("sortFindings is idempotent under shuffle", async () => {
-    const { sortFindings, computeFingerprint } = await import("@apigovscan/core");
+    const { sortFindings, computeFingerprint } = await import("@ankaa/core");
     const result = analyzeFixture("petstore-mini.yaml");
     const findings = result.findings;
     expect(findings.length).toBeGreaterThan(0);

@@ -30,7 +30,7 @@ for (const { group, finding } of findings) {
       fields: {
         project: { key: projectKey },
         issuetype: { name: "Task" },
-        summary: `[ApiGovScan] ${finding.ruleId}: ${finding.apiLocation ?? finding.location}`,
+        summary: `[Ankaa] ${finding.ruleId}: ${finding.apiLocation ?? finding.location}`,
         description: [
           finding.message,
           `Location: ${finding.location}`,
@@ -40,7 +40,7 @@ for (const { group, finding } of findings) {
         ]
           .filter(Boolean)
           .join("\n"),
-        labels: ["apigovscan", finding.fingerprint],
+        labels: ["ankaa", finding.fingerprint],
       },
     }),
   });

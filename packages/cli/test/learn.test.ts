@@ -16,7 +16,7 @@ const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..")
 const tempRoots: string[] = [];
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-learn-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-learn-"));
   tempRoots.push(dir);
   return dir;
 }
@@ -560,7 +560,7 @@ describe("learn + skills e2e (AC-L.8–12)", () => {
       { cwd: dir },
     );
     expect(learn1.code).toBe(0);
-    expect(existsSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"))).toBe(true);
+    expect(existsSync(join(dir, ".ankaa", "skills", "suppressions.yaml"))).toBe(true);
 
     const after = await analyzeJson(dir);
     const afterFindings = after.report!.findings as Array<{
@@ -593,12 +593,12 @@ describe("learn + skills e2e (AC-L.8–12)", () => {
     });
 
     await runCapture(["learn", "--report", reportPath, "--feedback", feedbackPath], { cwd: dir });
-    const sup1 = readFileSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"), "utf8");
-    const sev1 = readFileSync(join(dir, ".apigovscan", "skills", "severities.yaml"), "utf8");
+    const sup1 = readFileSync(join(dir, ".ankaa", "skills", "suppressions.yaml"), "utf8");
+    const sev1 = readFileSync(join(dir, ".ankaa", "skills", "severities.yaml"), "utf8");
 
     await runCapture(["learn", "--report", reportPath, "--feedback", feedbackPath], { cwd: dir });
-    const sup2 = readFileSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"), "utf8");
-    const sev2 = readFileSync(join(dir, ".apigovscan", "skills", "severities.yaml"), "utf8");
+    const sup2 = readFileSync(join(dir, ".ankaa", "skills", "suppressions.yaml"), "utf8");
+    const sev2 = readFileSync(join(dir, ".ankaa", "skills", "severities.yaml"), "utf8");
     expect(sup2).toBe(sup1);
     expect(sev2).toBe(sev1);
   });
@@ -627,7 +627,7 @@ describe("learn + skills e2e (AC-L.8–12)", () => {
     );
     expect(code).toBe(0);
     expect(stdout).toContain("dry-run");
-    expect(existsSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"))).toBe(false);
+    expect(existsSync(join(dir, ".ankaa", "skills", "suppressions.yaml"))).toBe(false);
   });
 
   it("AC-L.4 missing --report → exit 2", async () => {
@@ -640,9 +640,9 @@ describe("learn + skills e2e (AC-L.8–12)", () => {
 
   it("AC-L.10 skills list shows inventory; --format json", async () => {
     const dir = tempDir();
-    mkdirSync(join(dir, ".apigovscan", "skills", "drafts"), { recursive: true });
+    mkdirSync(join(dir, ".ankaa", "skills", "drafts"), { recursive: true });
     writeFileSync(
-      join(dir, ".apigovscan", "skills", "suppressions.yaml"),
+      join(dir, ".ankaa", "skills", "suppressions.yaml"),
       [
         "version: 1",
         "suppressions:",
@@ -653,14 +653,14 @@ describe("learn + skills e2e (AC-L.8–12)", () => {
       "utf8",
     );
     writeFileSync(
-      join(dir, ".apigovscan", "skills", "severities.yaml"),
+      join(dir, ".ankaa", "skills", "severities.yaml"),
       ["version: 1", "overrides:", "  - ruleId: PAGINATION-001", "    severity: info", ""].join(
         "\n",
       ),
       "utf8",
     );
     writeFileSync(
-      join(dir, ".apigovscan", "skills", "drafts", "TEAM-001.yaml"),
+      join(dir, ".ankaa", "skills", "drafts", "TEAM-001.yaml"),
       [
         "id: TEAM-001",
         "draft: true",
@@ -696,7 +696,7 @@ describe("learn + skills e2e (AC-L.8–12)", () => {
 
   it("AC-L.11 promote flips draft; missing id → exit 2", async () => {
     const dir = tempDir();
-    const drafts = join(dir, ".apigovscan", "skills", "drafts");
+    const drafts = join(dir, ".ankaa", "skills", "drafts");
     mkdirSync(drafts, { recursive: true });
     const draftPath = join(drafts, "TEAM-007.yaml");
     writeFileSync(
@@ -907,8 +907,8 @@ describe("learn + skills e2e (AC-L.8–12)", () => {
       { cwd: dir },
     );
     expect(code).toBe(0);
-    // only skills tree was created under .apigovscan (no baseline)
-    expect(existsSync(join(dir, ".apigovscan", "baseline.json"))).toBe(false);
-    expect(existsSync(join(dir, ".apigovscan", "skills", "suppressions.yaml"))).toBe(true);
+    // only skills tree was created under .ankaa (no baseline)
+    expect(existsSync(join(dir, ".ankaa", "baseline.json"))).toBe(false);
+    expect(existsSync(join(dir, ".ankaa", "skills", "suppressions.yaml"))).toBe(true);
   });
 });

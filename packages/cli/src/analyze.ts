@@ -8,13 +8,13 @@ import {
   type RulePack,
   type Severity,
   type Spec,
-} from "@apigovscan/core";
-import { parseSpec, type ParseError } from "@apigovscan/openapi";
-import { parseGraphQL } from "@apigovscan/graphql";
-import { parseProto } from "@apigovscan/grpc";
-import { looksLikeAsyncApi, parseAsyncAPI } from "@apigovscan/asyncapi";
-import { looksLikeWebhooks, parseWebhooks } from "@apigovscan/webhooks";
-import { buildReport, type Report } from "@apigovscan/reporters";
+} from "@ankaa/core";
+import { parseSpec, type ParseError } from "@ankaa/openapi";
+import { parseGraphQL } from "@ankaa/graphql";
+import { parseProto } from "@ankaa/grpc";
+import { looksLikeAsyncApi, parseAsyncAPI } from "@ankaa/asyncapi";
+import { looksLikeWebhooks, parseWebhooks } from "@ankaa/webhooks";
+import { buildReport, type Report } from "@ankaa/reporters";
 import type { FailOn } from "./args.js";
 import type { PackRepository, ReportSink, SpecLoader } from "./ports.js";
 import type { AnalyzeProgressPhase, OperationContext, OperationState } from "./operations.js";

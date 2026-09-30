@@ -11,7 +11,7 @@ const petstore = join(repoRoot, "fixtures", "petstore-mini.yaml");
 const tempRoots: string[] = [];
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-r2-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-r2-"));
   tempRoots.push(dir);
   return dir;
 }
@@ -262,7 +262,7 @@ describe("analyze with custom rules (AC-R2.4, AC-R2.5, AC-R2.8)", () => {
       tool: string;
       prompts: Array<{ ruleId: string; keyword: string; prompt: string }>;
     };
-    expect(parsed.tool).toBe("apigovscan");
+    expect(parsed.tool).toBe("ankaa");
     expect(parsed.prompts).toHaveLength(95);
     const naming = parsed.prompts.find((p) => p.ruleId === "NAMING-001")!;
     expect(naming.keyword).toBe("MUST");

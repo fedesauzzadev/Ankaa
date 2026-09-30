@@ -24,13 +24,13 @@ async function runCapture(
   return { code, stdout, stderr };
 }
 
-describe("@apigovscan/cli", () => {
+describe("@ankaa/cli", () => {
   it("reports dev version", () => {
     expect(getVersion()).toBe("0.0.0-dev");
   });
 
   it("prints help text with usage", () => {
-    expect(getHelp()).toContain("apigovscan");
+    expect(getHelp()).toContain("ankaa");
     expect(getHelp()).toContain("--version");
     expect(getHelp()).toContain("analyze <path>");
   });

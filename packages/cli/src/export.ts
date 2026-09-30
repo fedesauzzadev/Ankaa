@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
-import type { Finding } from "@apigovscan/core";
-import type { Report } from "@apigovscan/reporters";
+import type { Finding } from "@ankaa/core";
+import type { Report } from "@ankaa/reporters";
 import { ownerOf } from "./dashboard.js";
 
 export type ExportableReport = Pick<Report, "tool" | "input" | "findings">;
@@ -17,7 +17,7 @@ export interface ExportGroup {
 }
 
 export interface IntegrationExport {
-  tool: "apigovscan";
+  tool: "ankaa";
   schemaVersion: 1;
   version: string;
   groups: ExportGroup[];
@@ -47,7 +47,7 @@ export function loadExportReportFile(
     return { ok: false, error: `report file is not valid JSON: ${path}` };
   }
   if (!isExportableReport(value)) {
-    return { ok: false, error: `report file is not an apigovscan report: ${path}` };
+    return { ok: false, error: `report file is not an ankaa report: ${path}` };
   }
   return { ok: true, report: value };
 }
@@ -60,7 +60,7 @@ function isExportableReport(value: unknown): value is ExportableReport {
   return (
     isRecord(value) &&
     isRecord(value.tool) &&
-    value.tool.name === "apigovscan" &&
+    value.tool.name === "ankaa" &&
     typeof value.tool.version === "string" &&
     Array.isArray(value.input) &&
     value.input.every(
@@ -149,7 +149,7 @@ export function buildIntegrationExport(
   });
   const summary = summarize(groups.flatMap((group) => group.findings));
   return {
-    tool: "apigovscan",
+    tool: "ankaa",
     schemaVersion: 1,
     version: report.tool.version,
     groups,

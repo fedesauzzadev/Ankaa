@@ -1,4 +1,4 @@
-import type { Finding } from "@apigovscan/core";
+import type { Finding } from "@ankaa/core";
 import type { Report } from "./build.js";
 
 /**

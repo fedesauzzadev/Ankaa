@@ -8,7 +8,7 @@ export {
   type ParseOptions,
 } from "./parse.js";
 
-export const WEBHOOKS_PACKAGE = "@apigovscan/webhooks";
+export const WEBHOOKS_PACKAGE = "@ankaa/webhooks";
 
 export function webhooksPackageId(): string {
   return WEBHOOKS_PACKAGE;

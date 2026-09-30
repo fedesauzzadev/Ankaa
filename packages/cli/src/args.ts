@@ -1109,7 +1109,7 @@ export function parseDashboardArgs(argv: readonly string[]): ParseDashboardArgsR
   if (!reportSeen) {
     return {
       ok: false,
-      error: "missing required argument <report.json> (apigovscan report file)",
+      error: "missing required argument <report.json> (ankaa report file)",
     };
   }
 

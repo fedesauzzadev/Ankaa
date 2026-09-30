@@ -6,7 +6,7 @@ import type {
   Response,
   SchemaNode,
   Spec,
-} from "@apigovscan/core";
+} from "@ankaa/core";
 import { createHash } from "node:crypto";
 import { parse as parseYaml } from "yaml";
 

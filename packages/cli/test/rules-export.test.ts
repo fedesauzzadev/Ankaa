@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { RulePack } from "@apigovscan/core";
+import type { RulePack } from "@ankaa/core";
 import { buildAgentsMd, buildPromptsJson } from "../src/rules-export.js";
 
 const ELITE: RulePack = {
@@ -94,7 +94,7 @@ describe("buildPromptsJson (AC-R2.12)", () => {
       packs: Array<{ id: string; count: number }>;
       prompts: Array<{ ruleId: string; severity: string; keyword: string; prompt: string }>;
     };
-    expect(parsed.tool).toBe("apigovscan");
+    expect(parsed.tool).toBe("ankaa");
     expect(parsed.packs).toEqual([
       { id: "custom", version: "0.0.0-dev", count: 1 },
       { id: "elite", version: "2026.09.1", count: 2 },

@@ -16,7 +16,7 @@ const petstore = join(repoRoot, "fixtures", "petstore-mini.yaml");
 const tempRoots: string[] = [];
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-webhooks-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-webhooks-"));
   tempRoots.push(dir);
   return dir;
 }

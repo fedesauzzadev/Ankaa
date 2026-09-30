@@ -13,7 +13,7 @@ const petstore = join(repoRoot, "fixtures", "petstore-mini.yaml");
 const tempRoots: string[] = [];
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-fix-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-fix-"));
   tempRoots.push(dir);
   return dir;
 }
@@ -58,9 +58,9 @@ function licensedDir(): string {
 
 function licEnv(llmUrl?: string): Env {
   return {
-    APIGOVSCAN_LICENSE_KEY: DEV_LICENSE_KEY,
+    ANKAA_LICENSE_KEY: DEV_LICENSE_KEY,
     ...(llmUrl !== undefined
-      ? { APIGOVSCAN_LLM_BASE_URL: llmUrl, APIGOVSCAN_LLM_MODEL: "stub" }
+      ? { ANKAA_LLM_BASE_URL: llmUrl, ANKAA_LLM_MODEL: "stub" }
       : {}),
   };
 }
@@ -81,7 +81,7 @@ async function firstFingerprint(dir: string): Promise<string> {
 describe("fix command e2e (f8-suggest-fix)", () => {
   it("AC-SF.3 analyze is byte-identical with or without llm configured", async () => {
     const dir = licensedDir();
-    const dead = { ...licEnv(), APIGOVSCAN_LLM_BASE_URL: "http://127.0.0.1:1" };
+    const dead = { ...licEnv(), ANKAA_LLM_BASE_URL: "http://127.0.0.1:1" };
     const plain = await runCapture(["analyze", "openapi.yaml", "--format", "json", "--no-color"], {
       cwd: dir,
       env: licEnv(),
@@ -218,7 +218,7 @@ describe("fix command e2e (f8-suggest-fix)", () => {
     const off = [...new Set(probeReport.findings.map((f) => f.ruleId))]
       .map((id) => `  ${id}: off`)
       .join("\n");
-    writeFileSync(join(dir, "apigovscan.yaml"), `rules:\n${off}\n`, "utf8");
+    writeFileSync(join(dir, "ankaa.yaml"), `rules:\n${off}\n`, "utf8");
     const stub = await startLlmStub();
     try {
       const out = await runCapture(["fix", "openapi.yaml"], {

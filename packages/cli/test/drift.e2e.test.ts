@@ -21,7 +21,7 @@ const demoRepo = join(repoRoot, "fixtures", "drift-demo");
 const tempRoots: string[] = [];
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-drift-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-drift-"));
   tempRoots.push(dir);
   return dir;
 }
@@ -60,9 +60,9 @@ async function runCapture(
 
 function licEnv(llmUrl?: string): Env {
   return {
-    APIGOVSCAN_LICENSE_KEY: DEV_LICENSE_KEY,
+    ANKAA_LICENSE_KEY: DEV_LICENSE_KEY,
     ...(llmUrl !== undefined
-      ? { APIGOVSCAN_LLM_BASE_URL: llmUrl, APIGOVSCAN_LLM_MODEL: "stub" }
+      ? { ANKAA_LLM_BASE_URL: llmUrl, ANKAA_LLM_MODEL: "stub" }
       : {}),
   };
 }

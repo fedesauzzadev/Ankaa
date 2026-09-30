@@ -1,7 +1,7 @@
 {
-  "name": "@apigovscan/core",
+  "name": "@ankaa/core",
   "version": "0.0.0-dev",
-  "description": "Pure domain and rules engine for ApiGovScan (no I/O)",
+  "description": "Pure domain and rules engine for Ankaa (no I/O)",
   "license": "Apache-2.0",
   "author": "fedesauzzadev (https://github.com/fedesauzzadev)",
   "type": "module",

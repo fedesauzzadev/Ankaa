@@ -11,7 +11,7 @@ import type {
   SecuritySchemeDef,
   Spec,
   Stability,
-} from "@apigovscan/core";
+} from "@ankaa/core";
 import { createHash } from "node:crypto";
 import { parse as parseYaml } from "yaml";
 import { convertSwagger1, convertSwagger2, isSwagger1Doc, isSwagger2Doc } from "./legacy.js";

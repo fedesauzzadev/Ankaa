@@ -3,8 +3,8 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
 import { describe, expect, it } from "vitest";
-import { evaluate, explain, flattenRuleLists, loadPack, validateRule } from "@apigovscan/core";
-import { parseSpec } from "@apigovscan/openapi";
+import { evaluate, explain, flattenRuleLists, loadPack, validateRule } from "@ankaa/core";
+import { parseSpec } from "@ankaa/openapi";
 import { run } from "../src/index.js";
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");

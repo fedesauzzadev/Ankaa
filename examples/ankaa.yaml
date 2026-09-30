@@ -1,5 +1,5 @@
-# Example ApiGovScan configuration (f2).
-# Copy to the project root as `apigovscan.yaml`.
+# Example Ankaa configuration (f2).
+# Copy to the project root as `ankaa.yaml`.
 
 failOn: error
 
@@ -18,11 +18,11 @@ customRules:
 
 baseline:
   enabled: false
-  path: .apigovscan/baseline.json
+  path: .ankaa/baseline.json
   # strictHash: false
 
 # Reserved for skills (f3); parsed but not validated in f2
-skillsDir: .apigovscan/skills
+skillsDir: .ankaa/skills
 
 # Optional AI features (f8): your own OpenAI-compatible LLM endpoint.
 # Without llm.* the product works exactly as before (deterministic, no network).

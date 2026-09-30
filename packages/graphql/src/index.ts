@@ -7,7 +7,7 @@ export {
   type ParseOptions,
 } from "./parse.js";
 
-export const GRAPHQL_PACKAGE = "@apigovscan/graphql";
+export const GRAPHQL_PACKAGE = "@ankaa/graphql";
 
 export function graphqlPackageId(): string {
   return GRAPHQL_PACKAGE;

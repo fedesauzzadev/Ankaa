@@ -22,7 +22,7 @@ function arg(name) {
 const outDir = arg("out") ?? join(repoRoot, "dist-release");
 const version = arg("version");
 
-const stage = mkdtempSync(join(tmpdir(), "apigovscan-pack-"));
+const stage = mkdtempSync(join(tmpdir(), "ankaa-pack-"));
 try {
   const pkg = JSON.parse(readFileSync(join(cliDir, "package.json"), "utf8"));
   // Bundled runtime: no dependencies in the shipped manifest.

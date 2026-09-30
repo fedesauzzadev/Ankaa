@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { parse as parseYaml } from "yaml";
-import type { Severity } from "@apigovscan/core";
+import type { Severity } from "@ankaa/core";
 import type { FailOn } from "./args.js";
 
 export interface AnalyzeConfig {
@@ -294,7 +294,7 @@ export function loadConfigFromText(text: string, path: string): LoadConfigResult
 export function loadConfig(cwd: string, overridePath?: string): LoadConfigResult {
   const candidates = overridePath
     ? [overridePath]
-    : [join(cwd, "apigovscan.yaml"), join(cwd, "apigovscan.yml")];
+    : [join(cwd, "ankaa.yaml"), join(cwd, "ankaa.yml")];
 
   for (const candidate of candidates) {
     if (!existsSync(candidate)) {

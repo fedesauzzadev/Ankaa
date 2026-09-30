@@ -69,7 +69,7 @@ describe("verifyLicenseKey (f6-distribution)", () => {
 
   it("messages are actionable", () => {
     expect(licenseErrorMessage({ ok: false, reason: "missing" })).toContain(
-      "APIGOVSCAN_LICENSE_KEY",
+      "ANKAA_LICENSE_KEY",
     );
     expect(licenseErrorMessage({ ok: false, reason: "bad signature" })).toContain("bad signature");
   });
@@ -89,7 +89,7 @@ describe("verifyLicenseKey (f6-distribution)", () => {
 
 describe("config license.key (f6-distribution)", () => {
   it("AC-D.6 accepts license.key in strict schema", () => {
-    const result = loadConfigFromText(`license:\n  key: "${DEV_LICENSE_KEY}"\n`, "apigovscan.yaml");
+    const result = loadConfigFromText(`license:\n  key: "${DEV_LICENSE_KEY}"\n`, "ankaa.yaml");
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.config.license?.key).toBe(DEV_LICENSE_KEY);
@@ -97,7 +97,7 @@ describe("config license.key (f6-distribution)", () => {
   });
 
   it("AC-D.6 rejects unknown keys under license", () => {
-    const result = loadConfigFromText("license:\n  keys: nope\n", "apigovscan.yaml");
+    const result = loadConfigFromText("license:\n  keys: nope\n", "ankaa.yaml");
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error).toContain('license: unknown key "keys"');
@@ -105,7 +105,7 @@ describe("config license.key (f6-distribution)", () => {
   });
 
   it("AC-D.6 rejects non-string license.key", () => {
-    const result = loadConfigFromText("license:\n  key: 42\n", "apigovscan.yaml");
+    const result = loadConfigFromText("license:\n  key: 42\n", "ankaa.yaml");
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error).toContain("license.key must be a non-empty string");

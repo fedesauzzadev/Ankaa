@@ -22,7 +22,7 @@ const petstore = join(repoRoot, "fixtures", "petstore-mini.yaml");
 const tempRoots: string[] = [];
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-scan-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-scan-"));
   tempRoots.push(dir);
   return dir;
 }
@@ -60,7 +60,7 @@ async function runCapture(
 }
 
 function licEnv(): Env {
-  return { APIGOVSCAN_LICENSE_KEY: DEV_LICENSE_KEY };
+  return { ANKAA_LICENSE_KEY: DEV_LICENSE_KEY };
 }
 
 const TINY_SPEC = [
@@ -582,7 +582,7 @@ describe("scan-org --github e2e (f8-scan-org)", { timeout: 30000 }, () => {
       expect(first.stderr).toContain("no previous scan-org run");
       expect(first.stderr).toContain("note: scanned resumable");
 
-      const organizationsDir = join(cwd, ".apigovscan", "workspace", "orgs");
+      const organizationsDir = join(cwd, ".ankaa", "workspace", "orgs");
       const [orgDirectory] = readdirSync(organizationsDir);
       expect(orgDirectory).toBeDefined();
       const historyPath = join(organizationsDir, orgDirectory!, "history.json");
@@ -613,7 +613,7 @@ describe("scan-org --github e2e (f8-scan-org)", { timeout: 30000 }, () => {
       expect(afterChange.code).toBe(0);
       expect(afterChange.stderr).toContain("note: scanned resumable");
 
-      writeFileSync(join(cwd, "apigovscan.yaml"), "failOn: warning\n", "utf8");
+      writeFileSync(join(cwd, "ankaa.yaml"), "failOn: warning\n", "utf8");
       const afterConfigChange = await runCapture([...args, "--resume"], { cwd, env });
       expect(afterConfigChange.code).toBe(0);
       expect(afterConfigChange.stderr).toContain("analysis settings changed");
@@ -634,7 +634,7 @@ describe("scan-org --github e2e (f8-scan-org)", { timeout: 30000 }, () => {
         history.runs.every((run) => run.status === "completed" && run.report !== undefined),
       ).toBe(true);
       expect(JSON.stringify(history)).not.toContain("good-token");
-      expect(readdirSync(join(cwd, ".apigovscan", "workspace", "orgs", orgDirectory!))).toEqual([
+      expect(readdirSync(join(cwd, ".ankaa", "workspace", "orgs", orgDirectory!))).toEqual([
         "history.json",
       ]);
     } finally {
@@ -670,7 +670,7 @@ describe("scan-org --github e2e (f8-scan-org)", { timeout: 30000 }, () => {
       const failed = await runCapture(args, { cwd, env });
       expect(failed.code).toBe(2);
       expect(failed.stderr).toContain("no projects with specs found");
-      const organizationsDir = join(cwd, ".apigovscan", "workspace", "orgs");
+      const organizationsDir = join(cwd, ".ankaa", "workspace", "orgs");
       const [orgDirectory] = readdirSync(organizationsDir);
       const historyText = readFileSync(
         join(organizationsDir, orgDirectory!, "history.json"),

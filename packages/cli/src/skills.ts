@@ -1,10 +1,10 @@
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { isAbsolute, join, resolve } from "node:path";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
-import { validateRule, type Finding, type Rule, type Severity } from "@apigovscan/core";
+import { validateRule, type Finding, type Rule, type Severity } from "@ankaa/core";
 import type { AnalyzeConfig } from "./config.js";
 
-export const DEFAULT_SKILLS_DIR = ".apigovscan/skills";
+export const DEFAULT_SKILLS_DIR = ".ankaa/skills";
 export const SKILLS_SCHEMA_VERSION = 1;
 
 const FINGERPRINT_RE = /^[0-9a-f]{64}$/;

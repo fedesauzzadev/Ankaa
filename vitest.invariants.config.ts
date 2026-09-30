@@ -7,10 +7,10 @@ const root = dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   resolve: {
     alias: {
-      "@apigovscan/core": join(root, "packages/core/src/index.ts"),
-      "@apigovscan/openapi": join(root, "packages/openapi/src/index.ts"),
-      "@apigovscan/reporters": join(root, "packages/reporters/src/index.ts"),
-      "@apigovscan/cli": join(root, "packages/cli/src/index.ts"),
+      "@ankaa/core": join(root, "packages/core/src/index.ts"),
+      "@ankaa/openapi": join(root, "packages/openapi/src/index.ts"),
+      "@ankaa/reporters": join(root, "packages/reporters/src/index.ts"),
+      "@ankaa/cli": join(root, "packages/cli/src/index.ts"),
     },
   },
   test: {

@@ -2,7 +2,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
-import { flattenRuleLists, loadPack, type RulePack } from "@apigovscan/core";
+import { flattenRuleLists, loadPack, type RulePack } from "@ankaa/core";
 
 export function loadPackFromDir(packDir: string): RulePack {
   const metaRaw = parseYaml(readFileSync(join(packDir, "pack.yaml"), "utf8"));

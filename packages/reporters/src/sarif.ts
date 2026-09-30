@@ -1,4 +1,4 @@
-import type { Finding, Severity } from "@apigovscan/core";
+import type { Finding, Severity } from "@ankaa/core";
 import type { Report } from "./build.js";
 import { redactText } from "./redact.js";
 import { artifactUri } from "./uri.js";
@@ -43,9 +43,9 @@ function collectRules(report: Report): SarifReportingDescriptor[] {
       id: ruleId,
       shortDescription: { text: redactText(finding.message) },
       properties: {
-        "apigovscan/severity": finding.severity,
-        "apigovscan/category": finding.category,
-        "apigovscan/pack": `${finding.packId}@${finding.packVersion}`,
+        "ankaa/severity": finding.severity,
+        "ankaa/category": finding.category,
+        "ankaa/pack": `${finding.packId}@${finding.packVersion}`,
       },
     };
     if (finding.fix !== undefined) {
@@ -72,7 +72,7 @@ function toResult(report: Report, finding: Finding): SarifResult {
       },
     ],
     partialFingerprints: {
-      apigovscanFingerprint: finding.fingerprint,
+      ankaaFingerprint: finding.fingerprint,
     },
   };
 }
@@ -93,8 +93,8 @@ export function formatSarif(report: Report, opts?: { pretty?: boolean }): string
         },
         results: report.findings.map((finding) => toResult(report, finding)),
         properties: {
-          "apigovscan/score": report.score.value,
-          "apigovscan/grade": report.score.grade,
+          "ankaa/score": report.score.value,
+          "ankaa/grade": report.score.grade,
         },
       },
     ],

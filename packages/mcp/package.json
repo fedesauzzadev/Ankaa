@@ -1,7 +1,7 @@
 {
-  "name": "@apigovscan/mcp",
+  "name": "@ankaa/mcp",
   "version": "0.0.0-dev",
-  "description": "MCP stdio server for ApiGovScan (analyze_spec, list_rules, explain_rule, validate_custom_rules, explain_finding)",
+  "description": "MCP stdio server for Ankaa (analyze_spec, list_rules, explain_rule, validate_custom_rules, explain_finding)",
   "license": "Apache-2.0",
   "author": "fedesauzzadev (https://github.com/fedesauzzadev)",
   "type": "module",

@@ -20,7 +20,7 @@ const fixtureDir = join(repoRoot, "fixtures");
 const tempRoots: string[] = [];
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-import-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-import-"));
   tempRoots.push(dir);
   return dir;
 }
@@ -59,9 +59,9 @@ async function runCapture(
 
 function licEnv(llmUrl?: string): Env {
   return {
-    APIGOVSCAN_LICENSE_KEY: DEV_LICENSE_KEY,
+    ANKAA_LICENSE_KEY: DEV_LICENSE_KEY,
     ...(llmUrl !== undefined
-      ? { APIGOVSCAN_LLM_BASE_URL: llmUrl, APIGOVSCAN_LLM_MODEL: "stub" }
+      ? { ANKAA_LLM_BASE_URL: llmUrl, ANKAA_LLM_MODEL: "stub" }
       : {}),
   };
 }
@@ -269,8 +269,8 @@ describe("rules import e2e (f8-rules-import)", () => {
     const dir = setupGuideline();
     const llmOnly = {
       ...licEnv(),
-      APIGOVSCAN_LLM_BASE_URL: "http://127.0.0.1:9",
-      APIGOVSCAN_LLM_MODEL: "stub",
+      ANKAA_LLM_BASE_URL: "http://127.0.0.1:9",
+      ANKAA_LLM_MODEL: "stub",
     };
     writeFileSync(join(dir, "notes.exe"), "MZ fake binary", "utf8");
     const bad = await runCapture(["rules", "import", "--from", "notes.exe"], {

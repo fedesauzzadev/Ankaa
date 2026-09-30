@@ -1,4 +1,4 @@
-import type { Severity } from "@apigovscan/core";
+import type { Severity } from "@ankaa/core";
 import type { Report } from "./build.js";
 import { redactText } from "./redact.js";
 import { artifactUri } from "./uri.js";

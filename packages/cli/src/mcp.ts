@@ -7,9 +7,9 @@ import {
   type Rule,
   type RuleExplanation,
   type Severity,
-} from "@apigovscan/core";
-import type { Report } from "@apigovscan/reporters";
-import type { McpToolHandlers, ToolResult } from "@apigovscan/mcp";
+} from "@ankaa/core";
+import type { Report } from "@ankaa/reporters";
+import type { McpToolHandlers, ToolResult } from "@ankaa/mcp";
 import type { FailOn } from "./args.js";
 import { analyzeUseCase } from "./analyze.js";
 import { prepareAnalysis } from "./analyze-setup.js";
@@ -542,7 +542,7 @@ export function createCliMcpHandlers(cwd: string): McpToolHandlers {
         const llmCfg = loadLlmConfig(configResult.config.llm, process.env);
         if (llmCfg === undefined) {
           return fail(
-            "llm not configured: set llm.baseUrl in apigovscan.yaml (AI features are optional)",
+            "llm not configured: set llm.baseUrl in ankaa.yaml (AI features are optional)",
           );
         }
         const lookup = await loadSuggestLookup(cwd, configResult.config);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { EvaluationResult, Finding } from "@apigovscan/core";
+import type { EvaluationResult, Finding } from "@ankaa/core";
 import { buildReport, formatAnnotations, formatMarkdown, formatSarif } from "../src/index.js";
 
 interface SarifRule {
@@ -76,15 +76,15 @@ describe("formatSarif (AC-SARIF.*)", () => {
     expect(sarif.$schema).toBe("https://json.schemastore.org/sarif-2.1.0.json");
     expect(sarif.version).toBe("2.1.0");
     expect(sarif.runs).toHaveLength(1);
-    expect(sarif.runs[0].tool.driver.name).toBe("apigovscan");
+    expect(sarif.runs[0].tool.driver.name).toBe("ankaa");
     expect(sarif.runs[0].tool.driver.version).toBe("0.0.0-dev");
   });
 
   it("AC-S.6 carries governance score in run properties", () => {
     const sarif = sarifOf(makeReport());
     expect(sarif.runs[0].properties).toEqual({
-      "apigovscan/score": 92,
-      "apigovscan/grade": "A",
+      "ankaa/score": 92,
+      "ankaa/grade": "A",
     });
   });
 
@@ -156,14 +156,14 @@ describe("formatSarif (AC-SARIF.*)", () => {
     const naming = rules.find((r) => r.id === "NAMING-001")!;
     expect(naming.helpUri).toBe("https://github.com/microsoft/api-guidelines");
     expect(naming.help?.text).toBe("Rename user to users.");
-    expect(naming.properties["apigovscan/pack"]).toBe("elite@2026.09.1");
-    expect(naming.properties["apigovscan/severity"]).toBe("error");
+    expect(naming.properties["ankaa/pack"]).toBe("elite@2026.09.1");
+    expect(naming.properties["ankaa/severity"]).toBe("error");
   });
 
   it("AC-SARIF.6 carries the finding fingerprint", () => {
     const sarif = sarifOf(makeReport());
     expect(sarif.runs[0].results[0].partialFingerprints).toEqual({
-      apigovscanFingerprint: "a".repeat(64),
+      ankaaFingerprint: "a".repeat(64),
     });
   });
 
@@ -192,10 +192,10 @@ describe("formatSarif (AC-SARIF.*)", () => {
 describe("formatMarkdown (AC-MD.*)", () => {
   it("AC-MD.1 includes counts, reportHash and no ANSI", () => {
     const out = formatMarkdown(makeReport());
-    expect(out).toContain("# ApiGovScan report");
+    expect(out).toContain("# Ankaa report");
     expect(out).toContain("1 error · 0 warnings · 0 info");
     expect(out).toContain("reportHash");
-    expect(out).toContain("| Tool | apigovscan 0.0.0-dev |");
+    expect(out).toContain("| Tool | ankaa 0.0.0-dev |");
     expect(out).toContain("| Score | **92/100 (A)** |");
     expect(out.includes(String.fromCharCode(27))).toBe(false);
   });

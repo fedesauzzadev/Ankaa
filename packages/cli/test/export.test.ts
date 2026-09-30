@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Finding } from "@apigovscan/core";
+import type { Finding } from "@ankaa/core";
 import { buildIntegrationExport, type ExportableReport } from "../src/export.js";
 
 const first: Finding = {
@@ -15,7 +15,7 @@ const first: Finding = {
 };
 
 const report: ExportableReport = {
-  tool: { name: "apigovscan", version: "1.0.0" },
+  tool: { name: "ankaa", version: "1.0.0" },
   input: [{ path: "openapi.yaml", sha256: "b".repeat(64) }],
   findings: [first],
 };

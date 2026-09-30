@@ -66,7 +66,7 @@ export function createMcpServer(
   const { cwd, maxFindings = DEFAULT_MAX_FINDINGS } = options;
   const server = new McpServer(
     {
-      name: options.name ?? "apigovscan",
+      name: options.name ?? "ankaa",
       version: options.version ?? "0.0.0-dev",
     },
     { capabilities: { tools: {} } },
@@ -77,7 +77,7 @@ export function createMcpServer(
     {
       title: "Analyze OpenAPI spec",
       description:
-        "Run ApiGovScan analyze on a local OpenAPI/Swagger file or directory. Same semantics as the CLI. Output findings are truncated; use the CLI for the full report.",
+        "Run Ankaa analyze on a local OpenAPI/Swagger file or directory. Same semantics as the CLI. Output findings are truncated; use the CLI for the full report.",
       inputSchema: {
         path: z.string().describe("File or directory path relative to the server cwd (sandboxed)"),
         failOn: z
@@ -167,7 +167,7 @@ export function createMcpServer(
     "validate_custom_rules",
     {
       title: "Validate custom rules",
-      description: "Validate custom rule YAML/JSON files against the ApiGovScan DSL.",
+      description: "Validate custom rule YAML/JSON files against the Ankaa DSL.",
       inputSchema: {
         files: z.array(z.string()).min(1).describe("Rule files to validate (sandboxed paths)"),
       },
@@ -217,7 +217,7 @@ export function createMcpServer(
     {
       title: "Suggest a fix",
       description:
-        "Propose a unified-diff fix for a finding (from a JSON report on disk) using the configured LLM. Draft only; never applies changes. Requires llm.baseUrl in apigovscan.yaml.",
+        "Propose a unified-diff fix for a finding (from a JSON report on disk) using the configured LLM. Draft only; never applies changes. Requires llm.baseUrl in ankaa.yaml.",
       inputSchema: {
         fingerprint: z
           .string()
@@ -259,7 +259,7 @@ export function createMcpServer(
     {
       title: "Review an API change",
       description:
-        "Run the same review as `apigovscan review <base> <candidate>`: candidate governance findings plus base-candidate compatibility findings, with a stable reportHash. Deterministic, no LLM, no network. Feedback only: you decide what to edit; CI is the final gate. Re-runs the current state on every call; output findings are truncated (see totalFindings/truncated) — use the CLI for the full review.",
+        "Run the same review as `ankaa review <base> <candidate>`: candidate governance findings plus base-candidate compatibility findings, with a stable reportHash. Deterministic, no LLM, no network. Feedback only: you decide what to edit; CI is the final gate. Re-runs the current state on every call; output findings are truncated (see totalFindings/truncated) — use the CLI for the full review.",
       inputSchema: {
         baselinePath: z
           .string()

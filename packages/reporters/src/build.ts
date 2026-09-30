@@ -1,10 +1,10 @@
 import { createHash } from "node:crypto";
-import type { Coverage, EvaluationResult, Finding, Severity } from "@apigovscan/core";
+import type { Coverage, EvaluationResult, Finding, Severity } from "@ankaa/core";
 import { canonicalJson } from "./canonical.js";
 import { redactText } from "./redact.js";
 
 export interface ReportTool {
-  name: "apigovscan";
+  name: "ankaa";
   version: string;
 }
 
@@ -158,7 +158,7 @@ export function buildReport(input: BuildReportInput): Report {
   const packs = [...input.packs].sort((a, b) => cmp(a.id, b.id));
   const summary = countSummary(findings, input.suppressed, input.skillsSuppressed);
   const withoutHash = {
-    tool: { name: "apigovscan" as const, version: input.toolVersion },
+    tool: { name: "ankaa" as const, version: input.toolVersion },
     packs,
     input: input.inputs,
     summary,

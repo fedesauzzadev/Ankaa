@@ -1,12 +1,12 @@
 import { readFile, writeFile } from "node:fs/promises";
-import type { Report } from "@apigovscan/reporters";
+import type { Report } from "@ankaa/reporters";
 import {
   formatAnnotations,
   formatConsole,
   formatJson,
   formatMarkdown,
   formatSarif,
-} from "@apigovscan/reporters";
+} from "@ankaa/reporters";
 import type { PackRepository, ReportSink, SpecLoader } from "./ports.js";
 import {
   defaultPackSearchRoots,

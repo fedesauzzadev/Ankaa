@@ -1,14 +1,14 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, resolve } from "node:path";
-import type { Finding } from "@apigovscan/core";
+import type { Finding } from "@ankaa/core";
 
-export const DEFAULT_BASELINE_PATH = ".apigovscan/baseline.json";
+export const DEFAULT_BASELINE_PATH = ".ankaa/baseline.json";
 export const BASELINE_SCHEMA_VERSION = 1;
 
 export interface BaselineFile {
   version: number;
   createdAt: string;
-  tool: { name: "apigovscan"; version: string };
+  tool: { name: "ankaa"; version: string };
   engineVersion: string;
   packs: Array<{ id: string; version: string }>;
   inputs: Array<{ path: string; sha256: string }>;
@@ -60,7 +60,7 @@ export function buildBaseline(input: {
   return {
     version: BASELINE_SCHEMA_VERSION,
     createdAt: input.createdAt ?? new Date().toISOString(),
-    tool: { name: "apigovscan", version: input.toolVersion },
+    tool: { name: "ankaa", version: input.toolVersion },
     engineVersion: input.engineVersion,
     packs: [...input.packs]
       .map((p) => ({ id: p.id, version: p.version }))
@@ -206,7 +206,7 @@ export function loadBaselineFile(
     version: BASELINE_SCHEMA_VERSION,
     createdAt: typeof obj.createdAt === "string" ? obj.createdAt : new Date(0).toISOString(),
     tool: {
-      name: "apigovscan",
+      name: "ankaa",
       version: tool && typeof tool.version === "string" ? tool.version : "0.0.0-dev",
     },
     engineVersion: typeof obj.engineVersion === "string" ? obj.engineVersion : "0.0.0-dev",

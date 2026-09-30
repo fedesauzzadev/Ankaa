@@ -6,18 +6,18 @@ import { startLlmStub } from "./llm-stub.js";
 const savedEnv = { ...process.env };
 
 afterEach(() => {
-  process.env.APIGOVSCAN_LLM_BASE_URL = savedEnv.APIGOVSCAN_LLM_BASE_URL;
-  process.env.APIGOVSCAN_LLM_API_KEY = savedEnv.APIGOVSCAN_LLM_API_KEY;
-  process.env.APIGOVSCAN_LLM_MODEL = savedEnv.APIGOVSCAN_LLM_MODEL;
+  process.env.ANKAA_LLM_BASE_URL = savedEnv.ANKAA_LLM_BASE_URL;
+  process.env.ANKAA_LLM_API_KEY = savedEnv.ANKAA_LLM_API_KEY;
+  process.env.ANKAA_LLM_MODEL = savedEnv.ANKAA_LLM_MODEL;
 });
 
 describe("loadLlmConfig (AC-SF.1)", () => {
   it("env wins over config; empty strings are absent", () => {
     const config = { baseUrl: "http://config:1", apiKey: "ck", model: "cm" };
     const env = {
-      APIGOVSCAN_LLM_BASE_URL: "http://env:2",
-      APIGOVSCAN_LLM_API_KEY: "",
-      APIGOVSCAN_LLM_MODEL: "em",
+      ANKAA_LLM_BASE_URL: "http://env:2",
+      ANKAA_LLM_API_KEY: "",
+      ANKAA_LLM_MODEL: "em",
     };
     expect(loadLlmConfig(config, env)).toEqual({
       baseUrl: "http://env:2",
@@ -48,7 +48,7 @@ describe("config schema llm block (AC-SF.2)", () => {
         "  apiKey: secret",
         "  model: test-model",
       ].join("\n"),
-      "apigovscan.yaml",
+      "ankaa.yaml",
     );
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -61,26 +61,26 @@ describe("config schema llm block (AC-SF.2)", () => {
   });
 
   it("rejects unknown llm keys", () => {
-    const result = loadConfigFromText("llm:\n  url: http://x\n", "apigovscan.yaml");
+    const result = loadConfigFromText("llm:\n  url: http://x\n", "ankaa.yaml");
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.error).toBe('config apigovscan.yaml: llm: unknown key "url"');
+      expect(result.error).toBe('config ankaa.yaml: llm: unknown key "url"');
     }
   });
 
   it("rejects non-string llm values", () => {
-    const result = loadConfigFromText("llm:\n  baseUrl: 42\n", "apigovscan.yaml");
+    const result = loadConfigFromText("llm:\n  baseUrl: 42\n", "ankaa.yaml");
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.error).toBe("config apigovscan.yaml: llm.baseUrl must be a non-empty string");
+      expect(result.error).toBe("config ankaa.yaml: llm.baseUrl must be a non-empty string");
     }
   });
 
   it("rejects non-mapping llm", () => {
-    const result = loadConfigFromText("llm: nope\n", "apigovscan.yaml");
+    const result = loadConfigFromText("llm: nope\n", "ankaa.yaml");
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.error).toBe("config apigovscan.yaml: llm must be a mapping");
+      expect(result.error).toBe("config ankaa.yaml: llm must be a mapping");
     }
   });
 });

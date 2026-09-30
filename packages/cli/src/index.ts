@@ -18,8 +18,8 @@ import {
   sortFindings,
   type Rule,
   type RulePack,
-} from "@apigovscan/core";
-import { buildReport, formatConsole } from "@apigovscan/reporters";
+} from "@ankaa/core";
+import { buildReport, formatConsole } from "@ankaa/reporters";
 import {
   parseAnalyzeArgs,
   parseDashboardArgs,
@@ -86,7 +86,7 @@ import {
   parseShapeResponse,
   parseSweepResponse,
 } from "./drift.js";
-import { parseSpec } from "@apigovscan/openapi";
+import { parseSpec } from "@ankaa/openapi";
 import { aggregateScans, loadGroupMapping, type RepoScan, type SkippedRepo } from "./scan.js";
 import {
   compareReports,
@@ -130,7 +130,7 @@ import {
 import { createFsPackRepository, createFsSpecLoader, createReportSink } from "./loaders.js";
 import { buildAgentsMd, buildPromptsJson, type RulesExportFormat } from "./rules-export.js";
 import { createCliMcpHandlers } from "./mcp.js";
-import { createMcpServer, startStdioServer } from "@apigovscan/mcp";
+import { createMcpServer, startStdioServer } from "@ankaa/mcp";
 import type { OperationContext } from "./operations.js";
 import { checkLicense, licenseErrorMessage } from "./license.js";
 import {
@@ -155,34 +155,34 @@ export type {
 
 export function getHelp(): string {
   return [
-    "apigovscan — local-first API governance analyzer",
+    "ankaa — local-first API governance analyzer",
     "",
     "Usage:",
-    "  apigovscan init [dir] [--force] [--skills-dir <dir>]",
-    "  apigovscan analyze <path> [options]",
-    "  apigovscan rules validate <file...> [options]",
-    "  apigovscan rules list [--rules <file>]",
-    "  apigovscan rules explain <ruleId> [--rules <file>]",
-    "  apigovscan rules import --from <file> [--out <file>]",
-    "  apigovscan rules export [--as agents-md|prompts-json] [--out <file>]",
-    "  apigovscan learn --report <r.json> --feedback <f.json> [options]",
-    "  apigovscan suppress --report <r.json> --fingerprint <fp> --decision <d> [--reason ...]",
-    "  apigovscan skills list [--format json]",
-    "  apigovscan skills promote <draftId>",
-    "  apigovscan license [--key <AGS-...>]",
-    "  apigovscan fix <path> [--fingerprint <fp>]",
-    "  apigovscan drift <dir> [--spec <file>]",
-    "  apigovscan diff <old> <new> [--format <fmt>] [--output <file>]",
-    "  apigovscan review <base> <candidate> [--format console|json]",
-    "  apigovscan scan-org <dir> [--github <org>]",
-    "  apigovscan scan-repo <git-url> [--format console|json] [--out <file>] [--workdir <dir>]",
-    "  apigovscan export <report.json> [--group-by <file>] [--since <old.json>] [--out <file>]",
-    "  apigovscan dashboard <report.json> [--port <n>]",
-    "  apigovscan workspace [--port <n>]",
-    "  apigovscan guided",
-    "  apigovscan mcp [--help]",
-    "  apigovscan --version",
-    "  apigovscan --help",
+    "  ankaa init [dir] [--force] [--skills-dir <dir>]",
+    "  ankaa analyze <path> [options]",
+    "  ankaa rules validate <file...> [options]",
+    "  ankaa rules list [--rules <file>]",
+    "  ankaa rules explain <ruleId> [--rules <file>]",
+    "  ankaa rules import --from <file> [--out <file>]",
+    "  ankaa rules export [--as agents-md|prompts-json] [--out <file>]",
+    "  ankaa learn --report <r.json> --feedback <f.json> [options]",
+    "  ankaa suppress --report <r.json> --fingerprint <fp> --decision <d> [--reason ...]",
+    "  ankaa skills list [--format json]",
+    "  ankaa skills promote <draftId>",
+    "  ankaa license [--key <AGS-...>]",
+    "  ankaa fix <path> [--fingerprint <fp>]",
+    "  ankaa drift <dir> [--spec <file>]",
+    "  ankaa diff <old> <new> [--format <fmt>] [--output <file>]",
+    "  ankaa review <base> <candidate> [--format console|json]",
+    "  ankaa scan-org <dir> [--github <org>]",
+    "  ankaa scan-repo <git-url> [--format console|json] [--out <file>] [--workdir <dir>]",
+    "  ankaa export <report.json> [--group-by <file>] [--since <old.json>] [--out <file>]",
+    "  ankaa dashboard <report.json> [--port <n>]",
+    "  ankaa workspace [--port <n>]",
+    "  ankaa guided",
+    "  ankaa mcp [--help]",
+    "  ankaa --version",
+    "  ankaa --help",
     "",
     "Arguments:",
     "  path              File, directory, or '-' (stdin)",
@@ -199,14 +199,14 @@ export function getHelp(): string {
     "  --fail-on <sev>   error | warning | info | never   (default: error)",
     "  --rules <file>    YAML/JSON custom rules (repeatable; added to pack)",
     "  --rule <json>     inline rule as JSON",
-    "  --config <file>   config file (default: ./apigovscan.yaml)",
+    "  --config <file>   config file (default: ./ankaa.yaml)",
     "  --write-baseline  write baseline.json from current findings",
     "  --baseline        filter findings present in baseline",
-    "  --baseline-path   baseline file (default: .apigovscan/baseline.json)",
+    "  --baseline-path   baseline file (default: .ankaa/baseline.json)",
     "  --strict-hash     baseline inputHash mismatch is fatal (exit 2)",
     "  --baseline-ignore-hash  silence inputHash mismatch warnings",
-    "  --skills-dir      override skills directory (default: .apigovscan/skills)",
-    "  --license-key     license key (also APIGOVSCAN_LICENSE_KEY or config license.key)",
+    "  --skills-dir      override skills directory (default: .ankaa/skills)",
+    "  --license-key     license key (also ANKAA_LICENSE_KEY or config license.key)",
     "  --fingerprint     fix: limit proposals to one finding (full fingerprint or unique prefix)",
     "  --report          learn: report JSON path",
     "  --feedback        learn: feedback JSON path",
@@ -217,34 +217,34 @@ export function getHelp(): string {
     "  -h, --help",
     "  -V, --version",
     "",
-    "MCP (apigovscan mcp):",
+    "MCP (ankaa mcp):",
     "  stdio server with tools analyze_spec, list_rules, explain_rule,",
     "  validate_custom_rules, explain_finding, suggest_fix, review_api_change",
     "  (sandboxed under cwd).",
-    '  Client: {"mcpServers":{"apigovscan":{"command":"npx","args":["-y","@apigovscan/cli","mcp"]}}}',
+    '  Client: {"mcpServers":{"ankaa":{"command":"npx","args":["-y","@ankaa/cli","mcp"]}}}',
     "",
     "AI features (optional):",
-    "  apigovscan fix <path> [--fingerprint <fp>]",
+    "  ankaa fix <path> [--fingerprint <fp>]",
     "  Propose unified-diff fixes for findings using your own LLM.",
-    "  apigovscan rules import --from <doc> [--out <file>]",
+    "  ankaa rules import --from <doc> [--out <file>]",
     "  Draft custom rules from an internal guideline using your own LLM.",
-    "  apigovscan drift <dir> [--spec <file>]",
+    "  ankaa drift <dir> [--spec <file>]",
     "  Detect spec-code drift and draft missing specs; LLM optional for deep scan.",
-    "  Configure llm.baseUrl in apigovscan.yaml (or APIGOVSCAN_LLM_BASE_URL).",
+    "  Configure llm.baseUrl in ankaa.yaml (or ANKAA_LLM_BASE_URL).",
     "  The LLM only drafts text; it never analyzes, scores, or gates.",
     "",
     "Batch audit (deterministic, no LLM):",
-    "  apigovscan scan-org <dir> [--github <org>]",
+    "  ankaa scan-org <dir> [--github <org>]",
     "  Consolidated per-repo scores for a directory of projects or a GitHub org.",
     "",
     "Local viewer (no analysis, no network beyond loopback):",
-    "  apigovscan dashboard <report.json> [--port <n>] [--against <old.json>]",
+    "  ankaa dashboard <report.json> [--port <n>] [--against <old.json>]",
     "  Serve finding cards with grouping and local tracking on 127.0.0.1.",
     "Guided workspace (local analysis via the web UI, loopback + token):",
-    "  apigovscan workspace [--port <n>]",
+    "  ankaa workspace [--port <n>]",
     "  Run guided operations (analyze) with live progress on 127.0.0.1.",
     "Terminal assistant (menu, validation, confirmation before any write):",
-    "  apigovscan guided",
+    "  ankaa guided",
     "  Analyze a path and prepare CI config with preview + confirmation.",
     "",
     "Exit codes:",
@@ -319,7 +319,7 @@ async function runAnalyze(
 
   const license = checkLicense({
     flag: args.licenseKey,
-    env: io.env.APIGOVSCAN_LICENSE_KEY,
+    env: io.env.ANKAA_LICENSE_KEY,
     config: config.license?.key,
   });
   if (!license.ok) {
@@ -830,7 +830,7 @@ async function runRulesImport(
 
   const license = checkLicense({
     flag: licenseKey,
-    env: io.env.APIGOVSCAN_LICENSE_KEY,
+    env: io.env.ANKAA_LICENSE_KEY,
     config: config.license?.key,
   });
   if (!license.ok) {
@@ -841,7 +841,7 @@ async function runRulesImport(
   const llmCfg = loadLlmConfig(config.llm, io.env);
   if (llmCfg === undefined) {
     io.stderr(
-      "error: llm not configured: set llm.baseUrl in apigovscan.yaml (AI features are optional)\n",
+      "error: llm not configured: set llm.baseUrl in ankaa.yaml (AI features are optional)\n",
     );
     return 2;
   }
@@ -911,7 +911,7 @@ async function runRulesImport(
     return 2;
   }
   io.stdout(
-    `${valid.length} imported, ${rejected.length} rejected — review ${out} and add it to customRules in apigovscan.yaml\n`,
+    `${valid.length} imported, ${rejected.length} rejected — review ${out} and add it to customRules in ankaa.yaml\n`,
   );
   return 0;
 }
@@ -929,11 +929,11 @@ async function runRulesCommand(
     io.stdout(
       [
         "Usage:",
-        "  apigovscan rules validate <file...> [--format json]",
-        "  apigovscan rules list [--rules <file>] [--format json]",
-        "  apigovscan rules explain <ruleId> [--rules <file>]",
-        "  apigovscan rules import --from <file> [--out <file>] [--force] [--config <file>] [--license-key <key>]",
-        "  apigovscan rules export [--as agents-md|prompts-json] [--rules <file>] [--out <file>] [--force]",
+        "  ankaa rules validate <file...> [--format json]",
+        "  ankaa rules list [--rules <file>] [--format json]",
+        "  ankaa rules explain <ruleId> [--rules <file>]",
+        "  ankaa rules import --from <file> [--out <file>] [--force] [--config <file>] [--license-key <key>]",
+        "  ankaa rules export [--as agents-md|prompts-json] [--rules <file>] [--out <file>] [--force]",
         "",
         "validate  Check custom rule files against the DSL (exit 0/2).",
         "list      List active pack rules (and custom rules when --rules is given).",
@@ -1079,9 +1079,9 @@ function runInitCommand(
     io.stdout(
       [
         "Usage:",
-        "  apigovscan init [dir] [--force] [--skills-dir <dir>] [--config <file>]",
+        "  ankaa init [dir] [--force] [--skills-dir <dir>] [--config <file>]",
         "",
-        "Scaffold apigovscan.yaml and .apigovscan/skills/ for baseline + learn.",
+        "Scaffold ankaa.yaml and .ankaa/skills/ for baseline + learn.",
         "Does not overwrite user content without --force (scaffold-only safe).",
         "",
       ].join("\n"),
@@ -1180,9 +1180,9 @@ function runLearn(
     io.stdout(
       [
         "Usage:",
-        "  apigovscan learn --report <file> --feedback <file> [--skills-dir <dir>] [--dry-run] [--config <file>]",
+        "  ankaa learn --report <file> --feedback <file> [--skills-dir <dir>] [--dry-run] [--config <file>]",
         "",
-        "Apply feedback decisions to .apigovscan/skills (idempotent, INV-5).",
+        "Apply feedback decisions to .ankaa/skills (idempotent, INV-5).",
         "Decisions: false_positive | wontfix | severity_change | confirm | suggest_rule",
         "",
       ].join("\n"),
@@ -1349,7 +1349,7 @@ async function runSuppressCommand(
 ): Promise<number> {
   if (argv.includes("--help") || argv.includes("-h")) {
     io.stdout(
-      'usage: apigovscan suppress --report <r.json> --fingerprint <fp> --decision false_positive|wontfix|severity_change [--severity <level>] [--reason "..."] [--expires YYYY-MM-DD] [--owner <name>] [--skills-dir <dir>] [--config <file>] [--dry-run]\n',
+      'usage: ankaa suppress --report <r.json> --fingerprint <fp> --decision false_positive|wontfix|severity_change [--severity <level>] [--reason "..."] [--expires YYYY-MM-DD] [--owner <name>] [--skills-dir <dir>] [--config <file>] [--dry-run]\n',
     );
     return 0;
   }
@@ -1436,8 +1436,8 @@ function runSkillsCommand(
     io.stdout(
       [
         "Usage:",
-        "  apigovscan skills list [--format json] [--skills-dir <dir>] [--config <file>]",
-        "  apigovscan skills promote <draftId> [--skills-dir <dir>] [--config <file>]",
+        "  ankaa skills list [--format json] [--skills-dir <dir>] [--config <file>]",
+        "  ankaa skills promote <draftId> [--skills-dir <dir>] [--config <file>]",
         "",
         "list      Show suppressions, severity overrides, and drafts.",
         "promote   Flip draft: true → false so the rule is evaluated.",
@@ -1599,10 +1599,10 @@ function runSkillsCommand(
 
 function getMcpHelp(): string {
   return [
-    "apigovscan mcp — MCP stdio server (local-first)",
+    "ankaa mcp — MCP stdio server (local-first)",
     "",
     "Usage:",
-    "  apigovscan mcp [--help]",
+    "  ankaa mcp [--help]",
     "",
     "Tools (FR-50):",
     "  analyze_spec(path, failOn?, rules?)",
@@ -1619,7 +1619,7 @@ function getMcpHelp(): string {
     "Same engine as the CLI; stateless between calls; zero network (INV-1).",
     "",
     "Client registration (Claude / Cursor / opencode):",
-    '  { "mcpServers": { "apigovscan": { "command": "npx", "args": ["-y", "@apigovscan/cli", "mcp"] } } }',
+    '  { "mcpServers": { "ankaa": { "command": "npx", "args": ["-y", "@ankaa/cli", "mcp"] } } }',
     "",
   ].join("\n");
 }
@@ -1646,7 +1646,7 @@ async function runMcpCommand(
   const configResult = loadConfig(io.cwd, undefined);
   const configKey = configResult.ok ? configResult.config.license?.key : undefined;
   const license = checkLicense({
-    env: io.env.APIGOVSCAN_LICENSE_KEY,
+    env: io.env.ANKAA_LICENSE_KEY,
     config: configKey,
   });
   if (!license.ok) {
@@ -1658,7 +1658,7 @@ async function runMcpCommand(
     const handlers = createCliMcpHandlers(io.cwd);
     const server = createMcpServer(handlers, {
       cwd: io.cwd,
-      name: "apigovscan",
+      name: "ankaa",
       version: packageVersion(),
     });
     await startStdioServer(server);
@@ -1691,7 +1691,7 @@ function runLicenseCommand(
       continue;
     }
     if (token === "--help" || token === "-h") {
-      io.stdout("usage: apigovscan license [--key <AGS-...>]\n");
+      io.stdout("usage: ankaa license [--key <AGS-...>]\n");
       return 0;
     }
     io.stderr(`error: unknown option: ${token}\n`);
@@ -1701,7 +1701,7 @@ function runLicenseCommand(
   const configKey = configResult.ok ? configResult.config.license?.key : undefined;
   const license = checkLicense({
     flag: keyFlag,
-    env: io.env.APIGOVSCAN_LICENSE_KEY,
+    env: io.env.ANKAA_LICENSE_KEY,
     config: configKey,
   });
   if (license.ok) {
@@ -1726,7 +1726,7 @@ async function runFixCommand(
 ): Promise<number> {
   if (argv.includes("--help") || argv.includes("-h")) {
     io.stdout(
-      "usage: apigovscan fix <path> [--fingerprint <fp>] [--config <file>] [--license-key <key>]\n",
+      "usage: ankaa fix <path> [--fingerprint <fp>] [--config <file>] [--license-key <key>]\n",
     );
     return 0;
   }
@@ -1759,7 +1759,7 @@ async function runFixCommand(
   // Same license gate as analyze: fix runs the full analysis in memory.
   const license = checkLicense({
     flag: args.licenseKey,
-    env: io.env.APIGOVSCAN_LICENSE_KEY,
+    env: io.env.ANKAA_LICENSE_KEY,
     config: config.license?.key,
   });
   if (!license.ok) {
@@ -1770,7 +1770,7 @@ async function runFixCommand(
   const llmCfg = loadLlmConfig(config.llm, io.env);
   if (llmCfg === undefined) {
     io.stderr(
-      "error: llm not configured: set llm.baseUrl in apigovscan.yaml (AI features are optional)\n",
+      "error: llm not configured: set llm.baseUrl in ankaa.yaml (AI features are optional)\n",
     );
     return 2;
   }
@@ -1987,7 +1987,7 @@ async function runDriftCommand(
 ): Promise<number> {
   if (argv.includes("--help") || argv.includes("-h")) {
     io.stdout(
-      "usage: apigovscan drift <dir> [--spec <file>] [--out <file>] [--format console|json] [--config <file>] [--license-key <key>] [--force]\n",
+      "usage: ankaa drift <dir> [--spec <file>] [--out <file>] [--format console|json] [--config <file>] [--license-key <key>] [--force]\n",
     );
     return 0;
   }
@@ -2017,7 +2017,7 @@ async function runDriftCommand(
 
   const license = checkLicense({
     flag: args.licenseKey,
-    env: io.env.APIGOVSCAN_LICENSE_KEY,
+    env: io.env.ANKAA_LICENSE_KEY,
     config: config.license?.key,
   });
   if (!license.ok) {
@@ -2424,7 +2424,7 @@ async function runWorkspaceCommand(
   const configResult = loadConfig(io.cwd, undefined);
   const configKey = configResult.ok ? configResult.config.license?.key : undefined;
   const license = checkLicense({
-    env: io.env.APIGOVSCAN_LICENSE_KEY,
+    env: io.env.ANKAA_LICENSE_KEY,
     config: configKey,
   });
   if (!license.ok) {
@@ -2476,7 +2476,7 @@ async function runGuidedCommand(
   const configResult = loadConfig(io.cwd, undefined);
   const configKey = configResult.ok ? configResult.config.license?.key : undefined;
   const license = checkLicense({
-    env: io.env.APIGOVSCAN_LICENSE_KEY,
+    env: io.env.ANKAA_LICENSE_KEY,
     config: configKey,
   });
   if (!license.ok) {
@@ -2513,7 +2513,7 @@ async function runDiffCommand(
 ): Promise<number> {
   if (argv.includes("--help") || argv.includes("-h")) {
     io.stdout(
-      "usage: apigovscan diff <old> <new> [--format <fmt>] [--output <file>] [--fail-on <sev>] [--skills-dir <dir>] [--config <file>] [--license-key <key>] [--no-color]\n",
+      "usage: ankaa diff <old> <new> [--format <fmt>] [--output <file>] [--fail-on <sev>] [--skills-dir <dir>] [--config <file>] [--license-key <key>] [--no-color]\n",
     );
     return 0;
   }
@@ -2537,7 +2537,7 @@ async function runDiffCommand(
 
   const license = checkLicense({
     flag: args.licenseKey,
-    env: io.env.APIGOVSCAN_LICENSE_KEY,
+    env: io.env.ANKAA_LICENSE_KEY,
     config: config.license?.key,
   });
   if (!license.ok) {
@@ -2679,7 +2679,7 @@ async function runReviewCommand(
 ): Promise<number> {
   if (argv.includes("--help") || argv.includes("-h")) {
     io.stdout(
-      "usage: apigovscan review <base> <candidate> [--format console|json] [--output <file>] [--fail-on <sev>] [--baseline-label <label>] [--skills-dir <dir>] [--config <file>] [--license-key <key>] [--no-color]\n",
+      "usage: ankaa review <base> <candidate> [--format console|json] [--output <file>] [--fail-on <sev>] [--baseline-label <label>] [--skills-dir <dir>] [--config <file>] [--license-key <key>] [--no-color]\n",
     );
     return 0;
   }
@@ -2702,7 +2702,7 @@ async function runReviewCommand(
   const config = configResult.config;
   const license = checkLicense({
     flag: args.licenseKey,
-    env: io.env.APIGOVSCAN_LICENSE_KEY,
+    env: io.env.ANKAA_LICENSE_KEY,
     config: config.license?.key,
   });
   if (!license.ok) {
@@ -2825,7 +2825,7 @@ async function runScanOrgCommand(
 ): Promise<number> {
   if (argv.includes("--help") || argv.includes("-h")) {
     io.stdout(
-      "usage: apigovscan scan-org <dir> [--github <org>] [--group-by <file>] [--format console|json] [--out <file>] [--config <file>] [--license-key <key>] [--force] [--max-repos <n>] [--workdir <dir>] [--api-base <url>] [--resume | --from-scratch]\n" +
+      "usage: ankaa scan-org <dir> [--github <org>] [--group-by <file>] [--format console|json] [--out <file>] [--config <file>] [--license-key <key>] [--force] [--max-repos <n>] [--workdir <dir>] [--api-base <url>] [--resume | --from-scratch]\n" +
         "  --resume continues/reuses only verified results; --from-scratch re-analyzes all repos and keeps prior history\n",
     );
     return 0;
@@ -2856,7 +2856,7 @@ async function runScanOrgCommand(
 
   const license = checkLicense({
     flag: args.licenseKey,
-    env: io.env.APIGOVSCAN_LICENSE_KEY,
+    env: io.env.ANKAA_LICENSE_KEY,
     config: config.license?.key,
   });
   if (!license.ok) {
@@ -2911,7 +2911,7 @@ async function runScanOrgCommand(
     const workdir =
       args.workdir !== undefined
         ? resolve(io.cwd, args.workdir)
-        : mkdtempSync(join(tmpdir(), "apigovscan-scan-"));
+        : mkdtempSync(join(tmpdir(), "ankaa-scan-"));
     if (args.workdir !== undefined && !existsSync(workdir)) {
       io.stderr(`error: workdir not found: ${args.workdir}\n`);
       return 2;
@@ -2988,7 +2988,7 @@ async function runScanOrgCommand(
   const report = aggregateScans(
     scans,
     mapping,
-    "apigovscan",
+    "ankaa",
     packageVersion(),
     args.github ?? null,
   );
@@ -3179,7 +3179,7 @@ async function runResumableScanOrgCommand(
       return 2;
     }
 
-    temporaryRoot = mkdtempSync(join(tmpdir(), "apigovscan-resume-"));
+    temporaryRoot = mkdtempSync(join(tmpdir(), "ankaa-resume-"));
     const scans: RepoScan[] = [];
     const skipped: SkippedRepo[] = [];
     for (const [index, repo] of listed.repos.entries()) {
@@ -3275,7 +3275,7 @@ async function runResumableScanOrgCommand(
       return 2;
     }
 
-    const report = aggregateScans(scans, mapping, "apigovscan", packageVersion(), org);
+    const report = aggregateScans(scans, mapping, "ankaa", packageVersion(), org);
     report.skipped = [...skipped, ...report.skipped].sort((a, b) =>
       a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
     );
@@ -3328,7 +3328,7 @@ async function runExportCommand(
 ): Promise<number> {
   if (argv.includes("--help") || argv.includes("-h")) {
     io.stdout(
-      "usage: apigovscan export <report.json> [--group-by <file>] [--since <old.json>] [--out <file>] [--force]\n",
+      "usage: ankaa export <report.json> [--group-by <file>] [--since <old.json>] [--out <file>] [--force]\n",
     );
     return 0;
   }
@@ -3407,7 +3407,7 @@ async function runScanRepoCommand(
 ): Promise<number> {
   if (argv.includes("--help") || argv.includes("-h")) {
     io.stdout(
-      "usage: apigovscan scan-repo <git-url> [--format console|json] [--out <file>] [--workdir <dir>] [--force] [--config <file>] [--license-key <key>]\n",
+      "usage: ankaa scan-repo <git-url> [--format console|json] [--out <file>] [--workdir <dir>] [--force] [--config <file>] [--license-key <key>]\n",
     );
     return 0;
   }
@@ -3442,7 +3442,7 @@ async function runScanRepoCommand(
     }
   } else {
     try {
-      tempRoot = mkdtempSync(join(tmpdir(), "apigovscan-repo-"));
+      tempRoot = mkdtempSync(join(tmpdir(), "ankaa-repo-"));
       workRoot = tempRoot;
     } catch {
       io.stderr("error: could not create temporary clone directory\n");
@@ -3703,6 +3703,6 @@ export async function run(argv: readonly string[], io?: RunIO): Promise<number> 
     });
   }
 
-  stderr(`Unknown command: ${first}\nRun apigovscan --help\n`);
+  stderr(`Unknown command: ${first}\nRun ankaa --help\n`);
   return 2;
 }

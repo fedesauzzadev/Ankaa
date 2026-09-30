@@ -5,8 +5,8 @@ import {
   sortFindings,
   type Finding,
   type Spec,
-} from "@apigovscan/core";
-import { buildReport, type Report } from "@apigovscan/reporters";
+} from "@ankaa/core";
+import { buildReport, type Report } from "@ankaa/reporters";
 import {
   analyzeUseCase,
   computeExitCode,

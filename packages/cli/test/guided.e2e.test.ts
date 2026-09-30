@@ -17,7 +17,7 @@ const petstore = join(repoRoot, "fixtures", "petstore-mini.yaml");
 const tempRoots: string[] = [];
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-guided-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-guided-"));
   tempRoots.push(dir);
   return dir;
 }
@@ -49,7 +49,7 @@ async function guided(
       stderr += t;
     },
     env: {
-      APIGOVSCAN_LICENSE_KEY: DEV_LICENSE_KEY,
+      ANKAA_LICENSE_KEY: DEV_LICENSE_KEY,
       GITHUB_TOKEN: "ghp_testtoken",
       ...envExtra,
     },
@@ -106,7 +106,7 @@ async function cliAnalyzeHash(cwd: string, path: string): Promise<string> {
       stdout += t;
     },
     stderr: () => {},
-    env: { APIGOVSCAN_LICENSE_KEY: DEV_LICENSE_KEY },
+    env: { ANKAA_LICENSE_KEY: DEV_LICENSE_KEY },
     cwd,
     isTTY: false,
   });
@@ -173,14 +173,14 @@ describe("guided CI preparation (f15 M15.5, AC-15.10)", () => {
       "analyze",
       "specs.yaml",
       "error",
-      ".github/workflows/apigovscan.yml",
+      ".github/workflows/ankaa.yml",
       "n",
       "5",
     ]);
     expect(cancelled.code).toBe(0);
     expect(cancelled.stdout).toContain("--- preview of");
     expect(cancelled.stdout).toContain("Cancelled — nothing was written.");
-    expect(existsSync(join(cwd, ".github", "workflows", "apigovscan.yml"))).toBe(false);
+    expect(existsSync(join(cwd, ".github", "workflows", "ankaa.yml"))).toBe(false);
 
     const written = await guided(cwd, [
       "4",
@@ -188,24 +188,24 @@ describe("guided CI preparation (f15 M15.5, AC-15.10)", () => {
       "main",
       "specs.yaml",
       "error",
-      ".github/workflows/apigovscan.yml",
+      ".github/workflows/ankaa.yml",
       "y",
       "5",
     ]);
     expect(written.code).toBe(0);
-    expect(written.stdout).toContain("written .github/workflows/apigovscan.yml");
-    const content = readFileSync(join(cwd, ".github", "workflows", "apigovscan.yml"), "utf8");
+    expect(written.stdout).toContain("written .github/workflows/ankaa.yml");
+    const content = readFileSync(join(cwd, ".github", "workflows", "ankaa.yml"), "utf8");
     expect(content).toContain("path: specs.yaml");
     expect(content).toContain("fail-on: error");
     expect(content).toContain("review-ref: main");
-    expect(content).toContain("ApiGovScan never changes branch protection");
+    expect(content).toContain("Ankaa never changes branch protection");
 
     const exists = await guided(cwd, [
       "4",
       "analyze",
       "specs.yaml",
       "error",
-      ".github/workflows/apigovscan.yml",
+      ".github/workflows/ankaa.yml",
       "y",
       "n",
       "5",
@@ -243,7 +243,7 @@ describe("guided command (f15 M15.5)", () => {
       isTTY: false,
     });
     expect(code).toBe(0);
-    expect(stdout).toContain("usage: apigovscan guided");
+    expect(stdout).toContain("usage: ankaa guided");
   });
 
   it("rejects unexpected arguments with exit 2", async () => {

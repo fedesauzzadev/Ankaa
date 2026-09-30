@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import { createMcpServer } from "@apigovscan/mcp";
+import { createMcpServer } from "@ankaa/mcp";
 import { run } from "../src/index.js";
 import { createCliMcpHandlers } from "../src/mcp.js";
 import { startLlmStub } from "./llm-stub.js";
@@ -17,7 +17,7 @@ const malformed = join(repoRoot, "fixtures", "malformed.yaml");
 const tempRoots: string[] = [];
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-mcp-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-mcp-"));
   tempRoots.push(dir);
   return dir;
 }
@@ -59,7 +59,7 @@ async function connectCli(cwd: string): Promise<{
   const handlers = createCliMcpHandlers(cwd);
   const server = createMcpServer(handlers, {
     cwd,
-    name: "apigovscan",
+    name: "ankaa",
     version: "0.0.0-dev",
   });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
@@ -106,7 +106,7 @@ const TEAM_RULE = [
   "        in: request",
 ].join("\n");
 
-describe("apigovscan mcp command", () => {
+describe("ankaa mcp command", () => {
   it("AC-SRV.2 mcp --help exits 0 and documents tools", async () => {
     const { code, stdout } = await runCapture(["mcp", "--help"]);
     expect(code).toBe(0);
@@ -118,7 +118,7 @@ describe("apigovscan mcp command", () => {
   it("global --help mentions mcp", async () => {
     const { code, stdout } = await runCapture(["--help"]);
     expect(code).toBe(0);
-    expect(stdout).toContain("apigovscan mcp");
+    expect(stdout).toContain("ankaa mcp");
   });
 });
 
@@ -451,7 +451,7 @@ describe("MCP tools e2e (f4-mcp-tools)", () => {
 
   it("S5: analyze_spec then explain_rule yields cited standard", async () => {
     const dir = setupWorkspace();
-    mkdirSync(join(dir, ".apigovscan"), { recursive: true });
+    mkdirSync(join(dir, ".ankaa"), { recursive: true });
     const { client, close } = await connectCli(dir);
     try {
       const analysis = parseToolText(
@@ -480,16 +480,16 @@ describe("MCP tools e2e (f4-mcp-tools)", () => {
 describe("MCP suggest_fix (f8-suggest-fix)", () => {
   function llmEnv(): Record<string, string | undefined> {
     return {
-      APIGOVSCAN_LLM_BASE_URL: process.env.APIGOVSCAN_LLM_BASE_URL,
-      APIGOVSCAN_LLM_API_KEY: process.env.APIGOVSCAN_LLM_API_KEY,
-      APIGOVSCAN_LLM_MODEL: process.env.APIGOVSCAN_LLM_MODEL,
+      ANKAA_LLM_BASE_URL: process.env.ANKAA_LLM_BASE_URL,
+      ANKAA_LLM_API_KEY: process.env.ANKAA_LLM_API_KEY,
+      ANKAA_LLM_MODEL: process.env.ANKAA_LLM_MODEL,
     };
   }
 
   function clearLlmEnv(): void {
-    delete process.env.APIGOVSCAN_LLM_BASE_URL;
-    delete process.env.APIGOVSCAN_LLM_API_KEY;
-    delete process.env.APIGOVSCAN_LLM_MODEL;
+    delete process.env.ANKAA_LLM_BASE_URL;
+    delete process.env.ANKAA_LLM_API_KEY;
+    delete process.env.ANKAA_LLM_MODEL;
   }
 
   function restoreLlmEnv(saved: Record<string, string | undefined>): void {
@@ -521,8 +521,8 @@ describe("MCP suggest_fix (f8-suggest-fix)", () => {
     const stub = await startLlmStub();
     const { client, close } = await connectCli(dir);
     try {
-      process.env.APIGOVSCAN_LLM_BASE_URL = stub.url;
-      process.env.APIGOVSCAN_LLM_MODEL = "stub";
+      process.env.ANKAA_LLM_BASE_URL = stub.url;
+      process.env.ANKAA_LLM_MODEL = "stub";
       const fp = await analyzeToReport(dir);
       const payload = parseToolText(
         await client.callTool({
@@ -574,8 +574,8 @@ describe("MCP suggest_fix (f8-suggest-fix)", () => {
     });
     const { client, close } = await connectCli(dir);
     try {
-      process.env.APIGOVSCAN_LLM_BASE_URL = stub.url;
-      process.env.APIGOVSCAN_LLM_MODEL = "stub";
+      process.env.ANKAA_LLM_BASE_URL = stub.url;
+      process.env.ANKAA_LLM_MODEL = "stub";
       const fp = await analyzeToReport(dir);
       const result = await client.callTool({
         name: "suggest_fix",
@@ -598,8 +598,8 @@ describe("MCP suggest_fix (f8-suggest-fix)", () => {
     const stub = await startLlmStub();
     const { client, close } = await connectCli(dir);
     try {
-      process.env.APIGOVSCAN_LLM_BASE_URL = stub.url;
-      process.env.APIGOVSCAN_LLM_MODEL = "stub";
+      process.env.ANKAA_LLM_BASE_URL = stub.url;
+      process.env.ANKAA_LLM_MODEL = "stub";
       const fp = await analyzeToReport(dir);
 
       const prefixed = parseToolText(

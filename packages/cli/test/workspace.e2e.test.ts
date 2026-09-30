@@ -15,7 +15,7 @@ const petstore = join(repoRoot, "fixtures", "petstore-mini.yaml");
 const tempRoots: string[] = [];
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "apigovscan-workspace-"));
+  const dir = mkdtempSync(join(tmpdir(), "ankaa-workspace-"));
   tempRoots.push(dir);
   return dir;
 }
@@ -52,7 +52,7 @@ function requestRaw(
           host: options.host ?? `127.0.0.1:${new URL(server!.url).port}`,
           ...(options.origin !== undefined ? { origin: options.origin } : {}),
           ...(options.tokenHeader !== undefined
-            ? { "x-apigovscan-token": options.tokenHeader }
+            ? { "x-ankaa-token": options.tokenHeader }
             : {}),
           "content-type": "application/json",
         },
@@ -100,7 +100,7 @@ afterAll(async () => {
 });
 
 function authHeaders(): Record<string, string> {
-  return { "x-apigovscan-token": token, "content-type": "application/json" };
+  return { "x-ankaa-token": token, "content-type": "application/json" };
 }
 
 describe("workspace server (f15 M15.3)", () => {
@@ -108,7 +108,7 @@ describe("workspace server (f15 M15.3)", () => {
     const res = await fetch(`${server!.url}/`);
     expect(res.status).toBe(200);
     const html = await res.text();
-    expect(html).toContain("ApiGovScan workspace");
+    expect(html).toContain("Ankaa workspace");
     expect(html).toContain('data-view="home"');
     expect(html).toContain('data-view="new"');
     expect(html).toContain('data-view="progress"');
@@ -121,7 +121,7 @@ describe("workspace server (f15 M15.3)", () => {
     const html = await (await fetch(`${server!.url}/`)).text();
     expect(html).toMatch(/<html lang="en">/);
     expect(html).toContain("<main>");
-    expect(html).toContain("<h1>ApiGovScan workspace</h1>");
+    expect(html).toContain("<h1>Ankaa workspace</h1>");
     expect(html).toContain('aria-label="Sections"');
     expect(html).toContain('role="status" aria-live="polite"');
     expect((html.match(/role="status"/g) ?? []).length).toBeGreaterThanOrEqual(3);
@@ -229,7 +229,7 @@ describe("workspace server (f15 M15.3)", () => {
         cliStdout += t;
       },
       stderr: () => {},
-      env: { APIGOVSCAN_LICENSE_KEY: DEV_LICENSE_KEY },
+      env: { ANKAA_LICENSE_KEY: DEV_LICENSE_KEY },
       cwd,
       isTTY: false,
     });
@@ -286,7 +286,7 @@ describe("workspace command (f15 M15.3)", () => {
   it("workspace --help exits 0 and documents the command", async () => {
     const result = await runCapture(["workspace", "--help"]);
     expect(result.code).toBe(0);
-    expect(result.stdout).toContain("usage: apigovscan workspace [--port <n>]");
+    expect(result.stdout).toContain("usage: ankaa workspace [--port <n>]");
     expect(result.stdout).toContain("127.0.0.1");
   });
 
@@ -317,7 +317,7 @@ describe("workspace history and compare (f15 M15.4, AC-15.9/.11)", () => {
   async function start2(path: string): Promise<void> {
     const res = await fetch2("/api/analyze/start", {
       method: "POST",
-      headers: { "x-apigovscan-token": token2, "content-type": "application/json" },
+      headers: { "x-ankaa-token": token2, "content-type": "application/json" },
       body: JSON.stringify({ path, failOn: "never" }),
     });
     expect(res.status, JSON.stringify(res.body)).toBe(200);
