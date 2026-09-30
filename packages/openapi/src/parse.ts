@@ -256,7 +256,9 @@ function parseDocumentToUnknown(text: string, limits: ParseLimits, errors: Parse
       uniqueKeys: true,
     });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    // prettyErrors embeds the offending source snippet; keep only the first
+    // line (message + line/column) so parse errors never quote spec bodies.
+    const msg = (err instanceof Error ? err.message : String(err)).split("\n")[0]!.trim();
     if (/alias/i.test(msg)) {
       errors.push({ message: `YAML_ALIAS_LIMIT: ${msg}` });
     } else if (/tag/i.test(msg)) {

@@ -2681,6 +2681,9 @@ async function runReviewCommand(
         return 2;
       }
     }
+    for (const w of evaluation.skillsWarnings) {
+      io.stderr(`warning: ${w}\n`);
+    }
     return 2;
   }
 
@@ -2694,6 +2697,9 @@ async function runReviewCommand(
       `review: ${evaluation.review.outcome} · comparison ${evaluation.review.baseline.format} → ${evaluation.review.candidate.format}\n` +
       `baseline: ${evaluation.review.baseline.path} → candidate: ${evaluation.review.candidate.path}\n\n`;
     if (!emit(`${reviewLine}${consoleText}`)) return 2;
+  }
+  for (const w of evaluation.skillsWarnings) {
+    io.stderr(`warning: ${w}\n`);
   }
   return evaluation.exitCode;
 }

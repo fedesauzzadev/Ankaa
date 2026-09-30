@@ -195,7 +195,7 @@ type ApiChangeReview = ApiChangeReviewSuccess | ApiChangeReviewError;
       ApiGovScan, registra token-count del modelo de referencia, tiempo,
       findings detectados y falsos positivos; no se promete porcentaje de ahorro
       sin resultados del benchmark. La revisión normal no llama LLM ni hace red.
-- [ ] **AC-14.11** Privacidad: tests verifican que paths/logs/errores no
+- [x] **AC-14.11** Privacidad: tests verifican que paths/logs/errores no
       imprimen bodies ni ejemplos completos; solo evidencia mínima, pointers,
       ruleIds y fingerprints (INV-1/7).
 - [x] **AC-14.12** Invariantes INV-1/2/3/4/5/7 y `pnpm check` pasan; no hay
@@ -257,3 +257,9 @@ antes de una comunicación de lanzamiento; no bloquean construir el producto.
   JSON + gate console consumen `apigovscan review` sobre el checkout candidato),
   dogfood con job `apigovscan-review`, tests de paridad/failure modes/determinismo
   y documentación del required status check con límites de bypass/admin (AC-14.9).
+- 2026-09-30 · M14.4 implementado: visibilidad de suppressions en review
+  (`summary.skillsSuppressed` unifica candidato+diff, warnings de waivers
+  expirados/huérfanos a stderr), tests de scoping (una supresión no oculta
+  hallazgos adyacentes) y de mensajes distinguibles clean/findings/unsupported/
+  error. Fix de privacidad central: los errores de parse YAML ya no citan el
+  snippet del contrato (AC-14.11, INV-7; aplica a analyze/diff/review).

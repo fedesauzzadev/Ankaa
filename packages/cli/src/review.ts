@@ -10,6 +10,7 @@ import { buildReport, type Report } from "@apigovscan/reporters";
 import {
   analyzeUseCase,
   computeExitCode,
+  describeSuppression,
   parseSpecInput,
   type ParsedProtocol,
 } from "./analyze.js";
@@ -101,13 +102,21 @@ export interface ReviewUseCaseOptions {
 }
 
 export type ReviewEvaluation =
-  | { ok: true; review: ApiChangeReviewSuccess; report: Report; exitCode: 0 | 1 }
+  | {
+      ok: true;
+      review: ApiChangeReviewSuccess;
+      report: Report;
+      exitCode: 0 | 1;
+      /** Expired/orphan waiver notices from the diff side (stderr material). */
+      skillsWarnings: string[];
+    }
   | {
       ok: false;
       exitCode: 2;
       comparisonUnsupported: true;
       review: ApiChangeReviewPartial;
       candidateReport: Report;
+      skillsWarnings: string[];
     }
   | { ok: false; exitCode: 2; comparisonUnsupported: false; error: string };
 
@@ -160,6 +169,7 @@ export async function reviewUseCase(
     return { ok: false, exitCode: 2, comparisonUnsupported: false, error: analysis.error };
   }
   const candidateReport = analysis.report;
+  const candidateWarnings = analysis.skillsWarnings;
   const candidateInput = candidateReport.input[0];
   if (candidateInput === undefined) {
     return {
@@ -181,6 +191,7 @@ export async function reviewUseCase(
       exitCode: 2,
       comparisonUnsupported: true,
       candidateReport,
+      skillsWarnings: candidateWarnings,
       review: {
         schemaVersion: 1,
         outcome: "error",
@@ -217,14 +228,29 @@ export async function reviewUseCase(
       ),
     );
   }
+  let diffSkillsSuppressed = 0;
+  const skillsWarnings: string[] = [];
   if (opts.setup.skillsSuppressions !== undefined) {
-    const applied = applySkillSuppressions(
-      diffFindings,
-      opts.setup.skillsSuppressions.suppressions,
-      opts.setup.skillsSuppressions.matchRegexes,
-    );
+    const { suppressions, matchRegexes } = opts.setup.skillsSuppressions;
+    const applied = applySkillSuppressions(diffFindings, suppressions, matchRegexes);
+    diffSkillsSuppressed = applied.suppressed;
     diffFindings = applied.visible;
+    const matched = new Set(applied.matchedIndexes);
+    const expired = new Set(applied.expiredIndexes);
+    for (const i of applied.expiredIndexes) {
+      const sup = suppressions[i]!;
+      skillsWarnings.push(
+        `suppression expired (ignored): ${describeSuppression(sup)} (expires ${sup.expires})`,
+      );
+    }
+    for (let i = 0; i < suppressions.length; i++) {
+      if (!matched.has(i) && !expired.has(i)) {
+        skillsWarnings.push(`suppression matches no findings: ${describeSuppression(suppressions[i]!)}`);
+      }
+    }
   }
+  const skillsSuppressedTotal =
+    (candidateReport.summary.skillsSuppressed ?? 0) + diffSkillsSuppressed;
 
   const report = buildReport({
     results: [
@@ -239,6 +265,7 @@ export async function reviewUseCase(
     ],
     packs: [...candidateReport.packs, { id: DIFF_PACK_ID, version: opts.toolVersion }],
     toolVersion: opts.toolVersion,
+    ...(skillsSuppressedTotal > 0 ? { skillsSuppressed: skillsSuppressedTotal } : {}),
   });
 
   const review: ApiChangeReviewSuccess = {
@@ -256,5 +283,11 @@ export async function reviewUseCase(
     findings: report.findings,
     reportHash: report.reportHash,
   };
-  return { ok: true, review, report, exitCode: computeExitCode(report, opts.failOn) };
+  return {
+    ok: true,
+    review,
+    report,
+    exitCode: computeExitCode(report, opts.failOn),
+    skillsWarnings: [...candidateWarnings, ...skillsWarnings],
+  };
 }

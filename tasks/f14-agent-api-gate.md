@@ -35,11 +35,11 @@ Plan: [f14-agent-api-review](../plans/f14-agent-api-gate.md)
 
 ## M14.4 — Calidad de uso
 
-- [ ] Revisar ejemplos de findings para que expliquen evidencia y siguiente
+- [x] Revisar ejemplos de findings para que expliquen evidencia y siguiente
       acción en lenguaje claro, sin depender del color.
-- [ ] Mejorar visibilidad del alcance/motivo de suppressions existentes y
+- [x] Mejorar visibilidad del alcance/motivo de suppressions existentes y
       comprobar que no oculten hallazgos adyacentes.
-- [ ] Probar mensajes para limpio, findings, no comparable y error; ninguno
+- [x] Probar mensajes para limpio, findings, no comparable y error; ninguno
       debe confundirse con otro estado.
 
 ## M14.5 — Evidencia y cierre
