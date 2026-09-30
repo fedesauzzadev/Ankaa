@@ -97,7 +97,8 @@ La key comunitaria es pública y verificable offline (no permite forjar otras ke
 | `apigovscan fix <path> [--fingerprint <fp>]`         | Propone diffs unificados para findings con tu propio LLM (opcional; ver abajo)                                                                                                                                                                                                                                                                                |
 | `apigovscan drift <dir> [--spec <file>]`             | Detecta drift spec↔código y genera borradores (ver abajo)                                                                                                                                                                                                                                                                                                     |
 | `apigovscan review <base> <candidate>`               | Combina governance del candidato y cambios incompatibles OpenAPI/Swagger en una revisión local JSON o legible                                                                                                                                                                                                                                                 |
-| `apigovscan dashboard <report.json> [--port <n>]`    | Visor local de tarjetas en `127.0.0.1` con agrupadores y tracking (ver abajo)                                                                                                                                                                                                                                                                                 |
+| `apigovscan dashboard <report.json> [--port <n>]`    | Visor local de tarjetas en `127.0.0.1` con agrupadores y tracking (ver abajo)                                                                                                                                                                                                                                                                            |
+| `apigovscan workspace [--port <n>]`                  | App web guiada local: corre operaciones tipadas (analyze) con progreso en vivo (ver abajo)                                                                                                                                                                                                                                                               |
 | `apigovscan scan-org <dir> [--github <org>]`         | Informe consolidado multi-repo con scores por repo (ver abajo)                                                                                                                                                                                                                                                                                                |
 | `apigovscan scan-repo <git-url> [opciones]`          | Clona y analiza explícitamente un repo HTTPS/SSH con Git local                                                                                                                                                                                                                                                                                                |
 | `apigovscan export <report.json> [opciones]`         | JSON v1 de findings, grupos y tendencias para integraciones del cliente, sin red propia                                                                                                                                                                                                                                                                       |
@@ -215,6 +216,20 @@ node packages/cli/bin/apigovscan.js analyze ./openapi.yaml --format json --outpu
 node packages/cli/bin/apigovscan.js dashboard report.json --against old.json --group-by dominios.yaml
 # → dashboard at http://127.0.0.1:PORT (solo tu PC, Ctrl+C para parar)
 ```
+
+#### Workspace guiado local (f15)
+
+```bash
+node packages/cli/bin/apigovscan.js workspace
+# → workspace at http://127.0.0.1:PORT (loopback + token por proceso, Ctrl+C para parar)
+```
+
+App web local para correr ApiGovScan sin flags: elegir un archivo/directorio,
+ver progreso real por fase (`n de m`, sin porcentajes inventados), cancelar y
+leer el resultado. Todo inline (sin CDN), mutaciones protegidas por token y
+validación Host/Origin, endpoints limitados a operaciones tipadas. El
+historial/comparación y el asistente de terminal llegan en los próximos
+milestones (`specs/f15-local-workspace.md`).
 
 Tarjetas por finding con filtros y agrupadores (pack, dueño, regla, archivo, severidad, tendencia, tracking). Los estados (pending → in progress → resolved) se guardan en `report.json.tracking.json`; el segundo análisis verifica por fingerprint. **Copy suppress command** copia una orden de ejemplo; revisa y cambia `--decision`/`--reason` antes de ejecutarla. Luego vuelve a analizar para confirmar el cambio. Spec: [`specs/f10-dashboard.md`](specs/f10-dashboard.md).
 
@@ -373,4 +388,4 @@ Ver [docs/SDD.md §7](docs/SDD.md).
 - **F10 (cerrada):** visor local ✅ (`f10-dashboard`, OSS).
 - **F7 (backlog, `f7-enterprise` draft):** packs por cliente · self-host compose completo · edge Cloudflare (opcional) · export enterprise (`f10-export` como M7.4) — export JSON v1 implementado; el gate por tier espera la definición de F7.
 - **F14 (cerrada):** revisor local de cambios API para personas y agentes (`specs/f14-agent-api-gate.md`): `review` CLI + evaluador compartido, tool MCP `review_api_change`, Action con `review-ref`, corpus + benchmark con resultados medidos.
-- **F15 (M15.1 cerrado):** `scan-org --resume` y `--from-scratch` guardan historial local y reutilizan solo revisiones verificadas. Workspace web y wizard siguen en los próximos milestones (`specs/f15-local-workspace.md`).
+- **F15 (en ejecución):** workspace local guiado (`specs/f15-local-workspace.md`): scan-org reanudable ✅ (M15.1), operación tipada `analyze` con progreso/cancelación ✅ (M15.2), app web `workspace` en loopback con token y endpoints tipados ✅ (M15.3); historial/comparación, asistente `guided` y cierre en próximos milestones.

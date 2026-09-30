@@ -32,6 +32,7 @@ import {
   parseScanRepoArgs,
   parseExportArgs,
   parseReviewArgs,
+  parseWorkspaceArgs,
   type FailOn,
   type ScanOrgArgs,
 } from "./args.js";
@@ -98,6 +99,7 @@ import {
   type DashboardPayload,
 } from "./dashboard.js";
 import { renderDashboardPage } from "./dashboard-page.js";
+import { startWorkspaceServer, workspaceHelp } from "./workspace.js";
 import {
   cloneRepo,
   cloneRemoteRepo,
@@ -175,6 +177,7 @@ export function getHelp(): string {
     "  apigovscan scan-repo <git-url> [--format console|json] [--out <file>] [--workdir <dir>]",
     "  apigovscan export <report.json> [--group-by <file>] [--since <old.json>] [--out <file>]",
     "  apigovscan dashboard <report.json> [--port <n>]",
+    "  apigovscan workspace [--port <n>]",
     "  apigovscan mcp [--help]",
     "  apigovscan --version",
     "  apigovscan --help",
@@ -235,6 +238,9 @@ export function getHelp(): string {
     "Local viewer (no analysis, no network beyond loopback):",
     "  apigovscan dashboard <report.json> [--port <n>] [--against <old.json>]",
     "  Serve finding cards with grouping and local tracking on 127.0.0.1.",
+    "Guided workspace (local analysis via the web UI, loopback + token):",
+    "  apigovscan workspace [--port <n>]",
+    "  Run guided operations (analyze) with live progress on 127.0.0.1.",
     "",
     "Exit codes:",
     "  0  no findings at or above --fail-on",
@@ -2391,6 +2397,58 @@ async function runDashboardCommand(
   return 0;
 }
 
+async function runWorkspaceCommand(
+  argv: readonly string[],
+  io: {
+    stdout: (text: string) => void;
+    stderr: (text: string) => void;
+    env: Record<string, string | undefined>;
+    cwd: string;
+  },
+): Promise<number> {
+  if (argv.includes("--help") || argv.includes("-h")) {
+    io.stdout(`${workspaceHelp()}\n`);
+    return 0;
+  }
+  const parsed = parseWorkspaceArgs(argv);
+  if (!parsed.ok) {
+    io.stderr(`error: ${parsed.error}\n`);
+    return 2;
+  }
+
+  const configResult = loadConfig(io.cwd, undefined);
+  const configKey = configResult.ok ? configResult.config.license?.key : undefined;
+  const license = checkLicense({
+    env: io.env.APIGOVSCAN_LICENSE_KEY,
+    config: configKey,
+  });
+  if (!license.ok) {
+    io.stderr(`error: ${licenseErrorMessage(license)}\n`);
+    return 2;
+  }
+
+  let server: Awaited<ReturnType<typeof startWorkspaceServer>>;
+  try {
+    server = await startWorkspaceServer({ cwd: io.cwd }, parsed.args.port);
+  } catch (err) {
+    io.stderr(
+      `error: cannot start workspace: ${err instanceof Error ? err.message : String(err)}\n`,
+    );
+    return 2;
+  }
+
+  io.stdout(`workspace at ${server.url} (local only, press Ctrl+C to stop)\n`);
+  await new Promise<void>((resolvePromise) => {
+    const onSigint = (): void => {
+      process.removeListener("SIGINT", onSigint);
+      void server.close().then(() => resolvePromise());
+      setTimeout(() => resolvePromise(), 1000).unref?.();
+    };
+    process.on("SIGINT", onSigint);
+  });
+  return 0;
+}
+
 async function runDiffCommand(
   argv: readonly string[],
   io: {
@@ -3430,6 +3488,7 @@ export async function run(argv: readonly string[], io?: RunIO): Promise<number> 
     first === "scan-repo" ||
     first === "export" ||
     first === "dashboard" ||
+    first === "workspace" ||
     first === "review" ||
     first === "mcp";
 
@@ -3560,6 +3619,14 @@ export async function run(argv: readonly string[], io?: RunIO): Promise<number> 
     return runDashboardCommand(args.slice(1), {
       stdout,
       stderr,
+      cwd,
+    });
+  }
+  if (first === "workspace") {
+    return runWorkspaceCommand(args.slice(1), {
+      stdout,
+      stderr,
+      env,
       cwd,
     });
   }

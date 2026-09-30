@@ -85,3 +85,6 @@ base de AC-15.6; engine y core sin I/O.
 - 2026-10-01 · M15.2 implementado para `analyze`: contrato tipado exportado,
   estados, progreso por fase y cancelación por `AbortSignal`; CLI preserva
   salida y report hash.
+- 2026-10-01 · M15.3 implementado: `workspace` en loopback con token/Host/Origin,
+  endpoints tipados allowlistados, UI sin CDN y analyze con progreso real y
+  paridad de hash con la CLI; `dashboard` intacto.

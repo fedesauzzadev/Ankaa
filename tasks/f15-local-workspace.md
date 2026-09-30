@@ -22,11 +22,11 @@ Plan: [plans/f15-local-workspace.md](../plans/f15-local-workspace.md) · Spec:
 
 ## M15.3 — Workspace web local
 
-- [ ] Añadir `workspace` al server loopback con puerto efímero por defecto (AC-15.3)
-- [ ] Validar Host/Origin y token por proceso en mutaciones (AC-15.4)
-- [ ] Limitar endpoints a acciones tipadas allowlistadas (AC-15.4)
-- [ ] Implementar navegación, selección de origen y confirmaciones (AC-15.3–6)
-- [ ] Probar errores, estados de carga, cancelación y seguridad del browser
+- [x] Añadir `workspace` al server loopback con puerto efímero por defecto (AC-15.3)
+- [x] Validar Host/Origin y token por proceso en mutaciones (AC-15.4)
+- [x] Limitar endpoints a acciones tipadas allowlistadas (AC-15.4)
+- [x] Implementar navegación, selección de origen y confirmaciones (AC-15.3–6)
+- [x] Probar errores, estados de carga, cancelación y seguridad del browser
 
 ## M15.4 — Historial y comparación
 

@@ -50,9 +50,10 @@ describe("LLM boundary (AC-SF.9)", () => {
       if (f === "llm.ts" || f === "github.ts") {
         return false;
       }
-      if (f === "dashboard-page.ts") {
-        // AC-DB.5: browser-side same-origin calls (relative api/* URLs) inside
-        // the served HTML string; the Node side (dashboard.ts) never fetches.
+      if (f === "dashboard-page.ts" || f === "workspace-page.ts") {
+        // AC-DB.5 / AC-15.3: browser-side same-origin calls (relative api/*
+        // URLs) inside the served HTML string; the Node side (dashboard.ts /
+        // workspace.ts) never fetches.
         const text = readFileSync(join(cliSrc, f), "utf8");
         const hits = text.match(/(^|[^A-Za-z_.])fetch\s*\(/g) ?? [];
         const relativeOnly = !/fetch\s*\(\s*["']https?:/.test(text);
@@ -67,6 +68,13 @@ describe("LLM boundary (AC-SF.9)", () => {
 
   it("dashboard node side never fetches and binds loopback only (AC-DB.5)", () => {
     const text = readFileSync(join(cliSrc, "dashboard.ts"), "utf8");
+    expect(text).not.toMatch(/(^|[^A-Za-z_.])fetch\s*\(/);
+    expect(text).toContain("127.0.0.1");
+    expect(text).not.toMatch(/0\.0\.0\.0/);
+  });
+
+  it("workspace node side never fetches and binds loopback only (AC-15.3/15.4)", () => {
+    const text = readFileSync(join(cliSrc, "workspace.ts"), "utf8");
     expect(text).not.toMatch(/(^|[^A-Za-z_.])fetch\s*\(/);
     expect(text).toContain("127.0.0.1");
     expect(text).not.toMatch(/0\.0\.0\.0/);

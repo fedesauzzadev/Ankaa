@@ -1115,3 +1115,40 @@ export function parseDashboardArgs(argv: readonly string[]): ParseDashboardArgsR
 
   return { ok: true, args };
 }
+
+export interface WorkspaceArgs {
+  port: number;
+}
+
+export type ParseWorkspaceArgsResult =
+  | { ok: true; args: WorkspaceArgs }
+  | { ok: false; error: string };
+
+export function parseWorkspaceArgs(argv: readonly string[]): ParseWorkspaceArgsResult {
+  const args: WorkspaceArgs = { port: 0 };
+  for (let i = 0; i < argv.length; i++) {
+    const token = argv[i]!;
+    if (token === "--port") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--port requires a port number (0 for ephemeral)" };
+      }
+      if (!/^(0|[1-9][0-9]*)$/.test(value) || Number(value) > 65535) {
+        return { ok: false, error: `--port "${value}" is not a valid port (0-65535)` };
+      }
+      args.port = Number(value);
+      continue;
+    }
+    if (token === "--no-color") {
+      continue;
+    }
+    if (token === "--help" || token === "-h" || token === "--version" || token === "-V") {
+      return { ok: false, error: `unexpected ${token} after workspace` };
+    }
+    if (isFlag(token)) {
+      return { ok: false, error: `unknown option: ${token}` };
+    }
+    return { ok: false, error: `unexpected argument: ${token}` };
+  }
+  return { ok: true, args };
+}

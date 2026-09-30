@@ -138,9 +138,9 @@ abrir un navegador para usar ApiGovScan.
       de CLI no cambian de comportamiento.
 - [ ] **AC-15.2** `guided` permite iniciar y cancelar flujos soportados con
       validaciones; sus resultados coinciden con los del caso de uso CLI equivalente.
-- [ ] **AC-15.3** `workspace` sirve la app solo en loopback, imprime URL y
+- [x] **AC-15.3** `workspace` sirve la app solo en loopback, imprime URL y
       permite navegación sin CDN ni recursos remotos.
-- [ ] **AC-15.4** Requests mutantes rechazan Host/Origin inválidos o token
+- [x] **AC-15.4** Requests mutantes rechazan Host/Origin inválidos o token
       ausente/incorrecto; no hay rutas genéricas de shell ni filesystem.
 - [ ] **AC-15.5** El usuario puede elegir directorio local, URL de repo o
       organización; cada origen remoto deja clara la acción de red antes de iniciar.
@@ -215,3 +215,9 @@ abrir un navegador para usar ApiGovScan.
 - 2026-10-01 · M15.2 implementado para el caso de uso `analyze`: contrato
   tipado de operación, fases/contadores reales, estados terminales y
   cancelación compartidos con el adapter CLI; sin cambios al reporte.
+- 2026-10-01 · M15.3 implementado: `apigovscan workspace [--port <n>]` sirve la
+  app guiada en loopback (puerto efímero por defecto) con token por proceso,
+  validación Host/Origin en mutaciones, endpoints allowlistados tipados
+  (`/api/catalog`, `/api/state`, `/api/result`, `/api/analyze/start|cancel`) y
+  UI inline sin CDN; `analyze` corre con progreso real y paridad de reportHash
+  con la CLI; `dashboard` existente sin cambios (AC-15.3/15.4).
