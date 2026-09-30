@@ -2,7 +2,7 @@
 
 | Campo     | Valor                                                                       |
 | --------- | --------------------------------------------------------------------------- |
-| Estado    | ready                                                                       |
+| Estado    | cerrada                                                                     |
 | Fecha     | 2026-10-01                                                                  |
 | Fase      | 15                                                                          |
 | Deriva de | SDD, ADR-013, ADR-015, `f8-scan-org`, `f10-dashboard`, `f14-agent-api-gate` |
@@ -142,7 +142,7 @@ abrir un navegador para usar ApiGovScan.
       permite navegación sin CDN ni recursos remotos.
 - [x] **AC-15.4** Requests mutantes rechazan Host/Origin inválidos o token
       ausente/incorrecto; no hay rutas genéricas de shell ni filesystem.
-- [ ] **AC-15.5** El usuario puede elegir directorio local, URL de repo o
+- [x] **AC-15.5** El usuario puede elegir directorio local, URL de repo o
       organización; cada origen remoto deja clara la acción de red antes de iniciar.
 - [x] **AC-15.6** El progreso muestra fase, elemento actual y contadores
       reales; errores, cancelación y reanudación se distinguen de una ejecución
@@ -243,3 +243,12 @@ abrir un navegador para usar ApiGovScan.
   verificado de `scan-org` (M15.1). **Pendiente:** AC-15.5 (orígenes remotos
   Git/org en las superficies guiadas, con consentimiento de red explícito) para
   poder cerrar la fase.
+- 2026-10-01 · AC-15.5 implementado y fase cerrada: `guided` ofrece los tres
+  orígenes — directorio local, URL de repo Git (validada HTTPS/SSH, sin
+  credenciales embebidas) y organización GitHub (requiere GITHUB_TOKEN) — con
+  la acción de red descrita explícitamente antes de cada consentimiento
+  (clone shallow / list+clone vía API), análisis local de los clones en
+  directorios temporales que se eliminan al terminar, y flujo org siempre
+  fresco sin persistir nada (resume sigue en `scan-org --resume`). Flows
+  tipados en `guided-remote.ts` reusando github.ts/analyzeUseCase/aggregateScans.
+  AC-15.1–15.12 completos; estado → `cerrada`.

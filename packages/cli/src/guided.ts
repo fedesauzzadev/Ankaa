@@ -1,6 +1,8 @@
 import { existsSync, mkdirSync, statSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { createInterface } from "node:readline";
+import { validateGitRemoteUrl } from "./github.js";
+import { analyzeGithubOrg, analyzeRemoteRepo } from "./guided-remote.js";
 import { packageVersion, type Rule } from "@apigovscan/core";
 import { formatConsole } from "@apigovscan/reporters";
 import { analyzeUseCase } from "./analyze.js";
@@ -128,18 +130,24 @@ export async function runGuided(io: GuidedIO): Promise<number> {
   for (;;) {
     io.stdout("\nApiGovScan guided — available actions\n\n");
     io.stdout(`1. ${ANALYZE_OPERATION.title}\n   ${ANALYZE_OPERATION.description}\n`);
-    io.stdout("2. Prepare CI configuration\n   Preview a GitHub Actions workflow and write it only after confirmation.\n");
-    io.stdout("3. Exit\n\n");
+    io.stdout(
+      "2. Analyze a remote Git repository\n   Uses the network to clone the repo, then analyzes the checkout locally.\n",
+    );
+    io.stdout(
+      "3. Analyze a GitHub organization\n   Uses the network to list and clone repos (needs GITHUB_TOKEN); local analysis.\n",
+    );
+    io.stdout("4. Prepare CI configuration\n   Preview a GitHub Actions workflow and write it only after confirmation.\n");
+    io.stdout("5. Exit\n\n");
 
     let choice: string;
     try {
-      choice = (await ask("Choose an option [1-3]:")).trim();
+      choice = (await ask("Choose an option [1-5]:")).trim();
     } catch (err) {
       if (err instanceof ClosedInputError) return 0;
       throw err;
     }
 
-    if (choice === "3" || choice === "" || choice === "q" || choice === "quit") {
+    if (choice === "5" || choice === "" || choice === "q" || choice === "quit") {
       io.stdout("Bye.\n");
       return 0;
     }
@@ -149,11 +157,21 @@ export async function runGuided(io: GuidedIO): Promise<number> {
       continue;
     }
     if (choice === "2") {
+      const code = await remoteRepoFlow(io, ask);
+      if (code !== null) return code;
+      continue;
+    }
+    if (choice === "3") {
+      const code = await orgFlow(io, ask);
+      if (code !== null) return code;
+      continue;
+    }
+    if (choice === "4") {
       const code = await ciFlow(io, ask);
       if (code !== null) return code;
       continue;
     }
-    io.stdout("Invalid option; enter 1, 2 or 3.\n");
+    io.stdout("Invalid option; enter 1, 2, 3, 4 or 5.\n");
   }
 }
 
@@ -212,6 +230,103 @@ async function confirm(io: GuidedIO, ask: (p: string) => Promise<string>): Promi
     throw err;
   }
   return typed === "y" || typed === "yes";
+}
+
+async function remoteRepoFlow(io: GuidedIO, ask: (p: string) => Promise<string>): Promise<number | null> {
+  let url = "";
+  for (;;) {
+    let typed: string;
+    try {
+      typed = (await ask("Repository URL, HTTPS or SSH (empty to cancel):")).trim();
+    } catch (err) {
+      if (err instanceof ClosedInputError) return null;
+      throw err;
+    }
+    if (typed === "") {
+      io.stdout("Cancelled — nothing was run.\n");
+      return null;
+    }
+    const validated = validateGitRemoteUrl(typed);
+    if (!validated.ok) {
+      io.stdout(`${validated.error}\n`);
+      continue;
+    }
+    url = typed;
+    break;
+  }
+  io.stdout(
+    `\nRemote origin: ${url}\n` +
+      "This action uses the network: a shallow git clone of the URL above into a\n" +
+      "temporary directory, using your local git configuration. The cloned files\n" +
+      "are analyzed locally and the clone is deleted afterwards. Nothing is written\n" +
+      "outside the temporary directory.\n",
+  );
+  if (!(await confirm(io, ask))) {
+    io.stdout("Cancelled — nothing was cloned or run.\n");
+    return null;
+  }
+  const result = await analyzeRemoteRepo({ url }, (line) => io.stdout(`${line}\n`));
+  if (!result.ok) {
+    io.stderr(`error: ${result.error}\n`);
+    return 2;
+  }
+  io.stdout("\n");
+  io.stdout(formatConsole(result.report, { color: false }));
+  io.stdout(`reportHash ${result.report.reportHash}\n`);
+  return 0;
+}
+
+async function orgFlow(io: GuidedIO, ask: (p: string) => Promise<string>): Promise<number | null> {
+  const token = io.env.GITHUB_TOKEN;
+  if (token === undefined || token === "") {
+    io.stdout("GITHUB_TOKEN is not set in your environment; the organization flow needs it to list repos.\n");
+    return null;
+  }
+  let org: string;
+  try {
+    org = (await ask("GitHub organization (empty to cancel):")).trim();
+  } catch (err) {
+    if (err instanceof ClosedInputError) return null;
+    throw err;
+  }
+  if (org === "") {
+    io.stdout("Cancelled — nothing was run.\n");
+    return null;
+  }
+  io.stdout(
+    `\nRemote origin: GitHub organization "${org}"\n` +
+      "This action uses the network: it lists the organization's repositories via\n" +
+      "the GitHub API (with GITHUB_TOKEN from your environment) and clones each one\n" +
+      "into a temporary directory. Analysis is local and temporary clones are\n" +
+      "deleted afterwards. This guided flow always runs a fresh scan and persists\n" +
+      "nothing; for resumable runs use `apigovscan scan-org --github <org> --resume`.\n",
+  );
+  if (!(await confirm(io, ask))) {
+    io.stdout("Cancelled — nothing was cloned or run.\n");
+    return null;
+  }
+  const result = await analyzeGithubOrg({ org, token }, (line) => io.stdout(`${line}\n`));
+  if (!result.ok) {
+    io.stderr(`error: ${result.error}\n`);
+    return 2;
+  }
+  const report = result.report;
+  io.stdout("\n");
+  io.stdout(
+    `organization ${org}: ${report.totals.repos} repos scored · avg score ${report.avgScore} · avg coverage ${report.avgCoverage}%\n`,
+  );
+  for (const group of report.groups) {
+    io.stdout(`\n${group.name} (avg score ${group.avgScore})\n`);
+    for (const repo of group.repos) {
+      io.stdout(
+        `  ${repo.name}: ${repo.findings} findings (${repo.errors} errors) · score ${repo.score} (${repo.grade})\n`,
+      );
+    }
+  }
+  if (report.skipped.length > 0) {
+    io.stdout(`\nskipped: ${report.skipped.map((s) => s.name).join(", ")}\n`);
+  }
+  return 0;
 }
 
 async function analyzeFlow(io: GuidedIO, ask: (p: string) => Promise<string>): Promise<number | null> {

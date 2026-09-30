@@ -239,12 +239,14 @@ token y validación Host/Origin, endpoints limitados a operaciones tipadas
 node packages/cli/bin/apigovscan.js guided
 ```
 
-Menú interactivo en la terminal: analizar un path (con validación y
-confirmación; mismo `reportHash` que la CLI) y **preparar CI** — previsualiza el
-workflow completo (modo analyze o review con `review-ref`) y escribe un solo
-archivo tras confirmación explícita; no habilita branch protection ni toca
-settings de plataformas. Responder que no a una confirmación no ejecuta ni
-escribe nada.
+Menú interactivo en la terminal: **elegir el origen** — archivo/directorio local,
+URL de repo Git o organización GitHub (con la acción de red descrita y
+consentida antes de clonar; análisis local en temporales que se borran) —,
+analizar con validación y confirmación (mismo `reportHash` que la CLI), y
+**preparar CI** — previsualiza el workflow completo (modo analyze o review con
+`review-ref`) y escribe un solo archivo tras confirmación explícita; no
+habilita branch protection ni toca settings de plataformas. Responder que no a
+una confirmación no ejecuta ni escribe nada.
 
 Tarjetas por finding con filtros y agrupadores (pack, dueño, regla, archivo, severidad, tendencia, tracking). Los estados (pending → in progress → resolved) se guardan en `report.json.tracking.json`; el segundo análisis verifica por fingerprint. **Copy suppress command** copia una orden de ejemplo; revisa y cambia `--decision`/`--reason` antes de ejecutarla. Luego vuelve a analizar para confirmar el cambio. Spec: [`specs/f10-dashboard.md`](specs/f10-dashboard.md).
 
@@ -403,4 +405,4 @@ Ver [docs/SDD.md §7](docs/SDD.md).
 - **F10 (cerrada):** visor local ✅ (`f10-dashboard`, OSS).
 - **F7 (backlog, `f7-enterprise` draft):** packs por cliente · self-host compose completo · edge Cloudflare (opcional) · export enterprise (`f10-export` como M7.4) — export JSON v1 implementado; el gate por tier espera la definición de F7.
 - **F14 (cerrada):** revisor local de cambios API para personas y agentes (`specs/f14-agent-api-gate.md`): `review` CLI + evaluador compartido, tool MCP `review_api_change`, Action con `review-ref`, corpus + benchmark con resultados medidos.
-- **F15 (en ejecución):** workspace local guiado (`specs/f15-local-workspace.md`): scan-org reanudable ✅ (M15.1), operación tipada `analyze` con progreso/cancelación ✅ (M15.2), app web `workspace` en loopback con token y endpoints tipados ✅ (M15.3), historial de runs + comparación por fingerprints ✅ (M15.4), asistente `guided` + preparación de CI con preview ✅ (M15.5); cierre multi-OS en el próximo milestone.
+- **F15 (cerrada):** workspace local guiado (`specs/f15-local-workspace.md`): scan-org reanudable (M15.1), operación tipada `analyze` con progreso/cancelación (M15.2), app web `workspace` en loopback con token y endpoints tipados (M15.3), historial de runs + comparación por fingerprints (M15.4), asistente `guided` con orígenes local/repo/org y preparación de CI con preview (M15.5), cierre a11y/multi-OS (M15.6).

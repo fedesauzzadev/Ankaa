@@ -59,7 +59,7 @@ Especificaciones **spec-driven** derivadas del [SDD v1.0](../docs/SDD.md). El SD
 | [f12-breaking](f12-breaking.md)                 | 12   | Diff spec-vs-spec: breaking changes base..head (BRK-001…008)                         | cerrada      |
 | [f13-mini-validator](f13-mini-validator.md)     | 13   | Épica futura: validación offline de ejemplos contra schemas                          | draft        |
 | [f14-agent-api-gate](f14-agent-api-gate.md)     | 14   | Revisión local de cambios API para personas/agentes, con salida CI verificable       | cerrada      |
-| [f15-local-workspace](f15-local-workspace.md)   | 15   | Workspace local guiado con historial, comparación y reanudación                      | ready       |
+| [f15-local-workspace](f15-local-workspace.md)   | 15   | Workspace local guiado con historial, comparación y reanudación                      | cerrada      |
 | [f16-ankaa-rebrand](f16-ankaa-rebrand.md)       | 16   | Rebranding ApiGovScan → Ankaa (big-bang, pre-publicación)                            | ready       |
 
 ## Orden de implementación sugerido

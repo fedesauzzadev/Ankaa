@@ -50,5 +50,5 @@ Plan: [plans/f15-local-workspace.md](../plans/f15-local-workspace.md) · Spec:
 
 ## Pendiente de fase
 
-- [ ] AC-15.5: añadir orígenes remotos (URL de repo / organización GitHub) a
+- [x] AC-15.5: añadir orígenes remotos (URL de repo / organización GitHub) a
       `guided`/`workspace` con consentimiento de red explícito antes de iniciar.
