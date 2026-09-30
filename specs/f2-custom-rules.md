@@ -26,6 +26,7 @@ Como **platform/API guild**, quiero escribir reglas de equipo en YAML (misma DSL
 - Colisión de ids: entre fuentes custom → exit 2; custom vs pack elite → exit 2.
 - Subcomando `rules validate <file...>`.
 - `rules list` (lista activas: pack + custom si `--rules`/`config`) — mínima f2.
+- Subcomando `rules export [--as agents-md|prompts-json] [--rules <file>...] [--out <file>] [--force]` (M8.6-C): vuelca el pack a bloque AGENTS.md (error=MUST, warning=SHOULD, info=MAY, con message+fix+examples+source) o a pack JSON de prompts de remediación por regla. Sin LLM, sin análisis: render puro y determinista (sin timestamps; mismo pack ⇒ bytes idénticos). Excluye reglas `deprecated`.
 - Prefijo de id recomendado `TEAM-NNN` o `ORG-NNN` (formato ya `PREFIX-NNN`); **no** se obliga prefijo nuevo, solo formato.
 - Mensajes EN literales (AC-P.10 ya aplicado al pack; aplica a errors de validate).
 
@@ -108,6 +109,10 @@ apigovscan rules explain <ruleId>   # ya f1; busca pack + custom si se pasan --r
 - [x] **AC-R2.8** e2e: fixture + `--rules team-rules.yaml` ⇒ finding `TEAM-001` en JSON con `packId: custom`.
 - [x] **AC-R2.9** Custom no exige `source` (validate pasa sin source); pack elite sigue exigiéndolo (no-regresión AC-P.2).
 - [x] **AC-R2.10** File no encontrado / YAML inválido ⇒ exit 2 con path.
+- [x] **AC-R2.11** `rules export` a stdout trae secciones MUST/SHOULD/MAY con message+fix+examples+source por regla; `deprecated` excluida.
+- [x] **AC-R2.12** `rules export --as prompts-json` ⇒ JSON con un prompt de remediación por regla (message+fix+examples incluidos).
+- [x] **AC-R2.13** `--out` escribe el archivo; existe sin `--force` ⇒ exit 2; dos corridas ⇒ bytes idénticos.
+- [x] **AC-R2.14** `--rules team.yaml` incluye customs; `--as` desconocido ⇒ exit 2.
 
 ## 5. Test plan
 
@@ -138,3 +143,4 @@ apigovscan rules explain <ruleId>   # ya f1; busca pack + custom si se pasan --r
 
 - 2026-09-24 · Spec creado desde SDD v1.0 §7 Fase 2 + FR-14/15.
 - 2026-09-24 · M2.1: implementada (AC-R2.1…10; `custom-rules.ts`, `rules validate|list|explain`, colisiones).
+- 2026-09-30 · `rules export` (AC-R2.11…14, backlog M8.6-C): vuelca elite+custom a bloque AGENTS.md o pack JSON de prompts; render puro sin LLM ni timestamps.

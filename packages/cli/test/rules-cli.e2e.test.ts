@@ -243,6 +243,59 @@ describe("analyze with custom rules (AC-R2.4, AC-R2.5, AC-R2.8)", () => {
     expect(stdout).toMatch(/url: https?:\/\//);
   });
 
+  it("AC-R2.11 rules export dumps an AGENTS.md block to stdout", async () => {
+    const { code, stdout } = await runCapture(["rules", "export"]);
+    expect(code).toBe(0);
+    expect(stdout).toContain("Packs: elite@2026.09.1 (94 rules).");
+    expect(stdout).toContain("## MUST");
+    expect(stdout).toContain("## SHOULD");
+    expect(stdout).toContain("## MAY");
+    expect(stdout).toContain("### NAMING-001");
+    expect(stdout).toContain("Bad example:");
+    expect(stdout).toContain("Source: Google API Design Guide");
+  });
+
+  it("AC-R2.12 rules export --as prompts-json emits a prompt pack", async () => {
+    const { code, stdout } = await runCapture(["rules", "export", "--as", "prompts-json"]);
+    expect(code).toBe(0);
+    const parsed = JSON.parse(stdout) as {
+      tool: string;
+      prompts: Array<{ ruleId: string; keyword: string; prompt: string }>;
+    };
+    expect(parsed.tool).toBe("apigovscan");
+    expect(parsed.prompts).toHaveLength(94);
+    const naming = parsed.prompts.find((p) => p.ruleId === "NAMING-001")!;
+    expect(naming.keyword).toBe("MUST");
+    expect(naming.prompt).toContain("plural nouns");
+    expect(naming.prompt).toContain("unified diff");
+  });
+
+  it("AC-R2.13 --out writes the file and refuses overwrite without --force", async () => {
+    const dir = tempDir();
+    const out = join(dir, "AGENTS.md");
+    const first = await runCapture(["rules", "export", "--out", out], { cwd: dir });
+    expect(first.code).toBe(0);
+    expect(first.stdout).toContain("exported:");
+    const again = await runCapture(["rules", "export", "--out", out], { cwd: dir });
+    expect(again.code).toBe(2);
+    expect(again.stderr).toContain("output exists");
+    const forced = await runCapture(["rules", "export", "--out", out, "--force"], { cwd: dir });
+    expect(forced.code).toBe(0);
+  });
+
+  it("AC-R2.14 customs are included and bad --as exits 2", async () => {
+    const dir = tempDir();
+    const file = join(dir, "team.yaml");
+    writeFileSync(file, TEAM_RULE, "utf8");
+    const { code, stdout } = await runCapture(["rules", "export", "--rules", file]);
+    expect(code).toBe(0);
+    expect(stdout).toContain("Pack: custom.");
+    expect(stdout).toContain("### TEAM-001");
+    const bad = await runCapture(["rules", "export", "--as", "pdf"]);
+    expect(bad.code).toBe(2);
+    expect(bad.stderr).toContain('invalid --as "pdf"');
+  });
+
   it("AC-E.14 strict custom rule skips draft operations (x-stability-level)", async () => {
     const dir = tempDir();
     const ruleFile = join(dir, "strict.yaml");

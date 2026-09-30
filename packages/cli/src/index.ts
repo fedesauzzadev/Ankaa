@@ -15,6 +15,7 @@ import {
   packageVersion,
   sortFindings,
   type Rule,
+  type RulePack,
 } from "@apigovscan/core";
 import { buildReport } from "@apigovscan/reporters";
 import {
@@ -97,6 +98,7 @@ import {
   writeLearnPatch,
 } from "./learn.js";
 import { createFsPackRepository, createFsSpecLoader, createReportSink } from "./loaders.js";
+import { buildAgentsMd, buildPromptsJson, type RulesExportFormat } from "./rules-export.js";
 import { createCliMcpHandlers } from "./mcp.js";
 import { createMcpServer, startStdioServer } from "@apigovscan/mcp";
 import { checkLicense, licenseErrorMessage } from "./license.js";
@@ -121,8 +123,9 @@ export function getHelp(): string {
     "  apigovscan rules validate <file...> [options]",
     "  apigovscan rules list [--rules <file>]",
     "  apigovscan rules explain <ruleId> [--rules <file>]",
-    "  apigovscan rules import --from <file> [--out <file>]",
-    "  apigovscan learn --report <r.json> --feedback <f.json> [options]",
+  "  apigovscan rules import --from <file> [--out <file>]",
+  "  apigovscan rules export [--as agents-md|prompts-json] [--out <file>]",
+  "  apigovscan learn --report <r.json> --feedback <f.json> [options]",
     "  apigovscan suppress --report <r.json> --fingerprint <fp> --decision <d> [--reason ...]",
     "  apigovscan skills list [--format json]",
     "  apigovscan skills promote <draftId>",
@@ -875,11 +878,13 @@ async function runRulesCommand(
         "  apigovscan rules list [--rules <file>] [--format json]",
         "  apigovscan rules explain <ruleId> [--rules <file>]",
         "  apigovscan rules import --from <file> [--out <file>] [--force] [--config <file>] [--license-key <key>]",
+        "  apigovscan rules export [--as agents-md|prompts-json] [--rules <file>] [--out <file>] [--force]",
         "",
         "validate  Check custom rule files against the DSL (exit 0/2).",
         "list      List active pack rules (and custom rules when --rules is given).",
         "explain   Print message, fix, source URL, and pack version for a rule.",
         "import    Draft custom rules from a guideline doc with your own LLM (exit 0/2).",
+        "export    Dump pack rules as an AGENTS.md block or a remediation-prompt pack (exit 0/2).",
         "",
       ].join("\n"),
     );
@@ -900,10 +905,111 @@ async function runRulesCommand(
   if (sub === "import") {
     return runRulesImport(rest, io);
   }
+  if (sub === "export") {
+    return runRulesExport(rest, io);
+  }
   io.stderr(
-    `error: unknown rules subcommand "${sub ?? ""}" (expected: validate | list | explain | import)\n`,
+    `error: unknown rules subcommand "${sub ?? ""}" (expected: validate | list | explain | import | export)\n`,
   );
   return 2;
+}
+
+function runRulesExport(
+  argv: readonly string[],
+  io: {
+    stdout: (text: string) => void;
+    stderr: (text: string) => void;
+    cwd: string;
+  },
+): number {
+  let as: RulesExportFormat = "agents-md";
+  const rulesFiles: string[] = [];
+  let out: string | undefined;
+  let force = false;
+  for (let i = 0; i < argv.length; i++) {
+    const token = argv[i]!;
+    if (token === "--as") {
+      const v = argv[++i];
+      if (v === undefined || v.startsWith("-")) {
+        io.stderr("error: --as requires agents-md | prompts-json\n");
+        return 2;
+      }
+      if (v !== "agents-md" && v !== "prompts-json") {
+        io.stderr(`error: invalid --as "${v}" (expected agents-md | prompts-json)\n`);
+        return 2;
+      }
+      as = v;
+      continue;
+    }
+    if (token === "--rules") {
+      const v = argv[++i];
+      if (v === undefined || v.startsWith("-")) {
+        io.stderr("error: --rules requires a file path\n");
+        return 2;
+      }
+      rulesFiles.push(v);
+      continue;
+    }
+    if (token === "--out") {
+      const v = argv[++i];
+      if (v === undefined || v.startsWith("-")) {
+        io.stderr("error: --out requires a file path\n");
+        return 2;
+      }
+      out = v;
+      continue;
+    }
+    if (token === "--force") {
+      force = true;
+      continue;
+    }
+    if (token.startsWith("-")) {
+      io.stderr(`error: unknown option: ${token}\n`);
+      return 2;
+    }
+    io.stderr(`error: unexpected argument: ${token}\n`);
+    return 2;
+  }
+
+  let elite;
+  try {
+    elite = loadElitePackOrThrow(io.cwd);
+  } catch (err) {
+    io.stderr(`error: ${err instanceof Error ? err.message : String(err)}\n`);
+    return 2;
+  }
+  let custom: Rule[] = [];
+  if (rulesFiles.length > 0) {
+    const loaded = loadCustomRulesForRulesCmd(rulesFiles, io.cwd, elite);
+    if (!loaded.ok) {
+      io.stderr(`error: ${loaded.error}\n`);
+      return 2;
+    }
+    custom = loaded.rules;
+  }
+
+  const packs: RulePack[] = [{ id: elite.id, version: elite.version, rules: elite.rules }];
+  if (custom.length > 0) {
+    packs.push({ id: "custom", version: packageVersion(), rules: custom });
+  }
+  const text = as === "agents-md" ? buildAgentsMd(packs) : buildPromptsJson(packs);
+  if (out === undefined) {
+    io.stdout(text);
+    return 0;
+  }
+  const outAbs = resolve(io.cwd, out);
+  if (existsSync(outAbs) && !force) {
+    io.stderr(`error: output exists: ${out} (pass --force to overwrite)\n`);
+    return 2;
+  }
+  try {
+    writeFileSync(outAbs, text, "utf8");
+  } catch (err) {
+    io.stderr(`error: cannot write ${out}: ${err instanceof Error ? err.message : String(err)}\n`);
+    return 2;
+  }
+  io.stdout(`exported: ${out} (${packs.reduce((n, p) => n + p.rules.length, 0)} rules)\n`);
+  return 0;
 }
 
 function runInitCommand(
