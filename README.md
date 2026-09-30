@@ -285,7 +285,7 @@ Outputs `sarif-path`, `exit-code`. El gate funciona **sin code scanning** (exit 
 con `review-ref` (p. ej. `main`) la Action revisa el cambio completo del candidato contra el
 contrato base — mismo evaluador que `review`/MCP (ver [action/README.md](action/README.md)).
 
-Flags útiles de `analyze`: `--format console|json|sarif|markdown|annotations`, `--output <file>`, `--fail-on error|warning|info|never`, `--rules <file>` (repetible), `--rule <json>`, `--config <file>`, `--write-baseline`, `--baseline`, `--baseline-path <file>`, `--force`, `--strict-hash`, `--baseline-ignore-hash`, `--skills-dir <dir>`, `--no-color`, `--debug`.
+Flags útiles de `analyze`: `--format console|json|sarif|markdown|annotations`, `--output <file>`, `--fail-on error|warning|info|never`, `--rules <file>` (repetible), `--rule <json>`, `--config <file>`, `--write-baseline`, `--baseline`, `--ratchet [--ratchet-severity error|warning]`, `--baseline-path <file>`, `--force`, `--strict-hash`, `--baseline-ignore-hash`, `--skills-dir <dir>`, `--no-color`, `--debug`.
 
 Exit codes: `0` ok · `1` findings ≥ `failOn` · `2` usage/parse/config/rule/baseline error.
 
@@ -323,6 +323,22 @@ ankaa analyze ./specs --baseline --fail-on error
 - `--write-baseline` + `--force` pisa y deja `<path>.bak`.
 - `--strict-hash` ⇒ inputHash mismatch es exit 2; default solo warning; `--baseline-ignore-hash` lo silencia.
 - `summary.suppressed` entra en el reporte JSON; console muestra `(baseline: N suppressed)`.
+
+### Ratchet: la deuda no puede crecer (f17-ratchet)
+
+```bash
+ankaa analyze ./specs --baseline --ratchet                     # gate error (default)
+ankaa analyze ./specs --baseline --ratchet --ratchet-severity warning
+```
+
+Falla (exit 1) si la deuda neta crece: `netDelta = new − resolved`, con `new`
+= findings visibles post-baseline al nivel del gate y `resolved` =
+fingerprints del baseline que ya no aparecen. El reporte JSON lleva
+`summary.ratchet { newCount, resolvedCount, netDelta }` y console/markdown
+muestran `(ratchet: +N new · M resolved · net +X)`. Matriz de gates: exit
+final es el más severo entre `--fail-on` (findings visibles) y ratchet (deuda
+neta); ambos se evalúan post-supresiones. Spec:
+[`specs/f17-ratchet.md`](specs/f17-ratchet.md).
 
 ### Skills (`.ankaa/skills/`)
 

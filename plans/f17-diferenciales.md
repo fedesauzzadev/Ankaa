@@ -84,8 +84,9 @@ diff (oasdiff) ni en generación de docs (anti-alcance SDD §4).
    gated a `f8-spectral-import`; disables: requieren mapper de líneas).
 5. `f17-compliance-pack`: pendiente — frameworks de v0 (propuesta: OWASP API
    Top 10 2023 + GDPR) y reglas PII iniciales.
-6. `f17-ratchet`: pendiente — severidad default del gate (propuesta: `error`) y
-   severidad única vs acumulada.
+6. `f17-ratchet`: **resuelta e implementada** (M17.4) — gate default
+   `error`, severidad única, skills cuentan como resueltos; trends de
+   scan-org/dashboard quedaron como follow-up M17.5 documentado en el spec.
 7. `f17-ci-reporters`: pendiente — viabilidad del mapper pointer → line/col
    para checkstyle.
 8. `f17-lsp`: pendiente — alcance v0 single-file y canal de distribución de la
@@ -114,3 +115,6 @@ diff (oasdiff) ni en generación de docs (anti-alcance SDD §4).
   idempotente) + loader de skills extendido + 13 tests · spec →
   `implementada`. **Tier 1 completo** (fp-budget, certify, migration-kit).
   Siguiente: T2 (`f17-ratchet` propuesto primero por tamaño/valor).
+- 2026-09-30: `f17-ratchet` (M17.4) implementado: `--ratchet` /
+  `--ratchet-severity` + `summary.ratchet` + 8 tests · spec → `implementada`.
+  T2 restante: `f17-compliance-pack` y `f13-mini-validator`.

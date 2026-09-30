@@ -19,6 +19,7 @@ import type { FailOn } from "./args.js";
 import type { PackRepository, ReportSink, SpecLoader } from "./ports.js";
 import type { AnalyzeProgressPhase, OperationContext, OperationState } from "./operations.js";
 import { applySkillSuppressions, todayYmd, type SuppressionEntry } from "./skills.js";
+import { computeRatchetStats, type RatchetSeverity, type RatchetStats } from "./baseline.js";
 
 export interface AnalyzeOptions {
   inputs: readonly string[];
@@ -31,6 +32,8 @@ export interface AnalyzeOptions {
   debug?: (line: string) => void;
   /** When set, findings whose fingerprint is in the set are suppressed by baseline. */
   baselineFingerprints?: ReadonlySet<string>;
+  /** When set with baselineFingerprints, computes summary.ratchet and can flip exit to 1. */
+  ratchetSeverity?: RatchetSeverity;
   /**
    * Skills suppressions applied post-evaluate, pre-baseline.
    * `matchRegexes` is keyed by suppression entry index.
@@ -391,6 +394,16 @@ export async function analyzeUseCase(
     ),
   );
 
+  let ratchet: RatchetStats | undefined;
+  if (opts.ratchetSeverity !== undefined && opts.baselineFingerprints !== undefined) {
+    ratchet = computeRatchetStats({
+      baselineFingerprints: opts.baselineFingerprints,
+      currentFindings: afterSkills.flatMap((r) => r.findings),
+      newFindings: filteredResults.flatMap((r) => r.findings),
+      severity: opts.ratchetSeverity,
+    });
+  }
+
   const report = buildReport({
     results: filteredResults,
     inputs,
@@ -399,6 +412,7 @@ export async function analyzeUseCase(
     meta: { durationMs: Math.round(performance.now() - started) },
     ...(opts.baselineFingerprints !== undefined ? { suppressed: suppressedCount } : {}),
     ...(skillsSuppressedCount > 0 ? { skillsSuppressed: skillsSuppressedCount } : {}),
+    ...(ratchet !== undefined ? { ratchet } : {}),
     coverage,
   });
   debug(`report ${report.findings.length} findings ${Math.round(performance.now() - tReport)}ms`);
@@ -418,10 +432,13 @@ export async function analyzeUseCase(
   emitProgress("writing-report", 1, 1);
   emitState("succeeded");
 
+  const baseExit = computeExitCode(report, opts.failOn);
+  const exitCode = ratchet !== undefined && ratchet.netDelta > 0 && baseExit === 0 ? 1 : baseExit;
+
   return {
     ok: true,
     report,
-    exitCode: computeExitCode(report, opts.failOn),
+    exitCode,
     allFindings,
     suppressedCount,
     skillsSuppressedCount,

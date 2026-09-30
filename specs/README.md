@@ -64,7 +64,7 @@ Especificaciones **spec-driven** derivadas del [SDD v1.0](../docs/SDD.md). El SD
 | [f16-ankaa-rebrand](f16-ankaa-rebrand.md)       | 16   | Rebranding ApiGovScan → Ankaa (big-bang, pre-publicación)                            | ready       |
 | [f17-migration-kit](f17-migration-kit.md)       | 17   | Migración desde Spectral/Redocly/vacuum: reglas + excepciones → skills               | implementada |
 | [f17-compliance-pack](f17-compliance-pack.md)   | 17   | Evidencia compliance offline: PII + mapeo finding→control (OWASP/GDPR) en export     | draft       |
-| [f17-ratchet](f17-ratchet.md)                   | 17   | Gate de deuda neta no creciente + burn-down en scan-org/dashboard                    | draft       |
+| [f17-ratchet](f17-ratchet.md)                   | 17   | Gate de deuda neta no creciente + burn-down en scan-org/dashboard                    | implementada |
 | [f17-ci-reporters](f17-ci-reporters.md)         | 17   | Reporters junit/checkstyle/codequality + recetas GitLab/Azure/Jenkins                | draft       |
 | [f17-lsp](f17-lsp.md)                           | 17   | `ankaa lsp`: server LSP para feedback en editor con el mismo engine                  | draft       |
 

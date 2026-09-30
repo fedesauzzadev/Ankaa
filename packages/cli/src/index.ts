@@ -209,6 +209,8 @@ export function getHelp(): string {
     "  --config <file>   config file (default: ./ankaa.yaml)",
     "  --write-baseline  write baseline.json from current findings",
     "  --baseline        filter findings present in baseline",
+    "  --ratchet         with --baseline: fail if net new debt > 0 (new - resolved)",
+    "  --ratchet-severity  error | warning (ratchet gate severity, default error)",
     "  --baseline-path   baseline file (default: .ankaa/baseline.json)",
     "  --strict-hash     baseline inputHash mismatch is fatal (exit 2)",
     "  --baseline-ignore-hash  silence inputHash mismatch warnings",
@@ -343,6 +345,11 @@ async function runAnalyze(
       ? "read"
       : "off";
 
+  if (args.ratchet && baselineMode !== "read") {
+    io.stderr("error: --ratchet requires baseline read mode (--baseline or baseline.enabled)\n");
+    return 2;
+  }
+
   const baselinePath = resolveBaselinePath(
     args.baselinePath,
     config.baseline?.path,
@@ -442,6 +449,7 @@ async function runAnalyze(
       toolVersion: packageVersion(),
       debug,
       baselineFingerprints: setup.baselineFingerprints,
+      ...(args.ratchet ? { ratchetSeverity: args.ratchetSeverity ?? "error" } : {}),
       skillsSuppressions: setup.skillsSuppressions,
       operation: io.operation,
     },

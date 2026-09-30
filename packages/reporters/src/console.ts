@@ -93,12 +93,18 @@ export function formatConsole(report: Report, opts: ConsoleOpts): string {
     skillsSuppressed !== undefined && skillsSuppressed > 0
       ? ` (skills: ${skillsSuppressed} suppressed)`
       : "";
+  const ratchetNote =
+    report.summary.ratchet !== undefined
+      ? ` (ratchet: +${report.summary.ratchet.newCount} new · ${report.summary.ratchet.resolvedCount} resolved · net ${
+          report.summary.ratchet.netDelta >= 0 ? "+" : ""
+        }${report.summary.ratchet.netDelta})`
+      : "";
   const coverageNote =
     report.coverage !== undefined
       ? ` · coverage ${report.coverage.pct}% (${report.coverage.inspected}/${report.coverage.total} nodes)`
       : "";
   lines.push(
-    `${mark} ${counts}${suppressedNote}${skillsNote} · score ${report.score.value} (${report.score.grade})${coverageNote} · reportHash ${hash}`,
+    `${mark} ${counts}${suppressedNote}${skillsNote}${ratchetNote} · score ${report.score.value} (${report.score.grade})${coverageNote} · reportHash ${hash}`,
   );
 
   if (opts.maxFindings !== undefined && report.findings.length > opts.maxFindings) {

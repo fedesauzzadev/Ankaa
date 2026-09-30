@@ -14,6 +14,8 @@ export interface AnalyzeArgs {
   writeBaseline: boolean;
   baseline: boolean;
   baselinePath?: string;
+  ratchet: boolean;
+  ratchetSeverity?: "error" | "warning";
   force: boolean;
   strictHash: boolean;
   baselineIgnoreHash: boolean;
@@ -48,6 +50,7 @@ export function parseAnalyzeArgs(argv: readonly string[]): ParseArgsResult {
     rulesFiles: [],
     writeBaseline: false,
     baseline: false,
+    ratchet: false,
     force: false,
     strictHash: false,
     baselineIgnoreHash: false,
@@ -148,6 +151,23 @@ export function parseAnalyzeArgs(argv: readonly string[]): ParseArgsResult {
       continue;
     }
 
+    if (token === "--ratchet") {
+      args.ratchet = true;
+      continue;
+    }
+
+    if (token === "--ratchet-severity") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--ratchet-severity requires a value (error | warning)" };
+      }
+      if (value !== "error" && value !== "warning") {
+        return { ok: false, error: `invalid --ratchet-severity "${value}" (expected error | warning)` };
+      }
+      args.ratchetSeverity = value;
+      continue;
+    }
+
     if (token === "--force") {
       args.force = true;
       continue;
@@ -224,6 +244,13 @@ export function parseAnalyzeArgs(argv: readonly string[]): ParseArgsResult {
     return {
       ok: false,
       error: "--strict-hash and --baseline-ignore-hash are mutually exclusive",
+    };
+  }
+
+  if (args.ratchetSeverity !== undefined && !args.ratchet) {
+    return {
+      ok: false,
+      error: "--ratchet-severity requires --ratchet",
     };
   }
 

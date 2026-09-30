@@ -1,8 +1,8 @@
-# f17-ratchet · Gate de deuda no creciente + burn-down
+# f17-ratchet · Gate de deuda no creciente (ratchet)
 
 | Campo     | Valor                                                        |
 | --------- | ------------------------------------------------------------ |
-| Estado    | draft                                                        |
+| Estado    | implementada                                                     |
 | Fase      | 17                                                           |
 | Fecha     | 2026-09-30                                                   |
 | Deriva de | [f2-baseline](f2-baseline.md); INV-2; historial `f8-scan-org`/`f15` |
@@ -10,61 +10,96 @@
 ## 1. Objetivo / user story
 
 Como tech lead, congelé la deuda en un baseline, pero necesito que **no vuelva
-a crecer** y que se vea bajando: los ignore-files de otros linters solo crecen
-y nadie paga deuda. Quiero un gate que falle si entra deuda neta nueva, y
-tendencia visible por repo.
+a crecer** y que se vea bajar: los ignore-files de otros linters solo crecen y
+nadie paga deuda. Quiero un gate que falle si entra deuda neta nueva, con los
+números visibles en el reporte.
 
-## 2. Alcance (in / out)
+## 2. Decisiones (2026-09-30, delegadas por el dueño con el arranque de T2)
 
-### In
+| Tema                       | Decisión                                                                    |
+| -------------------------- | --------------------------------------------------------------------------- |
+| Severidad del gate         | Default `error`; `--ratchet-severity error\|warning` (una sola severidad)   |
+| Cálculo                    | `newCount` = findings visibles post-baseline con severidad ≥ gate; `resolvedCount` = fingerprints del baseline ausentes de los findings actuales (post-skills); `netDelta = new − resolved` |
+| Skills                     | Un fingerprint del baseline silenciado por skills cuenta como resuelto (no aparece mientras viva la suppression) — documentado |
+| Exit                       | `netDelta > 0` ⇒ exit 1 (combinado con `--fail-on`: gana el más severo)     |
+| Requisito                  | `--ratchet` exige modo baseline lectura (`--baseline` o config `baseline.enabled`) |
 
-- `ankaa analyze <path> --baseline --ratchet`: exit `1` si
-  `newFindings - resolvedFindings > 0` para la severidad del gate.
-- `--ratchet-severity error|warning` (default `error`).
-- `summary.ratchet {newCount, resolvedCount, netDelta}` en report JSON.
-- `scan-org`: columna de tendencia por repo calculada desde el historial
-  local (`.ankaa/workspace/`), determinista (sin timestamps en el cálculo).
-- Dashboard: netDelta del run contra el anterior en la vista de comparación.
+## 3. Contrato
 
-### Out
+```bash
+ankaa analyze ./specs --baseline --ratchet                     # gate error
+ankaa analyze ./specs --baseline --ratchet --ratchet-severity warning
+```
 
-- Auto-fix de deuda; bloqueo por warnings por default; red.
-- Cambiar cómo se computan los fingerprints de findings (se reusan).
+- Report JSON: `summary.ratchet { newCount, resolvedCount, netDelta }`
+  (presente solo con `--ratchet`; entra al `reportHash` — determinista).
+- Console/markdown: `(ratchet: +N new · M resolved · net +X)` en la línea de
+  resumen.
+- Exit codes: además de los de `analyze`, `--ratchet` sin baseline lectura ⇒
+  exit 2; `--ratchet-severity` inválido o sin `--ratchet` ⇒ exit 2.
 
-## 3. Contrato (interfaces, schemas, UX)
+## 4. Alcance (in / out)
 
-- Cálculo por diferencia de fingerprints no suprimidos entre corrida actual y
-  baseline. Fingerprints desaparecidos por refactor cuentan como resolved:
-  aceptado y documentado.
-- Interacción con `--fail-on`: ratchet se evalúa después de supresiones; el
-  exit code final es el más severo de ambos gates.
+### In (M17.4)
 
-## 4. Criterios de aceptación (preliminares)
+- Flags `--ratchet` / `--ratchet-severity` en `analyze`.
+- Cálculo puro (`computeRatchetStats`) reutilizable y testeable.
+- `summary.ratchet` en JSON + nota en console y markdown.
+- Matriz de interacción `fail-on` × `ratchet` documentada.
 
-- [ ] AC-RA.1 Deuda neta +1 (error) → exit 1 con `summary.ratchet` correcto.
-- [ ] AC-RA.2 Neta ≤ 0 → exit 0 aunque persistan findings del baseline.
-- [ ] AC-RA.3 Baseline faltante/corrupto con `--ratchet` → exit 2.
-- [ ] AC-RA.4 Determinismo: mismo input + mismo baseline ⇒ mismo netDelta.
-- [ ] AC-RA.5 `scan-org` muestra tendencia reproducible en fixtures con
-      historial sintético.
-- [ ] AC-RA.6 Docs con la matriz `fail-on` × `ratchet`.
+### Out (v0) — follow-up M17.5 (presentation sobre historial existente)
 
-## 5. Test plan
+- Columna de tendencia por repo en `scan-org` (requiere historial
+  `.ankaa/workspace/`).
+- netDelta del run contra el anterior en la vista de comparación del
+  dashboard.
+- Ratchet por severidades acumuladas o por dominio.
 
-- Fixtures de baseline: deuda sube / baja / igual; e2e exit codes; snapshots;
-  scan-org con historial sintético bajo `.ankaa/workspace/`.
+## 5. Criterios de aceptación
 
-## 6. Dependencias
+- [x] AC-RA.1 Deuda neta +1 al gate ⇒ exit 1 con `summary.ratchet` correcto.
+- [x] AC-RA.2 Neta ≤ 0 ⇒ exit 0 aunque persistan findings del baseline
+      (visibles como `suppressed`).
+- [x] AC-RA.3 `--ratchet` sin baseline lectura, o `--ratchet-severity`
+      inválido/sin `--ratchet` ⇒ exit 2.
+- [x] AC-RA.4 Determinismo: mismo input + mismo baseline ⇒ mismo `netDelta` y
+      mismo `reportHash`.
+- [x] AC-RA.5 Gate `warning` cuenta warnings+errors; baseline entry silenciado
+      por skills cuenta como resuelto (test explícito).
+- [x] AC-RA.6 Console y markdown muestran la nota ratchet; docs con la matriz
+      `fail-on` × `ratchet`.
+- [x] AC-RA.7 `pnpm check` e invariantes verdes.
 
-- `f2-baseline` (cerrada), fingerprints (INV-2), historial de `scan-org` (f15).
+## 6. Test plan
 
-## 7. Riesgos y decisiones abiertas
+| Caso                                                       | Tipo |
+| ---------------------------------------------------------- | ---- |
+| `computeRatchetStats`: sube/baja/igual, gate warning, skills | unit |
+| e2e: baseline → ratchet limpio → deuda nueva (exit 1) → mejora (exit 0) | e2e |
+| usage/validaciones exit 2, determinismo, nota console       | e2e  |
 
-- Confusión `fail-on` vs `ratchet`: mitigar con docs y mensajes claros.
-- ¿Gate por severidad única o acumulada? Propuesta: solo la severidad del gate.
-- Fingerprints "resueltos" por renombres de rutas: documentar honestamente.
+## 7. Dependencias
+
+- `f2-baseline` (cerrada), fingerprints (INV-2), summary/reportHash de
+  `f1-reporters`.
+
+## 8. Riesgos y notas
+
+- Fingerprints "resueltos" por renombres de rutas cuentan como resueltos:
+  aceptado y documentado (honesto, mismo criterio que baseline).
+- `summary.ratchet` cambia el `reportHash` respecto de corridas sin
+  `--ratchet` — esperado: el reporte declara cómo se calculó.
 
 ## Changelog
 
-- 2026-09-30: draft inicial desde el backlog f17
-  ([plan](../plans/f17-diferenciales.md)).
+- 2026-09-30: draft inicial desde el backlog f17.
+- 2026-09-30: decisiones resueltas por delegación del dueño (arranque T2):
+  gate default `error`, severidad única, skills cuentan como resueltos.
+  Scope v0 = gate + reporte; trends de scan-org/dashboard movidos a follow-up
+  M17.5 con changelog → `ready`.
+- 2026-09-30 · M17.4 implementado: `computeRatchetStats` en `baseline.ts` +
+  flags `--ratchet`/`--ratchet-severity` + `summary.ratchet` (hashed) + nota
+  console/markdown + exit combinado + 8 tests (AC-RA.1…6) · `pnpm check`
+  verde · estado → `implementada`. Matriz `fail-on` × `ratchet`: exit final es
+  el más severo — `--fail-on` por findings visibles, ratchet por deuda neta;
+  ambos se aplican sobre findings post-supresiones.

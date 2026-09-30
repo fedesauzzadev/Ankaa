@@ -18,6 +18,12 @@ export interface ReportInput {
   sha256: string;
 }
 
+export interface RatchetSummary {
+  newCount: number;
+  resolvedCount: number;
+  netDelta: number;
+}
+
 export interface ReportSummary {
   error: number;
   warning: number;
@@ -27,6 +33,8 @@ export interface ReportSummary {
   suppressed?: number;
   /** Findings dropped by skills suppressions (present only when > 0). */
   skillsSuppressed?: number;
+  /** Net-debt ratchet vs baseline (present only with --ratchet; hashed). */
+  ratchet?: RatchetSummary;
 }
 
 export interface ReportScore {
@@ -64,6 +72,8 @@ export interface BuildReportInput {
   suppressed?: number;
   /** Count of findings suppressed by skills (omit when 0 / skills off). */
   skillsSuppressed?: number;
+  /** Ratchet stats vs baseline (omit when --ratchet is off). */
+  ratchet?: RatchetSummary;
   /** Governance coverage (omit when not computed, e.g. drift). */
   coverage?: Coverage;
 }
@@ -157,6 +167,9 @@ export function buildReport(input: BuildReportInput): Report {
 
   const packs = [...input.packs].sort((a, b) => cmp(a.id, b.id));
   const summary = countSummary(findings, input.suppressed, input.skillsSuppressed);
+  if (input.ratchet !== undefined) {
+    summary.ratchet = input.ratchet;
+  }
   const withoutHash = {
     tool: { name: "ankaa" as const, version: input.toolVersion },
     packs,

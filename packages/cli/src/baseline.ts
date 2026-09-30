@@ -222,6 +222,41 @@ export function fingerprintSet(baseline: BaselineFile): Set<string> {
   return new Set(baseline.fingerprints);
 }
 
+export type RatchetSeverity = "error" | "warning";
+
+export interface RatchetStats {
+  newCount: number;
+  resolvedCount: number;
+  netDelta: number;
+}
+
+const RATCHET_SEVERITIES: Record<RatchetSeverity, ReadonlySet<string>> = {
+  error: new Set(["error"]),
+  warning: new Set(["error", "warning"]),
+};
+
+/**
+ * Ratchet over non-suppressed findings: new = visible after the baseline
+ * filter at/above the gate severity; resolved = baseline fingerprints absent
+ * from the current set (post-skills — a baseline entry silenced by skills
+ * counts as resolved while the suppression lives).
+ */
+export function computeRatchetStats(input: {
+  baselineFingerprints: ReadonlySet<string>;
+  currentFindings: ReadonlyArray<{ fingerprint: string; severity: string }>;
+  newFindings: ReadonlyArray<{ fingerprint: string; severity: string }>;
+  severity: RatchetSeverity;
+}): RatchetStats {
+  const gate = RATCHET_SEVERITIES[input.severity];
+  const newCount = input.newFindings.filter((f) => gate.has(f.severity)).length;
+  const current = new Set(input.currentFindings.map((f) => f.fingerprint));
+  let resolvedCount = 0;
+  for (const fingerprint of input.baselineFingerprints) {
+    if (!current.has(fingerprint)) resolvedCount += 1;
+  }
+  return { newCount, resolvedCount, netDelta: newCount - resolvedCount };
+}
+
 export function filterFindings(
   findings: readonly Finding[],
   set: ReadonlySet<string>,

@@ -20,13 +20,20 @@ function countsLine(report: Report): string {
 }
 
 function suppressionNotes(report: Report): string {
-  const { suppressed, skillsSuppressed } = report.summary;
+  const { suppressed, skillsSuppressed, ratchet } = report.summary;
   const notes: string[] = [];
   if (suppressed !== undefined && suppressed > 0) {
     notes.push(`(baseline: ${suppressed} suppressed)`);
   }
   if (skillsSuppressed !== undefined && skillsSuppressed > 0) {
     notes.push(`(skills: ${skillsSuppressed} suppressed)`);
+  }
+  if (ratchet !== undefined) {
+    notes.push(
+      `(ratchet: +${ratchet.newCount} new · ${ratchet.resolvedCount} resolved · net ${
+        ratchet.netDelta >= 0 ? "+" : ""
+      }${ratchet.netDelta})`,
+    );
   }
   return notes.length > 0 ? ` ${notes.join(" ")}` : "";
 }
