@@ -763,6 +763,123 @@ describe("AC-CV.1/2 coverage", () => {
     expect(run([strict])).toBe(run([plain]));
   });
 
+  it("AC-E.15 new hygiene atoms validate", () => {
+    for (const op of ["unusedComponents", "undefinedOAuthScopes", "ambiguousPaths"] as const) {
+      expect(validateRule(makeRule({ id: "X-001", when: { op } })).ok).toBe(true);
+    }
+  });
+
+  it("AC-E.15 unusedComponents fires only with orphan schemas", () => {
+    const refOp = (ref: string): Spec["operations"][number] => ({
+      method: "get",
+      path: "/users",
+      tags: [],
+      deprecated: false,
+      parameters: [],
+      responses: [
+        {
+          status: "200",
+          description: "OK",
+          content: [{ mediaType: "application/json", schema: { ref } }],
+          headers: [],
+          jsonPointer: "/paths/~1users/get/responses/200",
+        },
+      ],
+      security: undefined,
+      extensions: {},
+      jsonPointer: "/paths/~1users/get",
+    });
+    const pack = (id: string) => ({
+      id: "elite",
+      version: "1",
+      rules: [makeRule({ id, when: { op: "unusedComponents" } })],
+    });
+    const withOrphan = makeSpec({
+      components: { schemas: ["A", "B"], responses: [], parameters: [], securitySchemes: [] },
+      operations: [refOp("#/components/schemas/A")],
+    });
+    expect(
+      evaluate({ specs: [withOrphan], packs: [pack("STRUCT-008")] }).findings.map((f) => f.ruleId),
+    ).toEqual(["STRUCT-008"]);
+    const allUsed = makeSpec({
+      components: { schemas: ["A"], responses: [], parameters: [], securitySchemes: [] },
+      operations: [refOp("#/components/schemas/A")],
+    });
+    expect(
+      evaluate({ specs: [allUsed], packs: [pack("STRUCT-008")] }).findings,
+    ).toEqual([]);
+    const noneDeclared = makeSpec({ operations: [refOp("#/components/schemas/A")] });
+    expect(
+      evaluate({ specs: [noneDeclared], packs: [pack("STRUCT-008")] }).findings,
+    ).toEqual([]);
+  });
+
+  it("AC-E.15 undefinedOAuthScopes fires on unknown scopes only", () => {
+    const secured = (scopes: string[]): Spec["operations"][number] => ({
+      method: "get",
+      path: "/users",
+      tags: [],
+      deprecated: false,
+      parameters: [],
+      responses: [],
+      security: [{ name: "oauth", scopes }],
+      extensions: {},
+      jsonPointer: "/paths/~1users/get",
+    });
+    const pack = {
+      id: "elite",
+      version: "1",
+      rules: [makeRule({ id: "SEC-004", when: { op: "undefinedOAuthScopes" } })],
+    };
+    const withDefs = (ops: Spec["operations"]) =>
+      makeSpec({
+        components: {
+          schemas: [],
+          responses: [],
+          parameters: [],
+          securitySchemes: ["oauth"],
+          securitySchemeDefs: [{ name: "oauth", type: "oauth2", scopes: ["read"] }],
+        },
+        operations: ops,
+      });
+    expect(
+      evaluate({ specs: [withDefs([secured(["write"])])], packs: [pack] }).findings.map(
+        (f) => f.ruleId,
+      ),
+    ).toEqual(["SEC-004"]);
+      expect(evaluate({ specs: [withDefs([secured(["read"])])], packs: [pack] }).findings).toEqual(
+      [],
+    );
+    const noDef = makeSpec({ operations: [secured(["write"])] });
+    expect(evaluate({ specs: [noDef], packs: [pack] }).findings).toEqual([]);
+    expect(evaluate({ specs: [makeSpec()], packs: [pack] }).findings).toEqual([]);
+  });
+
+  it("AC-E.15 ambiguousPaths fires on same-method template collisions", () => {
+    const getOp = (path: string): Spec["operations"][number] => ({
+      method: "get",
+      path,
+      tags: [],
+      deprecated: false,
+      parameters: [],
+      responses: [],
+      security: undefined,
+      extensions: {},
+      jsonPointer: `/paths/${path.replace(/\//g, "~1")}/get`,
+    });
+    const pack = {
+      id: "elite",
+      version: "1",
+      rules: [makeRule({ id: "NAMING-012", when: { op: "ambiguousPaths" } })],
+    };
+    const colliding = makeSpec({ operations: [getOp("/users/{id}"), getOp("/users/{name}")] });
+    expect(
+      evaluate({ specs: [colliding], packs: [pack] }).findings.map((f) => f.ruleId),
+    ).toEqual(["NAMING-012"]);
+    const distinct = makeSpec({ operations: [getOp("/users"), getOp("/users/{id}")] });
+    expect(evaluate({ specs: [distinct], packs: [pack] }).findings).toEqual([]);
+  });
+
   it("isRuleActive mirrors engine activation", () => {
     const base = makeRule({ id: "A-001" });
     expect(isRuleActive(base, new Set())).toBe(true);

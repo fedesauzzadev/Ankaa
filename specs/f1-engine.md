@@ -119,7 +119,11 @@ type AtomMatcher =
   | { op: "breakingChangePolicyUndocumented" } // doc scope
   | { op: "infoVersionNotMatching"; pattern: string } // doc scope
   | { op: "inputSizeExceeds"; maxBytes: number } // doc scope
-  | { op: "paginationNamingInconsistent" }; // doc scope
+  | { op: "paginationNamingInconsistent" } // doc scope
+  // M8.6-A2 higiene de contrato
+  | { op: "unusedComponents" } // doc scope: schemas declarados sin ningún $ref
+  | { op: "undefinedOAuthScopes" } // scopes requeridos no definidos por el flow
+  | { op: "ambiguousPaths" }; // doc scope: templates que colisionan por método
 
 interface Rule {
   id: string; // /^[A-Z][A-Z0-9]*-\d{3}$/
@@ -252,6 +256,7 @@ Comparar por:
 - [x] **AC-E.10** Operación A true, B false ⇒ findings solo en A con `apiLocation` correcto.
 - [x] **AC-E.11** Performance smoke: 500 operaciones × 50 reglas < 500 ms en CI (medición orientativa, no flaky-hard).
 - [x] **AC-E.12** Perf slice: mismo input + packs ⇒ findings **byte-idénticos** antes/después (golden suites + bench 500/2000 ops con conteo idéntico); bench orientativo neutro en esta forma (techo: sha256 puro + validación, INV-3), sin flaky-hard.
+- [ ] **AC-E.15** Átomos M8.6-A2 con true+false: `unusedComponents` (solo schemas v1; `$ref` transitivos cuentan como uso), `undefinedOAuthScopes` (scopes del requirement ausentes en los flows del scheme; sin def o sin scopes ⇒ no juzga), `ambiguousPaths` (mismo método + misma forma normalizada con distinto raw).
 - [x] **AC-E.14** `Rule.appliesFrom?` (`draft|beta|stable`, default `draft`): valor desconocido ⇒ issue en `validateRule`; regla estricta se salta en operaciones menos estables (true+false por nivel); regla doc-scope no se ve afectada; spec sin marcas ⇒ findings idénticos.
 - [x] **AC-E.13** `examples?: { bad?, good? }` opcional en `Rule`: cada string 1–1000 chars, object strict, al menos una de `bad`/`good`. Se propaga a `Finding` y a `explainRule`/`explain`. **No** altera fingerprint, orden de sort ni `reportHash` cuando el pack no la usa (compatibilidad byte-a-byte, INV-2/INV-5). `validateRule` rechaza `examples: {}` vacío.
 

@@ -132,7 +132,10 @@ export type AtomMatcher =
   | { op: "breakingChangePolicyUndocumented" }
   | { op: "infoVersionNotMatching"; pattern: string }
   | { op: "inputSizeExceeds"; maxBytes: number }
-  | { op: "paginationNamingInconsistent" };
+  | { op: "paginationNamingInconsistent" }
+  | { op: "unusedComponents" }
+  | { op: "undefinedOAuthScopes" }
+  | { op: "ambiguousPaths" };
 
 export type Matcher = { all: Matcher[] } | { any: Matcher[] } | { not: Matcher } | AtomMatcher;
 

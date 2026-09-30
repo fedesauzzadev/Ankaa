@@ -198,3 +198,4 @@ Unit tests de normalize + property: shuffle keys de path ⇒ mismo orden.
 - 2026-09-23 · Spec creado desde SDD v1.0.
 - 2026-09-23 · Implementada (M1.1): `parseSpec` con `yaml@2` + limits; AC-O.1…14 verdes (16 tests); tipos `Spec` consolidados en `@apigovscan/core`; Swagger 2.0 = error `SWAGGER_20` (decisión §7).
 - 2026-09-30 · `Operation.stability?` (AC-O.15, backlog M8.6): `x-stability-level` en operation ?? path-item ?? root; valor desconocido ⇒ warning `UNKNOWN_STABILITY`.
+- 2026-09-30 · `SecuritySchemeDef.scopes?` (M8.6-A2): unión ordenada de scopes de flows OAuth2 (para el átomo `undefinedOAuthScopes`).

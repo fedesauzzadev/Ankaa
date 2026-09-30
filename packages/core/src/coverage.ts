@@ -99,6 +99,9 @@ const ATOM_CLASS: Record<AtomOp, CoverageClass> = {
   infoVersionNotMatching: "doc",
   inputSizeExceeds: "doc",
   paginationNamingInconsistent: "parameter",
+  unusedComponents: "schema",
+  undefinedOAuthScopes: "doc",
+  ambiguousPaths: "operation",
 };
 
 function classesForAtom(atom: Atom, out: Set<CoverageClass>): void {

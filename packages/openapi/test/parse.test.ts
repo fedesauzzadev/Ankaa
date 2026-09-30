@@ -350,6 +350,44 @@ describe("parseSpec · AC-O.15 x-stability-level", () => {
     expect(codes.filter((c) => c === "UNKNOWN_STABILITY")).toHaveLength(2);
   });
 
+  it("extracts OAuth2 flow scopes into scheme defs", () => {
+    const text = [
+      "openapi: 3.1.0",
+      "info:",
+      "  title: T",
+      "  version: '1'",
+      "paths:",
+      "  /a:",
+      "    get:",
+      "      responses:",
+      "        '200':",
+      "          description: ok",
+      "components:",
+      "  securitySchemes:",
+      "    oauth:",
+      "      type: oauth2",
+      "      flows:",
+      "        authorizationCode:",
+      "          authorizationUrl: https://auth.example.com/authorize",
+      "          tokenUrl: https://auth.example.com/token",
+      "          scopes:",
+      "            write: Write access",
+      "            read: Read access",
+      "    apikey:",
+      "      type: apiKey",
+      "      in: header",
+      "      name: X-Key",
+    ].join("\n");
+    const result = parseSpec(text, { sourceLabel: "t.yaml" });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const defs = new Map(
+      (result.spec.components.securitySchemeDefs ?? []).map((d) => [d.name, d]),
+    );
+    expect(defs.get("oauth")?.scopes).toEqual(["read", "write"]);
+    expect(defs.get("apikey")?.scopes).toBeUndefined();
+  });
+
   it("absent everywhere leaves stability undefined without warnings", () => {
     const text = doc(["paths:", "  /a:", opBlock("    ")].join("\n"));
     const result = parseSpec(text, { sourceLabel: "t.yaml" });

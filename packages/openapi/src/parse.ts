@@ -611,6 +611,14 @@ function buildComponentIndex(doc: Record<string, unknown>): ComponentIndex {
       if (typeof raw.scheme === "string") def.scheme = raw.scheme;
       if (typeof raw.in === "string") def.in = raw.in;
       if (typeof raw.name === "string") def.paramName = raw.name;
+      if (raw.type === "oauth2" && isRecord(raw.flows)) {
+        const scopes = new Set<string>();
+        for (const flow of Object.values(raw.flows)) {
+          if (!isRecord(flow) || !isRecord(flow.scopes)) continue;
+          for (const scope of Object.keys(flow.scopes)) scopes.add(scope);
+        }
+        if (scopes.size > 0) def.scopes = [...scopes].sort();
+      }
       securitySchemeDefs.push(def);
     }
   }

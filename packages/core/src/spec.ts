@@ -91,6 +91,8 @@ export interface SecuritySchemeDef {
   scheme?: string;
   in?: string;
   paramName?: string;
+  /** OAuth2 flow scope names (union of all flows), sorted. */
+  scopes?: string[];
 }
 
 export interface ComponentIndex {

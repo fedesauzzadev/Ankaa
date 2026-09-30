@@ -199,6 +199,9 @@ const atomSchema = z.discriminatedUnion("op", [
     maxBytes: z.number().int().min(0),
   }),
   z.strictObject({ op: z.literal("paginationNamingInconsistent") }),
+  z.strictObject({ op: z.literal("unusedComponents") }),
+  z.strictObject({ op: z.literal("undefinedOAuthScopes") }),
+  z.strictObject({ op: z.literal("ambiguousPaths") }),
 ]);
 
 const matcherSchema: z.ZodType<Matcher> = z.lazy(() =>
@@ -242,6 +245,8 @@ const DOC_ATOMS = new Set<string>([
   "infoVersionNotMatching",
   "inputSizeExceeds",
   "paginationNamingInconsistent",
+  "unusedComponents",
+  "ambiguousPaths",
 ]);
 
 export type Scope = "doc" | "operation" | "mixed";

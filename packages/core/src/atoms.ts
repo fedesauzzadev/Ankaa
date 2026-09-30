@@ -177,6 +177,42 @@ function resolveSchemaRef(spec: Spec, ref: string | undefined): SchemaNode | und
   return spec.components.schemaNodes?.[name];
 }
 
+function schemaRefName(ref: string | undefined): string | undefined {
+  if (!ref || !ref.startsWith("#/components/schemas/")) return undefined;
+  return decodeURIComponent(ref.slice("#/components/schemas/".length));
+}
+
+/** Component schema names reachable from operations (transitive, cycle-safe). */
+function collectUsedSchemas(spec: Spec): Set<string> {
+  const used = new Set<string>();
+  const visit = (node: SchemaNode | undefined, stack: string[]): void => {
+    if (node === undefined) return;
+    if (node.ref !== undefined) {
+      const name = schemaRefName(node.ref);
+      if (name === undefined || stack.includes(name)) return;
+      used.add(name);
+      stack.push(name);
+      visit(spec.components.schemaNodes?.[name], stack);
+      stack.pop();
+      return;
+    }
+    if (node.properties !== undefined) {
+      for (const key of Object.keys(node.properties)) visit(node.properties[key], stack);
+    }
+    visit(node.items, stack);
+  };
+  for (const op of spec.operations) {
+    for (const p of op.parameters) visit(p.schema, []);
+    if (op.requestBody !== undefined) {
+      for (const c of op.requestBody.content) visit(c.schema, []);
+    }
+    for (const r of op.responses) {
+      for (const c of r.content) visit(c.schema, []);
+    }
+  }
+  return used;
+}
+
 function deepResolve(spec: Spec, node: SchemaNode | undefined, depth = 0): SchemaNode | undefined {
   if (!node || depth > 20) return node;
   if (node.ref) {
@@ -598,6 +634,18 @@ export function evaluateAtom(
     case "securityEmptyOverride": {
       return Array.isArray(op.security) && op.security.length === 0;
     }
+    case "undefinedOAuthScopes": {
+      const requirements = op.security ?? spec.security ?? [];
+      if (requirements.length === 0) return false;
+      const defs = new Map(
+        (spec.components.securitySchemeDefs ?? []).map((d) => [d.name, d] as const),
+      );
+      return requirements.some((req) => {
+        const scopes = defs.get(req.name)?.scopes;
+        if (scopes === undefined) return false;
+        return req.scopes.some((s) => !scopes.includes(s));
+      });
+    }
     case "errorUsesJsonNotProblem": {
       return errorResponses(op).some((r) =>
         r.content.some(
@@ -775,6 +823,29 @@ function evaluateDocAtom(atom: AtomMatcher, spec: Spec): boolean {
     }
     case "inputSizeExceeds": {
       return (spec.inputBytes ?? 0) > atom.maxBytes;
+    }
+    case "unusedComponents": {
+      const declared = spec.components.schemas ?? [];
+      if (declared.length === 0) return false;
+      const used = collectUsedSchemas(spec);
+      return declared.some((name) => !used.has(name));
+    }
+    case "ambiguousPaths": {
+      const seen = new Map<string, string>();
+      for (const operation of spec.operations) {
+        const shape = operation.path
+          .split("/")
+          .map((segment) => (isTemplate(segment) ? "{}" : segment))
+          .join("/");
+        const key = `${operation.method} ${shape}`;
+        const first = seen.get(key);
+        if (first === undefined) {
+          seen.set(key, operation.path);
+        } else if (first !== operation.path) {
+          return true;
+        }
+      }
+      return false;
     }
     case "paginationNamingInconsistent": {
       const families = new Set<string>();
