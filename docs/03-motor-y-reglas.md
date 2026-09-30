@@ -1,6 +1,6 @@
 # 03 · Motor y reglas
 
-ApiGovScan · SDD · v1.0
+Ankaa · SDD · v1.0
 
 ---
 
@@ -135,12 +135,12 @@ Opcionales: `fix`, `examples` (`{bad, good}`: fragmentos YAML/JSON que violan/cu
 ### Reglas custom del usuario
 
 ```bash
-apigovscan analyze ./openapi.yaml --rules ./team-rules.yaml
-apigovscan analyze ./openapi.yaml --rule '{"id":"TEAM-001","severity":"error","when":{"op":"headerRequired","name":"x-request-id"},"message":"Every operation must accept x-request-id."}'
+ankaa analyze ./openapi.yaml --rules ./team-rules.yaml
+ankaa analyze ./openapi.yaml --rule '{"id":"TEAM-001","severity":"error","when":{"op":"headerRequired","name":"x-request-id"},"message":"Every operation must accept x-request-id."}'
 ```
 
 - Mismo schema que las del pack; `id` debe ser nuevo o chocar con override explícito (error en CLI, no merge silencioso).
-- Validación al cargar: `apigovscan rules validate ./team-rules.yaml`.
+- Validación al cargar: `ankaa rules validate ./team-rules.yaml`.
 
 ## 4. Taxonomía de categorías (cerrada en v1)
 
@@ -159,7 +159,7 @@ Categorías nuevas = cambio de minor del motor (documentado), no string libre.
 Config:
 
 ```yaml
-# apigovscan.yaml
+# ankaa.yaml
 failOn: error
 rules:
   NAMING-001: off
@@ -233,8 +233,8 @@ El fingerprint **no** incluye severity (permite `severity_change` sin cambiar id
 ### Estructura
 
 ```
-.apigovscan/
-├── config.yaml          # o apigovscan.yaml en raíz del repo (ver 01)
+.ankaa/
+├── config.yaml          # o ankaa.yaml en raíz del repo (ver 01)
 ├── skills/
 │   ├── suppressions.yaml
 │   ├── severities.yaml
@@ -297,7 +297,7 @@ Drafts **no** se evalúan hasta `learn --promote TEAM-007` (mueve a `custom` act
 
 ```
 Input:  report.json  +  feedback.json
-Output: patch idempotente sobre .apigovscan/skills/
+Output: patch idempotente sobre .ankaa/skills/
 ```
 
 ### feedback.json (schema)
@@ -342,11 +342,11 @@ Output: patch idempotente sobre .apigovscan/skills/
 ### Promoción de drafts a reglas activas
 
 ```bash
-apigovscan skills promote TEAM-007     # draft → activa (custom pack local)
-apigovscan skills list
+ankaa skills promote TEAM-007     # draft → activa (custom pack local)
+ankaa skills list
 ```
 
-Promover a pack **elite** requiere PR al repo ApiGovScan + fuente real (drafts sin `source.url` no entran).
+Promover a pack **elite** requiere PR al repo Ankaa + fuente real (drafts sin `source.url` no entran).
 
 ## 10. Baseline
 
@@ -369,7 +369,7 @@ Promover a pack **elite** requiere PR al repo ApiGovScan + fuente real (drafts s
 ### console (resumen típico)
 
 ```
-ApiGovScan 1.0.0 · packs elite@2026.09.1 · input sha256:9f3a… · 1.2s
+Ankaa 1.0.0 · packs elite@2026.09.1 · input sha256:9f3a… · 1.2s
 
 error  NAMING-001  GET /user/{id}
        Resource path segments should be plural nouns.
@@ -389,7 +389,7 @@ warning ERR-010  POST /payments
 
 ```json
 {
-  "tool": { "name": "apigovscan", "version": "1.0.0" },
+  "tool": { "name": "ankaa", "version": "1.0.0" },
   "packs": [{ "id": "elite", "version": "2026.09.1" }],
   "input": { "path": "specs/payments.yaml", "sha256": "…" },
   "summary": { "error": 2, "warning": 14, "info": 3, "suppressed": 11 },

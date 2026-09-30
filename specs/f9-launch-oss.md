@@ -74,3 +74,4 @@ Como dueño de producto quiero que ApiGovScan pueda publicarse como **open sourc
 
 - 2026-09-28 · Spec creada en `ready` a pedido del dueño (slice solo-papeles; publicar queda para después).
 - 2026-09-28 · M9.1 implementado → `cerrada` (AC-LO.1–6 verdes; `pnpm check` + `verify-pack` OK; repo privado; nada publicado). Extra: sub-packages unificados a Apache-2.0 + autor (estaban en MIT).
+- 2026-10-01 - Ankaa rename (f16): the brand is now Ankaa; the public community key is unchanged and still validates. No legacy aliases; see specs/f16-ankaa-rebrand.md.

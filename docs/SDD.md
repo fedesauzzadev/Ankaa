@@ -1,8 +1,8 @@
-# SDD — Software Design Document · ApiGovScan
+# SDD — Software Design Document · Ankaa
 
 | Campo                 | Valor                                                                                                                                                                                                                    |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Producto              | ApiGovScan — analizador local de API Governance                                                                                                                                                                          |
+| Producto              | Ankaa — analizador local de API Governance                                                                                                                                                                          |
 | Versión del documento | 1.0                                                                                                                                                                                                                      |
 | Fecha                 | 2026-09-23                                                                                                                                                                                                               |
 | Estado                | Aprobado — Fases 0–6, 8–10 y 12 cerradas; F7 pendiente; F14 (revisor local de cambios API para personas y agentes) en ejecución; F15 (workspace local guiado) especificada; publicar OSS pendiente de decisión del dueño |
@@ -15,17 +15,17 @@
 
 El API governance roto no se manifiesta como un incidente: se manifiesta como **deuda silenciosa**. Naming inconsistente, errores sin estándar, paginación inventada por servicio, versionado ad-hoc, specs desactualizadas… Cada proyecto nuevo hereda el desorden del anterior porque no existe un feedback loop rápido, barato y objetivo en el día a día del equipo. Las consultoras y los "API review boards" no escalan al ritmo de un backlog multi-squad.
 
-**ApiGovScan cierra ese loop con una herramienta que:**
+**Ankaa cierra ese loop con una herramienta que:**
 
 1. **Corre donde vive tu código:** local, en tu máquina o en CI. Nunca sube specs ni fuente a la nube (privacidad por arquitectura, no por política).
 2. **Analiza APIs sin tocar código:** entrada principal OpenAPI/Swagger (YAML/JSON); después código (rutas), proto y GraphQL. Salida: qué está mal, qué está bien, qué mejorar — con severidad, referencia al estándar y fix sugerido.
 3. **Trae estándares de élite ya curados:** Google API Design Guide, Microsoft REST API Guidelines, Zalando, RFCs de IETF, OpenAPI Spec — empaquetados como **rule packs versionados** con cita a la fuente. Un worker de Cloudflare detecta cambios en las fuentes; la publicación es por draft con aprobación (nunca auto-merge silencioso).
 4. **Permite reglas propias al momento de analizar:** DSL declarativa en YAML + overrides por CLI, sin escribir código.
-5. **Retroalimenta sin tokens de LLM:** motor **100% determinista** (AST + patrones). El "aprendizaje" es la carpeta `.apigovscan/skills/` — suppressions, severidades locales y reglas nuevas derivadas de tu feedback (`report + feedback → learn`), versionable en git. Cero costo por corrida.
+5. **Retroalimenta sin tokens de LLM:** motor **100% determinista** (AST + patrones). El "aprendizaje" es la carpeta `.ankaa/skills/` — suppressions, severidades locales y reglas nuevas derivadas de tu feedback (`report + feedback → learn`), versionable en git. Cero costo por corrida.
 6. **Expone el mismo motor como MCP:** stdio local para Claude/Cursor/opencode (con acceso a tus archivos); servidor remoto opcional en Cloudflare solo para consultar estándares (el análisis remoto no existe: no podría leer tu disco y no querríamos que pudiera).
 7. **Revisa cambios de API para personas y agentes:** combina governance del contrato candidato con compatibilidad respecto de una base, entrega evidencia estructurada y re-evalúa localmente sin LLM por defecto. CLI/MCP dan feedback; CI puede verificar el candidato final. Esta apuesta se especifica en [`f14-agent-api-gate`](../specs/f14-agent-api-gate.md).
 
-**Distribución:** `npx @apigovscan/cli analyze .` — cero instalación permanente. Docker Compose para quien quiera self-host completo sin Cloudflare. Objetivo de costo de infraestructura para usuarios: **$0**.
+**Distribución:** `npx @ankaa/cli analyze .` — cero instalación permanente. Docker Compose para quien quiera self-host completo sin Cloudflare. Objetivo de costo de infraestructura para usuarios: **$0**.
 
 ## 2. Decisiones clave
 
@@ -37,7 +37,7 @@ El API governance roto no se manifiesta como un incidente: se manifiesta como **
 | D4  | Clean Architecture (hexagonal)                                               | Core puro sin I/O; adapters CLI/MCP/CF intercambiables; testability sin mocks de red/FS                                            | [ADR-004](02-arquitectura.md#adr-004-clean-architecture-hexagonal)                          |
 | D5  | Motor determinista, LLM opcional y fuera del core                            | Governance es mayormente chequeable con patrones; 0 tokens = costo marginal cero; LLM solo (y opcional) para lo subjetivo          | [ADR-005](02-arquitectura.md#adr-005-motor-determinista-llm-solo-opcional-y-fuera-del-core) |
 | D6  | Estándares como rule packs YAML versionados con cita a fuente                | Auditables, diffables, pinneables; actualizaciones humanas; sin sorpresas en CI                                                    | [ADR-006](02-arquitectura.md#adr-006-rule-packs-versionados-con-fuente-citada)              |
-| D7  | Skills = aprendizaje en git, no modelo entrenado                             | Feedback → suppressions/severidades/reglas nuevas en `.apigovscan/skills/`; idempotente; 0 tokens; portable del dev al equipo      | [ADR-007](02-arquitectura.md#adr-007-skills-en-git-no-modelo-entrenado)                     |
+| D7  | Skills = aprendizaje en git, no modelo entrenado                             | Feedback → suppressions/severidades/reglas nuevas en `.ankaa/skills/`; idempotente; 0 tokens; portable del dev al equipo      | [ADR-007](02-arquitectura.md#adr-007-skills-en-git-no-modelo-entrenado)                     |
 | D8  | Cloudflare solo para servicios de borde (packs, MCP remoto, cron de fuentes) | Aprovecha free tier (100k req/día) sin contradecir local-first; análisis vive en el cliente                                        | [ADR-008](02-arquitectura.md#adr-008-cloudflare-para-servicios-de-borde-no-para-análisis)   |
 | D9  | MCP stdio local como interfaz IA primaria                                    | El LLM accede a los mismos tools del CLI sobre el filesystem local; remoto solo consulta estándares                                | [ADR-009](02-arquitectura.md#adr-009-mcp-stdio-local-como-interfaz-ia-primaria)             |
 | D10 | Docker Compose como piso self-host / dev (alternativa gratis a CF)           | Equipos sin CF, CI determinista, entorno de desarrollo paridad; el CLI no requiere Docker                                          | [ADR-010](02-arquitectura.md#adr-010-docker-compose-para-dev-y-self-host)                   |
@@ -63,7 +63,7 @@ El API governance roto no se manifiesta como un incidente: se manifiesta como **
 - Cobertura OpenAPI **3.0.x y 3.1.x** en v0 (Swagger 2.0: conversión best-effort, advertida).
 - Reportes deterministas: mismo input + misma versión de packs ⇒ **hash de findings idéntico**.
 
-## 4. Qué NO es ApiGovScan (anti-alcance)
+## 4. Qué NO es Ankaa (anti-alcance)
 
 - **No es un linter de código fuente** (no pretende competir con ESLint/Prettier/ruff); puede _complementar_ leyendo anotaciones de rutas en una fase posterior.
 - **No es un gateway, proxy ni runtime** de APIs (no intercepta tráfico).
@@ -84,7 +84,7 @@ El API governance roto no se manifiesta como un incidente: se manifiesta como **
 | INV-4 | **Los specs son datos, no código:** ninguna regla evalúa JS/TS arbitrario del spec ni hace `eval`/`Function`                 | DSL declarativa whitelist de constructores; audit de `core` en CI (grep de eval)                 |
 | INV-5 | **`learn` idempotente:** aplicar dos veces el mismo `feedback` sobre el mismo `report` produce el mismo estado de skills     | Test: learn(f,p) ∘ learn(f,p) ≡ learn(f,p)                                                       |
 | INV-6 | **Packs pinneables:** un reporte siempre declara `packsVersion`; CI puede fallar si el pack flota sin pin                    | Campo obligatorio en reporte JSON + regla de config                                              |
-| INV-7 | **Sin auto-mutación del repo:** ApiGovScan jamás escribe fuera de `.apigovscan/` (y de outputs explícitos con `--output`)    | Test de FS con tempdir: solo se permite escribir rutas autorizadas                               |
+| INV-7 | **Sin auto-mutación del repo:** Ankaa jamás escribe fuera de `.ankaa/` (y de outputs explícitos con `--output`)    | Test de FS con tempdir: solo se permite escribir rutas autorizadas                               |
 
 ## 6. Índice de documentos
 
@@ -101,10 +101,10 @@ El API governance roto no se manifiesta como un incidente: se manifiesta como **
 | ---- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | 0    | Repo, workspaces, CI base, esta documentación                                                             | `pnpm i && pnpm build && pnpm test` verde en CI                                                  |
 | 1    | **MVP:** parser OpenAPI + motor + pack elite v0 (≥ 50 reglas) + reportes console/JSON                     | `npx . analyze fixtures/petstore.yaml` produce reporte determinista con INV-1..INV-3 verificadas |
-| 2    | Config `apigovscan.yaml`, DSL de reglas custom, CLI `--rule/--rules`, baseline                            | Proyecto con deuda adopta baseline; solo falla lo nuevo (`--baseline`)                           |
-| 3    | `init` + `.apigovscan/skills/` + `learn` (feedback → suppressions/severidades/reglas draft)               | INV-5 con tests; flujo report→feedback→learn→re-analyze demostrado                               |
+| 2    | Config `ankaa.yaml`, DSL de reglas custom, CLI `--rule/--rules`, baseline                            | Proyecto con deuda adopta baseline; solo falla lo nuevo (`--baseline`)                           |
+| 3    | `init` + `.ankaa/skills/` + `learn` (feedback → suppressions/severidades/reglas draft)               | INV-5 con tests; flujo report→feedback→learn→re-analyze demostrado                               |
 | 4    | MCP stdio local (`analyze`, `list_rules`, `explain_rule`, `validate_rules`)                               | Cliente MCP (Claude/Cursor) analiza un spec local end-to-end                                     |
-| 5    | Reporters SARIF + Markdown, GitHub Action oficial (`apigovscan-action`)                                   | PR check publica annotations + job summary                                                       |
+| 5    | Reporters SARIF + Markdown, GitHub Action oficial (`ankaa-action`)                                   | PR check publica annotations + job summary                                                       |
 | 6    | Cloudflare: worker de fuentes (cron semanal) + distribución de packs (R2/KV) + MCP remoto _solo consulta_ | Publicación de pack por draft con aprobación; docs de pin de versión                             |
 | 7    | Self-host Docker Compose completo (registry local de packs + worker simulado + docs)                      | `docker compose up` sirve packs sin depender de CF                                               |
 | 8+   | Adapters: código (Express/FastAPI/Spring routes), proto/gRPC, GraphQL; dashboard de adopción (opcional)   | Un adapter extra con su propio corpus de fixtures                                                |
@@ -131,7 +131,7 @@ El API governance roto no se manifiesta como un incidente: se manifiesta como **
 | Regla         | Unidad de verificación declarativa: id, severidad, mensaje, matcher sobre el modelo de spec, referencia a estándar       |
 | Finding       | Ocurrencia concreta de una regla en un location del spec (path JSON Pointer + apiPath + method)                          |
 | DSL           | Lenguaje declarativo (subconjunto YAML) para reglas de usuario; sin código arbitrario                                    |
-| Skills        | Artefactos aprendidos en `.apigovscan/skills/`: suppressions, overrides de severidad, reglas draft derivadas de feedback |
+| Skills        | Artefactos aprendidos en `.ankaa/skills/`: suppressions, overrides de severidad, reglas draft derivadas de feedback |
 | Feedback      | Marcado del usuario sobre findings de un reporte: `confirmed` / `false_positive` / `wontfix` / `severity_change`         |
 | Learn         | Operación idempotente que transforma `report + feedback` en cambios de skills                                            |
 | Baseline      | Snapshot de findings existentes aceptados; permite gate "solo lo nuevo"                                                  |

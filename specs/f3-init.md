@@ -124,3 +124,4 @@ Directorios primero (`mkdir -p`), luego archivos. Determinista: mismo orden de "
 
 - 2026-09-24 · Spec creado desde SDD v1.0 §7 Fase 3 + FR-30.
 - 2026-09-24 · M3.3 implementado: `init` + e2e AC-I.1…6 + S4 full loop → `cerrada`.
+- 2026-10-01 - Ankaa rename (f16): init now scaffolds ankaa.yaml and .ankaa/skills/. No legacy aliases; see specs/f16-ankaa-rebrand.md.

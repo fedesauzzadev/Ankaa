@@ -12,11 +12,11 @@ node scripts/review-benchmark.mjs --out docs/benchmarks/review-benchmark.json
 
 ## Metodología
 
-- **Sin contexto ApiGovScan (ruta "raw")**: prompt de referencia + contrato base
+- **Sin contexto Ankaa (ruta "raw")**: prompt de referencia + contrato base
   completo + contrato candidato completo — lo que un usuario pegaría a un LLM.
-- **Con contexto ApiGovScan (full)**: JSON canónico completo de
-  `apigovscan review` (findings con mensaje/fix/fuente).
-- **Con contexto ApiGovScan (truncated)**: el payload que consume realmente un
+- **Con contexto Ankaa (full)**: JSON canónico completo de
+  `ankaa review` (findings con mensaje/fix/fuente).
+- **Con contexto Ankaa (truncated)**: el payload que consume realmente un
   agente vía MCP `review_api_change` (top 20 findings, `totalFindings`/`truncated`
   declarados).
 - Token-count **aproximado chars/4**; no se invoca ningún modelo ni hay red
@@ -48,7 +48,7 @@ exactamente su BRK; los negativos y aditivos no disparan ninguno).
   crece con el tamaño del contrato sino con la cantidad de findings.
 - El diferencial verificable hoy no es ahorro de tokens sino: **detección
   determinista y reproducible** (9/9 contra ground truth; la ruta raw sin
-  ApiGovScan no tiene tasa de detección medida — medirla requiere correr un
+  Ankaa no tiene tasa de detección medida — medirla requiere correr un
   modelo real, fuera del alcance offline), cobertura declarada por formato,
   fingerprints estables y paridad CLI ↔ MCP ↔ CI.
 - **No se publica porcentaje de ahorro** de tokens/tiempo sin resultados

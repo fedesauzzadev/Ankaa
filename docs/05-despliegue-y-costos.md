@@ -1,6 +1,6 @@
 # 05 · Despliegue y costos
 
-ApiGovScan · SDD · v1.0
+Ankaa · SDD · v1.0
 
 ---
 
@@ -22,9 +22,9 @@ ApiGovScan · SDD · v1.0
 ```jsonc
 // packages/cli/package.json
 {
-  "name": "@apigovscan/cli",
+  "name": "@ankaa/cli",
   "type": "module",
-  "bin": { "apigovscan": "./dist/bin.js" },
+  "bin": { "ankaa": "./dist/bin.js" },
   "engines": { "node": ">=22" },
   "files": ["dist", "packs/elite"], // pack embebido para 0 red
 }
@@ -32,10 +32,10 @@ ApiGovScan · SDD · v1.0
 
 ```bash
 # uso sin instalación
-npx @apigovscan/cli analyze ./openapi.yaml
+npx @ankaa/cli analyze ./openapi.yaml
 
 # instalación global opcional
-npm i -g @apigovscan/cli && apigovscan analyze .
+npm i -g @ankaa/cli && ankaa analyze .
 ```
 
 ### Comandos v1
@@ -43,7 +43,7 @@ npm i -g @apigovscan/cli && apigovscan analyze .
 | Comando                                           | Descripción                                                                                                          |
 | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | `analyze <path>`                                  | Analiza spec(s); options: `--format`, `--rules`, `--rule`, `--baseline`, `--write-baseline`, `--fail-on`, `--output` |
-| `init`                                            | Crea `.apigovscan/` + `apigovscan.yaml` de ejemplo                                                                   |
+| `init`                                            | Crea `.ankaa/` + `ankaa.yaml` de ejemplo                                                                   |
 | `rules list` / `explain <id>` / `validate <file>` | Gestión de reglas                                                                                                    |
 | `learn --report --feedback`                       | Aplica feedback (INV-5)                                                                                              |
 | `skills list` / `promote <id>`                    | Drafts y suppressions                                                                                                |
@@ -66,14 +66,14 @@ npm i -g @apigovscan/cli && apigovscan analyze .
 ## 3. GitHub Action (fase 5)
 
 ```yaml
-# .github/workflows/apigovscan.yml (usuario)
+# .github/workflows/ankaa.yml (usuario)
 jobs:
-  apigovscan:
+  ankaa:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: ./action # hoy in-repo; <owner>/<repo>@v1 al publicarse
-        id: apigovscan
+        id: ankaa
         with:
           path: specs/
           format: sarif
@@ -82,7 +82,7 @@ jobs:
       - uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
-          sarif_file: ${{ steps.apigovscan.outputs.sarif-path }}
+          sarif_file: ${{ steps.ankaa.outputs.sarif-path }}
 ```
 
 - El action corre el **mismo CLI** (no lógica duplicada): 3 corridas — artefacto
@@ -91,7 +91,7 @@ jobs:
 - Outputs: annotations en PR, job summary Markdown, `sarif-path` + `exit-code`.
 - `standards-version` (pin de packs) queda pendiente hasta el registry (fase 6).
 - Inputs/outputs completos en [`action/README.md`](../action/README.md); dogfood en
-  `.github/workflows/apigovscan.yml` (`uses: ./action`).
+  `.github/workflows/ankaa.yml` (`uses: ./action`).
 
 ### 3.1 Instalación privada del producto (f6-distribution)
 
@@ -102,12 +102,12 @@ La edición empresarial se distribuye **privada** (licencia comercial por client
 
 ```bash
 # vendor (este repo): pack + verificación de instalación offline
-pnpm pack:cli          # -> dist-release/apigovscan-cli-<version>.tgz
+pnpm pack:cli          # -> dist-release/ankaa-cli-<version>.tgz
 pnpm verify:pack       # npm i --offline en temp + analyze e2e
 
 # cliente (sin red):
-npm install -g ./apigovscan-cli-<version>.tgz
-APIGOVSCAN_LICENSE_KEY=AGS-<...> apigovscan analyze ./specs/
+npm install -g ./ankaa-cli-<version>.tgz
+ANKAA_LICENSE_KEY=AGS-<...> ankaa analyze ./specs/
 ```
 
 El tarball lleva el CLI **bundled** (esbuild, cero dependencies) + pack `elite`
@@ -118,13 +118,13 @@ GitHub Packages (`npm.pkg.github.com`) si hay `NPM_TOKEN`; el cliente configura
 ese registry con su token de org.
 
 **c) Docker (air-gap):** `docker/Dockerfile` sobre el tarball —
-`docker build --build-arg TARBALL=apigovscan-cli-<version>.tgz .`.
+`docker build --build-arg TARBALL=ankaa-cli-<version>.tgz .`.
 
 **Licencias (offline, INV-1):** el vendor genera keys con
 `pnpm gen:license -- --customer acme --expiry 20270926` (HMAC embebido, sin
-phone-home). Se usan vía `--license-key`, `APIGOVSCAN_LICENSE_KEY` o
-`license.key` en `apigovscan.yaml`; `analyze` y `mcp` las exigen (exit 2).
-`apigovscan license` valida y muestra customer/expiry. Rotación de secret =
+phone-home). Se usan vía `--license-key`, `ANKAA_LICENSE_KEY` o
+`license.key` en `ankaa.yaml`; `analyze` y `mcp` las exigen (exit 2).
+`ankaa license` valida y muestra customer/expiry. Rotación de secret =
 nueva versión del CLI (ver riesgos en `specs/f6-distribution.md`).
 
 ### 3.2 Edición community (f9-launch-oss)
@@ -140,9 +140,9 @@ canales privados. Detalles y split OSS/pago en `specs/f9-launch-oss.md`.
 
 | Imagen                                              | Uso                                                                                                     |
 | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `ghcr.io/apigovscan/cli:<tag>`                      | CLI en CI sin Node del host; `docker run --rm -v $PWD:/work ghcr.io/apigovscan/cli analyze /work/specs` |
-| `ghcr.io/apigovscan/standards-sync:<tag>`           | Job que replica fuentes → packs (self-host)                                                             |
-| `ghcr.io/apigovscan/registry:<tag>` (o nginx+caddy) | Sirve packs versionados estáticos                                                                       |
+| `ghcr.io/ankaa/cli:<tag>`                      | CLI en CI sin Node del host; `docker run --rm -v $PWD:/work ghcr.io/ankaa/cli analyze /work/specs` |
+| `ghcr.io/ankaa/standards-sync:<tag>`           | Job que replica fuentes → packs (self-host)                                                             |
+| `ghcr.io/ankaa/registry:<tag>` (o nginx+caddy) | Sirve packs versionados estáticos                                                                       |
 
 ### 4.2 `docker-compose.yml` (self-host / dev)
 
@@ -155,7 +155,7 @@ services:
       - ./packs-mirror:/usr/share/nginx/html:ro
     ports: ["8080:80"]
   standards-sync:
-    image: ghcr.io/apigovscan/standards-sync:latest
+    image: ghcr.io/ankaa/standards-sync:latest
     environment:
       MODE: draft-local # genera draft en volumen; no publish solo
       SOURCES_FILE: /app/sources.yaml
@@ -182,7 +182,7 @@ services:
 ```
 FROM node:22-alpine AS build   # pnpm, compile, bundle
 FROM node:22-alpine AS runtime # solo dist + pack, USER nonroot
-ENTRYPOINT ["apigovscan"]
+ENTRYPOINT ["ankaa"]
 ```
 
 - Base alpine, usuario non-root, sin shell en runtime si es viable.
@@ -194,8 +194,8 @@ ENTRYPOINT ["apigovscan"]
 
 | Worker                    | Trigger             | Función                                                       |
 | ------------------------- | ------------------- | ------------------------------------------------------------- |
-| `apigovscan-standards`    | Cron semanal + HTTP | Sync de fuentes, servir `GET /packs*`, MCP remoto de consulta |
-| (futuro) `apigovscan-api` | HTTP                | Solo si aparece necesidad real (no en v1)                     |
+| `ankaa-standards`    | Cron semanal + HTTP | Sync de fuentes, servir `GET /packs*`, MCP remoto de consulta |
+| (futuro) `ankaa-api` | HTTP                | Solo si aparece necesidad real (no en v1)                     |
 
 Storage:
 
@@ -204,7 +204,7 @@ Storage:
 
 ### 5.2 Límites verificados (free tier, sept 2026)
 
-| Limite        | Free                   | Implicación para ApiGovScan                                                                                      |
+| Limite        | Free                   | Implicación para Ankaa                                                                                      |
 | ------------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | Requests      | 100.000/día            | Sobrado para distribución de packs + MCP consulta                                                                |
 | CPU / request | **10 ms**              | Sirve JSON/YAML pre-armados; **no** parsea specs de usuarios (correcto por diseño)                               |
@@ -231,9 +231,9 @@ Storage:
 ## 6. MCP local (stdio) — despliegue "en el cliente"
 
 ```bash
-apigovscan mcp
+ankaa mcp
 # o
-npx @apigovscan/cli mcp
+npx @ankaa/cli mcp
 ```
 
 Registro ejemplo (Claude/Cursor/opencode):
@@ -241,9 +241,9 @@ Registro ejemplo (Claude/Cursor/opencode):
 ```json
 {
   "mcpServers": {
-    "apigovscan": {
+    "ankaa": {
       "command": "npx",
-      "args": ["-y", "@apigovscan/cli", "mcp"]
+      "args": ["-y", "@ankaa/cli", "mcp"]
     }
   }
 }
@@ -274,7 +274,7 @@ No hay entorno "analysis-hosted" — no existe por diseño (ADR-003).
 | MCP stdio                 | $0                    |
 | **Total**                 | **$0**                |
 
-### Operador del proyecto (ApiGovScan OSS / internamente)
+### Operador del proyecto (Ankaa OSS / internamente)
 
 | Ítem                                      | Plan                      | Costo                            |
 | ----------------------------------------- | ------------------------- | -------------------------------- |
@@ -334,7 +334,7 @@ jobs:
 | Cron de fuentes    |         | packs se desactualizan (changelog quieto), análisis sigue |
 | GitHub Action repo |         | puede correr CLI en su propio CI                          |
 
-**Ningún outage de infraestructura de ApiGovScan detiene `analyze` local** — salvo que el usuario dependiera de `standards update` ese día (y aun así tiene el último pack cacheado).
+**Ningún outage de infraestructura de Ankaa detiene `analyze` local** — salvo que el usuario dependiera de `standards update` ese día (y aun así tiene el último pack cacheado).
 
 ---
 

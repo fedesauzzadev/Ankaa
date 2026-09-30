@@ -1,4 +1,4 @@
-# AGENTS.md · Convenciones para agentes en ApiGovScan
+# AGENTS.md · Convenciones para agentes en Ankaa
 
 Guía para humanos y agentes (opencode, Claude, Cursor, etc.) que trabajen en este repo.
 
@@ -21,7 +21,7 @@ Guía para humanos y agentes (opencode, Claude, Cursor, etc.) que trabajen en es
 | INV-3      | Core sin LLM ni clientes de IA.                                                      |
 | INV-4      | No `eval`, no `new Function`, no código arbitrario desde specs/rules.                |
 | INV-5      | Fingerprint estable; learn idempotente (fase 2+).                                    |
-| INV-7      | Escribir FS solo en `.apigovscan/` y outputs explícitos del usuario.                 |
+| INV-7      | Escribir FS solo en `.ankaa/` y outputs explícitos del usuario.                 |
 
 Si un cambio viola un invariante → **detente** y pide ADR/SDD update. No "raras excepciones".
 

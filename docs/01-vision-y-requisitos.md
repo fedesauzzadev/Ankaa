@@ -1,6 +1,6 @@
 # 01 · Visión y requisitos
 
-ApiGovScan · SDD · v1.0
+Ankaa · SDD · v1.0
 
 ---
 
@@ -16,7 +16,7 @@ El API governance roto tiene tres propiedades que lo hacen persistente:
 2. **Se contagia:** el endpoint nuevo se copia del viejo; sin feedback inmediato, el estándar de facto es "lo que hizo el squad hace 18 meses".
 3. **Los remedios no escalan:** review boards manuales, consultoras y documentación que nadie lee llegan tarde y no cubren el backlog multi-squad.
 
-El resultado: cada proyecto nuevo nace mal si el gobierno del anterior estaba mal. ApiGovScan interrumpe ese ciclo con un loop barato: **analizar → entender → decidir → aprender (en git)**.
+El resultado: cada proyecto nuevo nace mal si el gobierno del anterior estaba mal. Ankaa interrumpe ese ciclo con un loop barato: **analizar → entender → decidir → aprender (en git)**.
 
 ## 3. Personas (stakeholders)
 
@@ -39,7 +39,7 @@ El resultado: cada proyecto nuevo nace mal si el gobierno del anterior estaba ma
 - Reglas propias: DSL YAML + flags CLI (`--rule`, `--rules`) aplicables **en el momento del análisis**.
 - Reportes: **console** (humano), **JSON** (máquina), luego **SARIF** y **Markdown** (GitHub).
 - **Baseline** estilo ESLint: deuda existente no bloquea; lo nuevo sí cuenta.
-- **Skills** (`.apigovscan/skills/`): suppressions, severidades locales, reglas draft — derivadas de `learn`, versionables en git.
+- **Skills** (`.ankaa/skills/`): suppressions, severidades locales, reglas draft — derivadas de `learn`, versionables en git.
 - **MCP stdio local**: `analyze`, `list_rules`, `explain_rule`, `validate_rules` para clientes LLM.
 - **CLI** distribuible por npm/npx; **Docker Compose** para self-host/dev; **Cloudflare** para distribución de packs + MCP remoto de consulta + cron de fuentes.
 - **GitHub Action** oficial (fase 5): annotations + job summary en PRs.
@@ -83,7 +83,7 @@ El resultado: cada proyecto nuevo nace mal si el gobierno del anterior estaba ma
 | FR-10 | Pack **elite** embebido en el CLI con ≥ 50 reglas al final de fase 1                                                                    |
 | FR-11 | Cada regla declara `id`, `severity` default, `category`, `message`, `source.url` + `source.title` (opcionalmente `section`)             |
 | FR-12 | `rules list` y `rules explain <id>` muestran texto completo + cita                                                                      |
-| FR-13 | Config en `apigovscan.yaml`: activar/desactivar reglas, cambiar severidad, elegir packs, pin de versión, `failOn`, `baseline`, `skills` |
+| FR-13 | Config en `ankaa.yaml`: activar/desactivar reglas, cambiar severidad, elegir packs, pin de versión, `failOn`, `baseline`, `skills` |
 | FR-14 | Reglas custom inline: `--rule '{"id":"X","severity":"error","when":{...},"message":"..."}'` y/o archivo `--rules ./rules.yaml`          |
 | FR-15 | El DSL soporta whitelist de constructores (ver 03); rechaza con error claro cualquier regla no soportada                                |
 
@@ -99,7 +99,7 @@ El resultado: cada proyecto nuevo nace mal si el gobierno del anterior estaba ma
 
 | ID    | Requisito                                                                                                                                                                                                                     |
 | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| FR-30 | `init` crea `.apigovscan/` con `config` ejemplo, `skills/` y README corto de skills                                                                                                                                           |
+| FR-30 | `init` crea `.ankaa/` con `config` ejemplo, `skills/` y README corto de skills                                                                                                                                           |
 | FR-31 | `learn --report r.json --feedback f.json` aplica: `false_positive` → suppression, `severity_change` → override, `confirmed` → nada (refuerza), `wontfix` → suppression con motivo, `suggest_rule` → draft en `skills/drafts/` |
 | FR-32 | Learn es **idempotente** (INV-5); re-ejecutar no duplica entradas                                                                                                                                                             |
 | FR-33 | Suppression por fingerprint y por query (ruleId + path pattern) con comentario obligatorio                                                                                                                                    |
@@ -114,13 +114,13 @@ El resultado: cada proyecto nuevo nace mal si el gobierno del anterior estaba ma
 | FR-42 | GitHub Action: `fail-on` configurable, output de annotations SARIF, resumen en job                                                                                                                                                                                                      |
 | FR-43 | El reporte nunca incluye valores secretos de ejemplos del spec (redacción de patrones tipo token/clave)                                                                                                                                                                                 |
 | FR-45 | **Governance score** determinista `0-100` + grade `A-F` en console/JSON/markdown/SARIF/MCP, derivado de findings post-filtros; incluido en `reportHash` (fase 6 — spec `f6-score`)                                                                                                      |
-| FR-64 | **Distribución privada**: tarball self-contained offline (air-gap) + registry privado (GitHub Packages) + Docker; `analyze`/`mcp` exigen **licencia offline** (`--license-key` / `APIGOVSCAN_LICENSE_KEY` / config `license.key`), validación sin red (fase 6 — spec `f6-distribution`) |
+| FR-64 | **Distribución privada**: tarball self-contained offline (air-gap) + registry privado (GitHub Packages) + Docker; `analyze`/`mcp` exigen **licencia offline** (`--license-key` / `ANKAA_LICENSE_KEY` / config `license.key`), validación sin red (fase 6 — spec `f6-distribution`) |
 
 ### 6.6 MCP
 
 | ID    | Requisito                                                                                                                               |
 | ----- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| FR-50 | `apigovscan mcp` expone tools vía **stdio**: `analyze_spec`, `list_rules`, `explain_rule`, `validate_custom_rules`, `explain_finding`   |
+| FR-50 | `ankaa mcp` expone tools vía **stdio**: `analyze_spec`, `list_rules`, `explain_rule`, `validate_custom_rules`, `explain_finding`   |
 | FR-51 | Mismas semánticas que el CLI (mismo core); sin estado entre sesiones salvo lo que el cliente reenvíe                                    |
 | FR-52 | MCP remoto (CF) **solo** herramientas de consulta de estándares (`list_packs`, `explain_rule`, `get_pack`); jamás analiza specs remotos |
 
@@ -128,7 +128,7 @@ El resultado: cada proyecto nuevo nace mal si el gobierno del anterior estaba ma
 
 | ID    | Requisito                                                                                                                               |
 | ----- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| FR-60 | Paquete npm `@apigovscan/cli` ejecutable con `npx`                                                                                      |
+| FR-60 | Paquete npm `@ankaa/cli` ejecutable con `npx`                                                                                      |
 | FR-61 | `standards list                                                                                                                         | info | update | pin`gestiona packs locales vs publicados (update solo si el usuario lo pide — nunca en`analyze`) |
 | FR-62 | Worker CF: cron semanal verifica fuentes, genera **draft** de pack con changelog; publica tras aprobación a R2/KV con versión inmutable |
 | FR-63 | Canales `stable` / `canary` para packs; config default `stable` con pin recomendado en CI                                               |
@@ -152,7 +152,7 @@ El resultado: cada proyecto nuevo nace mal si el gobierno del anterior estaba ma
 
 ## 8. Escenarios de uso (aceptación narrativa)
 
-**S1 — Dev, 30 segundos:** `npx @apigovscan/cli analyze ./specs/payments.yaml` → ve 12 warns con cita a Microsoft guidelines, arregla naming de un path, re-corre, 10 warns.
+**S1 — Dev, 30 segundos:** `npx @ankaa/cli analyze ./specs/payments.yaml` → ve 12 warns con cita a Microsoft guidelines, arregla naming de un path, re-corre, 10 warns.
 
 **S2 — Lead, adopción sin dolor:** `--write-baseline` en main; en PR el Action solo comenta findings **nuevos** con severidad ≥ error.
 
@@ -160,7 +160,7 @@ El resultado: cada proyecto nuevo nace mal si el gobierno del anterior estaba ma
 
 **S4 — Feedback → skills:** marcan 3 findings como FP → `learn` → suppression con comentario en `skills/suppressions.yaml` → commit → el equipo entero deja de verlos; mismo learn dos veces = mismo archivo.
 
-**S5 — IA local:** cliente MCP corre `analyze_spec` sobre el repo abierto; explica `NAMING-004` con la cita de Google guide; **0 tokens de ApiGovScan** (el LLM solo consume sus propios tokens del cliente).
+**S5 — IA local:** cliente MCP corre `analyze_spec` sobre el repo abierto; explica `NAMING-004` con la cita de Google guide; **0 tokens de Ankaa** (el LLM solo consume sus propios tokens del cliente).
 
 **S6 — CI determinista:** `packs: elite@2026.09.1` pineado; upgrade de pack es PR explícito con changelog del worker.
 

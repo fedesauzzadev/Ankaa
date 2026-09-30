@@ -2,7 +2,7 @@
 
 | Campo     | Valor                                                                                          |
 | --------- | ---------------------------------------------------------------------------------------------- |
-| Estado    | ready                                                                                          |
+| Estado    | implementada                                                                                          |
 | Fecha     | 2026-10-01                                                                                      |
 | Fase      | 16                                                                                             |
 | Deriva de | Decisión de producto 2026-09-30 · Auditoría de disponibilidad GitHub/npm 2026-09-30 · `f6-distribution` (licencias) · `f9-launch-oss` (marca, cerrada sin publicar) · INV-7 (directorio de escritura) |
@@ -109,39 +109,39 @@ re-validan.
 
 ## 5. Criterios de aceptación
 
-- [ ] **AC-16.1** `ankaa --help` muestra branding nuevo y exit codes intactos
+- [x] **AC-16.1** `ankaa --help` muestra branding nuevo y exit codes intactos
       (0 ok · 1 findings · 2 usage/parse/config); el bin `apigovscan` ya no
       existe en el package publicado.
-- [ ] **AC-16.2** La búsqueda automática de config resuelve `ankaa.yaml` y
+- [x] **AC-16.2** La búsqueda automática de config resuelve `ankaa.yaml` y
       `ankaa.yml`; `apigovscan.yaml` ya no se autodetecta (test negativo);
       `init` scaffolea `ankaa.yaml` + `.ankaa/skills/`.
-- [ ] **AC-16.3** Solo se leen env vars `ANKAA_*`; setear `APIGOVSCAN_*` no
+- [x] **AC-16.3** Solo se leen env vars `ANKAA_*`; setear `APIGOVSCAN_*` no
       tiene efecto (test negativo con license faltante y LLM).
-- [ ] **AC-16.4** INV-7 reescribe su contrato a `.ankaa/` en SDD y gates; los
+- [x] **AC-16.4** INV-7 reescribe su contrato a `.ankaa/` en SDD y gates; los
       tests de invariantes (incluido `fs-boundary`) pasan con el directorio
       nuevo.
-- [ ] **AC-16.5** Keys `AGS-` existentes (incluida la community key pública
+- [x] **AC-16.5** Keys `AGS-` existentes (incluida la community key pública
       del README) validan igual; `KEY_RE` y la emisión no cambian; los
       mensajes citan `ANKAA_LICENSE_KEY`.
-- [ ] **AC-16.6** Fixture dorada: mismo corpus ⇒ mismos findings ordenados y
+- [x] **AC-16.6** Fixture dorada: mismo corpus ⇒ mismos findings ordenados y
       mismos fingerprints pre/post rename (diff vacío); `reportHash` cambia
       exactamente una vez y queda congelado en snapshots (INV-2).
-- [ ] **AC-16.7** Reporters actualizados: console "Ankaa", markdown
+- [x] **AC-16.7** Reporters actualizados: console "Ankaa", markdown
       "# Ankaa report", JSON `tool.name: "ankaa"`, SARIF `ankaa/*` +
       `ankaaFingerprint`; snapshots/typecheck verdes.
-- [ ] **AC-16.8** Action compuesta actualizada (branding, URL del repo) sin
+- [x] **AC-16.8** Action compuesta actualizada (branding, URL del repo) sin
       cambios contractuales en inputs/outputs; workflow e2e del repo verde
       (dogfood sobre el propio repo renombrado).
-- [ ] **AC-16.9** Grep-gate en CI: cero ocurrencias de
+- [x] **AC-16.9** Grep-gate en CI: cero ocurrencias de
       `apigovscan|ApiGovScan|APIGOVSCAN_` fuera de la allowlist (changelogs
       históricos, tags, este spec, changelogs al pie de specs afectadas).
-- [ ] **AC-16.10** Docs al día (README, SDD, docs/01–06, AGENTS.md, examples/)
+- [x] **AC-16.10** Docs al día (README, SDD, docs/01–06, AGENTS.md, examples/)
       y nota al pie en changelog de `f2-config`, `f3-*`, `f6-distribution`,
       `f9-launch-oss`, `f15-local-workspace`.
 - [ ] **AC-16.11** Repo renombrado a `Ankaa`; badges, `uses:` y registry
       (`npm.pkg.github.com`) apuntan al path nuevo; el workflow `release`
       publica `@ankaa/cli`.
-- [ ] **AC-16.12** `pnpm check` (lint + typecheck + test + build + invariants)
+- [x] **AC-16.12** `pnpm check` (lint + typecheck + test + build + invariants)
       verde en la matriz CI.
 
 ## 6. Plan de pruebas
@@ -176,3 +176,11 @@ re-validan.
   prefijo `AGS-` intacto, rename de repo incluido como paso final. Ankaa
   elegida tras auditoría de disponibilidad (GitHub + npm, 2026-09-30) que
   descartó ~30 candidatas con evidencia.
+- 2026-10-01 · M16.0–M16.7 implementados en un rename atómico: baseline dorada
+  pre-rename (24 casos, 322 fingerprints) + test dorado que verifica
+  fingerprints idénticos post-rename (AC-16.6); scope `@ankaa/*`, bin `ankaa`,
+  `ankaa.yaml`, `.ankaa/`, env `ANKAA_*` sin fallbacks (tests negativos);
+  reporters Ankaa; action/workflows/tarball/docs; grep-gate en `pnpm check`
+  (AC-16.9) y `pnpm check` verde completo (AC-16.12). Pendiente ops: AC-16.11
+  (rename del repo GitHub + release `@ankaa/cli`) y verificación de
+  dominio/marca (M16.0, primer ítem).

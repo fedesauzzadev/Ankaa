@@ -104,3 +104,4 @@ export function resolveLicenseKey(src: {
 - 2026-09-26 · Spec creado (decisión de producto: distribución "ambos" — tarball/air-gap + registry privado; estado `ready`).
 - 2026-09-26 · M6.2: `license.ts` (HMAC offline) + gates analyze/mcp + cmd `license` + config `license.key` + esbuild bundle + `pack-cli`/`verify-pack` (instala offline y analiza) + Docker + workflow `release` + action `license-key`. AC-D.1–10 verdes → `cerrada`; tag `v0.6.0-private`. Nota: el flag `--license-key` aplica a `analyze`; `mcp` usa env/config.
 - 2026-09-30 · Mantenimiento de soporte: mínimo Node.js 22, CI en Node 22/24 y tipos/bundle/Docker/Action alineados.
+- 2026-10-01 - Ankaa rename (f16): env vars are now ANKAA_LICENSE_KEY/ANKAA_LICENSE_SECRET (no legacy fallback) and the tarball is ankaa-cli-<v>.tgz; AGS- keys and their validation are unchanged. No legacy aliases; see specs/f16-ankaa-rebrand.md.

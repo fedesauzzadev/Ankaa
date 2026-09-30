@@ -189,3 +189,4 @@ custom active:
 - 2026-09-24 · Cierre fase 3 con M3.3 (S4 e2e) → `cerrada`.
 - 2026-09-29 · `feedback.json` acepta prefijo único corto (8–64 hex): `buildLearnPatch` resuelve contra el report vía `resolveFingerprint` y guarda siempre el fingerprint completo. Prefijo inexistente/ambiguo ⇒ exit 2 (nunca se guarda un prefijo); 64 completos ausentes mantienen el warning + apply legacy.
 - 2026-09-30 · Feedback `learn` acepta `expires`/`owner` opcionales en items `false_positive`/`wontfix` (AC-S.14): se escriben al entry de suppressions; formato inválido ⇒ exit 2; en otras decisiones ⇒ error honesto.
+- 2026-10-01 - Ankaa rename (f16): skills/learn now write under .ankaa/. No legacy aliases; see specs/f16-ankaa-rebrand.md.

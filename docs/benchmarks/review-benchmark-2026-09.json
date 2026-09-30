@@ -11,11 +11,11 @@
         "supported": true
       },
       "withContext": {
-        "tokens": 1348,
-        "contextChars": 5389
+        "tokens": 1346,
+        "contextChars": 5384
       },
       "withTruncatedContext": {
-        "tokens": 1357,
+        "tokens": 1355,
         "totalFindings": 8,
         "truncated": false
       },
@@ -36,7 +36,7 @@
         "missedRuleIds": [],
         "totalFindings": 8
       },
-      "durationMs": 106
+      "durationMs": 99
     },
     {
       "id": "openapi-brk-002-required-param-added",
@@ -45,11 +45,11 @@
         "supported": true
       },
       "withContext": {
-        "tokens": 1867,
-        "contextChars": 7468
+        "tokens": 1866,
+        "contextChars": 7463
       },
       "withTruncatedContext": {
-        "tokens": 1877,
+        "tokens": 1875,
         "totalFindings": 12,
         "truncated": false
       },
@@ -70,7 +70,7 @@
         "missedRuleIds": [],
         "totalFindings": 12
       },
-      "durationMs": 68
+      "durationMs": 75
     },
     {
       "id": "openapi-brk-003-required-body-removed",
@@ -79,11 +79,11 @@
         "supported": true
       },
       "withContext": {
-        "tokens": 1925,
-        "contextChars": 7700
+        "tokens": 1924,
+        "contextChars": 7695
       },
       "withTruncatedContext": {
-        "tokens": 1935,
+        "tokens": 1933,
         "totalFindings": 12,
         "truncated": false
       },
@@ -104,7 +104,7 @@
         "missedRuleIds": [],
         "totalFindings": 12
       },
-      "durationMs": 75
+      "durationMs": 67
     },
     {
       "id": "openapi-brk-004-required-property-added",
@@ -113,11 +113,11 @@
         "supported": true
       },
       "withContext": {
-        "tokens": 1878,
-        "contextChars": 7512
+        "tokens": 1877,
+        "contextChars": 7507
       },
       "withTruncatedContext": {
-        "tokens": 1888,
+        "tokens": 1886,
         "totalFindings": 12,
         "truncated": false
       },
@@ -138,7 +138,7 @@
         "missedRuleIds": [],
         "totalFindings": 12
       },
-      "durationMs": 56
+      "durationMs": 67
     },
     {
       "id": "openapi-brk-005-response-removed",
@@ -147,11 +147,11 @@
         "supported": true
       },
       "withContext": {
-        "tokens": 1859,
-        "contextChars": 7434
+        "tokens": 1858,
+        "contextChars": 7429
       },
       "withTruncatedContext": {
-        "tokens": 1868,
+        "tokens": 1867,
         "totalFindings": 12,
         "truncated": false
       },
@@ -172,7 +172,7 @@
         "missedRuleIds": [],
         "totalFindings": 12
       },
-      "durationMs": 72
+      "durationMs": 63
     },
     {
       "id": "openapi-brk-006-enum-value-removed",
@@ -181,11 +181,11 @@
         "supported": true
       },
       "withContext": {
-        "tokens": 2022,
-        "contextChars": 8085
+        "tokens": 2020,
+        "contextChars": 8080
       },
       "withTruncatedContext": {
-        "tokens": 2031,
+        "tokens": 2030,
         "totalFindings": 13,
         "truncated": false
       },
@@ -206,7 +206,7 @@
         "missedRuleIds": [],
         "totalFindings": 13
       },
-      "durationMs": 217
+      "durationMs": 79
     },
     {
       "id": "openapi-brk-007-type-changed",
@@ -215,11 +215,11 @@
         "supported": true
       },
       "withContext": {
-        "tokens": 2022,
-        "contextChars": 8085
+        "tokens": 2020,
+        "contextChars": 8080
       },
       "withTruncatedContext": {
-        "tokens": 2031,
+        "tokens": 2030,
         "totalFindings": 13,
         "truncated": false
       },
@@ -240,7 +240,7 @@
         "missedRuleIds": [],
         "totalFindings": 13
       },
-      "durationMs": 680
+      "durationMs": 434
     },
     {
       "id": "openapi-brk-008-auth-added",
@@ -249,11 +249,11 @@
         "supported": true
       },
       "withContext": {
-        "tokens": 1997,
-        "contextChars": 7986
+        "tokens": 1996,
+        "contextChars": 7981
       },
       "withTruncatedContext": {
-        "tokens": 2006,
+        "tokens": 2005,
         "totalFindings": 13,
         "truncated": false
       },
@@ -274,7 +274,7 @@
         "missedRuleIds": [],
         "totalFindings": 13
       },
-      "durationMs": 397
+      "durationMs": 914
     },
     {
       "id": "openapi-no-breaking-changes",
@@ -283,11 +283,11 @@
         "supported": true
       },
       "withContext": {
-        "tokens": 2555,
-        "contextChars": 10217
+        "tokens": 2553,
+        "contextChars": 10212
       },
       "withTruncatedContext": {
-        "tokens": 2564,
+        "tokens": 2563,
         "totalFindings": 17,
         "truncated": false
       },
@@ -304,7 +304,7 @@
         "missedRuleIds": [],
         "totalFindings": 17
       },
-      "durationMs": 454
+      "durationMs": 500
     },
     {
       "id": "openapi-realistic-petstore-type-changed",
@@ -313,11 +313,11 @@
         "supported": true
       },
       "withContext": {
-        "tokens": 27081,
-        "contextChars": 108321
+        "tokens": 27079,
+        "contextChars": 108316
       },
       "withTruncatedContext": {
-        "tokens": 3402,
+        "tokens": 3401,
         "totalFindings": 179,
         "truncated": true
       },
@@ -338,7 +338,7 @@
         "missedRuleIds": [],
         "totalFindings": 179
       },
-      "durationMs": 123
+      "durationMs": 216
     },
     {
       "id": "swagger-additive-operation",
@@ -347,11 +347,11 @@
         "supported": true
       },
       "withContext": {
-        "tokens": 1867,
-        "contextChars": 7468
+        "tokens": 1866,
+        "contextChars": 7463
       },
       "withTruncatedContext": {
-        "tokens": 1877,
+        "tokens": 1875,
         "totalFindings": 13,
         "truncated": false
       },
@@ -368,7 +368,7 @@
         "missedRuleIds": [],
         "totalFindings": 13
       },
-      "durationMs": 84
+      "durationMs": 67
     },
     {
       "id": "graphql-argument-default-changed",
@@ -378,11 +378,11 @@
         "reason": "Compatibility comparison currently supports OpenAPI and Swagger only."
       },
       "withContext": {
-        "tokens": 690,
-        "contextChars": 2760
+        "tokens": 689,
+        "contextChars": 2755
       },
       "withTruncatedContext": {
-        "tokens": 699,
+        "tokens": 698,
         "totalFindings": 4,
         "truncated": false
       },
@@ -399,7 +399,7 @@
         "missedRuleIds": [],
         "totalFindings": 4
       },
-      "durationMs": 85
+      "durationMs": 148
     },
     {
       "id": "grpc-field-type-changed",
@@ -409,11 +409,11 @@
         "reason": "Compatibility comparison currently supports OpenAPI and Swagger only."
       },
       "withContext": {
-        "tokens": 1523,
-        "contextChars": 6090
+        "tokens": 1522,
+        "contextChars": 6085
       },
       "withTruncatedContext": {
-        "tokens": 1532,
+        "tokens": 1531,
         "totalFindings": 10,
         "truncated": false
       },
@@ -430,7 +430,7 @@
         "missedRuleIds": [],
         "totalFindings": 10
       },
-      "durationMs": 77
+      "durationMs": 75
     },
     {
       "id": "asyncapi-enum-value-removed",
@@ -440,11 +440,11 @@
         "reason": "Compatibility comparison currently supports OpenAPI and Swagger only."
       },
       "withContext": {
-        "tokens": 569,
-        "contextChars": 2273
+        "tokens": 567,
+        "contextChars": 2268
       },
       "withTruncatedContext": {
-        "tokens": 578,
+        "tokens": 576,
         "totalFindings": 3,
         "truncated": false
       },
@@ -461,7 +461,7 @@
         "missedRuleIds": [],
         "totalFindings": 3
       },
-      "durationMs": 78
+      "durationMs": 134
     },
     {
       "id": "webhooks-payload-type-changed",
@@ -471,11 +471,11 @@
         "reason": "Compatibility comparison currently supports OpenAPI and Swagger only."
       },
       "withContext": {
-        "tokens": 826,
-        "contextChars": 3303
+        "tokens": 825,
+        "contextChars": 3298
       },
       "withTruncatedContext": {
-        "tokens": 835,
+        "tokens": 834,
         "totalFindings": 5,
         "truncated": false
       },
@@ -492,20 +492,20 @@
         "missedRuleIds": [],
         "totalFindings": 5
       },
-      "durationMs": 69
+      "durationMs": 71
     }
   ],
   "totals": {
     "cases": 15,
     "comparable": 11,
     "nonComparable": 4,
-    "withContextTokens": 50029,
-    "withTruncatedContextTokens": 26480,
+    "withContextTokens": 50008,
+    "withTruncatedContextTokens": 26459,
     "withoutContextTokens": 24258,
     "expectedFindings": 9,
     "detectedFindings": 9,
     "missedFindings": 0,
     "unexpectedFindings": 0
   },
-  "note": "Token counts are chars/4 approximations of the reference prompt path vs the ApiGovScan context package; no model was called. Detection is the deterministic engine against corpus ground truth. durationMs is machine-dependent. No savings percentage is claimed without measured model results."
+  "note": "Token counts are chars/4 approximations of the reference prompt path vs the Ankaa context package; no model was called. Detection is the deterministic engine against corpus ground truth. durationMs is machine-dependent. No savings percentage is claimed without measured model results."
 }

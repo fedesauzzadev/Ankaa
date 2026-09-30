@@ -164,3 +164,4 @@ Severidad de skills **sobre** la del pack; si config `rules:` también overridea
 - 2026-09-24 · M3.1 implementado: `skills.ts` loader + wire analyze + reporters `skillsSuppressed` + tests AC-S.1…10. Flag `--skills-dir` agregado a analyze.
 - 2026-09-24 · Cierre fase 3 con M3.3 → `cerrada`.
 - 2026-09-30 · Waivers con expiración (AC-S.11…14, backlog M8.6): `expires` + `owner` opcionales en suppressions; vencido ⇒ ignorado + warning; huérfano ⇒ warning; `suppress --expires/--owner` y feedback `learn` los escriben.
+- 2026-10-01 - Ankaa rename (f16): default skills directory is now .ankaa/skills. No legacy aliases; see specs/f16-ankaa-rebrand.md.

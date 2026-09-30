@@ -1,6 +1,6 @@
 # 04 · Estándares
 
-ApiGovScan · SDD · v1.0
+Ankaa · SDD · v1.0
 
 ---
 
@@ -32,7 +32,7 @@ Nosotros no inventamos la excelencia de API: **la curamos, la versionamos y la c
 
 1. Pública y citable con URL estable.
 2. Licencia permite resumir/interpretar con cita (no copiar textos largos verbatim sin atribución).
-3. Aplica a HTTP/JSON APIs (core de ApiGovScan).
+3. Aplica a HTTP/JSON APIs (core de Ankaa).
 4. Un humano del equipo puede mapearla a reglas ejecutables (no solo prosa).
 
 ## 3. De fuente a regla (proceso de curación)
@@ -89,7 +89,7 @@ Los ids **no se reasignan** tras release (deprecación explícita con `deprecate
 - Config del usuario:
 
 ```yaml
-# apigovscan.yaml
+# ankaa.yaml
 standards:
   pack: elite
   version: "2026.09.1" # pin recomendado en CI
@@ -125,7 +125,7 @@ flowchart LR
     FETCH --> DIFF{"diff vs snapshot<br/>actual?"}
     DIFF -->|no| SKIP["log: no changes"]
     DIFF -->|sí| DRAFT["generar draft de pack<br/>+ CHANGELOG candidato"]
-    DRAFT --> OPEN["abrir PR en repo<br/>ApiGovScan/standards"]
+    DRAFT --> OPEN["abrir PR en repo<br/>Ankaa/standards"]
     PR["PR humano revisa<br/>calibra severidad en fixtures"] -->|approve| REL["release CalVer<br/>→ R2/KV + GitHub Release"]
     REL --> CDN["packs CDN / registry self-host"]
 ```

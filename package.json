@@ -19,7 +19,8 @@
     "typecheck": "tsc -b",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:invariants",
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:invariants && pnpm gate:rebrand",
+    "gate:rebrand": "node scripts/rebrand-gate.mjs",
     "pack:cli": "node scripts/pack-cli.mjs",
     "verify:pack": "node scripts/verify-pack.mjs",
     "gen:license": "node scripts/gen-license.mjs"

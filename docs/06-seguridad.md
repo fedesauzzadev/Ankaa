@@ -1,6 +1,6 @@
 # 06 · Seguridad
 
-ApiGovScan · SDD · v1.0
+Ankaa · SDD · v1.0
 
 ---
 
@@ -21,13 +21,13 @@ Correspondencia con invariantes: T1 ↔ INV-1; T3 ↔ NFR-08; T4 ↔ INV-5/INV-7
 
 ## 2. Privacidad por arquitectura (T1)
 
-1. **No hay HTTP client en `@apigovscan/core` ni en el path de `analyze`.** Verificación: test de red (global `fetch`/`XMLHttpRequest`/`net.connect` que **falla** el test si se invoca) en CI.
+1. **No hay HTTP client en `@ankaa/core` ni en el path de `analyze`.** Verificación: test de red (global `fetch`/`XMLHttpRequest`/`net.connect` que **falla** el test si se invoca) en CI.
 2. `standards update` es comando **separado**, explícito, con log claro; jamás se invoca desde `analyze` (sin "update-check" silencioso).
 3. Logs y `--debug` **nunca** imprimen el cuerpo completo del spec ni ejemplos de schema (solo paths, ruleIds, pointers).
 4. Sin telemetría de uso en v1. Si se añade en el futuro: opt-in, solo conteos, ADR + major bump (política documentada en README).
-5. `--output` solo escribe en rutas indicadas por el usuario; INV-7 prohíbe escribir fuera de `.apigovscan/` y outputs explícitos.
+5. `--output` solo escribe en rutas indicadas por el usuario; INV-7 prohíbe escribir fuera de `.ankaa/` y outputs explícitos.
 
-**Auditoría fácil para el usuario:** `apigovscan analyze spec.yaml --debug` + proxy ambiental opcional (`HTTPS_PROXY` a un logger) o simplemente corre en entorno red-isolate.
+**Auditoría fácil para el usuario:** `ankaa analyze spec.yaml --debug` + proxy ambiental opcional (`HTTPS_PROXY` a un logger) o simplemente corre en entorno red-isolate.
 
 ## 3. Hardening de parsers (T3)
 
@@ -65,7 +65,7 @@ resolve($ref) = /etc/...  ✗ (error de parseo, no lectura)
 
 | Riesgo                                                | Control                                                                                                   |
 | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Alguien commitea suppression masiva que apaga el gate | Code review de `.apigovscan/`; `protectedRules`; CI con `--deny-suppressions-touching-protected` opcional |
+| Alguien commitea suppression masiva que apaga el gate | Code review de `.ankaa/`; `protectedRules`; CI con `--deny-suppressions-touching-protected` opcional |
 | Learn duplica o corrompe skills                       | INV-5 idempotente + schema validation + backups timestamped en `skills/.history/` (git ya da history)     |
 | Baseline gigante que oculta todo                      | `--write-baseline` imprime conteo; opción `maxBaseline` warning; review normal de PR                      |
 | Fingerprint collision                                 | sha256; colisión práctica irrelevante                                                                     |

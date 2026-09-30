@@ -1,6 +1,6 @@
 # 02 · Arquitectura
 
-ApiGovScan · SDD · v1.0
+Ankaa · SDD · v1.0
 
 ---
 
@@ -25,8 +25,8 @@ flowchart TB
     LLM["Cliente LLM (Claude/Cursor/opencode)"]
     AS["Specs OpenAPI (locales)"]
 
-    CLI["apigovscan CLI"]
-    SRV["Servicios de borde ApiGovScan (CF / self-host)"]
+    CLI["ankaa CLI"]
+    SRV["Servicios de borde Ankaa (CF / self-host)"]
     FUENTES["Fuentes de estándares (Google, MS, Zalando, IETF, OpenAPI)"]
 
     DEV --> CLI
@@ -45,19 +45,19 @@ Nota: la flecha CLI → AS es de **lectura local**. No existe arco AS → SRV.
 ```mermaid
 flowchart LR
     subgraph MÁQUINA_USUARIO["Máquina del usuario (local-first)"]
-        subgraph CLI["@apigovscan/cli"]
+        subgraph CLI["@ankaa/cli"]
             ADAPTER["Adaptadores: cmd parse, FS, exit codes"]
             MCPSTD["MCP stdio server"]
         end
-        subgraph CORE["@apigovscan/core (puro)"]
+        subgraph CORE["@ankaa/core (puro)"]
             NORM["Normalizador de spec"]
             ENGINE["Rules engine"]
             DSL["DSL validator"]
             LEARN["Learn / fingerprint"]
             RP["Report builders"]
         end
-        OAPI["@apigovscan/openapi<br/>parser adapter"]
-        SKILLS[(".apigovscan/<br/>skills · baseline · config")]
+        OAPI["@ankaa/openapi<br/>parser adapter"]
+        SKILLS[(".ankaa/<br/>skills · baseline · config")]
         SPECS[("Specs YAML/JSON")]
     end
 
@@ -99,7 +99,7 @@ flowchart LR
 │  Application (casos de uso, orquestación pura)         │
 │  ├── analyzeUseCase    load → normalize → run → report │
 │  ├── learnUseCase      report+feedback → skills patch  │
-│  ├── initUseCase       scaffold .apigovscan/           │
+│  ├── initUseCase       scaffold .ankaa/           │
 │  └── rulesQuery        list / explain                  │
 ├─────────────────────────────────────────────────────────┤
 │  Domain / Core (sin I/O, sin CF, sin MCP)              │
@@ -153,12 +153,12 @@ sequenceDiagram
 ### 6. Monorepo (pnpm workspaces)
 
 ```
-ApiGovScan/
+Ankaa/
 ├── packages/
 │   ├── core/            # domain + engine + dsl + learn (sin I/O)
 │   ├── openapi/         # parseo/normalización OpenAPI → Spec
 │   ├── reporters/       # console, json, sarif, markdown, annotations
-│   ├── cli/             # bin apigovscan + MCP stdio embebido
+│   ├── cli/             # bin ankaa + MCP stdio embebido
 │   └── mcp/             # definición de tools compartida cli/worker
 ├── packs/
 │   └── elite/           # rule packs YAML versionados (fuente de verdad)
@@ -218,7 +218,7 @@ Empieza con 6 packages; extraer más solo si hay un segundo consumidor real (rie
 ### ADR-007: Skills en git, no modelo entrenado
 
 **Contexto:** "motor que se retroalimente" sin costo de inferencia.  
-**Decisión:** feedback → suppressions/severities/drafts como archivos en `.apigovscan/skills/`, mergeables, idempotentes (INV-5).  
+**Decisión:** feedback → suppressions/severities/drafts como archivos en `.ankaa/skills/`, mergeables, idempotentes (INV-5).  
 **Consecuencias:** el aprendizaje es auditable y viaja con el repo; no mejora "solito" — mejora donde el equipo committea.  
 **Estado:** aceptada.
 
@@ -232,7 +232,7 @@ Empieza con 6 packages; extraer más solo si hay un segundo consumidor real (rie
 ### ADR-009: MCP stdio local como interfaz IA primaria
 
 **Contexto:** los clientes LLM abren el repo local; los tools deben ver el filesystem del usuario.  
-**Decisión:** `apigovscan mcp` (stdio) con tools completos de análisis; MCP remoto CF solo `list_packs`/`explain_rule`/`get_pack`.  
+**Decisión:** `ankaa mcp` (stdio) con tools completos de análisis; MCP remoto CF solo `list_packs`/`explain_rule`/`get_pack`.  
 **Consecuencias:** UX "agente que analiza mi repo" sin subir nada; remoto no puede (y no debe) analizar specs ajenos.  
 **Estado:** aceptada.
 
@@ -260,7 +260,7 @@ Empieza con 6 packages; extraer más solo si hay un segundo consumidor real (rie
 ### ADR-013: Visor local de reportes (no es un portal)
 
 **Contexto:** los reportes JSON son ricos pero ilegibles; pedir un dashboard choca con el anti-alcance "no es un portal" del SDD §4.  
-**Decisión:** un script Node cross-OS (`apigovscan dashboard <reporte.json>`) levanta un visor **estático en loopback** (127.0.0.1, sin auth multi-usuario, sin estado remoto). Lee JSON explícitos; el tracking vive en un sidecar local junto al reporte. `analyze` no lo conoce ni lo necesita. Si el usuario hospeda el visor o conecta el JSON a Jira/ServiceNow/Slack, es su red, sus credenciales y su riesgo — nosotros entregamos el JSON con contrato estable, no las integraciones.  
+**Decisión:** un script Node cross-OS (`ankaa dashboard <reporte.json>`) levanta un visor **estático en loopback** (127.0.0.1, sin auth multi-usuario, sin estado remoto). Lee JSON explícitos; el tracking vive en un sidecar local junto al reporte. `analyze` no lo conoce ni lo necesita. Si el usuario hospeda el visor o conecta el JSON a Jira/ServiceNow/Slack, es su red, sus credenciales y su riesgo — nosotros entregamos el JSON con contrato estable, no las integraciones.  
 **Consecuencias:** SDD §4 enmendado con la excepción explícita; el dashboard no ejecuta análisis ni toca el core. El workspace posterior se rige por ADR-015; INV-1/INV-7 siguen aplicando.  
 **Estado:** aceptada.
 
@@ -272,7 +272,7 @@ Empieza con 6 packages; extraer más solo si hay un segundo consumidor real (rie
 
 1. Evolucionar el proceso CLI local con dos adapters guiados —terminal y web loopback— que llaman casos de uso tipados compartidos. El dashboard anterior sigue soportado.
 2. La UI puede iniciar solo operaciones explícitamente allowlistadas; no expone shell arbitraria ni endpoints genéricos de filesystem. Bind a `127.0.0.1`, puerto efímero por defecto, validación Host/Origin y token aleatorio en memoria para mutaciones.
-3. Persistir historial/checkpoints únicamente bajo `.apigovscan/workspace/` o una ubicación alternativa elegida expresamente. No guardar credentials; conservar ejecuciones previas.
+3. Persistir historial/checkpoints únicamente bajo `.ankaa/workspace/` o una ubicación alternativa elegida expresamente. No guardar credentials; conservar ejecuciones previas.
 4. Una ejecución “desde cero” analiza todos los repos en un nuevo run. “Continuar” retoma un run o reutiliza resultados solo cuando identidad de fuente, revisión y huella efectiva de análisis (versión/configuración/packs) se verifican. Si no, se reanaliza o se reporta error explícito.
 5. Las acciones de red (p. ej. consultar/clonar GitHub) son visibles y elegidas por el usuario; el análisis sigue local. La preparación de CI previsualiza y requiere confirmación antes de escribir; no activa controles del proveedor.
 

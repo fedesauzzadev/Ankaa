@@ -252,3 +252,4 @@ abrir un navegador para usar ApiGovScan.
   fresco sin persistir nada (resume sigue en `scan-org --resume`). Flows
   tipados en `guided-remote.ts` reusando github.ts/analyzeUseCase/aggregateScans.
   AC-15.1–15.12 completos; estado → `cerrada`.
+- 2026-10-01 - Ankaa rename (f16): the workspace now lives under .ankaa/workspace/. No legacy aliases; see specs/f16-ankaa-rebrand.md.

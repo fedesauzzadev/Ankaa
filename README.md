@@ -1,7 +1,7 @@
-# ApiGovScan
+# Ankaa
 
-[![CI](https://github.com/fedesauzzadev/ApiGovScan/actions/workflows/ci.yml/badge.svg)](https://github.com/fedesauzzadev/ApiGovScan/actions/workflows/ci.yml)
-[![ApiGovScan dogfood](https://github.com/fedesauzzadev/ApiGovScan/actions/workflows/apigovscan.yml/badge.svg)](https://github.com/fedesauzzadev/ApiGovScan/actions/workflows/apigovscan.yml)
+[![CI](https://github.com/fedesauzzadev/Ankaa/actions/workflows/ci.yml/badge.svg)](https://github.com/fedesauzzadev/Ankaa/actions/workflows/ci.yml)
+[![Ankaa dogfood](https://github.com/fedesauzzadev/Ankaa/actions/workflows/ankaa.yml/badge.svg)](https://github.com/fedesauzzadev/Ankaa/actions/workflows/ankaa.yml)
 
 > Analizador local de **API Governance** para equipos y proyectos existentes.
 > Sin subir código ni specs a ningún lado, sin tokens de LLM en el camino: un motor determinista con estándares de élite, reglas propias al vuelo y una carpeta `skills/` que aprende de tu feedback.
@@ -13,10 +13,10 @@ Requiere Node.js 22 o superior. El comando opcional `scan-repo` también requier
 ```bash
 # Desde el monorepo (después de pnpm install)
 pnpm build
-node packages/cli/bin/apigovscan.js analyze ./openapi.yaml
+node packages/cli/bin/ankaa.js analyze ./openapi.yaml
 
 # O con el bin local si ya está construido
-node packages/cli/bin/apigovscan.js --help
+node packages/cli/bin/ankaa.js --help
 ```
 
 Ejemplos:
@@ -24,32 +24,39 @@ Ejemplos:
 ```bash
 # Governance score (0-100 + grade) en todos los formatos
 # console: "! 0 errors · 6 warnings · 8 infos · score 74 (C) · reportHash 1a2b…"
-node packages/cli/bin/apigovscan.js analyze ./openapi.yaml
+node packages/cli/bin/ankaa.js analyze ./openapi.yaml
 
 # Reporte JSON a archivo
-node packages/cli/bin/apigovscan.js analyze ./openapi.yaml --format json --output report.json
+node packages/cli/bin/ankaa.js analyze ./openapi.yaml --format json --output report.json
 
 # SARIF para code scanning + Markdown para job summaries
-node packages/cli/bin/apigovscan.js analyze ./openapi.yaml --format sarif --output report.sarif
-node packages/cli/bin/apigovscan.js analyze ./openapi.yaml --format markdown
+node packages/cli/bin/ankaa.js analyze ./openapi.yaml --format sarif --output report.sarif
+node packages/cli/bin/ankaa.js analyze ./openapi.yaml --format markdown
 
 # Anotaciones de GitHub Actions (::error / ::warning / ::notice)
-node packages/cli/bin/apigovscan.js analyze ./openapi.yaml --format annotations
+node packages/cli/bin/ankaa.js analyze ./openapi.yaml --format annotations
 
 # Fallar el CI solo con errors (default)
-node packages/cli/bin/apigovscan.js analyze ./openapi.yaml --fail-on error
+node packages/cli/bin/ankaa.js analyze ./openapi.yaml --fail-on error
 
 # Explicar una regla del pack elite
-node packages/cli/bin/apigovscan.js rules explain NAMING-001
+node packages/cli/bin/ankaa.js rules explain NAMING-001
 
 # Validar reglas custom del equipo
-node packages/cli/bin/apigovscan.js rules validate ./team-rules.yaml
+node packages/cli/bin/ankaa.js rules validate ./team-rules.yaml
 
 # Analizar con reglas custom
-node packages/cli/bin/apigovscan.js analyze ./openapi.yaml --rules ./team-rules.yaml
+node packages/cli/bin/ankaa.js analyze ./openapi.yaml --rules ./team-rules.yaml
 ```
 
 ## Instalación
+
+> **Migración desde el nombre anterior (Ankaa rename):** no hay alias legacy.
+> Si venías usando `apigovscan`, mové tu carpeta local `mv .apigovscan .ankaa`
+> (en Windows case-insensitive, con git: `git mv .apigovscan .ankaa`), renombrá
+> `apigovscan.yaml` → `ankaa.yaml` y pasá tus env vars a `ANKAA_*`. Las keys
+> `AGS-…` siguen válidas sin cambios; los baselines siguen funcionando porque
+> comparan por fingerprints, que no cambiaron.
 
 Dos ediciones, mismo motor (ver [versión community](#versión-community-open-source-apache-20) y [split OSS/pago](specs/f9-launch-oss.md)):
 
@@ -60,23 +67,23 @@ Producto **privado con licencia comercial por cliente** (`packages/cli/LICENSE.m
 **Tarball self-contained (air-gap):**
 
 ```bash
-npm install -g ./apigovscan-cli-<version>.tgz     # cero dependencies, pack elite embebido
-APIGOVSCAN_LICENSE_KEY=AGS-<...> apigovscan analyze ./specs/
+npm install -g ./ankaa-cli-<version>.tgz     # cero dependencies, pack elite embebido
+ANKAA_LICENSE_KEY=AGS-<...> ankaa analyze ./specs/
 ```
 
-**Registry privado:** publicalo en GitHub Packages con el workflow `release` (manual) y el cliente hace `npm i -g @apigovscan/cli` con su token de org.
+**Registry privado:** publicalo en GitHub Packages con el workflow `release` (manual) y el cliente hace `npm i -g @ankaa/cli` con su token de org.
 
-**Docker (air-gap):** `docker build -f docker/Dockerfile --build-arg TARBALL=apigovscan-cli-<version>.tgz .`
+**Docker (air-gap):** `docker build -f docker/Dockerfile --build-arg TARBALL=ankaa-cli-<version>.tgz .`
 
-Licencia: `--license-key` · `APIGOVSCAN_LICENSE_KEY` · `license.key` en `apigovscan.yaml` (exigida por `analyze` y `mcp`; `apigovscan license` la valida). Detalles: [`docs/05 §3.1`](docs/05-despliegue-y-costos.md) y [`specs/f6-distribution.md`](specs/f6-distribution.md).
+Licencia: `--license-key` · `ANKAA_LICENSE_KEY` · `license.key` en `ankaa.yaml` (exigida por `analyze` y `mcp`; `ankaa license` la valida). Detalles: [`docs/05 §3.1`](docs/05-despliegue-y-costos.md) y [`specs/f6-distribution.md`](specs/f6-distribution.md).
 
 ## Versión community (open source, Apache-2.0)
 
 Por [fedesauzzadev](https://github.com/fedesauzzadev). El análisis corre 100% local; la licencia se valida **offline**, sin telemetría ni phone-home.
 
 ```bash
-npm install -g ./apigovscan-cli-<version>.tgz
-APIGOVSCAN_LICENSE_KEY=AGS-community-20300101-ba8a91370cc7 apigovscan analyze ./specs/
+npm install -g ./ankaa-cli-<version>.tgz
+ANKAA_LICENSE_KEY=AGS-community-20300101-ba8a91370cc7 ankaa analyze ./specs/
 ```
 
 La key comunitaria es pública y verificable offline (no permite forjar otras keys). Incluye: analyze multi-protocolo, pack elite, custom rules a mano, baseline, skills/learn, score, reporters, Action, MCP local y features LLM trae-tu-key (`fix`, `drift`, `rules import`, `scan-org` local). La edición empresarial suma packs por cliente, registry self-host y soporte (ver [`specs/f7-enterprise.md`](specs/f7-enterprise.md)). Detalles del lanzamiento: [`specs/f9-launch-oss.md`](specs/f9-launch-oss.md).
@@ -85,31 +92,31 @@ La key comunitaria es pública y verificable offline (no permite forjar otras ke
 
 | Comando                                              | Descripción                                                                                                                                                                                                                                                                                                                                                   |
 | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `apigovscan init [dir]`                              | Scaffold `apigovscan.yaml` + `.apigovscan/skills/` (no pisa contenido del usuario)                                                                                                                                                                                                                                                                            |
-| `apigovscan analyze <path>`                          | Analiza archivo, directorio o `-` (stdin): OpenAPI 3.x con el pack `elite`, Swagger 1.x/2.0 legacy (conversión best-effort + warning `SWAGGER_CONVERTED`), GraphQL SDL (`.graphql`/`.gql`) con el pack `graphql`, proto/gRPC (`.proto`) con el pack `grpc`, AsyncAPI v2/v3 (sniff) con el pack `asyncapi`, webhooks standalone (sniff) con el pack `webhooks` |
-| `apigovscan rules validate <file...>`                | Valida reglas custom YAML/JSON contra el DSL (exit 0/2)                                                                                                                                                                                                                                                                                                       |
-| `apigovscan rules list [--rules <file>]`             | Lista reglas del pack (y custom si se pasa `--rules`)                                                                                                                                                                                                                                                                                                         |
-| `apigovscan rules explain <ruleId> [--rules <file>]` | Muestra mensaje, fix, fuente y URL de una regla (`PREFIX-NNN`)                                                                                                                                                                                                                                                                                                |
-| `apigovscan learn --report <r> --feedback <f>`       | Aplica feedback a `.apigovscan/skills` (idempotente, INV-5)                                                                                                                                                                                                                                                                                                   |
-| `apigovscan skills list [--format json]`             | Enumera suppressions, overrides y drafts                                                                                                                                                                                                                                                                                                                      |
-| `apigovscan skills promote <draftId>`                | Activa un draft (`draft: false`)                                                                                                                                                                                                                                                                                                                              |
-| `apigovscan license [--key <AGS-...>]`               | Valida la license key (customer + expiry)                                                                                                                                                                                                                                                                                                                     |
-| `apigovscan fix <path> [--fingerprint <fp>]`         | Propone diffs unificados para findings con tu propio LLM (opcional; ver abajo)                                                                                                                                                                                                                                                                                |
-| `apigovscan drift <dir> [--spec <file>]`             | Detecta drift spec↔código y genera borradores (ver abajo)                                                                                                                                                                                                                                                                                                     |
-| `apigovscan review <base> <candidate>`               | Combina governance del candidato y cambios incompatibles OpenAPI/Swagger en una revisión local JSON o legible                                                                                                                                                                                                                                                 |
-| `apigovscan dashboard <report.json> [--port <n>]`    | Visor local de tarjetas en `127.0.0.1` con agrupadores y tracking (ver abajo)                                                                                                                                                                                                                                                                            |
-| `apigovscan workspace [--port <n>]`                  | App web guiada local: corre operaciones tipadas (analyze) con progreso en vivo (ver abajo)                                                                                                                                                                                                                                                               |
-| `apigovscan guided`                                  | Asistente de terminal: menú, validaciones, confirmación y preparación de CI con preview (ver abajo)                                                                                                                                                                                                                                                     |
-| `apigovscan scan-org <dir> [--github <org>]`         | Informe consolidado multi-repo con scores por repo (ver abajo)                                                                                                                                                                                                                                                                                                |
-| `apigovscan scan-repo <git-url> [opciones]`          | Clona y analiza explícitamente un repo HTTPS/SSH con Git local                                                                                                                                                                                                                                                                                                |
-| `apigovscan export <report.json> [opciones]`         | JSON v1 de findings, grupos y tendencias para integraciones del cliente, sin red propia                                                                                                                                                                                                                                                                       |
-| `apigovscan mcp [--help]`                            | Server MCP **stdio** local (tools FR-50 + `suggest_fix`, sandbox bajo cwd)                                                                                                                                                                                                                                                                                    |
+| `ankaa init [dir]`                              | Scaffold `ankaa.yaml` + `.ankaa/skills/` (no pisa contenido del usuario)                                                                                                                                                                                                                                                                            |
+| `ankaa analyze <path>`                          | Analiza archivo, directorio o `-` (stdin): OpenAPI 3.x con el pack `elite`, Swagger 1.x/2.0 legacy (conversión best-effort + warning `SWAGGER_CONVERTED`), GraphQL SDL (`.graphql`/`.gql`) con el pack `graphql`, proto/gRPC (`.proto`) con el pack `grpc`, AsyncAPI v2/v3 (sniff) con el pack `asyncapi`, webhooks standalone (sniff) con el pack `webhooks` |
+| `ankaa rules validate <file...>`                | Valida reglas custom YAML/JSON contra el DSL (exit 0/2)                                                                                                                                                                                                                                                                                                       |
+| `ankaa rules list [--rules <file>]`             | Lista reglas del pack (y custom si se pasa `--rules`)                                                                                                                                                                                                                                                                                                         |
+| `ankaa rules explain <ruleId> [--rules <file>]` | Muestra mensaje, fix, fuente y URL de una regla (`PREFIX-NNN`)                                                                                                                                                                                                                                                                                                |
+| `ankaa learn --report <r> --feedback <f>`       | Aplica feedback a `.ankaa/skills` (idempotente, INV-5)                                                                                                                                                                                                                                                                                                   |
+| `ankaa skills list [--format json]`             | Enumera suppressions, overrides y drafts                                                                                                                                                                                                                                                                                                                      |
+| `ankaa skills promote <draftId>`                | Activa un draft (`draft: false`)                                                                                                                                                                                                                                                                                                                              |
+| `ankaa license [--key <AGS-...>]`               | Valida la license key (customer + expiry)                                                                                                                                                                                                                                                                                                                     |
+| `ankaa fix <path> [--fingerprint <fp>]`         | Propone diffs unificados para findings con tu propio LLM (opcional; ver abajo)                                                                                                                                                                                                                                                                                |
+| `ankaa drift <dir> [--spec <file>]`             | Detecta drift spec↔código y genera borradores (ver abajo)                                                                                                                                                                                                                                                                                                     |
+| `ankaa review <base> <candidate>`               | Combina governance del candidato y cambios incompatibles OpenAPI/Swagger en una revisión local JSON o legible                                                                                                                                                                                                                                                 |
+| `ankaa dashboard <report.json> [--port <n>]`    | Visor local de tarjetas en `127.0.0.1` con agrupadores y tracking (ver abajo)                                                                                                                                                                                                                                                                            |
+| `ankaa workspace [--port <n>]`                  | App web guiada local: corre operaciones tipadas (analyze) con progreso en vivo (ver abajo)                                                                                                                                                                                                                                                               |
+| `ankaa guided`                                  | Asistente de terminal: menú, validaciones, confirmación y preparación de CI con preview (ver abajo)                                                                                                                                                                                                                                                     |
+| `ankaa scan-org <dir> [--github <org>]`         | Informe consolidado multi-repo con scores por repo (ver abajo)                                                                                                                                                                                                                                                                                                |
+| `ankaa scan-repo <git-url> [opciones]`          | Clona y analiza explícitamente un repo HTTPS/SSH con Git local                                                                                                                                                                                                                                                                                                |
+| `ankaa export <report.json> [opciones]`         | JSON v1 de findings, grupos y tendencias para integraciones del cliente, sin red propia                                                                                                                                                                                                                                                                       |
+| `ankaa mcp [--help]`                            | Server MCP **stdio** local (tools FR-50 + `suggest_fix`, sandbox bajo cwd)                                                                                                                                                                                                                                                                                    |
 
 #### Revisar un cambio de contrato
 
 ```bash
-apigovscan review openapi-base.yaml openapi-candidate.yaml
-apigovscan review openapi-base.yaml openapi-candidate.yaml --format json --output review.json
+ankaa review openapi-base.yaml openapi-candidate.yaml
+ankaa review openapi-base.yaml openapi-candidate.yaml --format json --output review.json
 ```
 
 `review` reúne reglas de governance del candidato y cambios incompatibles
@@ -123,43 +130,43 @@ y [`docs/benchmarks/`](docs/benchmarks/review-benchmark-2026-09.md).
 #### MCP (Claude / Cursor / opencode)
 
 ```bash
-apigovscan mcp
+ankaa mcp
 # o
-npx @apigovscan/cli mcp
+npx @ankaa/cli mcp
 ```
 
 ```json
 {
   "mcpServers": {
-    "apigovscan": {
+    "ankaa": {
       "command": "npx",
-      "args": ["-y", "@apigovscan/cli", "mcp"]
+      "args": ["-y", "@ankaa/cli", "mcp"]
     }
   }
 }
 ```
 
 Tools: `analyze_spec`, `list_rules`, `explain_rule`, `validate_custom_rules`, `explain_finding`, `suggest_fix`, `review_api_change`.  
-Paths rechazados si escapan del cwd; `analyze_spec` y `review_api_change` truncan findings (top 20, declaran `totalFindings`/`truncated`) — el CLI da el reporte completo. Misma semántica que el CLI (FR-51); **0 red** (INV-1). `review_api_change` corre la misma revisión que `apigovscan review` sobre el estado actual de los archivos: es feedback para el agente, no un gate.
+Paths rechazados si escapan del cwd; `analyze_spec` y `review_api_change` truncan findings (top 20, declaran `totalFindings`/`truncated`) — el CLI da el reporte completo. Misma semántica que el CLI (FR-51); **0 red** (INV-1). `review_api_change` corre la misma revisión que `ankaa review` sobre el estado actual de los archivos: es feedback para el agente, no un gate.
 
 #### AI features (optional, f8)
 
 `fix` y la tool MCP `suggest_fix` proponen diffs unificados usando **tu propio LLM** (local o interno, API compatible OpenAI). Deterministas por diseño: el LLM solo redacta borradores; jamás analiza, puntúa ni cierra el gate (INV-1/INV-3).
 
 ```bash
-# apigovscan.yaml
+# ankaa.yaml
 llm:
   baseUrl: http://localhost:11434/v1   # o tu servidor interno
   model: tu-modelo
 
-apigovscan fix ./openapi.yaml                       # propuestas para todos los findings
-apigovscan fix ./openapi.yaml --fingerprint <fp>    # solo uno
+ankaa fix ./openapi.yaml                       # propuestas para todos los findings
+ankaa fix ./openapi.yaml --fingerprint <fp>    # solo uno
 
-apigovscan rules import --from ./guideline.pdf       # draftea reglas custom desde tu guideline
-apigovscan rules import --from ./guideline.md --out team.yaml --force
+ankaa rules import --from ./guideline.pdf       # draftea reglas custom desde tu guideline
+ankaa rules import --from ./guideline.md --out team.yaml --force
 
-apigovscan drift ./mi-repo --spec ./openapi.yaml      # qué endpoints faltan/sobran/cambiaron
-apigovscan drift ./mi-repo --out openapi.draft.yaml   # genera borrador si no hay spec
+ankaa drift ./mi-repo --spec ./openapi.yaml      # qué endpoints faltan/sobran/cambiaron
+ankaa drift ./mi-repo --out openapi.draft.yaml   # genera borrador si no hay spec
 ```
 
 #### Batch audit (determinista, sin LLM)
@@ -167,11 +174,11 @@ apigovscan drift ./mi-repo --out openapi.draft.yaml   # genera borrador si no ha
 `scan-org` corre `analyze` en cada subdirectorio y consolida scores por repo, agrupados por dominio y rankeados de peor a mejor. Solo red en el paso explícito de `--github`; el análisis siempre es local.
 
 ```bash
-apigovscan scan-org ./org                           # un subdir = un proyecto
-apigovscan scan-org ./org --group-by dominios.yaml  # repo: dominio
-apigovscan scan-org ./clones --github acme --format json --out informe.json
-apigovscan scan-org . --github acme --resume         # continúa/reutiliza solo revisiones verificadas
-apigovscan scan-org . --github acme --from-scratch   # fuerza un nuevo análisis; conserva el historial
+ankaa scan-org ./org                           # un subdir = un proyecto
+ankaa scan-org ./org --group-by dominios.yaml  # repo: dominio
+ankaa scan-org ./clones --github acme --format json --out informe.json
+ankaa scan-org . --github acme --resume         # continúa/reutiliza solo revisiones verificadas
+ankaa scan-org . --github acme --from-scratch   # fuerza un nuevo análisis; conserva el historial
 ```
 
 ```yaml
@@ -180,7 +187,7 @@ pagos-api: checkout
 tienda-api: checkout
 ```
 
-Variables: `GITHUB_TOKEN` (obligatoria con `--github`). `--resume` y `--from-scratch` son opciones excluyentes, requieren `--github`, y guardan historial local bajo `.apigovscan/workspace/`; no aceptan `--workdir`. Sin ellas, `scan-org` conserva su comportamiento anterior. Spec: [`specs/f8-scan-org.md`](specs/f8-scan-org.md) y [`specs/f15-local-workspace.md`](specs/f15-local-workspace.md).
+Variables: `GITHUB_TOKEN` (obligatoria con `--github`). `--resume` y `--from-scratch` son opciones excluyentes, requieren `--github`, y guardan historial local bajo `.ankaa/workspace/`; no aceptan `--workdir`. Sin ellas, `scan-org` conserva su comportamiento anterior. Spec: [`specs/f8-scan-org.md`](specs/f8-scan-org.md) y [`specs/f15-local-workspace.md`](specs/f15-local-workspace.md).
 
 #### Analizar un repositorio Git remoto
 
@@ -190,8 +197,8 @@ los prompts interactivos se desactivan. Sin `--workdir`, el checkout temporal se
 No admite HTTP plano, tokens en la URL, submódulos ni selección de branch/tag.
 
 ```bash
-apigovscan scan-repo https://github.com/acme/payments-api.git --format json --out report.json
-apigovscan scan-repo git@github.com:acme/payments-api.git --workdir ./checkout
+ankaa scan-repo https://github.com/acme/payments-api.git --format json --out report.json
+ankaa scan-repo git@github.com:acme/payments-api.git --workdir ./checkout
 ```
 
 `--workdir` debe ser un directorio existente y vacío; conserva el clon en `repo/`.
@@ -203,8 +210,8 @@ Config y licencia pueden pasarse con `--config` y `--license-key`. Spec: [`specs
 `export` genera un JSON versionado, agrupado por dueño/equipo y con tendencia por fingerprint. No realiza llamadas de red ni guarda credenciales; conectores de ejemplo viven en [`examples/integrations/`](examples/integrations/).
 
 ```bash
-apigovscan analyze ./openapi.yaml --format json --output report.json
-apigovscan export report.json --group-by owners.yaml --since previous-report.json --out integration.json
+ankaa analyze ./openapi.yaml --format json --output report.json
+ankaa export report.json --group-by owners.yaml --since previous-report.json --out integration.json
 node examples/integrations/csv.mjs integration.json > findings.csv
 ```
 
@@ -213,22 +220,22 @@ El `owners.yaml` reutiliza el mapping del dashboard (`ruta-de-spec: equipo`). Ej
 #### Local dashboard (sin análisis, sin red más allá de loopback)
 
 ```bash
-node packages/cli/bin/apigovscan.js analyze ./openapi.yaml --format json --output report.json
-node packages/cli/bin/apigovscan.js dashboard report.json --against old.json --group-by dominios.yaml
+node packages/cli/bin/ankaa.js analyze ./openapi.yaml --format json --output report.json
+node packages/cli/bin/ankaa.js dashboard report.json --against old.json --group-by dominios.yaml
 # → dashboard at http://127.0.0.1:PORT (solo tu PC, Ctrl+C para parar)
 ```
 
 #### Workspace guiado local (f15)
 
 ```bash
-node packages/cli/bin/apigovscan.js workspace
+node packages/cli/bin/ankaa.js workspace
 # → workspace at http://127.0.0.1:PORT (loopback + token por proceso, Ctrl+C para parar)
 ```
 
-App web local para correr ApiGovScan sin flags: elegir un archivo/directorio,
+App web local para correr Ankaa sin flags: elegir un archivo/directorio,
 ver progreso real por fase (`n de m`, sin porcentajes inventados), cancelar y
 leer el resultado; el historial de ejecuciones queda persistido bajo
-`.apigovscan/workspace/runs/` con apertura de reportes y comparación de dos runs
+`.ankaa/workspace/runs/` con apertura de reportes y comparación de dos runs
 compatibles por fingerprints. Todo inline (sin CDN), mutaciones protegidas por
 token y validación Host/Origin, endpoints limitados a operaciones tipadas
 (`specs/f15-local-workspace.md`).
@@ -236,7 +243,7 @@ token y validación Host/Origin, endpoints limitados a operaciones tipadas
 #### Asistente de terminal (f15)
 
 ```bash
-node packages/cli/bin/apigovscan.js guided
+node packages/cli/bin/ankaa.js guided
 ```
 
 Menú interactivo en la terminal: **elegir el origen** — archivo/directorio local,
@@ -250,7 +257,7 @@ una confirmación no ejecuta ni escribe nada.
 
 Tarjetas por finding con filtros y agrupadores (pack, dueño, regla, archivo, severidad, tendencia, tracking). Los estados (pending → in progress → resolved) se guardan en `report.json.tracking.json`; el segundo análisis verifica por fingerprint. **Copy suppress command** copia una orden de ejemplo; revisa y cambia `--decision`/`--reason` antes de ejecutarla. Luego vuelve a analizar para confirmar el cambio. Spec: [`specs/f10-dashboard.md`](specs/f10-dashboard.md).
 
-Variables equivalentes: `APIGOVSCAN_LLM_BASE_URL` / `_API_KEY` / `_MODEL` (ganan sobre la config). Los prompts se redactan (FR-43) y los diffs inválidos se rechazan con error honesto. Spec: [`specs/f8-suggest-fix.md`](specs/f8-suggest-fix.md).
+Variables equivalentes: `ANKAA_LLM_BASE_URL` / `_API_KEY` / `_MODEL` (ganan sobre la config). Los prompts se redactan (FR-43) y los diffs inválidos se rechazan con error honesto. Spec: [`specs/f8-suggest-fix.md`](specs/f8-suggest-fix.md).
 
 #### GitHub Action (f5)
 
@@ -259,14 +266,14 @@ Check de PR con anotaciones en el diff, job summary y artefacto SARIF — corre 
 
 ```yaml
 - uses: ./action # o <owner>/<repo>@v1 cuando esté publicado
-  id: apigovscan
+  id: ankaa
   with:
     path: specs/
     fail-on: error
 - uses: github/codeql-action/upload-sarif@v3 # opcional
   if: always()
   with:
-    sarif_file: ${{ steps.apigovscan.outputs.sarif-path }}
+    sarif_file: ${{ steps.ankaa.outputs.sarif-path }}
 ```
 
 Inputs `path`, `fail-on`, `format` (`sarif|json|none`), `cli`, `rules`, `config`, `baseline`, `review-ref` ·
@@ -281,23 +288,23 @@ Exit codes: `0` ok · `1` findings ≥ `failOn` · `2` usage/parse/config/rule/b
 ### Baseline (gate "solo lo nuevo")
 
 ```bash
-# Congela la deuda actual en .apigovscan/baseline.json
-apigovscan analyze ./specs --write-baseline
+# Congela la deuda actual en .ankaa/baseline.json
+ankaa analyze ./specs --write-baseline
 
 # En CI: solo falla por findings no listados en el baseline
-apigovscan analyze ./specs --baseline --fail-on error
+ankaa analyze ./specs --baseline --fail-on error
 ```
 
 - `--write-baseline` + `--force` pisa y deja `<path>.bak`.
 - `--strict-hash` ⇒ inputHash mismatch es exit 2; default solo warning; `--baseline-ignore-hash` lo silencia.
 - `summary.suppressed` entra en el reporte JSON; console muestra `(baseline: N suppressed)`.
 
-### Skills (`.apigovscan/skills/`)
+### Skills (`.ankaa/skills/`)
 
 Análisis aplica suppressions (fingerprint o `match.ruleId`+`apiPath`) y overrides de severidad versionados en git:
 
 ```yaml
-# .apigovscan/skills/suppressions.yaml
+# .ankaa/skills/suppressions.yaml
 version: 1
 suppressions:
   - fingerprint: "<64 hex>"
@@ -309,7 +316,7 @@ suppressions:
 ```
 
 ```yaml
-# .apigovscan/skills/severities.yaml
+# .ankaa/skills/severities.yaml
 version: 1
 overrides:
   - ruleId: PAGINATION-001
@@ -319,24 +326,24 @@ overrides:
 - Precedencia: config `rules:` > skills > pack default.
 - Drafts en `skills/drafts/*.yaml` con `draft: true` **no** se evalúan hasta promover (`draft: false`).
 - `summary.skillsSuppressed` solo si > 0; console `(skills: N suppressed)`.
-- Dirección: `skillsDir` en config o flag `--skills-dir` (default `.apigovscan/skills`).
+- Dirección: `skillsDir` en config o flag `--skills-dir` (default `.ankaa/skills`).
 
 ### Feedback → learn (INV-5)
 
 ```bash
-apigovscan analyze ./openapi.yaml --format json --output report.json
+ankaa analyze ./openapi.yaml --format json --output report.json
 # …editar feedback.json con items[] (false_positive | wontfix | severity_change | confirm | suggest_rule)
-apigovscan learn --report report.json --feedback feedback.json
-apigovscan skills list
-apigovscan skills promote TEAM-001   # draft → activa
+ankaa learn --report report.json --feedback feedback.json
+ankaa skills list
+ankaa skills promote TEAM-001   # draft → activa
 ```
 
 - `learn` es **idempotente**: dos corridas con el mismo input dejan los YAML byte-idénticos.
 - `--dry-run` imprime el plan sin escribir (INV-7).
 
-### Config `apigovscan.yaml`
+### Config `ankaa.yaml`
 
-Schema estricto (keys desconocidas → exit 2). Ejemplo completo en [`examples/apigovscan.yaml`](examples/apigovscan.yaml):
+Schema estricto (keys desconocidas → exit 2). Ejemplo completo en [`examples/ankaa.yaml`](examples/ankaa.yaml):
 
 ```yaml
 failOn: error
@@ -348,14 +355,14 @@ customRules:
   - ./team-rules.yaml   # relativas al directorio del config
   baseline:
   enabled: false
-  path: .apigovscan/baseline.json
-skillsDir: .apigovscan/skills   # suppressions/severities/drafts (f3)
+  path: .ankaa/baseline.json
+skillsDir: .ankaa/skills   # suppressions/severities/drafts (f3)
 llm:                            # AI features opcionales (f8); sin esto todo sigue igual
   baseUrl: http://localhost:11434/v1
   model: tu-modelo
 ```
 
-Búsqueda: `--config <file>` → `./apigovscan.yaml` → `./apigovscan.yml`. Precedencia: flag CLI > config > default.
+Búsqueda: `--config <file>` → `./ankaa.yaml` → `./ankaa.yml`. Precedencia: flag CLI > config > default.
 
 ## Documentación
 
