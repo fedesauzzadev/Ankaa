@@ -235,9 +235,10 @@ Check de PR con anotaciones en el diff, job summary y artefacto SARIF — corre 
     sarif_file: ${{ steps.apigovscan.outputs.sarif-path }}
 ```
 
-Inputs `path`, `fail-on`, `format` (`sarif|json|none`), `cli`, `rules`, `config`, `baseline` ·
+Inputs `path`, `fail-on`, `format` (`sarif|json|none`), `cli`, `rules`, `config`, `baseline`, `review-ref` ·
 Outputs `sarif-path`, `exit-code`. El gate funciona **sin code scanning** (exit 0/1/2 del CLI);
-detalles en [`action/README.md`](action/README.md).
+con `review-ref` (p. ej. `main`) la Action revisa el cambio completo del candidato contra el
+contrato base — mismo evaluador que `review`/MCP (ver [action/README.md](action/README.md)).
 
 Flags útiles de `analyze`: `--format console|json|sarif|markdown|annotations`, `--output <file>`, `--fail-on error|warning|info|never`, `--rules <file>` (repetible), `--rule <json>`, `--config <file>`, `--write-baseline`, `--baseline`, `--baseline-path <file>`, `--force`, `--strict-hash`, `--baseline-ignore-hash`, `--skills-dir <dir>`, `--no-color`, `--debug`.
 

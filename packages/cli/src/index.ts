@@ -2569,7 +2569,7 @@ async function runReviewCommand(
 ): Promise<number> {
   if (argv.includes("--help") || argv.includes("-h")) {
     io.stdout(
-      "usage: apigovscan review <base> <candidate> [--format console|json] [--output <file>] [--fail-on <sev>] [--skills-dir <dir>] [--config <file>] [--license-key <key>] [--no-color]\n",
+      "usage: apigovscan review <base> <candidate> [--format console|json] [--output <file>] [--fail-on <sev>] [--baseline-label <label>] [--skills-dir <dir>] [--config <file>] [--license-key <key>] [--no-color]\n",
     );
     return 0;
   }
@@ -2647,6 +2647,7 @@ async function runReviewCommand(
       setup: prepared.setup,
       failOn,
       toolVersion: packageVersion(),
+      ...(args.baselineLabel !== undefined ? { baselineLabel: args.baselineLabel } : {}),
     },
   );
 

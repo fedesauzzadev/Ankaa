@@ -28,9 +28,9 @@ Plan: [f14-agent-api-review](../plans/f14-agent-api-gate.md)
 
 ## M14.3 — CI/Action
 
-- [ ] Integrar Action con el evaluador común sobre el SHA candidato final.
-- [ ] Publicar check y summary estables sin divulgar cuerpos de contratos.
-- [ ] Probar failure modes, re-runs y permisos; documentar configuración del
+- [x] Integrar Action con el evaluador común sobre el SHA candidato final.
+- [x] Publicar check y summary estables sin divulgar cuerpos de contratos.
+- [x] Probar failure modes, re-runs y permisos; documentar configuración del
       required status check y límites de bypass/admin.
 
 ## M14.4 — Calidad de uso

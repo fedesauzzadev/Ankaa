@@ -1,12 +1,12 @@
 name: "ApiGovScan"
-description: "Local-first API governance check for OpenAPI specs (SARIF, annotations, job summary)"
+description: "Local-first API governance check for OpenAPI specs (SARIF, annotations, job summary; optional API change review vs a base ref)"
 branding:
   icon: shield
   color: purple
 
 inputs:
   path:
-    description: "Spec file or directory to analyze"
+    description: "Spec file or directory to analyze (review mode: the candidate contract file)"
     default: "."
   fail-on:
     description: "Gate threshold: error | warning | info | never"
@@ -18,21 +18,24 @@ inputs:
     description: "CLI command to invoke"
     default: "npx -y @apigovscan/cli"
   rules:
-    description: "Custom rule files (space-separated paths)"
+    description: "Custom rule files (space-separated paths; analyze mode only)"
     default: ""
   config:
     description: "Path to apigovscan.yaml (optional)"
     default: ""
   baseline:
-    description: "Apply baseline findings filter (true|false)"
+    description: "Apply baseline findings filter (true|false; analyze mode only)"
     default: "false"
+  review-ref:
+    description: "Review mode: git ref (branch, tag or SHA) holding the baseline contract (empty = analyze mode)"
+    default: ""
   license-key:
     description: "License key (also via APIGOVSCAN_LICENSE_KEY env or config license.key)"
     default: ""
 
 outputs:
   sarif-path:
-    description: "Path to the SARIF artifact (empty when format=none)"
+    description: "Path to the SARIF/JSON artifact (review JSON in review mode; empty when format=none)"
     value: ${{ steps.artifact.outputs.sarif-path }}
   exit-code:
     description: "Gate exit code (0 ok, 1 findings, 2 error)"
@@ -41,6 +44,35 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Review baseline (base ref)
+      id: review-base
+      if: inputs.review-ref != ''
+      shell: bash
+      env:
+        AG_PATH: ${{ inputs.path }}
+        AG_REVIEW_REF: ${{ inputs.review-ref }}
+        AG_RULES: ${{ inputs.rules }}
+        APIGOVSCAN_LICENSE_KEY: ${{ inputs.license-key }}
+      run: |
+        set -euo pipefail
+        if [ -n "$AG_RULES" ]; then
+          echo "::error::rules input is not supported in review mode; add custom rules via config customRules instead"
+          exit 2
+        fi
+        ext="${AG_PATH##*.}"
+        case "$ext" in yaml|yml|json) ;; *) ext="yaml";; esac
+        tmp="$(mktemp -d)"
+        base="$tmp/contract.$ext"
+        if ! git fetch --depth=1 origin "$AG_REVIEW_REF"; then
+          echo "::error::cannot fetch review-ref '$AG_REVIEW_REF' from origin"
+          exit 2
+        fi
+        if ! git show "FETCH_HEAD:$AG_PATH" > "$base"; then
+          echo "::error::baseline contract not found at '$AG_REVIEW_REF': $AG_PATH (new contract? use analyze mode without review-ref)"
+          exit 2
+        fi
+        echo "baseline-path=$base" >> "$GITHUB_OUTPUT"
+
     - name: Analyze (artifact)
       id: artifact
       if: inputs.format != 'none'
@@ -52,9 +84,18 @@ runs:
         AG_RULES: ${{ inputs.rules }}
         AG_CONFIG: ${{ inputs.config }}
         AG_BASELINE: ${{ inputs.baseline }}
+        AG_REVIEW_BASE_PATH: ${{ steps.review-base.outputs.baseline-path }}
+        AG_REVIEW_REF: ${{ inputs.review-ref }}
         APIGOVSCAN_LICENSE_KEY: ${{ inputs.license-key }}
       run: |
         set -euo pipefail
+        if [ -n "$AG_REVIEW_BASE_PATH" ]; then
+          flags=()
+          if [ -n "$AG_CONFIG" ]; then flags+=(--config "$AG_CONFIG"); fi
+          $AG_CLI review "$AG_REVIEW_BASE_PATH" "$AG_PATH" --fail-on never --format json --output apigovscan-review.json --baseline-label "$AG_REVIEW_REF:$AG_PATH" "${flags[@]}"
+          echo "sarif-path=apigovscan-review.json" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
         if [ "$AG_FORMAT" = "json" ]; then out="apigovscan.json"; else out="apigovscan.sarif"; fi
         flags=()
         if [ -n "$AG_RULES" ]; then
@@ -68,6 +109,7 @@ runs:
 
     - name: Annotations
       id: annotations
+      if: inputs.review-ref == ''
       shell: bash
       env:
         AG_CLI: ${{ inputs.cli }}
@@ -97,9 +139,20 @@ runs:
         AG_RULES: ${{ inputs.rules }}
         AG_CONFIG: ${{ inputs.config }}
         AG_BASELINE: ${{ inputs.baseline }}
+        AG_REVIEW_BASE_PATH: ${{ steps.review-base.outputs.baseline-path }}
+        AG_REVIEW_REF: ${{ inputs.review-ref }}
         APIGOVSCAN_LICENSE_KEY: ${{ inputs.license-key }}
       run: |
         set -uo pipefail
+        if [ -n "$AG_REVIEW_BASE_PATH" ]; then
+          flags=()
+          if [ -n "$AG_CONFIG" ]; then flags+=(--config "$AG_CONFIG"); fi
+          printf '## ApiGovScan API change review\n\n' >> "$GITHUB_STEP_SUMMARY"
+          $AG_CLI review "$AG_REVIEW_BASE_PATH" "$AG_PATH" --fail-on "$AG_FAIL_ON" --format console --baseline-label "$AG_REVIEW_REF:$AG_PATH" "${flags[@]}" >> "$GITHUB_STEP_SUMMARY"
+          code=$?
+          echo "exit-code=$code" >> "$GITHUB_OUTPUT"
+          exit "$code"
+        fi
         flags=()
         if [ -n "$AG_RULES" ]; then
           read -ra rule_files <<< "$AG_RULES"

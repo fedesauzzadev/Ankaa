@@ -188,7 +188,7 @@ type ApiChangeReview = ApiChangeReviewSuccess | ApiChangeReviewError;
       ejecuta el mismo evaluador que CLI y declara truncación/total/hash.
 - [x] **AC-14.8** MCP/CLI reevalúan al invocarse; nunca informan resultado
       anterior como vigente. No escriben salvo salida explícita.
-- [ ] **AC-14.9** La Action/CI usa el mismo evaluador sobre el candidato final,
+- [x] **AC-14.9** La Action/CI usa el mismo evaluador sobre el candidato final,
       y la documentación diferencia el check publicado de configurarlo como
       required.
 - [ ] **AC-14.10** El benchmark versionado compara revisión con y sin contexto
@@ -252,3 +252,8 @@ antes de una comunicación de lanzamiento; no bloquean construir el producto.
 - 2026-09-30 · M14.2 implementado: tool MCP `review_api_change` sandboxed con
   truncación declarada (`totalFindings`/`truncated`/`reportHash`), findings
   proyectados accionables y paridad CLI↔MCP verificada por tests (AC-14.7/14.8).
+- 2026-09-30 · M14.3 implementado: Action en modo review vía input `review-ref`
+  (step `review-base` extrae el contrato base con `git fetch`+`git show`; artifact
+  JSON + gate console consumen `apigovscan review` sobre el checkout candidato),
+  dogfood con job `apigovscan-review`, tests de paridad/failure modes/determinismo
+  y documentación del required status check con límites de bypass/admin (AC-14.9).

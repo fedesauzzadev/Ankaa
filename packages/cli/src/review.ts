@@ -92,6 +92,12 @@ export interface ReviewUseCaseOptions {
   setup: AnalysisSetup;
   failOn: FailOn;
   toolVersion: string;
+  /**
+   * Stable label for the baseline input (defaults to the cwd-relative path).
+   * CI passes `<ref>:<path>` so re-runs produce the same reportHash even when
+   * the baseline bytes land in a random temp file (INV-2 / AC-14.4).
+   */
+  baselineLabel?: string;
 }
 
 export type ReviewEvaluation =
@@ -111,7 +117,7 @@ export async function reviewUseCase(
 ): Promise<ReviewEvaluation> {
   const baselineAbs = resolve(opts.cwd, opts.baselinePath);
   const candidateAbs = resolve(opts.cwd, opts.candidatePath);
-  const baselineLabel = normalizeLabel(baselineAbs, opts.cwd);
+  const baselineLabel = opts.baselineLabel ?? normalizeLabel(baselineAbs, opts.cwd);
   const candidateLabel = normalizeLabel(candidateAbs, opts.cwd);
 
   let baselineBytes: Uint8Array;

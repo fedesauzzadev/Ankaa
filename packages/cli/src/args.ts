@@ -587,8 +587,22 @@ export function parseDiffArgs(argv: readonly string[]): ParseDiffArgsResult {
   return { ok: true, args };
 }
 
-export function parseReviewArgs(argv: readonly string[]): ParseDiffArgsResult {
-  const parsed = parseDiffArgs(argv);
+export function parseReviewArgs(argv: readonly string[]): ParseReviewArgsResult {
+  const rest: string[] = [];
+  let baselineLabel: string | undefined;
+  for (let i = 0; i < argv.length; i++) {
+    const token = argv[i]!;
+    if (token === "--baseline-label") {
+      const value = argv[++i];
+      if (value === undefined || isFlag(value)) {
+        return { ok: false, error: "--baseline-label requires a value" };
+      }
+      baselineLabel = value;
+      continue;
+    }
+    rest.push(token);
+  }
+  const parsed = parseDiffArgs(rest);
   if (!parsed.ok) {
     return { ok: false, error: parsed.error.replace(/\bdiff\b/g, "review") };
   }
@@ -598,8 +612,20 @@ export function parseReviewArgs(argv: readonly string[]): ParseDiffArgsResult {
       error: `review supports console or json output (received "${parsed.args.format}")`,
     };
   }
-  return parsed;
+  return {
+    ok: true,
+    args: {
+      ...parsed.args,
+      ...(baselineLabel !== undefined ? { baselineLabel } : {}),
+    },
+  };
 }
+
+export interface ReviewArgs extends DiffArgs {
+  baselineLabel?: string;
+}
+
+export type ParseReviewArgsResult = { ok: true; args: ReviewArgs } | { ok: false; error: string };
 
 export type DriftFormat = "console" | "json";
 
