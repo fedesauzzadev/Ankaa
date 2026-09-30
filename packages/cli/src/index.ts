@@ -119,6 +119,7 @@ import {
 } from "./custom-rules.js";
 import { applySkillSuppressions, listSkills, promoteDraft } from "./skills.js";
 import { runSkillsStatsCommand } from "./fp-stats.js";
+import { runCertifyCommand, runVerifyCommand } from "./certify.js";
 import {
   buildLearnPatch,
   loadExistingSeverities,
@@ -172,6 +173,8 @@ export function getHelp(): string {
     "  ankaa skills promote <draftId>",
     "  ankaa skills stats --report <r.json> [--feedback <f.json>] [--tracking <t.json>]",
     "  ankaa license [--key <AGS-...>]",
+    "  ankaa certify --report <r.json> --key <private.pem> [--out <a.json>]",
+    "  ankaa verify --report <r.json> --attestation <a.json> --key <public.pem>",
     "  ankaa fix <path> [--fingerprint <fp>]",
     "  ankaa drift <dir> [--spec <file>]",
     "  ankaa diff <old> <new> [--format <fmt>] [--output <file>]",
@@ -3623,6 +3626,21 @@ export async function run(argv: readonly string[], io?: RunIO): Promise<number> 
       stdout,
       stderr,
       env,
+      cwd,
+    });
+  }
+  if (first === "certify") {
+    return runCertifyCommand(args.slice(1), {
+      stdout,
+      stderr,
+      env,
+      cwd,
+    });
+  }
+  if (first === "verify") {
+    return runVerifyCommand(args.slice(1), {
+      stdout,
+      stderr,
       cwd,
     });
   }
