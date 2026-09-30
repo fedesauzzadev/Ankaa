@@ -704,6 +704,8 @@ export interface ScanOrgArgs {
   maxRepos: number;
   workdir?: string;
   apiBase: string;
+  resume: boolean;
+  fromScratch: boolean;
 }
 
 export type ParseScanOrgArgsResult = { ok: true; args: ScanOrgArgs } | { ok: false; error: string };
@@ -730,6 +732,8 @@ export function parseScanOrgArgs(argv: readonly string[]): ParseScanOrgArgsResul
     force: false,
     maxRepos: DEFAULT_MAX_REPOS,
     apiBase: DEFAULT_API_BASE,
+    resume: false,
+    fromScratch: false,
   };
   let dirSeen = false;
 
@@ -804,6 +808,16 @@ export function parseScanOrgArgs(argv: readonly string[]): ParseScanOrgArgsResul
       continue;
     }
 
+    if (token === "--resume") {
+      args.resume = true;
+      continue;
+    }
+
+    if (token === "--from-scratch") {
+      args.fromScratch = true;
+      continue;
+    }
+
     if (token === "--max-repos") {
       const value = argv[++i];
       if (value === undefined || isFlag(value)) {
@@ -858,6 +872,19 @@ export function parseScanOrgArgs(argv: readonly string[]): ParseScanOrgArgsResul
     return {
       ok: false,
       error: "missing required argument <dir> (scan root directory)",
+    };
+  }
+
+  if (args.resume && args.fromScratch) {
+    return { ok: false, error: "--resume and --from-scratch cannot be used together" };
+  }
+  if ((args.resume || args.fromScratch) && args.github === undefined) {
+    return { ok: false, error: "--resume and --from-scratch require --github <org>" };
+  }
+  if ((args.resume || args.fromScratch) && args.workdir !== undefined) {
+    return {
+      ok: false,
+      error: "--resume and --from-scratch manage their own workspace; do not pass --workdir",
     };
   }
 

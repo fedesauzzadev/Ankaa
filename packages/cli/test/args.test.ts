@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseAnalyzeArgs } from "../src/args.js";
+import { parseAnalyzeArgs, parseScanOrgArgs } from "../src/args.js";
 
 describe("parseAnalyzeArgs", () => {
   it("parses path and defaults", () => {
@@ -16,6 +16,35 @@ describe("parseAnalyzeArgs", () => {
     expect(result.args.force).toBe(false);
     expect(result.args.strictHash).toBe(false);
     expect(result.args.baselineIgnoreHash).toBe(false);
+  });
+
+  describe("parseScanOrgArgs resumable modes", () => {
+    it("accepts explicit continue and from-scratch modes for GitHub scans", () => {
+      expect(parseScanOrgArgs([".", "--github", "acme", "--resume"])).toMatchObject({
+        ok: true,
+        args: { resume: true, fromScratch: false },
+      });
+      expect(parseScanOrgArgs([".", "--github", "acme", "--from-scratch"])).toMatchObject({
+        ok: true,
+        args: { resume: false, fromScratch: true },
+      });
+    });
+
+    it.each([
+      [[".", "--resume"], "--resume and --from-scratch require --github"],
+      [
+        [".", "--github", "acme", "--resume", "--from-scratch"],
+        "--resume and --from-scratch cannot be used together",
+      ],
+      [
+        [".", "--github", "acme", "--resume", "--workdir", "clones"],
+        "--resume and --from-scratch manage their own workspace",
+      ],
+    ])("rejects invalid mode combination", (argv, message) => {
+      const result = parseScanOrgArgs(argv);
+      expect(result).toMatchObject({ ok: false });
+      if (!result.ok) expect(result.error).toContain(message);
+    });
   });
 
   it("parses all supported flags", () => {

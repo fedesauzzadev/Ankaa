@@ -264,6 +264,21 @@ Empieza con 6 packages; extraer más solo si hay un segundo consumidor real (rie
 **Consecuencias:** SDD §4 enmendado con la excepción explícita; dashboard y export viven como paquetes/comandos separados del core; INV-1/INV-7 se verifican igual (el visor no toca `analyze`). Si el visor pidiera login multi-usuario o nube propia, esta ADR caduca y se reabre la discusión.  
 **Estado:** aceptada.
 
+### ADR-015: Workspace guiado local con operaciones allowlistadas
+
+**Contexto:** el CLI ofrece capacidades útiles pero exige conocer comandos y opciones; el visor F10 solo lee reportes, mientras que el usuario necesita iniciar análisis, entender progreso, retomar batches y consultar/comparar resultados anteriores. Un portal remoto contradiría local-first y agregaría estado/credenciales.
+
+**Decisión:**
+
+1. Evolucionar el proceso CLI local con dos adapters guiados —terminal y web loopback— que llaman casos de uso tipados compartidos. El dashboard anterior sigue soportado.
+2. La UI puede iniciar solo operaciones explícitamente allowlistadas; no expone shell arbitraria ni endpoints genéricos de filesystem. Bind a `127.0.0.1`, puerto efímero por defecto, validación Host/Origin y token aleatorio en memoria para mutaciones.
+3. Persistir historial/checkpoints únicamente bajo `.apigovscan/workspace/` o una ubicación alternativa elegida expresamente. No guardar credentials; conservar ejecuciones previas.
+4. Una ejecución “desde cero” analiza todos los repos en un nuevo run. “Continuar” retoma un run o reutiliza resultados solo cuando identidad de fuente, revisión y huella efectiva de análisis (versión/configuración/packs) se verifican. Si no, se reanaliza o se reporta error explícito.
+5. Las acciones de red (p. ej. consultar/clonar GitHub) son visibles y elegidas por el usuario; el análisis sigue local. La preparación de CI previsualiza y requiere confirmación antes de escribir; no activa controles del proveedor.
+
+**Consecuencias:** se amplía ADR-013 sin convertir el producto en portal: el servidor local ahora orquesta acciones conocidas y expone progreso/resultados locales. La superficie de red queda en adapters CLI; core y engine continúan puros. Host/Origin/token, rutas allowlistadas, escritura atómica, escape de contenido e INV-1/2/3/4/7 son gates de aceptación. La lectura de paths requiere selección/entrada explícita del usuario y la escritura requiere preview/confirmación.
+**Estado:** aceptada para implementación mediante `f15-local-workspace`.
+
 ### ADR-014: Spectral se importa (transpila), no se ejecuta
 
 **Contexto:** Spectral (Stoplight) trae miles de reglas community en rulesets con otro DSL: `given` (JSONPath) + `then` (funciones: `truthy`, `pattern`, `alphabetical`, `schema`, custom JS `oas*`). Heredarlas suena gratis, pero es un segundo DSL con expresiones arbitrarias. Spike M8.6 (2026-09-30) auditó el ruleset OAS real (~50 reglas) contra nuestros ~70 átomos.

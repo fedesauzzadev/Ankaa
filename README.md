@@ -148,6 +148,8 @@ apigovscan drift ./mi-repo --out openapi.draft.yaml   # genera borrador si no ha
 apigovscan scan-org ./org                           # un subdir = un proyecto
 apigovscan scan-org ./org --group-by dominios.yaml  # repo: dominio
 apigovscan scan-org ./clones --github acme --format json --out informe.json
+apigovscan scan-org . --github acme --resume         # continúa/reutiliza solo revisiones verificadas
+apigovscan scan-org . --github acme --from-scratch   # fuerza un nuevo análisis; conserva el historial
 ```
 
 ```yaml
@@ -156,7 +158,7 @@ pagos-api: checkout
 tienda-api: checkout
 ```
 
-Variables: `GITHUB_TOKEN` (obligatoria con `--github`). Spec: [`specs/f8-scan-org.md`](specs/f8-scan-org.md).
+Variables: `GITHUB_TOKEN` (obligatoria con `--github`). `--resume` y `--from-scratch` son opciones excluyentes, requieren `--github`, y guardan historial local bajo `.apigovscan/workspace/`; no aceptan `--workdir`. Sin ellas, `scan-org` conserva su comportamiento anterior. Spec: [`specs/f8-scan-org.md`](specs/f8-scan-org.md) y [`specs/f15-local-workspace.md`](specs/f15-local-workspace.md).
 
 #### Local dashboard (sin análisis, sin red más allá de loopback)
 

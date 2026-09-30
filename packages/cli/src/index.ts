@@ -3,9 +3,11 @@ import {
   mkdtempSync,
   readdirSync,
   readFileSync,
+  rmSync,
   statSync,
   writeFileSync,
 } from "node:fs";
+import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import {
@@ -28,6 +30,7 @@ import {
   parseRulesArgs,
   parseScanOrgArgs,
   type FailOn,
+  type ScanOrgArgs,
 } from "./args.js";
 import { analyzeUseCase, computeExitCode, describeSuppression, parseSpecInput } from "./analyze.js";
 import { prepareAnalysis } from "./analyze-setup.js";
@@ -56,6 +59,13 @@ import {
 import { loadConfig, type AnalyzeConfig } from "./config.js";
 import { discoverSpecs } from "./discovery.js";
 import {
+  acquireScanOrgWorkspaceLock,
+  loadScanOrgWorkspace,
+  saveScanOrgWorkspace,
+  scanOrgWorkspaceFile,
+  type ScanOrgWorkspaceRun,
+} from "./workspace-store.js";
+import {
   buildShapeMessages,
   buildSpecSkeleton,
   buildSweepMessages,
@@ -79,7 +89,7 @@ import {
   type DashboardPayload,
 } from "./dashboard.js";
 import { renderDashboardPage } from "./dashboard-page.js";
-import { cloneRepo, listOrgRepos } from "./github.js";
+import { cloneRepo, getLocalHeadRevision, getRemoteHeadRevision, listOrgRepos } from "./github.js";
 import { formatInitEntries, runInit } from "./init.js";
 import {
   collectCustomRules,
@@ -2524,7 +2534,8 @@ async function runScanOrgCommand(
 ): Promise<number> {
   if (argv.includes("--help") || argv.includes("-h")) {
     io.stdout(
-      "usage: apigovscan scan-org <dir> [--github <org>] [--group-by <file>] [--format console|json] [--out <file>] [--config <file>] [--license-key <key>] [--force] [--max-repos <n>] [--workdir <dir>] [--api-base <url>]\n",
+      "usage: apigovscan scan-org <dir> [--github <org>] [--group-by <file>] [--format console|json] [--out <file>] [--config <file>] [--license-key <key>] [--force] [--max-repos <n>] [--workdir <dir>] [--api-base <url>] [--resume | --from-scratch]\n" +
+        "  --resume continues/reuses only verified results; --from-scratch re-analyzes all repos and keeps prior history\n",
     );
     return 0;
   }
@@ -2584,6 +2595,10 @@ async function runScanOrgCommand(
       return 2;
     }
     mapping = loaded.mapping;
+  }
+
+  if (args.github !== undefined && (args.resume || args.fromScratch)) {
+    return runResumableScanOrgCommand(args, mapping, config, io);
   }
 
   let scanRoot = dirAbs;
@@ -2715,6 +2730,301 @@ async function runScanOrgCommand(
     io.stdout(formatScanConsole(args.dir, report));
   }
   return 0;
+}
+
+function fingerprintValue(value: unknown): string {
+  const normalize = (item: unknown): unknown => {
+    if (Array.isArray(item)) return item.map(normalize);
+    if (item !== null && typeof item === "object") {
+      return Object.fromEntries(
+        Object.entries(item)
+          .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
+          .map(([key, entry]) => [key, normalize(entry)]),
+      );
+    }
+    return item;
+  };
+  return createHash("sha256")
+    .update(JSON.stringify(normalize(value)))
+    .digest("hex");
+}
+
+function fingerprintAvailablePacks(cwd: string): string {
+  const packIds = ["elite", "graphql", "grpc", "asyncapi", "webhooks"];
+  const packs = packIds.map((id) => {
+    const directory = findPackDir(id, defaultPackSearchRoots(cwd));
+    if (directory === null) return { id, digest: "missing" };
+    const rulesDirectory = join(directory, "rules");
+    const files = [
+      "pack.yaml",
+      ...(existsSync(rulesDirectory)
+        ? readdirSync(rulesDirectory)
+            .filter((file) => file.endsWith(".yaml") || file.endsWith(".yml"))
+            .sort()
+            .map((file) => join("rules", file))
+        : []),
+    ];
+    const hash = createHash("sha256");
+    for (const file of files) {
+      hash
+        .update(file)
+        .update("\0")
+        .update(readFileSync(join(directory, file)))
+        .update("\0");
+    }
+    return { id, digest: hash.digest("hex") };
+  });
+  return fingerprintValue(packs);
+}
+
+async function runResumableScanOrgCommand(
+  args: ScanOrgArgs,
+  mapping: Record<string, string> | undefined,
+  config: AnalyzeConfig,
+  io: {
+    stdout: (text: string) => void;
+    stderr: (text: string) => void;
+    env: Record<string, string | undefined>;
+    cwd: string;
+  },
+): Promise<number> {
+  const org = args.github;
+  if (org === undefined) {
+    io.stderr("error: resumable scan-org requires --github <org>\n");
+    return 2;
+  }
+  const token = io.env.GITHUB_TOKEN;
+  if (token === undefined || token === "") {
+    io.stderr("error: --github requires GITHUB_TOKEN\n");
+    return 2;
+  }
+
+  const historyPath = scanOrgWorkspaceFile(io.cwd, org);
+  const workspaceOrg = org.toLowerCase();
+  const lock = acquireScanOrgWorkspaceLock(historyPath);
+  if (!lock.ok) {
+    io.stderr(`error: ${lock.error}\n`);
+    return 2;
+  }
+
+  let temporaryRoot: string | undefined;
+  try {
+    const loaded = loadScanOrgWorkspace(historyPath, workspaceOrg);
+    if (!loaded.ok) {
+      io.stderr(`error: ${loaded.error}\n`);
+      return 2;
+    }
+    const workspace = loaded.workspace;
+    const listed = await listOrgRepos(args.apiBase, org, token, args.maxRepos);
+    if (!listed.ok) {
+      io.stderr(`error: ${listed.error}\n`);
+      return 2;
+    }
+    if (listed.repos.length === args.maxRepos) {
+      io.stderr(`note: repo list truncated at --max-repos ${args.maxRepos}\n`);
+    }
+
+    let packsFingerprint: string;
+    try {
+      packsFingerprint = fingerprintAvailablePacks(io.cwd);
+    } catch (err) {
+      io.stderr(
+        `error: cannot fingerprint active rule packs: ${err instanceof Error ? err.message : String(err)}\n`,
+      );
+      return 2;
+    }
+    const analysisFingerprint = fingerprintValue({
+      toolVersion: packageVersion(),
+      config,
+      packsFingerprint,
+    });
+    const previous =
+      workspace.latestRunId === null
+        ? undefined
+        : workspace.runs.find((run) => run.id === workspace.latestRunId);
+    const canContinue =
+      args.resume &&
+      previous !== undefined &&
+      previous.analysisFingerprint === analysisFingerprint &&
+      previous.status !== "completed";
+
+    let run: ScanOrgWorkspaceRun;
+    if (canContinue) {
+      run = previous;
+      run.status = "running";
+      io.stderr(`note: continuing scan-org run ${run.id}\n`);
+    } else {
+      run = {
+        id: `scan-${Date.now()}-${workspace.runs.length + 1}`,
+        createdAt: new Date().toISOString(),
+        status: "running",
+        analysisFingerprint,
+        repos:
+          args.resume &&
+          previous !== undefined &&
+          previous.status === "completed" &&
+          previous.analysisFingerprint === analysisFingerprint
+            ? { ...previous.repos }
+            : {},
+      };
+      workspace.runs.push(run);
+      if (args.resume && previous === undefined) {
+        io.stderr("note: no previous scan-org run; starting a new run\n");
+      } else if (
+        args.resume &&
+        previous !== undefined &&
+        previous.analysisFingerprint !== analysisFingerprint
+      ) {
+        io.stderr("note: analysis settings changed; prior results will not be reused\n");
+      } else if (args.fromScratch) {
+        io.stderr("note: starting a new scan-org run from scratch\n");
+      }
+    }
+    workspace.latestRunId = run.id;
+
+    const initialSave = saveScanOrgWorkspace(historyPath, workspace);
+    if (!initialSave.ok) {
+      io.stderr(`error: ${initialSave.error}\n`);
+      return 2;
+    }
+
+    temporaryRoot = mkdtempSync(join(tmpdir(), "apigovscan-resume-"));
+    const scans: RepoScan[] = [];
+    const skipped: SkippedRepo[] = [];
+    for (const [index, repo] of listed.repos.entries()) {
+      const remote = await getRemoteHeadRevision(repo.cloneUrl);
+      const cached = run.repos[repo.name];
+      if (
+        args.resume &&
+        remote.ok &&
+        cached !== undefined &&
+        cached.revision === remote.revision &&
+        cached.analysisFingerprint === analysisFingerprint
+      ) {
+        scans.push(cached.scan);
+        io.stderr(
+          `note: reused ${repo.name} at unchanged revision (${index + 1}/${listed.repos.length})\n`,
+        );
+        continue;
+      }
+
+      delete run.repos[repo.name];
+      const savedWithoutStaleRepo = saveScanOrgWorkspace(historyPath, workspace);
+      if (!savedWithoutStaleRepo.ok) {
+        io.stderr(`error: ${savedWithoutStaleRepo.error}\n`);
+        return 2;
+      }
+
+      const repoDir = join(temporaryRoot, `repo-${index + 1}`);
+      const cloned = await cloneRepo(repo.cloneUrl, repoDir);
+      if (!cloned.ok) {
+        const reason = cloned.error.startsWith("git not found:")
+          ? cloned.error
+          : "git clone failed; verify repository access and local Git configuration";
+        skipped.push({ name: repo.name, reason });
+        io.stderr(`warning: skipped ${repo.name}: ${reason}\n`);
+        continue;
+      }
+      const localRevision = await getLocalHeadRevision(repoDir);
+      const revisionIsVerified =
+        remote.ok && localRevision.ok && remote.revision === localRevision.revision;
+      if (!remote.ok) {
+        io.stderr(`note: ${repo.name}: ${remote.error}; result will not be reused\n`);
+      } else if (!localRevision.ok || !revisionIsVerified) {
+        io.stderr(`note: ${repo.name}: source changed while cloning; result will not be reused\n`);
+      }
+
+      const repoConfig = loadRepoConfig(repoDir);
+      if (!repoConfig.ok) {
+        skipped.push({ name: repo.name, reason: repoConfig.error });
+        io.stderr(`warning: skipped ${repo.name}: ${repoConfig.error}\n`);
+        continue;
+      }
+      const analyzed = await analyzeProjectDir(repoDir, repoConfig.config);
+      if (!analyzed.ok) {
+        skipped.push({ name: repo.name, reason: analyzed.error });
+        io.stderr(`warning: skipped ${repo.name}: ${analyzed.error}\n`);
+        continue;
+      }
+
+      const scan: RepoScan = {
+        name: repo.name,
+        specs: analyzed.specs,
+        findings: analyzed.summary.total,
+        errors: analyzed.summary.error,
+        warnings: analyzed.summary.warning,
+        infos: analyzed.summary.info,
+        score: analyzed.score.value,
+        grade: analyzed.score.grade,
+        coverage: analyzed.coverage,
+      };
+      scans.push(scan);
+      if (revisionIsVerified) {
+        run.repos[repo.name] = {
+          revision: remote.revision,
+          analysisFingerprint,
+          scan,
+        };
+      }
+      io.stderr(
+        `note: scanned ${repo.name} (${analyzed.specs} specs, ${analyzed.summary.total} findings, score ${analyzed.score.value})\n`,
+      );
+      const savedRepo = saveScanOrgWorkspace(historyPath, workspace);
+      if (!savedRepo.ok) {
+        io.stderr(`error: ${savedRepo.error}\n`);
+        return 2;
+      }
+    }
+
+    if (scans.length === 0) {
+      run.status = "failed";
+      const failedSave = saveScanOrgWorkspace(historyPath, workspace);
+      if (!failedSave.ok) io.stderr(`error: ${failedSave.error}\n`);
+      else io.stderr(`error: no projects with specs found in ${args.dir}\n`);
+      return 2;
+    }
+
+    const report = aggregateScans(scans, mapping, "apigovscan", packageVersion(), org);
+    report.skipped = [...skipped, ...report.skipped].sort((a, b) =>
+      a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
+    );
+    run.report = report;
+    run.status = "completed";
+    const completedSave = saveScanOrgWorkspace(historyPath, workspace);
+    if (!completedSave.ok) {
+      io.stderr(`error: ${completedSave.error}\n`);
+      return 2;
+    }
+
+    if (args.out !== undefined) {
+      const outAbs = resolve(io.cwd, args.out);
+      if (existsSync(outAbs) && !args.force) {
+        io.stderr(`error: output exists: ${args.out} (pass --force to overwrite)\n`);
+        return 2;
+      }
+      const text =
+        args.format === "json"
+          ? `${JSON.stringify(report, null, 2)}\n`
+          : formatScanConsole(args.dir, report);
+      try {
+        writeFileSync(outAbs, text, "utf8");
+      } catch (err) {
+        io.stderr(
+          `error: cannot write ${args.out}: ${err instanceof Error ? err.message : String(err)}\n`,
+        );
+        return 2;
+      }
+    }
+    if (args.format === "json") {
+      io.stdout(`${JSON.stringify(report, null, 2)}\n`);
+    } else {
+      io.stdout(formatScanConsole(args.dir, report));
+    }
+    return 0;
+  } finally {
+    if (temporaryRoot !== undefined) rmSync(temporaryRoot, { recursive: true, force: true });
+    lock.release();
+  }
 }
 
 export async function run(argv: readonly string[], io?: RunIO): Promise<number> {

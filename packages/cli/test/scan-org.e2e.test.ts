@@ -563,4 +563,129 @@ describe("scan-org --github e2e (f8-scan-org)", { timeout: 30000 }, () => {
       await paging.close();
     }
   });
+
+  it("continues from verified revisions and preserves prior reports", async () => {
+    const seed = tempDir();
+    const repoDir = join(seed, "repo-source");
+    initGitRepo(repoDir, "openapi.yaml", TINY_SPEC);
+    const stub = await startGithubStub([
+      {
+        repos: [{ name: "resumable", clone_url: pathToFileURL(repoDir).href }],
+      },
+    ]);
+    const cwd = tempDir();
+    const args = ["scan-org", ".", "--github", "acme", "--api-base", stub.url, "--format", "json"];
+    const env = { ...licEnv(), GITHUB_TOKEN: "good-token" };
+    try {
+      const first = await runCapture([...args, "--resume"], { cwd, env });
+      expect(first.code).toBe(0);
+      expect(first.stderr).toContain("no previous scan-org run");
+      expect(first.stderr).toContain("note: scanned resumable");
+
+      const organizationsDir = join(cwd, ".apigovscan", "workspace", "orgs");
+      const [orgDirectory] = readdirSync(organizationsDir);
+      expect(orgDirectory).toBeDefined();
+      const historyPath = join(organizationsDir, orgDirectory!, "history.json");
+      const interruptedHistory = JSON.parse(readFileSync(historyPath, "utf8")) as {
+        runs: Array<{ status: string; report?: unknown }>;
+      };
+      const interruptedRun = interruptedHistory.runs.at(-1);
+      expect(interruptedRun).toBeDefined();
+      interruptedRun!.status = "running";
+      delete interruptedRun!.report;
+      writeFileSync(historyPath, `${JSON.stringify(interruptedHistory, null, 2)}\n`, "utf8");
+
+      const resumed = await runCapture([...args, "--resume"], { cwd, env });
+      expect(resumed.code).toBe(0);
+      expect(resumed.stderr).toContain("continuing scan-org run");
+      expect(resumed.stderr).toContain("reused resumable at unchanged revision");
+      expect(JSON.parse(resumed.stdout)).toEqual(JSON.parse(first.stdout));
+
+      const changed = `${TINY_SPEC}# revision changed\n`;
+      writeFileSync(join(repoDir, "openapi.yaml"), changed, "utf8");
+      execFileSync("git", ["add", "."], { cwd: repoDir, stdio: "ignore" });
+      execFileSync(
+        "git",
+        ["-c", "user.name=t", "-c", "user.email=t@t", "commit", "-m", "change spec"],
+        { cwd: repoDir, stdio: "ignore" },
+      );
+      const afterChange = await runCapture([...args, "--resume"], { cwd, env });
+      expect(afterChange.code).toBe(0);
+      expect(afterChange.stderr).toContain("note: scanned resumable");
+
+      writeFileSync(join(cwd, "apigovscan.yaml"), "failOn: warning\n", "utf8");
+      const afterConfigChange = await runCapture([...args, "--resume"], { cwd, env });
+      expect(afterConfigChange.code).toBe(0);
+      expect(afterConfigChange.stderr).toContain("analysis settings changed");
+      expect(afterConfigChange.stderr).toContain("note: scanned resumable");
+
+      const fromScratch = await runCapture([...args, "--from-scratch"], { cwd, env });
+      expect(fromScratch.code).toBe(0);
+      expect(fromScratch.stderr).toContain("starting a new scan-org run from scratch");
+      expect(fromScratch.stderr).toContain("note: scanned resumable");
+
+      const history = JSON.parse(readFileSync(historyPath, "utf8")) as {
+        schemaVersion: number;
+        runs: Array<{ status: string; report?: unknown }>;
+      };
+      expect(history.schemaVersion).toBe(1);
+      expect(history.runs).toHaveLength(4);
+      expect(
+        history.runs.every((run) => run.status === "completed" && run.report !== undefined),
+      ).toBe(true);
+      expect(JSON.stringify(history)).not.toContain("good-token");
+      expect(readdirSync(join(cwd, ".apigovscan", "workspace", "orgs", orgDirectory!))).toEqual([
+        "history.json",
+      ]);
+    } finally {
+      await stub.close();
+    }
+  });
+
+  it("resumes a failed run by retrying repos that were not analyzed", async () => {
+    const seed = tempDir();
+    const repoDir = join(seed, "repo-source");
+    initGitRepo(repoDir, "openapi.yaml", TINY_SPEC);
+    const repos = [
+      {
+        name: "retry-me",
+        clone_url: pathToFileURL(join(seed, "secret-token-never-persist")).href,
+      },
+    ];
+    const stub = await startGithubStub([{ repos }]);
+    const cwd = tempDir();
+    const args = [
+      "scan-org",
+      ".",
+      "--github",
+      "acme",
+      "--api-base",
+      stub.url,
+      "--resume",
+      "--format",
+      "json",
+    ];
+    const env = { ...licEnv(), GITHUB_TOKEN: "good-token" };
+    try {
+      const failed = await runCapture(args, { cwd, env });
+      expect(failed.code).toBe(2);
+      expect(failed.stderr).toContain("no projects with specs found");
+      const organizationsDir = join(cwd, ".apigovscan", "workspace", "orgs");
+      const [orgDirectory] = readdirSync(organizationsDir);
+      const historyText = readFileSync(
+        join(organizationsDir, orgDirectory!, "history.json"),
+        "utf8",
+      );
+      expect(historyText).not.toContain("secret-token-never-persist");
+
+      repos[0]!.clone_url = pathToFileURL(repoDir).href;
+      const resumed = await runCapture(args, { cwd, env });
+      expect(resumed.code).toBe(0);
+      expect(resumed.stderr).toContain("continuing scan-org run");
+      expect(resumed.stderr).toContain("note: scanned retry-me");
+      expect((JSON.parse(resumed.stdout) as JsonReport).totals.repos).toBe(1);
+    } finally {
+      await stub.close();
+    }
+  });
 });
