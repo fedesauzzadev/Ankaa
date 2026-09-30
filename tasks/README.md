@@ -37,3 +37,4 @@ Checklists ejecutables ligados a [plans](../plans/README.md) y [specs](../specs/
 | [f10-export](f10-export.md)                   | plans/f10-export          | specs/f10-export                                   |
 | [f14-agent-api-gate](f14-agent-api-gate.md)   | plans/f14-agent-api-gate  | specs/f14-agent-api-gate                           |
 | [f15-local-workspace](f15-local-workspace.md) | plans/f15-local-workspace | specs/f15-local-workspace                          |
+| [f16-ankaa-rebrand](f16-ankaa-rebrand.md)     | — (spec directa)          | specs/f16-ankaa-rebrand                            |

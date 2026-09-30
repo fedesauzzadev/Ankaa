@@ -1,0 +1,474 @@
+{
+    "schemaVersion":  1,
+    "note":  "Pre-rename golden fingerprints (f16 AC-16.6). Finding fingerprints and order must be identical before and after the Ankaa rebrand; reportHash intentionally excluded (it changes exactly once).",
+    "generatedAt":  "2026-10-01",
+    "cases":  [
+                  {
+                      "input":  "fixtures/petstore-mini.yaml",
+                      "count":  14,
+                      "findings":  [
+                                       "AUTH-001 224e11b7fb764763bf0430d9543b357746cf9bb97216ba10b9ac69265fac6fc9",
+                                       "ERR-005 d3a074cbf863e31cb4aa9ccce912eede18f819db3e7bf5c2261d83e502acbc51",
+                                       "SCHEMA-001 2c20fd94381d74696fead01c3331f973e8cbd598eef0a1719dec7c480b3795a4",
+                                       "SCHEMA-001 416a7e6ee02bfafd847c08622dc22a86ca5c4456719403a70459a21c7582e754",
+                                       "SCHEMA-001 4f6ad2c0fa0abec4d9849d273f76290c90bfabac689849abc28acad2559566a5",
+                                       "VER-002 9d681fabd91960a9a04e988a3121e59b3604a2d6af0caac62480e65ff0d658d4",
+                                       "ERR-006 93e45f13c599273adb54db60fe0f17bb2fde7ad76a1747828f18acd559fb2416",
+                                       "ERR-006 51b6348f00613d41a0f11e4c7c051b2a15587f48c80e9a00e16a3a00becde2d8",
+                                       "PAG-003 76819de41560549fb4b516e10d3acfac1c45d90f622b3cdf05eee623be56ed39",
+                                       "RESP-005 cc2f8bb2e4095ec44a5ff9e5e61f2ed3a4770d79833c5632aecddcad0e3512ab",
+                                       "RESP-005 f92fa09177d72effcd0729229425a4c6797ab44ecafb74075c7258070d1c790b",
+                                       "SCHEMA-005 4433098da83ec7b2fe0b22ac01f43ec1fbe0bd0fbd3f59a0fc061338f3794e72",
+                                       "SCHEMA-005 84527c66abd8bba49fef700a8801b7c432f8d3eab9a71643f41a90cf0506daf7",
+                                       "SCHEMA-005 ab578bfb094557b5afc074d8c4c728fa6d918c4d24f0c17ae6e85f70a2d063a3"
+                                   ]
+                  },
+                  {
+                      "input":  "fixtures/petstore-mini.json",
+                      "count":  14,
+                      "findings":  [
+                                       "AUTH-001 224e11b7fb764763bf0430d9543b357746cf9bb97216ba10b9ac69265fac6fc9",
+                                       "ERR-005 d3a074cbf863e31cb4aa9ccce912eede18f819db3e7bf5c2261d83e502acbc51",
+                                       "SCHEMA-001 2c20fd94381d74696fead01c3331f973e8cbd598eef0a1719dec7c480b3795a4",
+                                       "SCHEMA-001 416a7e6ee02bfafd847c08622dc22a86ca5c4456719403a70459a21c7582e754",
+                                       "SCHEMA-001 4f6ad2c0fa0abec4d9849d273f76290c90bfabac689849abc28acad2559566a5",
+                                       "VER-002 9d681fabd91960a9a04e988a3121e59b3604a2d6af0caac62480e65ff0d658d4",
+                                       "ERR-006 93e45f13c599273adb54db60fe0f17bb2fde7ad76a1747828f18acd559fb2416",
+                                       "ERR-006 51b6348f00613d41a0f11e4c7c051b2a15587f48c80e9a00e16a3a00becde2d8",
+                                       "PAG-003 76819de41560549fb4b516e10d3acfac1c45d90f622b3cdf05eee623be56ed39",
+                                       "RESP-005 cc2f8bb2e4095ec44a5ff9e5e61f2ed3a4770d79833c5632aecddcad0e3512ab",
+                                       "RESP-005 f92fa09177d72effcd0729229425a4c6797ab44ecafb74075c7258070d1c790b",
+                                       "SCHEMA-005 4433098da83ec7b2fe0b22ac01f43ec1fbe0bd0fbd3f59a0fc061338f3794e72",
+                                       "SCHEMA-005 84527c66abd8bba49fef700a8801b7c432f8d3eab9a71643f41a90cf0506daf7",
+                                       "SCHEMA-005 ab578bfb094557b5afc074d8c4c728fa6d918c4d24f0c17ae6e85f70a2d063a3"
+                                   ]
+                  },
+                  {
+                      "input":  "fixtures/swagger2-minimal.yaml",
+                      "count":  14,
+                      "findings":  [
+                                       "NAMING-001 70604a42d1a57476a915f91ea19b9c9432fb1cc4e28f61db79756d68d3aef6e4",
+                                       "AUTH-001 224e11b7fb764763bf0430d9543b357746cf9bb97216ba10b9ac69265fac6fc9",
+                                       "DOCS-001 685802c5dca8b3e8a39cbc1e2a826643e512f611ce5940d5d66b131ac292c709",
+                                       "DOCS-002 8c6233d43ae3676b5d8d643c742b12acaa2610cba14085b1f4caf419f9b95a6a",
+                                       "ERR-005 d3a074cbf863e31cb4aa9ccce912eede18f819db3e7bf5c2261d83e502acbc51",
+                                       "NAMING-003 efb94bc5c3b61e2e6bfb666e0702c78f85dfc78120a107b98114f880654863f4",
+                                       "RESP-008 a58ad2240bdfc4cd781898c20395a5709dfedb30ac88ecfe2a95190e9c3e2e76",
+                                       "STRUCT-004 1f3b68ec6af78ffaca0ca08f507b7cfe13b2b528645d05abead1af701ddb7328",
+                                       "VER-002 9d681fabd91960a9a04e988a3121e59b3604a2d6af0caac62480e65ff0d658d4",
+                                       "DOCS-003 ad199ddad55ea63047ebbe21ad01bb51189fdbce5763f4dd1aaad51e230e0a60",
+                                       "DOCS-005 e60d6a6b901a3acfe12cd3ce913e53c4d8699112b60489809f916ed0cf2c3233",
+                                       "DOCS-008 35701ec4b76f7b8341d149d9940d2e21ede65c9a32bfdb7c5d65336774d8b4f6",
+                                       "RESP-005 84bf15a2f91732f8281e30828b161be1d57a1676ff94582ed240bd3cadd87790",
+                                       "STRUCT-007 0f793ccde74c6e68f7e81c3c0ef66adb1f745c7010dda6f6a9fda3429e1f31b2"
+                                   ]
+                  },
+                  {
+                      "input":  "fixtures/swagger1-minimal.yaml",
+                      "count":  9,
+                      "findings":  [
+                                       "AUTH-001 224e11b7fb764763bf0430d9543b357746cf9bb97216ba10b9ac69265fac6fc9",
+                                       "ERR-005 d3a074cbf863e31cb4aa9ccce912eede18f819db3e7bf5c2261d83e502acbc51",
+                                       "SCHEMA-001 c90e51285c35e2d291a08098419e9b412112ec19ae496959b49f1cd945396996",
+                                       "VER-002 9d681fabd91960a9a04e988a3121e59b3604a2d6af0caac62480e65ff0d658d4",
+                                       "DOCS-003 aa2e0e6b29388b64c28e8f5e108038eb05538e82eb4bf3d4316a3b5010552dab",
+                                       "DOCS-008 a5fef15e9f6ad96879240a340580ee9ac8d5a1c3b0b1fc71a2234b9f794760c3",
+                                       "RESP-005 2c28b87f58d278d3657f6b4f64dfd24013445ea022f710d6427631be5de9700a",
+                                       "SCHEMA-005 5bc5540dba1dc781f9c3957c07e5d814bfad1e0f7364023005566ed2de538515",
+                                       "STRUCT-007 0f793ccde74c6e68f7e81c3c0ef66adb1f745c7010dda6f6a9fda3429e1f31b2"
+                                   ]
+                  },
+                  {
+                      "input":  "fixtures/v303-minimal.yaml",
+                      "count":  13,
+                      "findings":  [
+                                       "NAMING-001 40cd7119baadeb39f3346a80cf62de77fad5ff0ef4202de4f02d4ba657aa2e75",
+                                       "AUTH-001 224e11b7fb764763bf0430d9543b357746cf9bb97216ba10b9ac69265fac6fc9",
+                                       "DOCS-001 bd1b28f35b462db0e34f76af7ea8d36e261bf4a8152f3693d4509be97e86fbed",
+                                       "DOCS-002 a84683b8304f2334555aa1009c33c9f5f3171da928054f2b590ebd8b40ba1500",
+                                       "ERR-005 d3a074cbf863e31cb4aa9ccce912eede18f819db3e7bf5c2261d83e502acbc51",
+                                       "RESP-008 fd848d9a91c49b36a71b4d2e039821008d0a3451f00e75f14924a1f9b548bece",
+                                       "STRUCT-004 1f3b68ec6af78ffaca0ca08f507b7cfe13b2b528645d05abead1af701ddb7328",
+                                       "VER-002 9d681fabd91960a9a04e988a3121e59b3604a2d6af0caac62480e65ff0d658d4",
+                                       "DOCS-003 5e5a301a69bc04b54696e06b6678a87d0961e3a0b43dfd53d9f15461ae9f837d",
+                                       "DOCS-005 e60d6a6b901a3acfe12cd3ce913e53c4d8699112b60489809f916ed0cf2c3233",
+                                       "DOCS-008 1816a666e6c5101b4da4e801c786eb8269be666ba4a1479540866a99a1a4a9e0",
+                                       "RESP-005 fc28e79a2cdbc8866cb3f799c243122e2b3dd9b0a79f43e7838c0ec53f76d218",
+                                       "STRUCT-007 0f793ccde74c6e68f7e81c3c0ef66adb1f745c7010dda6f6a9fda3429e1f31b2"
+                                   ]
+                  },
+                  {
+                      "input":  "fixtures/unsorted-paths.yaml",
+                      "count":  26,
+                      "findings":  [
+                                       "NAMING-001 42f4f4de27728af5c8b91514001f7bab3457629e550d9016c7ab36f01173463b",
+                                       "NAMING-001 d8425a873f5bd6cba41536befdc1eb3a3bf45ccecb7f184fc8d032ab775607fd",
+                                       "NAMING-001 5d4ad02145309fafda02c82af7f7ced6f4a87194fd7b52ec7e6b884c957a2ec8",
+                                       "AUTH-001 224e11b7fb764763bf0430d9543b357746cf9bb97216ba10b9ac69265fac6fc9",
+                                       "DOCS-001 fddb7709dcba4eb6ad02c18c727c16fc8424507c5358185b605db01dd28e3e45",
+                                       "DOCS-001 6669c903284c264c1619b43b0bfe5cd5c0bc4decab32d975dacaafcfc7176b71",
+                                       "DOCS-001 ac46dca955db4ef4d69e370d3dfe11a450b7c43349888dbdfa79c09fe99e02d4",
+                                       "DOCS-002 b6b28adb913bd192e1a605be491cf0d32ed43165ee50e67f13daecae4a578931",
+                                       "DOCS-002 44b21eec6b835cf3cb7dba67a51742e7321112327b3c5d82b49865a6d8cde6cb",
+                                       "DOCS-002 2d93229633ed11e91950dd19d67433d9100da5e1265858c0158b4a90e7e526cd",
+                                       "ERR-001 98b974d84e7c614cf585e05a24946c8d0594d329ce25f14e120c6a1ee5c5bfea",
+                                       "ERR-005 d3a074cbf863e31cb4aa9ccce912eede18f819db3e7bf5c2261d83e502acbc51",
+                                       "RESP-008 0eff8f0a9d168680f680cec2a862f5afdbfc8974318893206e8af6a39ea9e8c2",
+                                       "RESP-008 7633ec5bf321efaa15619c20b61e0a1ddeba9ab6f35108974c6a313195b7126d",
+                                       "STRUCT-004 1f3b68ec6af78ffaca0ca08f507b7cfe13b2b528645d05abead1af701ddb7328",
+                                       "VER-002 9d681fabd91960a9a04e988a3121e59b3604a2d6af0caac62480e65ff0d658d4",
+                                       "DOCS-003 42507aa928b5e4948a96691bd7acf908a57b0fcfa216cde400b244d74185e833",
+                                       "DOCS-003 9c1cc64d650bb98c1e3be2507e42bbba9e41f9eb9bd6119f2062d185814b6c6c",
+                                       "DOCS-003 d8c8d061a41af2a47a3c6e474abe295dd3df9106b8ac92323dfc299455734840",
+                                       "DOCS-005 e60d6a6b901a3acfe12cd3ce913e53c4d8699112b60489809f916ed0cf2c3233",
+                                       "DOCS-008 c8d5a315599a0ba9d2ac2dfe0f75fa6fb74022ce39e183551ed5b38b10d60b88",
+                                       "DOCS-008 0bbf4b037c6201677a656bda77bf6b914b21da1b41796d728578343caf925e3b",
+                                       "DOCS-008 2c7c500c8a537ce245abf991b624bc6ef89a13b42af58bfee8afdbc1978eda49",
+                                       "RESP-005 9522638b761e1221ace8dba18e28227230d728f6024c386a23473c1abd8f844c",
+                                       "RESP-005 59aa810b837ddc3ffdf9ba9a9f6dd6b3d79f21b7228c0f004fc0f4f4198ff72f",
+                                       "RESP-005 1b082d6e06a68d49d195375a1c3228b516af2214164da14bdec369a207f543f5"
+                                   ]
+                  },
+                  {
+                      "input":  "fixtures/review-corpus/openapi/base.yaml",
+                      "count":  11,
+                      "findings":  [
+                                       "AUTH-001 224e11b7fb764763bf0430d9543b357746cf9bb97216ba10b9ac69265fac6fc9",
+                                       "ERR-001 b247128d57f7a87e715e62e210517ee94e6896fd4027e6e0e8ff66015dca81ed",
+                                       "PAG-002 2c4c88ecc32525507a466fa7c00cd69731e3b4c28dad27af28c9a0e6f746bb39",
+                                       "RESP-013 c0c24c1914a5e7cabe42d3ce08cc9d07aff654da12db547e3cb5422d9c123cc6",
+                                       "SCHEMA-001 3413e0973ebac8c9d74a388a50bce833a6fd45672310ba89b9a394c5b7f6c915",
+                                       "SCHEMA-001 31300ade7b6c53e284e5ebf5ab415e2ec46c2da3a0fb74112b575252c3411bf6",
+                                       "VER-002 9d681fabd91960a9a04e988a3121e59b3604a2d6af0caac62480e65ff0d658d4",
+                                       "RESP-005 2c7d1f7099e38d6ece6ad7c2638df10637d248d7fcfdb4a116ab5e8b8bc82800",
+                                       "RESP-005 cf151ecfd60a8e15735b35953a93da122302fa8ab05316b5e2fc8e82e74012ce",
+                                       "SCHEMA-005 0972a68b970d383d842db72b3cbb4d6738d4e21d82874feade81702c0235ba76",
+                                       "SCHEMA-005 ae6f9ec16406f8217ab11d2a1dcdbf369e5d5bd9a8abfec7b971670d47be8a21"
+                                   ]
+                  },
+                  {
+                      "input":  "fixtures/review-corpus/openapi/brk-001-operation-removed.yaml",
+                      "count":  7,
+                      "findings":  [
+                                       "AUTH-001 224e11b7fb764763bf0430d9543b357746cf9bb97216ba10b9ac69265fac6fc9",
+                                       "PAG-002 2c4c88ecc32525507a466fa7c00cd69731e3b4c28dad27af28c9a0e6f746bb39",
+                                       "SCHEMA-001 3413e0973ebac8c9d74a388a50bce833a6fd45672310ba89b9a394c5b7f6c915",
+                                       "STRUCT-008 012a47312fcd08f8c058fd02115870d4933544e7bf62539c9dd95056087422ea",
+                                       "VER-002 9d681fabd91960a9a04e988a3121e59b3604a2d6af0caac62480e65ff0d658d4",
+                                       "RESP-005 2c7d1f7099e38d6ece6ad7c2638df10637d248d7fcfdb4a116ab5e8b8bc82800",
+                                       "SCHEMA-005 0972a68b970d383d842db72b3cbb4d6738d4e21d82874feade81702c0235ba76"
+                                   ]
+                  },
+                  {
+                      "input":  "fixtures/review-corpus/openapi/brk-002-required-param-added.yaml",
+                      "count":  11,
+                      "findings":  [
+                                       "AUTH-001 224e11b7fb764763bf0430d9543b357746cf9bb97216ba10b9ac69265fac6fc9",
+                                       "ERR-001 b247128d57f7a87e715e62e210517ee94e6896fd4027e6e0e8ff66015dca81ed",
+                                       "PAG-002 2c4c88ecc32525507a466fa7c00cd69731e3b4c28dad27af28c9a0e6f746bb39",
+                                       "RESP-013 c0c24c1914a5e7cabe42d3ce08cc9d07aff654da12db547e3cb5422d9c123cc6",
+                                       "SCHEMA-001 3413e0973ebac8c9d74a388a50bce833a6fd45672310ba89b9a394c5b7f6c915",
+                                       "SCHEMA-001 31300ade7b6c53e284e5ebf5ab415e2ec46c2da3a0fb74112b575252c3411bf6",
+                                       "VER-002 9d681fabd91960a9a04e988a3121e59b3604a2d6af0caac62480e65ff0d658d4",
+                                       "RESP-005 2c7d1f7099e38d6ece6ad7c2638df10637d248d7fcfdb4a116ab5e8b8bc82800",
+                                       "RESP-005 cf151ecfd60a8e15735b35953a93da122302fa8ab05316b5e2fc8e82e74012ce",
+                                       "SCHEMA-005 0972a68b970d383d842db72b3cbb4d6738d4e21d82874feade81702c0235ba76",
+                                       "SCHEMA-005 ae6f9ec16406f8217ab11d2a1dcdbf369e5d5bd9a8abfec7b971670d47be8a21"
+                                   ]
+                  },
+                  {
+                      "input":  "fixtures/review-corpus/openapi/brk-003-required-body-removed.yaml",
+                      "count":  11,
+                      "findings":  [
+                                       "AUTH-001 224e11b7fb764763bf0430d9543b357746cf9bb97216ba10b9ac69265fac6fc9",
+                                       "ERR-001 b247128d57f7a87e715e62e210517ee94e6896fd4027e6e0e8ff66015dca81ed",
+                                       "PAG-002 2c4c88ecc32525507a466fa7c00cd69731e3b4c28dad27af28c9a0e6f746bb39",
+                                       "SCHEMA-001 3413e0973ebac8c9d74a388a50bce833a6fd45672310ba89b9a394c5b7f6c915",
+                                       "SCHEMA-001 31300ade7b6c53e284e5ebf5ab415e2ec46c2da3a0fb74112b575252c3411bf6",
+                                       "STRUCT-008 012a47312fcd08f8c058fd02115870d4933544e7bf62539c9dd95056087422ea",
+                                       "VER-002 9d681fabd91960a9a04e988a3121e59b3604a2d6af0caac62480e65ff0d658d4",
+                                       "RESP-005 2c7d1f7099e38d6ece6ad7c2638df10637d248d7fcfdb4a116ab5e8b8bc82800",
+                                       "RESP-005 cf151ecfd60a8e15735b35953a93da122302fa8ab05316b5e2fc8e82e74012ce",
+                                       "SCHEMA-005 0972a68b970d383d842db72b3cbb4d6738d4e21d82874feade81702c0235ba76",
+                                       "SCHEMA-005 ae6f9ec16406f8217ab11d2a1dcdbf369e5d5bd9a8abfec7b971670d47be8a21"
+                                   ]
+                  },
+                  {
+                      "input":  "fixtures/review-corpus/openapi/brk-004-required-property-added.yaml",
+                      "count":  11,
+                      "findings":  [
+                                       "AUTH-001 224e11b7fb764763bf0430d9543b357746cf9bb97216ba10b9ac69265fac6fc9",
+                                       "ERR-001 b247128d57f7a87e715e62e210517ee94e6896fd4027e6e0e8ff66015dca81ed",
+                                       "PAG-002 2c4c88ecc32525507a466fa7c00cd69731e3b4c28dad27af28c9a0e6f746bb39",
+                                       "RESP-013 c0c24c1914a5e7cabe42d3ce08cc9d07aff654da12db547e3cb5422d9c123cc6",
+                                       "SCHEMA-001 3413e0973ebac8c9d74a388a50bce833a6fd45672310ba89b9a394c5b7f6c915",
+                                       "SCHEMA-001 31300ade7b6c53e284e5ebf5ab415e2ec46c2da3a0fb74112b575252c3411bf6",
+                                       "VER-002 9d681fabd91960a9a04e988a3121e59b3604a2d6af0caac62480e65ff0d658d4",
+                                       "RESP-005 2c7d1f7099e38d6ece6ad7c2638df10637d248d7fcfdb4a116ab5e8b8bc82800",
+                                       "RESP-005 cf151ecfd60a8e15735b35953a93da122302fa8ab05316b5e2fc8e82e74012ce",
+                                       "SCHEMA-005 0972a68b970d383d842db72b3cbb4d6738d4e21d82874feade81702c0235ba76",
+                                       "SCHEMA-005 ae6f9ec16406f8217ab11d2a1dcdbf369e5d5bd9a8abfec7b971670d47be8a21"
+                                   ]
+                  },
+                  {
+                      "input":  "fixtures/review-corpus/openapi/brk-005-response-removed.yaml",
+                      "count":  11,
+                      "findings":  [
+                                       "AUTH-001 224e11b7fb764763bf0430d9543b357746cf9bb97216ba10b9ac69265fac6fc9",
+                                       "ERR-001 b247128d57f7a87e715e62e210517ee94e6896fd4027e6e0e8ff66015dca81ed",
+                                       "PAG-002 2c4c88ecc32525507a466fa7c00cd69731e3b4c28dad27af28c9a0e6f746bb39",
+                                       "RESP-013 c0c24c1914a5e7cabe42d3ce08cc9d07aff654da12db547e3cb5422d9c123cc6",
+                                       "SCHEMA-001 3413e0973ebac8c9d74a388a50bce833a6fd45672310ba89b9a394c5b7f6c915",
+                                       "SCHEMA-001 31300ade7b6c53e284e5ebf5ab415e2ec46c2da3a0fb74112b575252c3411bf6",
+                                       "VER-002 9d681fabd91960a9a04e988a3121e59b3604a2d6af0caac62480e65ff0d658d4",
+                                       "RESP-005 2c7d1f7099e38d6ece6ad7c2638df10637d248d7fcfdb4a116ab5e8b8bc82800",
+                                       "RESP-005 cf151ecfd60a8e15735b35953a93da122302fa8ab05316b5e2fc8e82e74012ce",
+                                       "SCHEMA-005 0972a68b970d383d842db72b3cbb4d6738d4e21d82874feade81702c0235ba76",
+                                       "SCHEMA-005 ae6f9ec16406f8217ab11d2a1dcdbf369e5d5bd9a8abfec7b971670d47be8a21"
+                                   ]
+                  },
+                  {
+                      "input":  "fixtures/review-corpus/openapi/brk-006-enum-value-removed.yaml",
+                      "count":  11,
+                      "findings":  [
+                                       "AUTH-001 224e11b7fb764763bf0430d9543b357746cf9bb97216ba10b9ac69265fac6fc9",
+                                       "ERR-001 b247128d57f7a87e715e62e210517ee94e6896fd4027e6e0e8ff66015dca81ed",
+                                       "PAG-002 2c4c88ecc32525507a466fa7c00cd69731e3b4c28dad27af28c9a0e6f746bb39",
+                                       "RESP-013 c0c24c1914a5e7cabe42d3ce08cc9d07aff654da12db547e3cb5422d9c123cc6",
+                                       "SCHEMA-001 3413e0973ebac8c9d74a388a50bce833a6fd45672310ba89b9a394c5b7f6c915",
+                                       "SCHEMA-001 31300ade7b6c53e284e5ebf5ab415e2ec46c2da3a0fb74112b575252c3411bf6",
+                                       "VER-002 9d681fabd91960a9a04e988a3121e59b3604a2d6af0caac62480e65ff0d658d4",
+                                       "RESP-005 2c7d1f7099e38d6ece6ad7c2638df10637d248d7fcfdb4a116ab5e8b8bc82800",
+                                       "RESP-005 cf151ecfd60a8e15735b35953a93da122302fa8ab05316b5e2fc8e82e74012ce",
+                                       "SCHEMA-005 0972a68b970d383d842db72b3cbb4d6738d4e21d82874feade81702c0235ba76",
+                                       "SCHEMA-005 ae6f9ec16406f8217ab11d2a1dcdbf369e5d5bd9a8abfec7b971670d47be8a21"
+                                   ]
+                  },
+                  {
+                      "input":  "fixtures/review-corpus/openapi/brk-007-type-changed.yaml",
+                      "count":  11,
+                      "findings":  [
+                                       "AUTH-001 224e11b7fb764763bf0430d9543b357746cf9bb97216ba10b9ac69265fac6fc9",
+                                       "ERR-001 b247128d57f7a87e715e62e210517ee94e6896fd4027e6e0e8ff66015dca81ed",
+                                       "PAG-002 2c4c88ecc32525507a466fa7c00cd69731e3b4c28dad27af28c9a0e6f746bb39",
+                                       "RESP-013 c0c24c1914a5e7cabe42d3ce08cc9d07aff654da12db547e3cb5422d9c123cc6",
+                                       "SCHEMA-001 3413e0973ebac8c9d74a388a50bce833a6fd45672310ba89b9a394c5b7f6c915",
+                                       "SCHEMA-001 31300ade7b6c53e284e5ebf5ab415e2ec46c2da3a0fb74112b575252c3411bf6",
+                                       "VER-002 9d681fabd91960a9a04e988a3121e59b3604a2d6af0caac62480e65ff0d658d4",
+                                       "RESP-005 2c7d1f7099e38d6ece6ad7c2638df10637d248d7fcfdb4a116ab5e8b8bc82800",
+                                       "RESP-005 cf151ecfd60a8e15735b35953a93da122302fa8ab05316b5e2fc8e82e74012ce",
+                                       "SCHEMA-005 0972a68b970d383d842db72b3cbb4d6738d4e21d82874feade81702c0235ba76",
+                                       "SCHEMA-005 ae6f9ec16406f8217ab11d2a1dcdbf369e5d5bd9a8abfec7b971670d47be8a21"
+                                   ]
+                  },
+                  {
+                      "input":  "fixtures/review-corpus/openapi/brk-008-auth-added.yaml",
+                      "count":  12,
+                      "findings":  [
+                                       "ERR-001 b247128d57f7a87e715e62e210517ee94e6896fd4027e6e0e8ff66015dca81ed",
+                                       "ERR-002 6f3bfc14f0c15db65db00fd9ed0d6532d524c364546f6cb9a12d193a3fb19c85",
+                                       "PAG-002 2c4c88ecc32525507a466fa7c00cd69731e3b4c28dad27af28c9a0e6f746bb39",
+                                       "RESP-013 c0c24c1914a5e7cabe42d3ce08cc9d07aff654da12db547e3cb5422d9c123cc6",
+                                       "SCHEMA-001 3413e0973ebac8c9d74a388a50bce833a6fd45672310ba89b9a394c5b7f6c915",
+                                       "SCHEMA-001 31300ade7b6c53e284e5ebf5ab415e2ec46c2da3a0fb74112b575252c3411bf6",
+                                       "VER-002 9d681fabd91960a9a04e988a3121e59b3604a2d6af0caac62480e65ff0d658d4",
+                                       "AUTH-004 d5c656722ad5b875be9bc93d0cc9b4af64598bbd2b11f624cd706646ac5ae27c",
+                                       "RESP-005 2c7d1f7099e38d6ece6ad7c2638df10637d248d7fcfdb4a116ab5e8b8bc82800",
+                                       "RESP-005 cf151ecfd60a8e15735b35953a93da122302fa8ab05316b5e2fc8e82e74012ce",
+                                       "SCHEMA-005 0972a68b970d383d842db72b3cbb4d6738d4e21d82874feade81702c0235ba76",
+                                       "SCHEMA-005 ae6f9ec16406f8217ab11d2a1dcdbf369e5d5bd9a8abfec7b971670d47be8a21"
+                                   ]
+                  },
+                  {
+                      "input":  "fixtures/review-corpus/openapi/no-breaking-changes.yaml",
+                      "count":  17,
+                      "findings":  [
+                                       "AUTH-001 224e11b7fb764763bf0430d9543b357746cf9bb97216ba10b9ac69265fac6fc9",
+                                       "ERR-001 b247128d57f7a87e715e62e210517ee94e6896fd4027e6e0e8ff66015dca81ed",
+                                       "ERR-001 59bfab83931e9ca85f33d9399bdae5c78b5cac2d35c504138145180fd10a06bf",
+                                       "PAG-002 2c4c88ecc32525507a466fa7c00cd69731e3b4c28dad27af28c9a0e6f746bb39",
+                                       "RESP-010 cfac6bdf51c9190e67d1bbc52b2b9bb2ed0e11a87074719ee63c4f918511f4cb",
+                                       "RESP-013 c0c24c1914a5e7cabe42d3ce08cc9d07aff654da12db547e3cb5422d9c123cc6",
+                                       "RESP-013 3bd60bcc7e91073cc8660b82969d9aa7c8fcde1fdaac76dc48b2c1a01b0bafbb",
+                                       "SCHEMA-001 3413e0973ebac8c9d74a388a50bce833a6fd45672310ba89b9a394c5b7f6c915",
+                                       "SCHEMA-001 31300ade7b6c53e284e5ebf5ab415e2ec46c2da3a0fb74112b575252c3411bf6",
+                                       "SCHEMA-001 8ef80baab0f5ad056c90e540015fe38cd9f36dfea7984b465d751f60f774a737",
+                                       "VER-002 9d681fabd91960a9a04e988a3121e59b3604a2d6af0caac62480e65ff0d658d4",
+                                       "RESP-005 2c7d1f7099e38d6ece6ad7c2638df10637d248d7fcfdb4a116ab5e8b8bc82800",
+                                       "RESP-005 cf151ecfd60a8e15735b35953a93da122302fa8ab05316b5e2fc8e82e74012ce",
+                                       "RESP-005 72dd86fc2929fb4717b1336226ceefb9057f0fcaa512325618734155ae0fa9d7",
+                                       "SCHEMA-005 0972a68b970d383d842db72b3cbb4d6738d4e21d82874feade81702c0235ba76",
+                                       "SCHEMA-005 ae6f9ec16406f8217ab11d2a1dcdbf369e5d5bd9a8abfec7b971670d47be8a21",
+                                       "SCHEMA-005 4eee92d3b839f54a6ebd16e0c8f587fb5dd9fd1053ed2863872b5dc19d116811"
+                                   ]
+                  },
+                  {
+                      "input":  "fixtures/review-corpus/openapi-realistic/base.json",
+                      "count":  74,
+                      "findings":  [
+                                       "NAMING-001 43029c96324e7c14eb626ac3963158d2c611da88163c696bac4fe771ef64bd0b",
+                                       "NAMING-001 25b3cb3b2ef281163bc895d4941246dc13c086fd31a1e22282b575d7d9a36dad",
+                                       "NAMING-001 aa8248d3c03cb5266d42c29faef9b4889dba06ea0fee07a6208f062cb075b262",
+                                       "NAMING-001 17e806e6e47977ee41d51adb294f97ece82498082fe8403435c4c0be74b9ed2a",
+                                       "NAMING-001 96931a6c6f8ef5d6da04b2960d6369961886babd8cb75b776fc411556f5d4d0e",
+                                       "NAMING-001 582661d4a5a4e974861ea2fe6aed9f68d11b79c21b980be8918713132f276675",
+                                       "NAMING-001 ea1b6d30d0b89f5d595923efc248b62f027e5625d4c82c381455b9768eb8477a",
+                                       "NAMING-001 229f3f1b1fbbd968a40fb2c853c6a1b664a021828dd7540734f98d03303240c1",
+                                       "NAMING-001 1288857bd42c17bf8127f105857cde3d03c215220db7001182ff8220f15e22e1",
+                                       "NAMING-001 eb4547bfd8cbefcc111b541f1854b1918555028128a1f51f77ac915eeaab7d1b",
+                                       "NAMING-001 4fb27615e2973c1b00e446f21ad91a56364d82f49efc55725d495e4b18567ae7",
+                                       "NAMING-001 6b5dc2172b4d81bb5e5d51478d649b081453c0ace444e9b434d70adf4e5de279",
+                                       "NAMING-001 35d171aaa2316c178561c2bfa792582c0a9eb7453b9dd3e4bdfee187b1d740a5",
+                                       "NAMING-001 9663febb517b276f6b28174e6edbed3e580d8fe1721854e82fa949dceb3a8905",
+                                       "NAMING-001 705f044b12abc97be92ab5f758461f77ded5cd07100714d9a4a84a4c63ef627d",
+                                       "NAMING-001 d2f3daadfcf6ff1bd2fae21fd6e6cd31a103a7a2113cb05f7487188768cf9f2a",
+                                       "NAMING-001 8a33a3257e258fb757eff5583d77dd52edcde346f946b21df94fbddadf947dd2",
+                                       "NAMING-001 87a9e11f9c2e461ae15086f7122dbc7ead608c9211bfa9d6d1b59889c0d21cce",
+                                       "AUTH-006 2b327063b327881fd7f0c18e8661716356b907ebcdfa67cd7e5b00de5d83bbb7",
+                                       "ERR-001 1f0edb5d904f3f8f3688b3c5b518c888b4aa316a9ee69bdc67329300d1341e79",
+                                       "ERR-001 65e2e1cc9a67a5a53f709632073ade24460c55fe30a299011982ba8e796187c4",
+                                       "ERR-002 d60c625df6fbc4c783162963311bc042e8ad72e42cdbebcc9e54422866b27319",
+                                       "ERR-002 77e14f1edb0de55a79367367fd55f19682786aaef33f0f743ec8a2d4f410c7c8",
+                                       "ERR-002 e03c97e9713fedc860eca003f1a4cedbd64312eab9b8455ba0a8c7339ac1c686",
+                                       "ERR-002 95aea82446b5a871ad3f1e98e97e8892662381caa5195f6fb7405b0d76cdf415",
+                                       "ERR-002 69a5b677c1cc16f15553fb08e604ab31320a0c8c6c937af5c1dc998c113cb25d",
+                                       "ERR-002 eb932c87ce1e3eddc7bc43d555f94c85c7cec6c954a6bd297f7d01ece56b0472",
+                                       "ERR-002 155d163ae5be52ff8b78d47e2f3968decd3391f1c09316b72950ee987d23c5e5",
+                                       "ERR-002 eb350d4a9003039e50c0b37bbff20884b19538891c953660e183c6fce1c65baf",
+                                       "ERR-002 5d2d77fdcc82471f508a6d05256eecf88906a365c06c4e02501642555ed850a2",
+                                       "ERR-005 d3a074cbf863e31cb4aa9ccce912eede18f819db3e7bf5c2261d83e502acbc51",
+                                       "PAG-001 b48dd1232d5a3ebca7006b859918323c598bb4f8288a33184ea551c74a6bc5c1",
+                                       "RESP-007 3c38f8c0257912a9e4c3814b17340e1cecb88ec1c5b15a4653cee6cadb63adcb",
+                                       "RESP-007 090c27957ab62701bde507316bc77ddac688dec082dd10bd4fe7ec614f60e51d",
+                                       "RESP-007 a80ff55403a749f633b2667b847aaa35dc57bc1e0eca44eeec6099dd99a142da",
+                                       "RESP-007 ec65fb605b2e315d4258362a694f35f9dce9deacded76d54082cf4a1a56855ac",
+                                       "RESP-007 3309c1647321ec824f046b6046dbf93deea8d5cfe94bf5788e54aeeec7f8fce5",
+                                       "RESP-007 c1c274109733de97124a5ff792e228445a2bacd2a0f3b5283f462f51d25110af",
+                                       "RESP-008 bfb256bf78bf86435606309312c30f7b0ac27f40378cd7d4a0afeed97b04a6d1",
+                                       "RESP-009 7becdee4c9c815070c842adbc2a1835c99706818d9238d98d5e732e368c66d05",
+                                       "RESP-010 bb3a427661ed06b1fadf7db6590294e26c106b1cb13679b910d94d48f5bc5efa",
+                                       "RESP-013 f61d44943b88145a539202a9f77ff39f3f3ca8263ebd2876be59f94e294f0604",
+                                       "RESP-013 7fc6c6e10a055c03319ead3fee94b29cade50c151283d64f27d08bdf67b1adf6",
+                                       "SCHEMA-001 151d6faa9f29e3f385593510c95bc2ce62e0ff59cf9d8d477949e1049d2a8069",
+                                       "SCHEMA-001 15329072c4c692b82c941b52d45aa2d64b22026afed4318a6fcfd1f757ea25ca",
+                                       "SCHEMA-001 c2d26ef1f2164c3b7834ab6113a5721a2fba12e182a2b4173559af7b77a783e9",
+                                       "SCHEMA-001 0e435aa637a4b351bb349c66e4e7d1087c4f0bb24510f86e7b34f744cb7202fc",
+                                       "SCHEMA-001 5b3abdb7661a8e54f565a3e7d464db6c28b8d4ecbf44ea2908be25c43c329664",
+                                       "SCHEMA-001 6f44dc71c96f00759115e5c58677a68bd5ac58d22b57313e82d580b9848396ac",
+                                       "SCHEMA-001 bdc5726d3cc5a5d5ff1bbfa2acd4c3448e2da8fd97bb048504cda0c227cc684a",
+                                       "SCHEMA-001 ae3ec9df11455ef223cf285cd1f4dd8df39a2781c36bf9957ea658592af03409",
+                                       "SCHEMA-001 6b15d19e8bc3a8daa38c44aa88621f3f04e440361e109863d70f9ccf282cf6b2",
+                                       "SCHEMA-001 2d25d45d462a3c49214ae2c81404b194bad4491e3356a6b95962355a5ace7375",
+                                       "SCHEMA-001 8c3e2e14a55cd95d9c388eb3f36c10c86178139ba2855545042dff3c71f61dbf",
+                                       "SCHEMA-002 a3da0a4e99a604ddbded9fe97424528944d24a16313e3a268400161d01499085",
+                                       "VER-002 9d681fabd91960a9a04e988a3121e59b3604a2d6af0caac62480e65ff0d658d4",
+                                       "PAG-003 5c6bebab835a05f3791d25d2a79af35012749cc5e6be3eb79450adc8be305b33",
+                                       "PARAM-007 cfde311047dbd7c6981b4d1cbb8ca09285940c10ba7a9e2fe5cb270d3faf75a9",
+                                       "SCHEMA-005 98dd3a90d0eb30ac3c4da8c1b698cc7489cae9f06705125a0b26a794dc07b1b8",
+                                       "SCHEMA-005 ebec54b75041704cd62b2b4d7f85d5d5d3baf3017003a566a5121681b9da4f7a",
+                                       "SCHEMA-005 4bd6fb79a1669502c0f9364e1dbf4a8b639d301695e3fec3b8409d368428863f",
+                                       "SCHEMA-005 b51f226965125e5dd7aec90a2b665dc9dde041cc5e1de9a0037d41f3211b70bc",
+                                       "SCHEMA-005 7ae38d00275e53507d0883c9173b9de1c40248da02568045e200dca83d26b759",
+                                       "SCHEMA-005 51b2b095d27969197094c35f49fc4821c2af52823bbede93b4388ccea281faef",
+                                       "SCHEMA-005 e7a981e4323ec5f35b61220aef0772143639d4712887d7613639730ce89235d6",
+                                       "SCHEMA-005 8ae73f9967967e378e36a7b432df4a638a53c21d5e70dcc3d4d48a5db67860ef",
+                                       "SCHEMA-005 11fe04817bdf05d0d215697a76c6fd8e5d5a3b308a35dfbf48b91af7c15840a9",
+                                       "SCHEMA-005 db3399f559a27ae452bc252e4884cdcabdd07ecbf8f3dfdfd7e3539968470603",
+                                       "SCHEMA-005 51fb287841f8d33217076d035829cebba784d257ea8e5a1567cddcdbe8bba230",
+                                       "SCHEMA-005 da03a2d71303c2554edcb9b641222194c46281926038c353d1553731aa2f3bcb",
+                                       "SEC-003 aefb021a4854a34ab04974d59acc0f28075b3ef4e65e69a952556f3bc21687f3",
+                                       "SEC-003 4d36c6c5422fc9034708377e015dd02e8e489da04ca75e24159dbee0f729a718",
+                                       "SEC-003 1a5c33d0c7905e8726d7e02d8f44b9de2dd4d45d0bd0c4a79aea69d3488b2098",
+                                       "STRUCT-007 0f793ccde74c6e68f7e81c3c0ef66adb1f745c7010dda6f6a9fda3429e1f31b2"
+                                   ]
+                  },
+                  {
+                      "input":  "fixtures/review-corpus/swagger/base.yaml",
+                      "count":  10,
+                      "findings":  [
+                                       "AUTH-001 224e11b7fb764763bf0430d9543b357746cf9bb97216ba10b9ac69265fac6fc9",
+                                       "ERR-005 d3a074cbf863e31cb4aa9ccce912eede18f819db3e7bf5c2261d83e502acbc51",
+                                       "PAG-001 06fc4d4fe8c024a1f38f951bd94191871792d4c3bfc382e093749a4b315c4f26",
+                                       "RESP-002 c878693891fc754c3ab8ff77b98a6c8beabef8cd4c1314e4f5db8d51a9fbc44f",
+                                       "RESP-008 98226ec68ba514b01ad43ec1527d111f5b2e4b1dffa0247cbbdd7806bbe9ccae",
+                                       "STRUCT-005 aa3a187783a9a64692e890b49848f66b241fd430db5969304cd13e64065e45ca",
+                                       "VER-002 9d681fabd91960a9a04e988a3121e59b3604a2d6af0caac62480e65ff0d658d4",
+                                       "PAG-003 2f9077baae49a6c6d28d4fe3b2e24252b88426e943bef764596022a192d05d80",
+                                       "RESP-005 93ef21eb4e683cf917b1c90ad97ee3d1af469129a5ad0ec618410c03f67e0c52",
+                                       "STRUCT-007 0f793ccde74c6e68f7e81c3c0ef66adb1f745c7010dda6f6a9fda3429e1f31b2"
+                                   ]
+                  },
+                  {
+                      "input":  "fixtures/review-corpus/swagger/candidate.yaml",
+                      "count":  13,
+                      "findings":  [
+                                       "AUTH-001 224e11b7fb764763bf0430d9543b357746cf9bb97216ba10b9ac69265fac6fc9",
+                                       "ERR-005 d3a074cbf863e31cb4aa9ccce912eede18f819db3e7bf5c2261d83e502acbc51",
+                                       "PAG-001 06fc4d4fe8c024a1f38f951bd94191871792d4c3bfc382e093749a4b315c4f26",
+                                       "RESP-002 c878693891fc754c3ab8ff77b98a6c8beabef8cd4c1314e4f5db8d51a9fbc44f",
+                                       "RESP-008 98226ec68ba514b01ad43ec1527d111f5b2e4b1dffa0247cbbdd7806bbe9ccae",
+                                       "RESP-008 ff2593d736e41b6f4bd0a4bdefdbd6d59d8158447b57c6cc388c771826f1e881",
+                                       "STRUCT-005 aa3a187783a9a64692e890b49848f66b241fd430db5969304cd13e64065e45ca",
+                                       "VER-002 9d681fabd91960a9a04e988a3121e59b3604a2d6af0caac62480e65ff0d658d4",
+                                       "DOCS-008 a9b45344597de8156b889946ecd062a5265d438320a3d407842b6c5619ac514f",
+                                       "PAG-003 2f9077baae49a6c6d28d4fe3b2e24252b88426e943bef764596022a192d05d80",
+                                       "RESP-005 93ef21eb4e683cf917b1c90ad97ee3d1af469129a5ad0ec618410c03f67e0c52",
+                                       "RESP-005 b1f0f71f80a44e605c5b326b4daf60cd67df708f004686b25635f423f51d6e6e",
+                                       "STRUCT-007 0f793ccde74c6e68f7e81c3c0ef66adb1f745c7010dda6f6a9fda3429e1f31b2"
+                                   ]
+                  },
+                  {
+                      "input":  "fixtures/graphql/schema.graphql",
+                      "count":  4,
+                      "findings":  [
+                                       "GQL-001 4a6d5091e0ebf2c9228e3b97fc14de58603520900e964a61307f3420fb2fa268",
+                                       "GQL-002 dff07e0088cc0952bf47061072957d2f8ac6e59d2843411e4fe65d2d38a4aa67",
+                                       "GQL-007 ee391951b46d8d93479921ad973fcad961bc2928ed6ec7bad10a07552a2cf515",
+                                       "GQL-003 85c9206a708ae5d4c3e472976fc1db20265d913d89ec59e8ee29b29282921a34"
+                                   ]
+                  },
+                  {
+                      "input":  "fixtures/grpc/pet.proto",
+                      "count":  10,
+                      "findings":  [
+                                       "GRPC-001 4615f2dcebdecf7f600743d1b9e4ad834c676505a04f7062e6569852a7b497c1",
+                                       "GRPC-002 94cdcf34daa7145476dcf147996890ea01c0bfc7e8f27bdd1c8cad3c18e23c66",
+                                       "GRPC-003 d6e64b3a9a7db06abd19d1b8492d91a5e3c0d81bf47ef2373bd4f09497c1b4c5",
+                                       "GRPC-003 a0870a4326811343adecc7d5fe6a96db70e953c6d0ae5f4784cab4eb43fe8a6c",
+                                       "GRPC-004 f729b09dd0e28cf3cf520945e683d6327045c9646cd3e4e6dc7e4642716be940",
+                                       "GRPC-004 e923f297e649115efd8ee679a693c339cdd3502f8e3f27174fa4b665f8f5b1d8",
+                                       "GRPC-006 6a1de7a9e1b1471dc55e4db32ed58b596b487c8ffef73384a90c9503dd2ba1ec",
+                                       "GRPC-006 dbf2c168925ae0c488711f6be21ef4e44950c493156178147e73cd739773a6c7",
+                                       "GRPC-006 f326f75e95d31143fe08f44843b868384edb9e6bf7f6738932fad8cda73b25d0",
+                                       "GRPC-006 de28a32b9036a59e72dfb5b29597f088f7d312e5be0688a96443ba016a530a28"
+                                   ]
+                  },
+                  {
+                      "input":  "fixtures/asyncapi/v2.yaml",
+                      "count":  3,
+                      "findings":  [
+                                       "ASYNC-001 8811c20b57dc3cc5f0186761b6f515c170fed8c87c1edb3c3d89a1cb605f4640",
+                                       "ASYNC-002 8c6f22f058837844d05008b2e48c18542e7b0ec003a76574a8b6e6ae8eaa15d9",
+                                       "ASYNC-006 5ada587e5916164068f4f24f3bd23728ac7cdc63d195366688c0489caadc290c"
+                                   ]
+                  },
+                  {
+                      "input":  "fixtures/asyncapi/v3.yaml",
+                      "count":  0,
+                      "findings":  [
+
+                                   ]
+                  },
+                  {
+                      "input":  "fixtures/webhooks/valid.yaml",
+                      "count":  5,
+                      "findings":  [
+                                       "WH-001 010dc13bd165bd0ac070c3de22dc488dd452682ae7c41dbc858bb2963ffa34bd",
+                                       "WH-005 24bff31e6baace96364c8faa2b3ddb052a7730c762bb1330d35aa93f2b962a44",
+                                       "WH-006 717ab76f8089749017bdadd0f27f8c7547116ab51cdfe5cfe76e96e04161ce9b",
+                                       "WH-003 57716812b6944714779c338855a394d7faac64c2976fe9c09796bad19164a145",
+                                       "WH-004 2c6dadda94f893d3a417b0d4375e7e157e878cb08e705462a3695f717138e102"
+                                   ]
+                  }
+              ]
+}
