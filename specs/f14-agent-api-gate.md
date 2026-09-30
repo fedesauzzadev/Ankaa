@@ -246,3 +246,6 @@ antes de una comunicación de lanzamiento; no bloquean construir el producto.
 - 2026-09-30 · M14.1 iniciado: `review <base> <candidate>` entrega revisión
   combinada console/JSON para OpenAPI/Swagger; otros protocolos incluyen
   análisis estático del candidato y declaran comparación no soportada.
+- 2026-09-30 · M14.1 cerrado: evaluador compartido `reviewUseCase` + tipos
+  `ApiChangeReview` (packages/cli/src/review.ts); el CLI consume el mismo
+  evaluador sin sub-comandos ni roundtrips JSON, listo para MCP (M14.2).

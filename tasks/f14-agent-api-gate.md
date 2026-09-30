@@ -5,8 +5,8 @@ Plan: [f14-agent-api-review](../plans/f14-agent-api-gate.md)
 
 ## M14.1 — Evaluador compartido + CLI
 
-- [ ] Definir tipos y builder de `ApiChangeReview` reutilizando `Report`/`Finding`.
-- [ ] Extraer/compartir el pipeline de parse, analyze-candidate y diff sin
+- [x] Definir tipos y builder de `ApiChangeReview` reutilizando `Report`/`Finding`.
+- [x] Extraer/compartir el pipeline de parse, analyze-candidate y diff sin
       duplicar semántica de `analyze` o `diff`.
 - [x] Formalizar con fixtures qué formatos soportan comparación base-candidato;
       devolver `comparison.supported: false` explícito en los demás.

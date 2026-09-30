@@ -16,11 +16,10 @@ import {
   explain,
   packageVersion,
   sortFindings,
-  type Finding,
   type Rule,
   type RulePack,
 } from "@apigovscan/core";
-import { buildReport, formatConsole, type Report } from "@apigovscan/reporters";
+import { buildReport, formatConsole } from "@apigovscan/reporters";
 import {
   parseAnalyzeArgs,
   parseDashboardArgs,
@@ -41,9 +40,9 @@ import {
   computeExitCode,
   describeSuppression,
   parseSpecInput,
-  protocolForInput,
 } from "./analyze.js";
 import { prepareAnalysis } from "./analyze-setup.js";
+import { reviewUseCase } from "./review.js";
 import {
   buildFixMessages,
   extractSpecFragment,
@@ -2609,41 +2608,15 @@ async function runReviewCommand(
     return 2;
   }
 
-  let oldBytes: Buffer;
-  let newBytes: Buffer;
-  try {
-    oldBytes = readFileSync(oldAbs);
-    newBytes = readFileSync(newAbs);
-  } catch (err) {
-    io.stderr(
-      `error: cannot read review inputs: ${err instanceof Error ? err.message : String(err)}\n`,
-    );
+  const prepared = prepareAnalysis(io.cwd, config, {
+    rulesFiles: [],
+    skillsDir: args.skillsDir,
+    baselineMode: "off",
+  });
+  if (!prepared.ok) {
+    io.stderr(`error: ${prepared.error}\n`);
     return 2;
   }
-  const baselineAdapter = protocolForInput(args.oldPath, oldBytes);
-  const candidateAdapter = protocolForInput(args.newPath, newBytes);
-  const oldLabel = normalizeLabel(oldAbs, io.cwd);
-  const newLabel = normalizeLabel(newAbs, io.cwd);
-  const oldParsed = parseSpecInput(args.oldPath, oldBytes, oldLabel);
-  if (!oldParsed.ok) {
-    io.stderr(`error: ${oldParsed.error}\n`);
-    return 2;
-  }
-  const newParsed = parseSpecInput(args.newPath, newBytes, newLabel);
-  if (!newParsed.ok) {
-    io.stderr(`error: ${newParsed.error}\n`);
-    return 2;
-  }
-  const baselineFormat =
-    oldParsed.protocol === "openapi" &&
-    oldParsed.spec.parseWarnings.some((warning) => warning.code === "SWAGGER_CONVERTED")
-      ? "swagger"
-      : oldParsed.protocol;
-  const candidateFormat =
-    newParsed.protocol === "openapi" &&
-    newParsed.spec.parseWarnings.some((warning) => warning.code === "SWAGGER_CONVERTED")
-      ? "swagger"
-      : newParsed.protocol;
 
   const emit = (text: string): boolean => {
     if (args.output === undefined) {
@@ -2661,93 +2634,42 @@ async function runReviewCommand(
     }
   };
 
-  const childEnv = io.env;
-  const childIo = (stdout: (text: string) => void, stderr: (text: string) => void) => ({
-    stdout,
-    stderr,
-    env: childEnv,
-    cwd: io.cwd,
-    isTTY: false,
-  });
-  const analysisOutput: string[] = [];
-  const analysisErrors: string[] = [];
-  const analysisCode = await runAnalyze(
-    [
-      args.newPath,
-      "--format",
-      "json",
-      "--fail-on",
-      "never",
-      ...(args.config !== undefined ? ["--config", args.config] : []),
-      ...(args.skillsDir !== undefined ? ["--skills-dir", args.skillsDir] : []),
-      ...(args.licenseKey !== undefined ? ["--license-key", args.licenseKey] : []),
-    ],
+  const evaluation = await reviewUseCase(
+    { loader: createFsSpecLoader(), packs: createFsPackRepository(io.cwd) },
     {
-      ...childIo(
-        (text) => analysisOutput.push(text),
-        (text) => analysisErrors.push(text),
-      ),
-      readStdin: async () => new Uint8Array(),
+      cwd: io.cwd,
+      baselinePath: args.oldPath,
+      candidatePath: args.newPath,
+      setup: prepared.setup,
+      failOn,
+      toolVersion: packageVersion(),
     },
   );
-  if (analysisCode === 2) {
-    io.stderr(analysisErrors.join(""));
-    return 2;
-  }
 
-  let candidateReport: Report;
-  try {
-    candidateReport = JSON.parse(analysisOutput.join("")) as Report;
-    if (!Array.isArray(candidateReport.findings) || !Array.isArray(candidateReport.input)) {
-      throw new Error("candidate report is missing required fields");
-    }
-  } catch (err) {
-    io.stderr(
-      `error: review evaluator returned invalid candidate report: ${err instanceof Error ? err.message : String(err)}\n`,
-    );
-    return 2;
-  }
-
-  if (baselineAdapter !== null || candidateAdapter !== null) {
-    const candidateInput = candidateReport.input[0];
-    if (candidateInput === undefined) {
-      io.stderr("error: review evaluator returned an incomplete candidate input\n");
+  if (!evaluation.ok) {
+    if (!evaluation.comparisonUnsupported) {
+      io.stderr(`error: ${evaluation.error}\n`);
       return 2;
     }
-    const payload = {
-      schemaVersion: 1,
-      outcome: "error",
-      policy: { failOn },
-      baseline: { path: oldLabel, format: baselineFormat },
-      candidate: { ...candidateInput, format: candidateFormat },
-      comparison: {
-        supported: false,
-        reason: "Compatibility comparison currently supports OpenAPI and Swagger only.",
-      },
-      tool: candidateReport.tool,
-      packs: candidateReport.packs,
-      summary: candidateReport.summary,
-      findings: candidateReport.findings,
-      reportHash: candidateReport.reportHash,
-      errors: [{ code: "comparison-unsupported", message: "Inputs cannot be compared." }],
-    };
     if (args.format === "json") {
       if (
-        !emit(`${JSON.stringify(payload, null, io.isTTY && args.output === undefined ? 2 : 0)}\n`)
+        !emit(
+          `${JSON.stringify(evaluation.review, null, io.isTTY && args.output === undefined ? 2 : 0)}\n`,
+        )
       ) {
         return 2;
       }
     } else {
       const report = buildReport({
-        results: [{ findings: candidateReport.findings, errors: [] }],
-        inputs: candidateReport.input,
-        packs: candidateReport.packs,
+        results: [{ findings: evaluation.candidateReport.findings, errors: [] }],
+        inputs: evaluation.candidateReport.input,
+        packs: evaluation.candidateReport.packs,
         toolVersion: packageVersion(),
       });
       const noColor = args.noColor || (io.env.NO_COLOR !== undefined && io.env.NO_COLOR !== "");
       if (
         !emit(
-          `review: error · compatibility comparison is not supported for ${baselineFormat} → ${candidateFormat}\n` +
+          `review: error · compatibility comparison is not supported for ${evaluation.review.baseline.format} → ${evaluation.review.candidate.format}\n` +
             formatConsole(report, { color: !noColor && io.isTTY }),
         )
       ) {
@@ -2757,87 +2679,18 @@ async function runReviewCommand(
     return 2;
   }
 
-  const diffOutput: string[] = [];
-  const diffErrors: string[] = [];
-  const diffCode = await runDiffCommand(
-    [
-      args.oldPath,
-      args.newPath,
-      "--format",
-      "json",
-      "--fail-on",
-      "never",
-      ...(args.config !== undefined ? ["--config", args.config] : []),
-      ...(args.skillsDir !== undefined ? ["--skills-dir", args.skillsDir] : []),
-      ...(args.licenseKey !== undefined ? ["--license-key", args.licenseKey] : []),
-    ],
-    {
-      ...childIo(
-        (text) => diffOutput.push(text),
-        (text) => diffErrors.push(text),
-      ),
-    },
-  );
-  if (diffCode === 2) {
-    io.stderr(diffErrors.join(""));
-    return 2;
-  }
-
-  let diffReport: Report;
-  try {
-    diffReport = JSON.parse(diffOutput.join("")) as Report;
-    if (!Array.isArray(diffReport.findings) || !Array.isArray(diffReport.input)) {
-      throw new Error("report is missing required fields");
-    }
-  } catch (err) {
-    io.stderr(
-      `error: review evaluator returned invalid report: ${err instanceof Error ? err.message : String(err)}\n`,
-    );
-    return 2;
-  }
-
-  const report = buildReport({
-    results: [
-      {
-        findings: sortFindings([...candidateReport.findings, ...diffReport.findings] as Finding[]),
-        errors: [],
-      },
-    ],
-    inputs: diffReport.input,
-    packs: [...candidateReport.packs, ...diffReport.packs],
-    toolVersion: packageVersion(),
-  });
-  const baselineInput = report.input[0];
-  const candidateInput = report.input[1];
-  if (baselineInput === undefined || candidateInput === undefined) {
-    io.stderr("error: review evaluator returned an incomplete input list\n");
-    return 2;
-  }
-  const outcome = report.findings.length === 0 ? "clean" : "findings";
-  const reviewResult = {
-    schemaVersion: 1,
-    outcome,
-    policy: {
-      failOn,
-    },
-    baseline: { ...baselineInput, format: baselineFormat },
-    candidate: { ...candidateInput, format: candidateFormat },
-    comparison: { supported: true, format: "openapi" },
-    ...report,
-  };
-
   if (args.format === "json") {
     const pretty = io.isTTY && args.output === undefined;
-    if (!emit(`${JSON.stringify(reviewResult, null, pretty ? 2 : 0)}\n`)) return 2;
+    if (!emit(`${JSON.stringify(evaluation.review, null, pretty ? 2 : 0)}\n`)) return 2;
   } else {
     const noColor = args.noColor || (io.env.NO_COLOR !== undefined && io.env.NO_COLOR !== "");
-    const consoleText = formatConsole(report, { color: !noColor && io.isTTY });
+    const consoleText = formatConsole(evaluation.report, { color: !noColor && io.isTTY });
     const reviewLine =
-      `review: ${outcome} · comparison ${baselineFormat} → ${candidateFormat}\n` +
-      `baseline: ${oldLabel} → candidate: ${newLabel}\n\n`;
+      `review: ${evaluation.review.outcome} · comparison ${evaluation.review.baseline.format} → ${evaluation.review.candidate.format}\n` +
+      `baseline: ${evaluation.review.baseline.path} → candidate: ${evaluation.review.candidate.path}\n\n`;
     if (!emit(`${reviewLine}${consoleText}`)) return 2;
   }
-  return computeExitCode(report, failOn);
+  return evaluation.exitCode;
 }
 
 async function runScanOrgCommand(
