@@ -33,7 +33,7 @@ Fuente: comparativa Spectral/Vacuum/Redocly/Zally/oasdiff + serie 2026 de API Ev
 
 ### Estratégicas (apuestas; spike o historia de consumidor antes de codear)
 
-- [ ] Auditoría OWASP API Top 10 2023 regla por regla, publicada como tabla (artefacto de confianza enterprise, no código)
+- [x] Auditoría OWASP API Top 10 2023 regla por regla, publicada como tabla (artefacto de confianza enterprise, no código) — hecho 2026-09-30: tabla en `packs/elite/README.md` (full: API2/API8; partial ×6; none: API7/API10, con rationale honesto)
 - [ ] Import de rulesets Spectral (heredar miles de reglas; caro: segundo DSL, choca con whitelist — spike de diseño primero)
 - [ ] Certificación tamper-evident (`certify` sobre reportHash+score+pack; falta historia de quién verifica del lado consumidor)
 - [ ] Presupuesto de falsos positivos por regla (auto-flag si se suprime >X%; requiere datos de uso primero)
