@@ -97,9 +97,11 @@ Plan: — (spec directa)
 
 ## M16.8 — Rename del repo + dogfood (AC-16.11)
 
-- [ ] Renombrar `github.com/fedesauzzadev/ApiGovScan` → `Ankaa` (GitHub
-      redirect cubre clones viejos). **(pendiente ops — humano)**
-- [ ] Actualizar `repository.url` de packages, badges, `uses: ./action` docs
-      y URLs de `npm.pkg.github.com` (`@ankaa/*`). **(junto al rename)**
+- [x] Renombrar `github.com/fedesauzzadev/ApiGovScan` → `Ankaa`
+-      (vía `gh repo rename`; redirect cubre clones viejos).
+- [x] Actualizar `repository.url` de packages, badges, `uses: ./action` docs
+-      y URLs de `npm.pkg.github.com` (`@ankaa/*`). **(ya apuntaban a Ankaa
+-      desde M16.1/M16.6; verificado tras el rename)**
 - [ ] Correr el workflow dogfood del repo sobre sí mismo post-rename y
       verificar el release de `@ankaa/cli` en el registry privado.
+      **(requiere push de los commits locales)**
