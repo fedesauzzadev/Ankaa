@@ -264,6 +264,30 @@ Empieza con 6 packages; extraer más solo si hay un segundo consumidor real (rie
 **Consecuencias:** SDD §4 enmendado con la excepción explícita; dashboard y export viven como paquetes/comandos separados del core; INV-1/INV-7 se verifican igual (el visor no toca `analyze`). Si el visor pidiera login multi-usuario o nube propia, esta ADR caduca y se reabre la discusión.  
 **Estado:** aceptada.
 
+### ADR-014: Spectral se importa (transpila), no se ejecuta
+
+**Contexto:** Spectral (Stoplight) trae miles de reglas community en rulesets con otro DSL: `given` (JSONPath) + `then` (funciones: `truthy`, `pattern`, `alphabetical`, `schema`, custom JS `oas*`). Heredarlas suena gratis, pero es un segundo DSL con expresiones arbitrarias. Spike M8.6 (2026-09-30) auditó el ruleset OAS real (~50 reglas) contra nuestros ~70 átomos.
+
+**Decisión:**
+1. **Rechazado: motor JSONPath/funciones en runtime** (core o adapter). Violaría INV-4 (expresiones arbitrarias vs whitelist), P2 (specs son datos) y P7 (peso del bundle por reglas que pocos usan); las funciones custom JS son código arbitrario y no entran jamás.
+2. **Aceptado: transpilador determinista offline** como modo de `rules import` (reusa pipeline M8.2: envelope + `validateRule` + reporte de skips). Solo el subconjunto mapeable (~20 reglas); lo demás se saltea con motivo, nunca en silencio. Sin análisis, sin red, sin LLM: parse JSON → YAML drafts.
+3. **Aceptado: port curado a elite** como épica aparte (las joyas no cubiertas, con fuente y medición de ruido del playbook f8).
+
+**Mapeo del spike (ruleset OAS real → elite):**
+
+Cubiertas hoy (14): `operation-success-response`→RESP-001, `operation-operationId(-unique)`→NAMING-003, `operation-parameters`→PARAM-006, `operation-tag-defined`→STRUCT-005, `path-params`→NAMING-009/PARAM-001/002, `path-keys-no-trailing-slash`→NAMING-002, `path-not-include-query`→NAMING-011, `oas3-operation-security-defined`→AUTH-003, `oas3-unused-component`→STRUCT-008 (parcial: solo schemas), `oas3-api-servers`→STRUCT-004, `info-description`→DOCS-005, `operation-description`→DOCS-002, `operation-tags`→DOCS-003.
+
+Mapeables con átomos existentes (port directo): `path-declarations-must-exist`→`pathMatches \{\}`, `no-eval-in-markdown`+`no-script-tags-in-markdown`→`not descriptionMatches`, `operation-operationId-valid-in-url`→`operationIdPattern` (solo custom: colisiona con NAMING-004 como default).
+
+Port curado (átomos nuevos chicos): `oas3-server-not-example.com`+`oas3-server-trailing-slash`→átomo `serverUrlMatches`; `info-contact`+`info-license`+`license-url`→extender `DocField`; `duplicated-entry-in-enum`→átomo `duplicateEnumValues`; `array-items`→átomo `arrayItemsMissing`; `no-$ref-siblings`→átomo `refWithSiblings` (el modelo preserva siblings); `openapi-tags-uniqueness`→átomo `duplicateTagNames` (marginal); `oas3-server-variables`→átomo dedicado (moderado); `tag-description`→parser (descripciones de tags raíz) + átomo (mayor).
+
+Solo-transpilable como custom (política débil, no default elite): `operation-singular-tag` (`length`), `openapi-tags-alphabetical` (`alphabetical`).
+
+Fuera de alcance honesto (necesitan validadores/JS): `typed-enum`, `oas3-valid-media/schema-example` y familia `oas2-valid-*` (validación JSON Schema completa), `oas3-examples-value-or-externalValue` (forma xor de Example Object), reglas `oas2-*` (Swagger 2.0 se convierte, no se gobierna) y `oas3_1-*` de webhooks/callbacks (marginales).
+
+**Consecuencias:** cero cambios en runtime de core; el import vive en el adapter CLI; `strictSource` se satisface citando la regla Spectral origen (título+URL del ruleset); el criterio de entrada de M8.6 queda cumplido con este ADR.
+**Estado:** aceptada (spike). Implementación pendiente de spec `f8-spectral-import` (transpilador) y épica de port curado.
+
 ## 8. Modelo de dominio mínimo (glifo)
 
 ```mermaid
