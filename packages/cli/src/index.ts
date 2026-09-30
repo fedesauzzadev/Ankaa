@@ -118,6 +118,7 @@ import {
   type RulesSource,
 } from "./custom-rules.js";
 import { applySkillSuppressions, listSkills, promoteDraft } from "./skills.js";
+import { runSkillsStatsCommand } from "./fp-stats.js";
 import {
   buildLearnPatch,
   loadExistingSeverities,
@@ -169,6 +170,7 @@ export function getHelp(): string {
     "  ankaa suppress --report <r.json> --fingerprint <fp> --decision <d> [--reason ...]",
     "  ankaa skills list [--format json]",
     "  ankaa skills promote <draftId>",
+    "  ankaa skills stats --report <r.json> [--feedback <f.json>] [--tracking <t.json>]",
     "  ankaa license [--key <AGS-...>]",
     "  ankaa fix <path> [--fingerprint <fp>]",
     "  ankaa drift <dir> [--spec <file>]",
@@ -1438,9 +1440,14 @@ function runSkillsCommand(
         "Usage:",
         "  ankaa skills list [--format json] [--skills-dir <dir>] [--config <file>]",
         "  ankaa skills promote <draftId> [--skills-dir <dir>] [--config <file>]",
+        "  ankaa skills stats --report <r.json> [--report <r2.json>]",
+        "                     [--feedback <f.json> ...] [--tracking <t.json> ...]",
+        "                     [--min-sample <n>] [--fp-threshold <0..1>]",
+        "                     [--format console|json] [--output <file>]",
         "",
         "list      Show suppressions, severity overrides, and drafts.",
         "promote   Flip draft: true → false so the rule is evaluated.",
+        "stats     Local FP report per rule (learn feedback + dashboard tracking).",
         "",
       ].join("\n"),
     );
@@ -1449,6 +1456,10 @@ function runSkillsCommand(
 
   const sub = argv[0];
   const rest = argv.slice(1);
+
+  if (sub === "stats") {
+    return runSkillsStatsCommand(rest, io);
+  }
 
   let format: "console" | "json" = "console";
   let skillsDirFlag: string | undefined;
@@ -1593,7 +1604,7 @@ function runSkillsCommand(
     return 0;
   }
 
-  io.stderr(`error: unknown skills subcommand "${sub ?? ""}" (expected: list | promote)\n`);
+  io.stderr(`error: unknown skills subcommand "${sub ?? ""}" (expected: list | promote | stats)\n`);
   return 2;
 }
 

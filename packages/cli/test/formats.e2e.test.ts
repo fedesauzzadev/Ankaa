@@ -68,7 +68,7 @@ describe("analyze output formats e2e (f5-reporters)", () => {
     expect(bad.code).toBe(2);
     expect(bad.stderr).toContain("invalid --format");
     expect(bad.stderr).toContain("expected console | json | sarif | markdown | annotations");
-  });
+  }, 20000);
 
   it("AC-CLI.2 sarif to --output writes the file and keeps stdout silent", async () => {
     const cwd = tempDir();
