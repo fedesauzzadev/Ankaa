@@ -42,6 +42,10 @@ Especificaciones **spec-driven** derivadas del [SDD v1.0](../docs/SDD.md). El SD
 | [f8-rules-import](f8-rules-import.md)           | 8    | M8.2: guideline interna → reglas (LLM propone, engine valida)                        | cerrada      |
 | [f8-drift](f8-drift.md)                         | 8    | M8.3: drift spec↔código + generación de spec                                         | cerrada      |
 | [f8-scan-org](f8-scan-org.md)                   | 8    | M8.4: informe consolidado multi-repo (batch)                                         | cerrada      |
+| [f8-scan-repo](f8-scan-repo.md)                 | 8    | M8.11: analizar un repo Git individual por HTTPS/SSH                                 | cerrada      |
+| [f8-spectral-import](f8-spectral-import.md)     | 8    | Transpilar un subconjunto offline del ruleset Spectral (ADR-014)                     | draft        |
+| [f8-certify](f8-certify.md)                     | 8    | Verificación de integridad/autenticidad para reportes                                | draft        |
+| [f8-fp-budget](f8-fp-budget.md)                 | 8    | Medir feedback falso positivo por regla sin telemetría ni mutación                   | draft        |
 | [f8-elite-100](f8-elite-100.md)                 | 8    | M8.5: pack elite 65 → 88 reglas curadas (cierre honesto)                             | cerrada      |
 | [f8-graphql](f8-graphql.md)                     | 8    | M8.6: GraphQL SDL — adapter + pack 8 reglas (protocolo 1 de 4)                       | cerrada      |
 | [f8-grpc](f8-grpc.md)                           | 8    | M8.7: proto/gRPC — parser propio + pack 7 reglas (protocolo 2 de 4)                  | cerrada      |
@@ -50,9 +54,12 @@ Especificaciones **spec-driven** derivadas del [SDD v1.0](../docs/SDD.md). El SD
 | [f8-legacy-convert](f8-legacy-convert.md)       | 8    | Legacy Swagger 1.x/2.0 → Spec best-effort                                            | cerrada      |
 | [f9-launch-oss](f9-launch-oss.md)               | 9    | Lanzamiento OSS gratuito (papeles, sin publicar)                                     | cerrada      |
 | [f10-dashboard](f10-dashboard.md)               | 10   | Visor local de reportes + tracking, OSS para todos (loopback, sin nube)              | cerrada      |
-| [f10-export](f10-export.md)                     | 7    | Contrato JSON para integraciones, edición empresarial (F7/M7.4)                      | ready        |
-| [f11-coverage](f11-coverage.md)                 | 11   | Métrica de cobertura de gobernanza (% de la spec inspeccionada por reglas)          | cerrada      |
-| [f12-breaking](f12-breaking.md)                 | 12   | Diff spec-vs-spec: breaking changes base..head (BRK-001…008)                        | cerrada      |
+| [f10-export](f10-export.md)                     | 7    | Contrato JSON para integraciones, edición empresarial (F7/M7.4)                      | cerrada      |
+| [f11-coverage](f11-coverage.md)                 | 11   | Métrica de cobertura de gobernanza (% de la spec inspeccionada por reglas)           | cerrada      |
+| [f12-breaking](f12-breaking.md)                 | 12   | Diff spec-vs-spec: breaking changes base..head (BRK-001…008)                         | cerrada      |
+| [f13-mini-validator](f13-mini-validator.md)     | 13   | Épica futura: validación offline de ejemplos contra schemas                          | draft        |
+| [f14-agent-api-gate](f14-agent-api-gate.md)     | 14   | Revisión local de cambios API para personas/agentes, con salida CI verificable       | ready        |
+| [f15-local-workspace](f15-local-workspace.md)   | 15   | Workspace local guiado con historial, comparación y reanudación                      | ready        |
 
 ## Orden de implementación sugerido
 

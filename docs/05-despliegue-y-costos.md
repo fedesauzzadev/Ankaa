@@ -8,7 +8,7 @@ ApiGovScan · SDD · v1.0
 
 | Superficie                 | Para qué                                                       | Requisito del usuario | Costo usuario         |
 | -------------------------- | -------------------------------------------------------------- | --------------------- | --------------------- |
-| **CLI npm (npx)**          | Análisis, learn, baseline, MCP stdio                           | Node ≥ 20             | $0                    |
+| **CLI npm (npx)**          | Análisis, learn, baseline, MCP stdio                           | Node ≥ 22             | $0                    |
 | **GitHub Action**          | Gate en PR                                                     | repo GitHub           | $0 (minutes del repo) |
 | **Docker image + Compose** | Self-host de servicios de borde / CI containers / dev          | Docker                | $0                    |
 | **Cloudflare Workers**     | Distribución de packs, MCP remoto de consulta, cron de fuentes | cuenta CF free        | $0 (free tier)        |
@@ -25,7 +25,7 @@ ApiGovScan · SDD · v1.0
   "name": "@apigovscan/cli",
   "type": "module",
   "bin": { "apigovscan": "./dist/bin.js" },
-  "engines": { "node": ">=20" },
+  "engines": { "node": ">=22" },
   "files": ["dist", "packs/elite"], // pack embebido para 0 red
 }
 ```
@@ -163,7 +163,7 @@ services:
       - ./packs-mirror:/out
     # schedule via cron del host o `restart` + interval en tooling
   miniflare: # dev del worker CF, no producción
-    image: node:20
+    image: node:22
     working_dir: /app
     command: sh -c "pnpm i && pnpm dev:worker"
     volumes:
@@ -180,8 +180,8 @@ services:
 ### 4.3 Dockerfile CLI (multi-stage, referencia)
 
 ```
-FROM node:20-alpine AS build   # pnpm, compile, bundle
-FROM node:20-alpine AS runtime # solo dist + pack, USER nonroot
+FROM node:22-alpine AS build   # pnpm, compile, bundle
+FROM node:22-alpine AS runtime # solo dist + pack, USER nonroot
 ENTRYPOINT ["apigovscan"]
 ```
 
@@ -307,7 +307,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: pnpm }
+        with: { node-version: 22, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint && pnpm typecheck && pnpm test
       - run: pnpm test:invariants # INV-1..INV-5

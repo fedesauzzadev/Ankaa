@@ -176,7 +176,7 @@ Empieza con 6 packages; extraer más solo si hay un segundo consumidor real (rie
 ### ADR-001: TypeScript, no Go ni Python
 
 **Contexto:** motor + CLI + MCP + Worker en CF.  
-**Decisión:** TypeScript (ESM), Node ≥ 20, strict.  
+**Decisión:** TypeScript (ESM), Node ≥ 22, strict.
 **Consecuencias:** MCP SDK y Workers 1st-class; `npx` como distribución; descartamos binario Go (duplicaría lógica o requeriría bindings) y Python (mal encaje con CF Workers). Trade-off: performance < Go en parseo gigante — aceptable con NFR-02 (≤ 1 MB).  
 **Estado:** aceptada.
 
@@ -261,7 +261,7 @@ Empieza con 6 packages; extraer más solo si hay un segundo consumidor real (rie
 
 **Contexto:** los reportes JSON son ricos pero ilegibles; pedir un dashboard choca con el anti-alcance "no es un portal" del SDD §4.  
 **Decisión:** un script Node cross-OS (`apigovscan dashboard <reporte.json>`) levanta un visor **estático en loopback** (127.0.0.1, sin auth multi-usuario, sin estado remoto). Lee JSON explícitos; el tracking vive en un sidecar local junto al reporte. `analyze` no lo conoce ni lo necesita. Si el usuario hospeda el visor o conecta el JSON a Jira/ServiceNow/Slack, es su red, sus credenciales y su riesgo — nosotros entregamos el JSON con contrato estable, no las integraciones.  
-**Consecuencias:** SDD §4 enmendado con la excepción explícita; dashboard y export viven como paquetes/comandos separados del core; INV-1/INV-7 se verifican igual (el visor no toca `analyze`). Si el visor pidiera login multi-usuario o nube propia, esta ADR caduca y se reabre la discusión.  
+**Consecuencias:** SDD §4 enmendado con la excepción explícita; el dashboard no ejecuta análisis ni toca el core. El workspace posterior se rige por ADR-015; INV-1/INV-7 siguen aplicando.  
 **Estado:** aceptada.
 
 ### ADR-015: Workspace guiado local con operaciones allowlistadas
@@ -276,7 +276,7 @@ Empieza con 6 packages; extraer más solo si hay un segundo consumidor real (rie
 4. Una ejecución “desde cero” analiza todos los repos en un nuevo run. “Continuar” retoma un run o reutiliza resultados solo cuando identidad de fuente, revisión y huella efectiva de análisis (versión/configuración/packs) se verifican. Si no, se reanaliza o se reporta error explícito.
 5. Las acciones de red (p. ej. consultar/clonar GitHub) son visibles y elegidas por el usuario; el análisis sigue local. La preparación de CI previsualiza y requiere confirmación antes de escribir; no activa controles del proveedor.
 
-**Consecuencias:** se amplía ADR-013 sin convertir el producto en portal: el servidor local ahora orquesta acciones conocidas y expone progreso/resultados locales. La superficie de red queda en adapters CLI; core y engine continúan puros. Host/Origin/token, rutas allowlistadas, escritura atómica, escape de contenido e INV-1/2/3/4/7 son gates de aceptación. La lectura de paths requiere selección/entrada explícita del usuario y la escritura requiere preview/confirmación.
+**Consecuencias:** se amplía ADR-013 sin convertir el producto en portal: el servidor local ahora orquesta acciones conocidas y expone progreso/resultados locales. La superficie de red queda en adapters CLI; core y engine continúan puros. Host/Origin/token, rutas allowlistadas, escritura atómica, escape de contenido e INV-1/2/3/4/7 son gates de aceptación. La lectura de paths requiere selección/entrada explícita del usuario y la escritura requiere preview/confirmación.  
 **Estado:** aceptada para implementación mediante `f15-local-workspace`.
 
 ### ADR-014: Spectral se importa (transpila), no se ejecuta
@@ -284,6 +284,7 @@ Empieza con 6 packages; extraer más solo si hay un segundo consumidor real (rie
 **Contexto:** Spectral (Stoplight) trae miles de reglas community en rulesets con otro DSL: `given` (JSONPath) + `then` (funciones: `truthy`, `pattern`, `alphabetical`, `schema`, custom JS `oas*`). Heredarlas suena gratis, pero es un segundo DSL con expresiones arbitrarias. Spike M8.6 (2026-09-30) auditó el ruleset OAS real (~50 reglas) contra nuestros ~70 átomos.
 
 **Decisión:**
+
 1. **Rechazado: motor JSONPath/funciones en runtime** (core o adapter). Violaría INV-4 (expresiones arbitrarias vs whitelist), P2 (specs son datos) y P7 (peso del bundle por reglas que pocos usan); las funciones custom JS son código arbitrario y no entran jamás.
 2. **Aceptado: transpilador determinista offline** como modo de `rules import` (reusa pipeline M8.2: envelope + `validateRule` + reporte de skips). Solo el subconjunto mapeable (~20 reglas); lo demás se saltea con motivo, nunca en silencio. Sin análisis, sin red, sin LLM: parse JSON → YAML drafts.
 3. **Aceptado: port curado a elite** como épica aparte (las joyas no cubiertas, con fuente y medición de ruido del playbook f8).

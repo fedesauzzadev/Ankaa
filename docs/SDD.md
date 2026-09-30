@@ -1,13 +1,13 @@
 # SDD — Software Design Document · ApiGovScan
 
-| Campo                 | Valor                                                                                                                                                                        |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Producto              | ApiGovScan — analizador local de API Governance                                                                                                                              |
-| Versión del documento | 1.0                                                                                                                                                                          |
-| Fecha                 | 2026-09-23                                                                                                                                                                   |
-| Estado                | Aprobado — Fases 0–6, 8, 9 y 10 cerradas (último: visor local `f10-dashboard`); pendiente F7 (enterprise, incluye export M7.4); publicar OSS pendiente de decisión del dueño |
-| Tipo de proyecto      | Herramienta de developer productivity (local-first)                                                                                                                          |
-| Stack                 | TypeScript · pnpm workspaces · Node ≥ 20 · Cloudflare Workers (solo edge services) · Docker Compose (dev/self-host)                                                          |
+| Campo                 | Valor                                                                                                                                                                                                                    |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Producto              | ApiGovScan — analizador local de API Governance                                                                                                                                                                          |
+| Versión del documento | 1.0                                                                                                                                                                                                                      |
+| Fecha                 | 2026-09-23                                                                                                                                                                                                               |
+| Estado                | Aprobado — Fases 0–6, 8–10 y 12 cerradas; F7 pendiente; F14 (revisor local de cambios API para personas y agentes) en ejecución; F15 (workspace local guiado) especificada; publicar OSS pendiente de decisión del dueño |
+| Tipo de proyecto      | Herramienta de developer productivity (local-first)                                                                                                                                                                      |
+| Stack                 | TypeScript · pnpm workspaces · Node ≥ 22 · Cloudflare Workers (solo edge services) · Docker Compose (dev/self-host)                                                                                                      |
 
 ---
 
@@ -23,6 +23,7 @@ El API governance roto no se manifiesta como un incidente: se manifiesta como **
 4. **Permite reglas propias al momento de analizar:** DSL declarativa en YAML + overrides por CLI, sin escribir código.
 5. **Retroalimenta sin tokens de LLM:** motor **100% determinista** (AST + patrones). El "aprendizaje" es la carpeta `.apigovscan/skills/` — suppressions, severidades locales y reglas nuevas derivadas de tu feedback (`report + feedback → learn`), versionable en git. Cero costo por corrida.
 6. **Expone el mismo motor como MCP:** stdio local para Claude/Cursor/opencode (con acceso a tus archivos); servidor remoto opcional en Cloudflare solo para consultar estándares (el análisis remoto no existe: no podría leer tu disco y no querríamos que pudiera).
+7. **Revisa cambios de API para personas y agentes:** combina governance del contrato candidato con compatibilidad respecto de una base, entrega evidencia estructurada y re-evalúa localmente sin LLM por defecto. CLI/MCP dan feedback; CI puede verificar el candidato final. Esta apuesta se especifica en [`f14-agent-api-gate`](../specs/f14-agent-api-gate.md).
 
 **Distribución:** `npx @apigovscan/cli analyze .` — cero instalación permanente. Docker Compose para quien quiera self-host completo sin Cloudflare. Objetivo de costo de infraestructura para usuarios: **$0**.
 
@@ -30,7 +31,7 @@ El API governance roto no se manifiesta como un incidente: se manifiesta como **
 
 | #   | Decisión                                                                     | Fundamento resumido                                                                                                                | ADR                                                                                         |
 | --- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| D1  | TypeScript (Node ≥ 20)                                                       | MCP SDK oficial en TS, Cloudflare Workers nativo en JS/TS, npm/npx como canal de distribución, parsers OpenAPI maduros             | [ADR-001](02-arquitectura.md#adr-001-typescript-no-go-ni-python)                            |
+| D1  | TypeScript (Node ≥ 22)                                                       | MCP SDK oficial en TS, Cloudflare Workers nativo en JS/TS, npm/npx como canal de distribución, parsers OpenAPI maduros             | [ADR-001](02-arquitectura.md#adr-001-typescript-no-go-ni-python)                            |
 | D2  | OpenAPI-first (specs antes que código)                                       | 80% del valor con 20% del esfuerzo; specs son el contrato que governance debe cuidar; código entra después por capas de parser     | [ADR-002](02-arquitectura.md#adr-002-openapi-first-antes-que-code-first)                    |
 | D3  | Local-first: el análisis nunca sale de la máquina                            | Requisito de privacidad; Workers Free no da CPU para parseo pesado; el producto es mejor sin red                                   | [ADR-003](02-arquitectura.md#adr-003-local-first-análisis-nunca-sale-de-la-máquina)         |
 | D4  | Clean Architecture (hexagonal)                                               | Core puro sin I/O; adapters CLI/MCP/CF intercambiables; testability sin mocks de red/FS                                            | [ADR-004](02-arquitectura.md#adr-004-clean-architecture-hexagonal)                          |
@@ -43,6 +44,7 @@ El API governance roto no se manifiesta como un incidente: se manifiesta como **
 | D11 | Determinismo e idempotencia como invariantes                                 | Mismo input + misma versión de packs → mismo reporte (orden estable + content-hash); `learn` idempotente por fingerprint           | [ADR-011](02-arquitectura.md#adr-011-determinismo-e-idempotencia-como-invariantes)          |
 | D12 | Monorepo pnpm workspaces                                                     | Core, parsers, reporters, CLI, MCP y worker comparten tipos y versionan juntos; despliegues independientes                         | [ADR-012](02-arquitectura.md#adr-012-monorepo-pnpm-workspaces)                              |
 | D13 | Visor local de reportes (no es un portal)                                    | El JSON es ilegible sin UI; el visor es estático, loopback-only y sin estado remoto; integraciones las hace el cliente con el JSON | [ADR-013](02-arquitectura.md#adr-013-visor-local-de-reportes-no-es-un-portal)               |
+| D14 | Workspace guiado local                                                       | Interfaces de terminal/web llaman operaciones allowlistadas; estado local reanudable, sin portal ni credenciales persistidas       | [ADR-015](02-arquitectura.md#adr-015-workspace-guiado-local-con-operaciones-allowlistadas)  |
 
 ## 3. Objetivos
 
@@ -65,7 +67,7 @@ El API governance roto no se manifiesta como un incidente: se manifiesta como **
 
 - **No es un linter de código fuente** (no pretende competir con ESLint/Prettier/ruff); puede _complementar_ leyendo anotaciones de rutas en una fase posterior.
 - **No es un gateway, proxy ni runtime** de APIs (no intercepta tráfico).
-- **No es un portal/API catalog** (no almacena inventario de APIs de la empresa en la nube). Excepción explícita (ADR-013): un **visor local de reportes** no es un portal — es estático, loopback-only, lee JSON explícitos y no guarda estado remoto; si el usuario lo hospeda, es su red y su riesgo.
+- **No es un portal/API catalog** (no almacena inventario de APIs de la empresa en la nube). Excepciones explícitas: el visor local de reportes (ADR-013) y el workspace local guiado (ADR-015) son loopback-only; el segundo orquesta acciones allowlistadas y guarda historial/checkpoints solo localmente, sin credenciales ni sincronización.
 - **No genera ni reescribe código/specs** (sugiere fixes en texto; no muta el repo del usuario).
 - **No entrena modelos ni requiere API keys de LLM** en el core.
 - **No sube specs a la nube** — ni siquiera "para telemetría anónima". Sin excepciones en v1.
@@ -87,7 +89,7 @@ El API governance roto no se manifiesta como un incidente: se manifiesta como **
 ## 6. Índice de documentos
 
 1. [Visión y requisitos](01-vision-y-requisitos.md) — problema, personas, FR/NFR medibles, anti-alcance detallado.
-2. [Arquitectura](02-arquitectura.md) — principios, Clean Architecture, C4, flujo de análisis, ADRs (D1–D12).
+2. [Arquitectura](02-arquitectura.md) — principios, Clean Architecture, C4, flujo de análisis, ADRs (D1–D14).
 3. [Motor y reglas](03-motor-y-reglas.md) — modelo de reglas, DSL, findings, skills, learn, determinismo.
 4. [Estándares](04-estandares.md) — fuentes curadas, versionado de packs, worker de actualización.
 5. [Despliegue y costos](05-despliegue-y-costos.md) — CLI/npx, Docker Compose, Cloudflare, MCP, presupuesto $0.
@@ -145,4 +147,4 @@ El API governance roto no se manifiesta como un incidente: se manifiesta como **
 
 ---
 
-_Estado actual: Fases 0–6, 8, 9 y 10 cerradas (specs/plans/tasks en sus carpetas con changelogs). Pendiente: F7 (enterprise, incluye export M7.4) y decisión del dueño para publicar OSS._
+_Estado actual: Fases 0–6, 8, 9, 10 y 12 cerradas; F14 en ejecución y F15 especificada. Pendiente: F7 (enterprise, incluye export M7.4), implementación de F15 y decisión del dueño para publicar OSS._

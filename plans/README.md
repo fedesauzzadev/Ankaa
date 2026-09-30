@@ -2,28 +2,31 @@
 
 Planes de implementación derivados de los [specs](../specs/README.md). Un plan = **orden de construcción, hitos, riesgos y definición de hecho** para una fase o agrupación de specs.
 
-| Plan                                      | Cubre                                          | Specs             |
-| ----------------------------------------- | ---------------------------------------------- | ----------------- |
-| [f0-foundation](f0-foundation.md)         | Fundación del repo                             | f0-foundation     |
-| [f1-mvp](f1-mvp.md)                       | MVP analyze end-to-end                         | f1-*              |
-| [f2-governance](f2-governance.md)         | Config + custom rules + baseline               | f2-*              |
-| [f3-learning](f3-learning.md)             | init + skills + learn                          | f3-*              |
-| [f4-mcp](f4-mcp.md)                       | MCP stdio local                                | f4-mcp-*          |
-| [f5-ci](f5-ci.md)                         | SARIF/Markdown/annotations + GitHub Action     | f5-*              |
-| [f6-score](f6-score.md)                   | Governance score 0-100 + grade                 | f6-score          |
-| [f8-llm](f8-llm.md)                       | Feature LLM opcional: suggest_fix y siguientes | f8-*              |
-| [f8-rules-import](f8-rules-import.md)     | Guideline interna → reglas (M8.2)              | f8-rules-import   |
-| [f8-drift](f8-drift.md)                   | Drift spec↔código + generación (M8.3)          | f8-drift          |
-| [f8-scan-org](f8-scan-org.md)             | Informe consolidado multi-repo (M8.4)          | f8-scan-org       |
-| [f8-elite-100](f8-elite-100.md)           | Pack elite 88 reglas (M8.5 · cerrada)          | f8-elite-100      |
-| [f8-graphql](f8-graphql.md)               | GraphQL SDL adapter + pack (M8.6)              | f8-graphql        |
-| [f8-grpc](f8-grpc.md)                     | proto/gRPC parser + pack (M8.7)                | f8-grpc           |
-| [f8-asyncapi](f8-asyncapi.md)             | AsyncAPI v2+v3 parser + pack (M8.8)            | f8-asyncapi       |
-| [f8-webhooks](f8-webhooks.md)             | Webhooks parser + pack (M8.9)                  | f8-webhooks       |
-| [f8-legacy-convert](f8-legacy-convert.md) | Legacy Swagger 1.x/2.0 → Spec (M8.10)          | f8-legacy-convert |
-| [f9-launch-oss](f9-launch-oss.md)         | Papeles lanzamiento OSS, sin publicar (M9.1)   | f9-launch-oss     |
-| [f10-dashboard](f10-dashboard.md)         | Visor local + tracking OSS (M10.1)             | f10-dashboard     |
-| [f10-export](f10-export.md)               | Export enterprise sin red propia (M7.4, F7)    | f10-export        |
+| Plan                                          | Cubre                                                           | Specs               |
+| --------------------------------------------- | --------------------------------------------------------------- | ------------------- |
+| [f0-foundation](f0-foundation.md)             | Fundación del repo                                              | f0-foundation       |
+| [f1-mvp](f1-mvp.md)                           | MVP analyze end-to-end                                          | f1-*                |
+| [f2-governance](f2-governance.md)             | Config + custom rules + baseline                                | f2-*                |
+| [f3-learning](f3-learning.md)                 | init + skills + learn                                           | f3-*                |
+| [f4-mcp](f4-mcp.md)                           | MCP stdio local                                                 | f4-mcp-*            |
+| [f5-ci](f5-ci.md)                             | SARIF/Markdown/annotations + GitHub Action                      | f5-*                |
+| [f6-score](f6-score.md)                       | Governance score 0-100 + grade                                  | f6-score            |
+| [f8-llm](f8-llm.md)                           | Feature LLM opcional: suggest_fix y siguientes                  | f8-*                |
+| [f8-rules-import](f8-rules-import.md)         | Guideline interna → reglas (M8.2)                               | f8-rules-import     |
+| [f8-drift](f8-drift.md)                       | Drift spec↔código + generación (M8.3)                           | f8-drift            |
+| [f8-scan-org](f8-scan-org.md)                 | Informe consolidado multi-repo (M8.4)                           | f8-scan-org         |
+| [f8-scan-repo](f8-scan-repo.md)               | Analizar un repo Git individual (M8.11)                         | f8-scan-repo        |
+| [f8-elite-100](f8-elite-100.md)               | Pack elite 88 reglas (M8.5 · cerrada)                           | f8-elite-100        |
+| [f8-graphql](f8-graphql.md)                   | GraphQL SDL adapter + pack (M8.6)                               | f8-graphql          |
+| [f8-grpc](f8-grpc.md)                         | proto/gRPC parser + pack (M8.7)                                 | f8-grpc             |
+| [f8-asyncapi](f8-asyncapi.md)                 | AsyncAPI v2+v3 parser + pack (M8.8)                             | f8-asyncapi         |
+| [f8-webhooks](f8-webhooks.md)                 | Webhooks parser + pack (M8.9)                                   | f8-webhooks         |
+| [f8-legacy-convert](f8-legacy-convert.md)     | Legacy Swagger 1.x/2.0 → Spec (M8.10)                           | f8-legacy-convert   |
+| [f9-launch-oss](f9-launch-oss.md)             | Papeles lanzamiento OSS, sin publicar (M9.1)                    | f9-launch-oss       |
+| [f10-dashboard](f10-dashboard.md)             | Visor local + tracking OSS (M10.1)                              | f10-dashboard       |
+| [f10-export](f10-export.md)                   | Export enterprise sin red propia (M7.4, F7)                     | f10-export          |
+| [f14-agent-api-gate](f14-agent-api-gate.md)   | Revisor local de cambios API para personas/agentes (M14)        | f14-agent-api-gate  |
+| [f15-local-workspace](f15-local-workspace.md) | Workspace local guiado, historial y `scan-org` reanudable (M15) | f15-local-workspace |
 
 ## Convención
 

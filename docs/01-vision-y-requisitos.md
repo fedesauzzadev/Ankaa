@@ -56,7 +56,7 @@ El resultado: cada proyecto nuevo nace mal si el gobierno del anterior estaba ma
 
 ## 5. Supuestos y restricciones
 
-- El usuario tiene **Node ≥ 20** o Docker; no se exige cuenta en ningún servicio para el core.
+- El usuario tiene **Node ≥ 22** o Docker; no se exige cuenta en ningún servicio para el core.
 - La adopción empieza por **specs ya existentes**; proyectos sin spec reciben diagnóstico y ruta de adopción mínima (no inventamos specs).
 - El estándar "elite" es **curaduría humana** sobre fuentes públicas — no un modelo que "opina".
 - El learning es **acumulación de evidencia en skills**, no mejora de precisión mágica sin revisión: reglas draft requieren aceptación implícita (quedan como draft hasta `learn --promote` o edición).
@@ -146,7 +146,7 @@ El resultado: cada proyecto nuevo nace mal si el gobierno del anterior estaba ma
 | NFR-07 | Portabilidad             | Windows/macOS/Linux; paths normalizados en fingerprints                              |
 | NFR-08 | Seguridad                | Sin `eval`; limits de tamaño/profundidad en YAML; outputs seguros (ver 06)           |
 | NFR-09 | Observabilidad (interna) | Flags `--debug` con timing por etapa; nunca loguea contenido completo del spec       |
-| NFR-10 | Compatibilidad           | Node ≥ 20 LTS; ESM; tipos TypeScript publicados                                      |
+| NFR-10 | Compatibilidad           | Node ≥ 22 LTS; ESM; tipos TypeScript publicados                                      |
 | NFR-11 | Accesibilidad de output  | Console con color opcional (`NO_COLOR`), mensajes sin dependencia solo-de-color      |
 | NFR-12 | Mantenimiento            | Dependencias mínimas; lockfile; releases con changelog y notas de migración de packs |
 
