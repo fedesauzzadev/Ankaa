@@ -36,10 +36,10 @@ Plan: [plans/f15-local-workspace.md](../plans/f15-local-workspace.md) · Spec:
 
 ## M15.5 — Asistente de terminal y CI
 
-- [ ] Añadir `guided` para los flujos implementados (AC-15.2)
-- [ ] Añadir catálogo de comandos/acciones existentes (AC-15.1)
-- [ ] Previsualizar y confirmar cambios antes de generar configuración CI (AC-15.10)
-- [ ] Probar cancelación, rechazos y destinos de salida
+- [x] Añadir `guided` para los flujos implementados (AC-15.2)
+- [x] Añadir catálogo de comandos/acciones existentes (AC-15.1)
+- [x] Previsualizar y confirmar cambios antes de generar configuración CI (AC-15.10)
+- [x] Probar cancelación, rechazos y destinos de salida
 
 ## M15.6 — Cierre
 

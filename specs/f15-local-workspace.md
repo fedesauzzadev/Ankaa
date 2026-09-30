@@ -133,10 +133,10 @@ abrir un navegador para usar ApiGovScan.
 
 ## 4. Criterios de aceptación
 
-- [ ] **AC-15.1** La spec de cada acción que se incorpora al catálogo define
+- [x] **AC-15.1** La spec de cada acción que se incorpora al catálogo define
       inputs, salida, errores, escritura y necesidad de red; las opciones antiguas
       de CLI no cambian de comportamiento.
-- [ ] **AC-15.2** `guided` permite iniciar y cancelar flujos soportados con
+- [x] **AC-15.2** `guided` permite iniciar y cancelar flujos soportados con
       validaciones; sus resultados coinciden con los del caso de uso CLI equivalente.
 - [x] **AC-15.3** `workspace` sirve la app solo en loopback, imprime URL y
       permite navegación sin CDN ni recursos remotos.
@@ -155,7 +155,7 @@ abrir un navegador para usar ApiGovScan.
       implica reanalizar o reportar error explícito.
 - [x] **AC-15.9** Desde cero analiza todo y conserva los resultados anteriores;
       historial permite abrir un reporte y comparar dos ejecuciones compatibles.
-- [ ] **AC-15.10** Preparar CI previsualiza cambios y requiere confirmación; no
+- [x] **AC-15.10** Preparar CI previsualiza cambios y requiere confirmación; no
       habilita branch protection ni altera settings de plataformas.
 - [x] **AC-15.11** Historial, progreso y errores no guardan/exponen credenciales
       ni contenidos completos de contratos fuera de reportes elegidos por el usuario.
@@ -228,3 +228,10 @@ abrir un navegador para usar ApiGovScan.
   incompatibilidad explicada, nunca presentada como limpia), vista de historial
   y comparación por fingerprints (new/repeated/resolved reutilizando el
   comparador del dashboard), sin persistir cuerpos de contratos (AC-15.9/15.11).
+- 2026-10-01 · M15.5 implementado: `apigovscan guided` — asistente de terminal
+  con catálogo (descriptor tipado de `analyze` + preparación de CI), validación
+  de paths re-preguntando, confirmación previa a ejecutar/escribir y cancelación
+  sin efectos; analyze con paridad de reportHash con la CLI; preparación de CI
+  que previsualiza el workflow completo (modo analyze o review con `review-ref`)
+  y escribe un solo archivo tras confirmación, rehusando pisar existentes sin
+  confirmación explícita y sin tocar branch protection/settings (AC-15.1/15.2/15.10).

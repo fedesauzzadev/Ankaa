@@ -100,6 +100,7 @@ import {
 } from "./dashboard.js";
 import { renderDashboardPage } from "./dashboard-page.js";
 import { startWorkspaceServer, workspaceHelp } from "./workspace.js";
+import { createStdinLineReader, guidedHelp, runGuided } from "./guided.js";
 import {
   cloneRepo,
   cloneRemoteRepo,
@@ -178,6 +179,7 @@ export function getHelp(): string {
     "  apigovscan export <report.json> [--group-by <file>] [--since <old.json>] [--out <file>]",
     "  apigovscan dashboard <report.json> [--port <n>]",
     "  apigovscan workspace [--port <n>]",
+    "  apigovscan guided",
     "  apigovscan mcp [--help]",
     "  apigovscan --version",
     "  apigovscan --help",
@@ -241,6 +243,9 @@ export function getHelp(): string {
     "Guided workspace (local analysis via the web UI, loopback + token):",
     "  apigovscan workspace [--port <n>]",
     "  Run guided operations (analyze) with live progress on 127.0.0.1.",
+    "Terminal assistant (menu, validation, confirmation before any write):",
+    "  apigovscan guided",
+    "  Analyze a path and prepare CI config with preview + confirmation.",
     "",
     "Exit codes:",
     "  0  no findings at or above --fail-on",
@@ -2449,6 +2454,53 @@ async function runWorkspaceCommand(
   return 0;
 }
 
+async function runGuidedCommand(
+  argv: readonly string[],
+  io: {
+    stdout: (text: string) => void;
+    stderr: (text: string) => void;
+    env: Record<string, string | undefined>;
+    cwd: string;
+  },
+): Promise<number> {
+  if (argv.includes("--help") || argv.includes("-h")) {
+    io.stdout(`${guidedHelp()}\n`);
+    return 0;
+  }
+  const unexpected = argv.find((a) => !a.startsWith("-"));
+  if (unexpected !== undefined) {
+    io.stderr(`error: unexpected argument: ${unexpected}\n`);
+    return 2;
+  }
+
+  const configResult = loadConfig(io.cwd, undefined);
+  const configKey = configResult.ok ? configResult.config.license?.key : undefined;
+  const license = checkLicense({
+    env: io.env.APIGOVSCAN_LICENSE_KEY,
+    config: configKey,
+  });
+  if (!license.ok) {
+    io.stderr(`error: ${licenseErrorMessage(license)}\n`);
+    return 2;
+  }
+
+  const reader = createStdinLineReader();
+  try {
+    return await runGuided({
+      stdout: io.stdout,
+      stderr: io.stderr,
+      env: io.env,
+      cwd: io.cwd,
+      readLine: reader.readLine,
+    });
+  } catch (err) {
+    io.stderr(`error: guided failed: ${err instanceof Error ? err.message : String(err)}\n`);
+    return 2;
+  } finally {
+    reader.close();
+  }
+}
+
 async function runDiffCommand(
   argv: readonly string[],
   io: {
@@ -3489,6 +3541,7 @@ export async function run(argv: readonly string[], io?: RunIO): Promise<number> 
     first === "export" ||
     first === "dashboard" ||
     first === "workspace" ||
+    first === "guided" ||
     first === "review" ||
     first === "mcp";
 
@@ -3624,6 +3677,14 @@ export async function run(argv: readonly string[], io?: RunIO): Promise<number> 
   }
   if (first === "workspace") {
     return runWorkspaceCommand(args.slice(1), {
+      stdout,
+      stderr,
+      env,
+      cwd,
+    });
+  }
+  if (first === "guided") {
+    return runGuidedCommand(args.slice(1), {
       stdout,
       stderr,
       env,

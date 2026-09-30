@@ -92,3 +92,6 @@ base de AC-15.6; engine y core sin I/O.
   `.apigovscan/workspace/runs/`, historial/apertura en la web, comparación por
   fingerprints solo entre runs compatibles y archivos ilegibles saltados con
   aviso honesto.
+- 2026-10-01 · M15.5 implementado: `guided` con menú/validación/confirmación
+  (line-reader inyectable, testeable sin TTY) y preparación de CI con preview
+  completa y escritura confirmada de un solo archivo.
