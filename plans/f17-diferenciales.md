@@ -90,8 +90,11 @@ diff (oasdiff) ni en generación de docs (anti-alcance SDD §4).
    `error`, severidad única, skills cuentan como resueltos; trends de
    scan-org/dashboard quedaron como follow-up (sin milestone asignado)
    documentado en el spec.
-7. `f17-ci-reporters`: pendiente — viabilidad del mapper pointer → line/col
-   para checkstyle.
+7. `f17-ci-reporters`: **análisis listo, decisión pendiente** — mapper
+   pointer → line/col viable para YAML con la dep `yaml` existente
+   (`parseDocument`), fallback `line="1"` para JSON; opciones y recomendación
+   A→B escalonado en [spec §8](../specs/f17-ci-reporters.md). Pendiente:
+   elegir A / A→B / B+C y pinnear schemas JUnit/Checkstyle.
 8. `f17-lsp`: pendiente — alcance v0 single-file y canal de distribución de la
    extensión.
 
@@ -130,3 +133,6 @@ diff (oasdiff) ni en generación de docs (anti-alcance SDD §4).
   `EXVAL-001/002` + 16 tests · spec → `implementada`. **Tier 2 completo**
   (ratchet, compliance-pack, mini-validator). Restan T3 (`f17-ci-reporters`,
   `f17-lsp`).
+- 2026-10-01: análisis de viabilidad mapper pointer→line/col agregado a la
+  spec `f17-ci-reporters` (§8, spike sobre `yaml` 2.9.1): recomendación A→B
+  escalonado. Decisión §5.7 del dueño sigue pendiente.
