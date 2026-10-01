@@ -76,8 +76,11 @@ diff (oasdiff) ni en generación de docs (anti-alcance SDD §4).
    atestaciones deterministas.
 2. `f8-fp-budget`: **resuelta e implementada** (M17.1) — feedback de learn +
    tracking dashboard; n>=10; >30% = noisy; `ankaa skills stats`.
-3. `f8-spectral-import`: **pendiente** — corte de funciones transliterables
-   (spike ADR-014).
+3. `f8-spectral-import`: **análisis listo, decisión pendiente** — inventario
+   verificable contra `@stoplight/spectral-rulesets@1.23.0` (57 reglas: 14
+   cubiertas / 4 transpilables / 15 port curado / 24 skip) + shapes S1..S7
+   en [spec §3b/§3c](../specs/f8-spectral-import.md). Pendiente: dueño
+   resuelve §4 (extends offline, representación, límites, salida).
 4. `f17-migration-kit`: **resuelta e implementada** (M17.3, excepciones
    redocly+vacuum) — `ankaa migrate` escribe `skills/migrated/<origin>.yaml`
    idempotente; piezas Spectral son follow-up documentado en el spec (reglas:
