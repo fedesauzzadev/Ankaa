@@ -43,7 +43,7 @@ Especificaciones **spec-driven** derivadas del [SDD v1.0](../docs/SDD.md). El SD
 | [f8-drift](f8-drift.md)                         | 8    | M8.3: drift spec↔código + generación de spec                                         | cerrada      |
 | [f8-scan-org](f8-scan-org.md)                   | 8    | M8.4: informe consolidado multi-repo (batch)                                         | cerrada      |
 | [f8-scan-repo](f8-scan-repo.md)                 | 8    | M8.11: analizar un repo Git individual por HTTPS/SSH                                 | cerrada      |
-| [f8-spectral-import](f8-spectral-import.md)     | 8    | Transpilar un subconjunto offline del ruleset Spectral (ADR-014)                     | draft        |
+| [f8-spectral-import](f8-spectral-import.md)     | 8    | Transpilar un subconjunto offline del ruleset Spectral (ADR-014) | implementada |
 | [f8-certify](f8-certify.md)                     | 8    | Verificación de integridad/autenticidad para reportes                | implementada |
 | [f8-fp-budget](f8-fp-budget.md)                 | 8    | Medir feedback falso positivo por regla sin telemetría ni mutación                | implementada |
 | [f8-elite-100](f8-elite-100.md)                 | 8    | M8.5: pack elite 65 → 88 reglas curadas (cierre honesto)                             | cerrada      |

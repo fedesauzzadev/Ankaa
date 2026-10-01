@@ -2,7 +2,7 @@
 
 | Campo     | Valor                                   |
 | --------- | --------------------------------------- |
-| Estado    | draft                                   |
+| Estado    | implementada                            |
 | Fase      | 8                                       |
 | Deriva de | ADR-014; `f8-rules-import`; INV-1/INV-4 |
 
@@ -76,17 +76,15 @@ Todo lo que no matchea un shape exacto → **skip con motivo** (nunca silencioso
 nunca aproximado). Regex de entrada pasa por `safeRegex` (guard ReDoS ya
 existente); flags de regex de Spectral no soportados → skip.
 
-## 4. Preguntas para pasar a `ready`
+## 4. Decisiones del dueño (2026-10-01, cierran las preguntas previas)
 
-- ¿Qué versión/esquema de ruleset Spectral se aceptan y cómo se seleccionan
-  rulesets extends sin resolver paquetes ni URLs?
-- ¿Cuál es la lista cerrada de funciones, expresiones `given` y opciones
-  transliterables, cada una con tests positivos y negativos?
-- ¿Cómo se representa severidad, descripción, documentación y source URL en
-  custom rules?
-- ¿Qué límite de tamaño/profundidad protege al importador de archivos enormes?
-- ¿Qué salida resume reglas importadas y reglas omitidas, y cuál es el formato
-  de error ante una regla inválida?
+| Tema                   | Decisión                                                                       |
+| ---------------------- | ------------------------------------------------------------------------------ |
+| `extends` offline      | **Vendor pineado**: copia del ruleset `oas` 1.23.0 serializada y commiteada dentro de Ankaa (p. ej. `packages/cli/spectral/`, con atribución Apache-2.0); `extends: ["spectral:oas"]` resuelve 100% offline contra esa copia fija. `extends` a archivos locales del usuario: sí (profundidad máx 5, sin ciclos). Cualquier otro target (URL/npm/`spectral:oas3`/`spectral:asyncapi`) → error claro con la lista soportada. Cero red en runtime (INV-1). |
+| Alcance transpiler     | **Shapes genéricos S1..S7** (§3c): cualquier regla del usuario que caiga en un shape se importa, haya o no estado en `spectral:oas`. Fuera de shape → skip con motivo. |
+| Ids y metadata         | **`SPEC-001..`** por orden alfabético del nombre Spectral (determinista, cumple `RULE_ID_RE`); severidad `0/1/2 → error/warning/info`; `description` → message; `documentationUrl` → `source.url`; `source.title = "Spectral: <name>"`; `given`/función quedan como metadata de explicación en el draft. |
+| Salida                 | **Envelope del pipeline `rules import` existente**: draft YAML de custom rules (cada regla pasa `validateRule` o se omite con motivo) + resumen `imported: N` (con equivalencias elite marcadas) / `skipped: M` con motivo por regla. Exit 0/2. |
+| Límites                | **Reusar existentes**: `ParseLimits` (10 MB, depth 100), cap 500 reglas procesadas, `safeRegex` anti-ReDoS, flags de regex no soportados → skip. |
 
 ## 5. Fuera de alcance
 
@@ -103,6 +101,16 @@ drafts.
   ADR (`length`/`alphabetical` no tienen átomos hoy); shapes cerrados S1..S7
   (§3c) con semántica `match`/`notMatch` verificada. Pendiente: decisiones
   §4 con el dueño.
+- 2026-10-01 · Dueño cierra §4: vendor pineado 1.23.0 + shapes genéricos +
+  SPEC-NNN + envelope existente + límites reusados → spec `ready`.
+- 2026-10-01 · M17.9 implementado: vendor `src/vendor-oas.ts` (módulo TS
+  generado, bundleado — cero IO) + `src/spectral.ts` (resolver extends
+  offline con ciclo/depth guards, clasificador shapes S1..S7, emisor
+  `SPEC-NNN` estampado como custom y validado por `validateRule`) + CLI
+  `ankaa migrate --spectral-rules [--out] [--force] [--dry-run]` + 18 tests
+  (unit + e2e con evaluación end-to-end del draft) → `implementada`.
+  Follow-ups documentados: port curado (bucket C, épica aparte per ADR-14) y
+  `--spectral-disables` (mapper de líneas, como en migration-kit).
 
 ## Referencias
 

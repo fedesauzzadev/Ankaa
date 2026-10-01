@@ -9,6 +9,13 @@ import { loadConfig } from "./config.js";
 import { checkLicense, licenseErrorMessage } from "./license.js";
 import { resolveLearnSkillsDir } from "./learn.js";
 import { SKILLS_SCHEMA_VERSION } from "./skills.js";
+import {
+  classifySpectralRules,
+  resolveSpectralRuleset,
+  ruleCountGuard,
+  serializeImports,
+  validateImports,
+} from "./spectral.js";
 
 export type MigrateOrigin = "redocly" | "vacuum";
 
@@ -248,12 +255,16 @@ const MIGRATE_USAGE = [
   "Usage:",
   "  ankaa migrate --redocly-ignore <.redocly.lint-ignore.yaml> --spec <path>",
   "  ankaa migrate --vacuum-ignore <ignore.yaml> --spec <path>",
+  "  ankaa migrate --spectral-rules <ruleset.yaml> [--out <file>] [--force]",
   "               [--skills-dir <dir>] [--dry-run] [--config <f>] [--license-key <k>]",
   "",
   "Import foreign ignore-files as fingerprint suppressions under",
   ".ankaa/skills/migrated/<origin>.yaml (idempotent, offline).",
   "Matching is by location: the foreign ruleId is recorded in the reason,",
-  "never interpreted. --spectral-rules/-disables are follow-ups (see spec).",
+  "never interpreted. --spectral-disables is a follow-up (see spec).",
+  "--spectral-rules transpiles a Spectral ruleset offline (extends",
+  "spectral:oas resolves against the vendored 1.23.0 copy) into a custom",
+  "rules draft; out-of-shape rules are skipped with a reason (never silent).",
   "",
 ].join("\n");
 
@@ -270,10 +281,10 @@ export async function runMigrateCommand(argv: readonly string[], io: MigrateIo):
     io.stdout(MIGRATE_USAGE);
     return 0;
   }
-  for (const pending of ["--spectral-rules", "--spectral-disables"]) {
+  for (const pending of ["--spectral-disables"]) {
     if (argv.includes(pending)) {
       io.stderr(
-        `error: ${pending} is a follow-up (see specs/f17-migration-kit.md § scope); v0 imports redocly/vacuum exceptions\n`,
+        `error: ${pending} is a follow-up (see specs/f17-migration-kit.md § scope); v0 imports redocly/vacuum exceptions and spectral rules\n`,
       );
       return 2;
     }
@@ -281,6 +292,9 @@ export async function runMigrateCommand(argv: readonly string[], io: MigrateIo):
 
   let redoclyPath: string | undefined;
   let vacuumPath: string | undefined;
+  let spectralPath: string | undefined;
+  let outPath: string | undefined;
+  let force = false;
   let specPath: string | undefined;
   let skillsDirFlag: string | undefined;
   let configPath: string | undefined;
@@ -293,9 +307,15 @@ export async function runMigrateCommand(argv: readonly string[], io: MigrateIo):
       dryRun = true;
       continue;
     }
+    if (token === "--force") {
+      force = true;
+      continue;
+    }
     if (
       token === "--redocly-ignore" ||
       token === "--vacuum-ignore" ||
+      token === "--spectral-rules" ||
+      token === "--out" ||
       token === "--spec" ||
       token === "--skills-dir" ||
       token === "--config" ||
@@ -308,6 +328,8 @@ export async function runMigrateCommand(argv: readonly string[], io: MigrateIo):
       }
       if (token === "--redocly-ignore") redoclyPath = v;
       else if (token === "--vacuum-ignore") vacuumPath = v;
+      else if (token === "--spectral-rules") spectralPath = v;
+      else if (token === "--out") outPath = v;
       else if (token === "--spec") specPath = v;
       else if (token === "--skills-dir") skillsDirFlag = v;
       else if (token === "--config") configPath = v;
@@ -325,8 +347,12 @@ export async function runMigrateCommand(argv: readonly string[], io: MigrateIo):
     return 2;
   }
 
+  if (spectralPath !== undefined) {
+    return runSpectralRulesImport(spectralPath, { outPath, force, dryRun }, io);
+  }
+
   if ((redoclyPath !== undefined ? 1 : 0) + (vacuumPath !== undefined ? 1 : 0) !== 1) {
-    io.stderr("error: migrate requires exactly one of --redocly-ignore | --vacuum-ignore\n");
+    io.stderr("error: migrate requires exactly one of --redocly-ignore | --vacuum-ignore | --spectral-rules\n");
     return 2;
   }
   if (specPath === undefined) {
@@ -437,5 +463,77 @@ export async function runMigrateCommand(argv: readonly string[], io: MigrateIo):
     return 2;
   }
   io.stdout(`wrote: ${destination}\n`);
+  return 0;
+}
+
+async function runSpectralRulesImport(
+  spectralPath: string,
+  opts: { outPath?: string; force: boolean; dryRun: boolean },
+  io: MigrateIo,
+): Promise<number> {
+  const abs = resolve(io.cwd, spectralPath);
+  if (!existsSync(abs) || !statSync(abs).isFile()) {
+    io.stderr(`error: ruleset not found or not a file: ${spectralPath}\n`);
+    return 2;
+  }
+
+  const configResult = loadConfig(io.cwd, undefined);
+  const configKey = configResult.ok ? configResult.config.license?.key : undefined;
+  const license = checkLicense({
+    env: io.env.ANKAA_LICENSE_KEY,
+    config: configKey,
+  });
+  if (!license.ok) {
+    io.stderr(`error: ${licenseErrorMessage(license)}\n`);
+    return 2;
+  }
+
+  const resolved = resolveSpectralRuleset(abs);
+  if (!resolved.ok) {
+    io.stderr(`error: ${resolved.error}\n`);
+    return 2;
+  }
+  const guard = ruleCountGuard(resolved.rules);
+  if (guard !== undefined) {
+    io.stderr(`error: ${guard}\n`);
+    return 2;
+  }
+
+  const classified = classifySpectralRules(resolved.rules);
+  const { valid, invalid } = validateImports(classified.imports, packageVersion());
+  const destination = resolve(io.cwd, opts.outPath ?? "spectral-imported-rules.yaml");
+
+  io.stdout(`migrate: spectral ruleset → ${destination}\n`);
+  io.stdout(`  resolved: ${resolved.rules.size} rules (extends: spectral:oas vendored)\n`);
+  io.stdout(`  imported: ${valid.length} (shapes) · covered: ${classified.covered.length} (elite) · skipped: ${classified.skipped.length + invalid.length}\n`);
+  for (const entry of classified.covered) {
+    io.stdout(`    covered: ${entry.name} → ${entry.equivalent}\n`);
+  }
+  for (const skip of [...classified.skipped, ...invalid]) {
+    io.stdout(`    skipped: ${skip.name} — ${skip.reason}\n`);
+  }
+
+  if (valid.length === 0) {
+    io.stdout("no transliterable rules: nothing written\n");
+    return 0;
+  }
+  if (opts.dryRun) {
+    io.stdout("dry-run: nothing written\n");
+    return 0;
+  }
+  if (existsSync(destination) && !opts.force) {
+    io.stderr(`error: ${destination} exists (use --force to overwrite)\n`);
+    return 2;
+  }
+  try {
+    writeFileSync(destination, serializeImports(valid), "utf8");
+  } catch (err) {
+    io.stderr(
+      `error: cannot write ${destination}: ${err instanceof Error ? err.message : String(err)}\n`,
+    );
+    return 2;
+  }
+  io.stdout(`wrote: ${destination}\n`);
+  io.stdout("review the draft as code, then pass it to analyze via --rules\n");
   return 0;
 }

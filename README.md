@@ -100,7 +100,7 @@ La key comunitaria es pública y verificable offline (no permite forjar otras ke
 | `ankaa learn --report <r> --feedback <f>`       | Aplica feedback a `.ankaa/skills` (idempotente, INV-5)                                                                                                                                                                                                                                                                                                   |
 | `ankaa skills list [--format json]`             | Enumera suppressions, overrides y drafts                                                                                                                                                                                                                                                                                                                      |
 | `ankaa skills stats --report <r> [--feedback <f>] [--tracking <t>]` | FP report local por regla desde feedback de learn + tracking del dashboard (informativo, no muta nada; spec `f8-fp-budget`)                                                                                                                              |
-| `ankaa migrate --redocly-ignore\|--vacuum-ignore <file> --spec <path>` | Importa ignore-files ajenos como suppressions con fingerprint en `.ankaa/skills/migrated/` (spec `f17-migration-kit`)                                                                                                                                    |
+| `ankaa migrate --redocly-ignore\|--vacuum-ignore <file> --spec <path>` | Importa ignore-files ajenos como suppressions con fingerprint en `.ankaa/skills/migrated/` (spec `f17-migration-kit`) · `--spectral-rules <ruleset>` transpila reglas Spectral a custom rules (spec `f8-spectral-import`)                                                                  |
 | `ankaa skills promote <draftId>`                | Activa un draft (`draft: false`)                                                                                                                                                                                                                                                                                                                              |
 | `ankaa license [--key <AGS-...>]`               | Valida la license key (customer + expiry)                                                                                                                                                                                                                                                                                                                     |
 | `ankaa certify --report <r> --key <priv.pem>`   | Firma el reporte (ed25519 detached) y emite una atestación v1 (`--gen-keys` genera el par de claves)                                                                                                                                                                                                                                                          |
@@ -443,6 +443,26 @@ ankaa migrate --vacuum-ignore ignore.yaml --spec openapi.yaml --dry-run
 Matching por location: el ruleId de origen queda registrado en el `reason`,
 nunca se interpreta; entradas sin match se listan con motivo. Idempotente y
 100% offline. Spec: [`specs/f17-migration-kit.md`](specs/f17-migration-kit.md).
+
+### Migración desde Spectral (f8-spectral-import)
+
+Trae también tus **reglas**: `--spectral-rules` transpila tu ruleset
+(`extends: [spectral:oas]` resuelve offline contra la copia vendoreada
+1.23.0 incluida en Ankaa) a un draft de custom rules `SPEC-NNN` revisable
+como código:
+
+```bash
+ankaa migrate --spectral-rules .spectral.yaml --out spectral-imported-rules.yaml
+ankaa analyze ./specs --rules spectral-imported-rules.yaml
+```
+
+El transpiler es **genérico por forma** (shapes S1..S7: `pattern` sobre
+`$.paths`/`operationId`/descripciones y `truthy` sobre campos de operación):
+cualquier regla tuya que caiga en un shape se importa. Las 14 reglas del
+ruleset estándar ya cubiertas por elite se marcan con su equivalente; el
+resto se saltea **con motivo por regla** (nunca silencioso, INV-4). Cero
+red, cero LLM, determinista. Spec:
+[`specs/f8-spectral-import.md`](specs/f8-spectral-import.md).
 
 ### Config `ankaa.yaml`
 

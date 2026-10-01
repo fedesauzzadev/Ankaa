@@ -35,6 +35,7 @@ Planes de implementación derivados de los [specs](../specs/README.md). Un plan 
 | [f13-mini-validator](f13-mini-validator.md)   | validate-examples: ejemplos vs schemas offline (M17.6, backlog f17) | f13-mini-validator |
 | [f17-ci-reporters](f17-ci-reporters.md)       | junit/checkstyle/codequality + recetas CI (M17.7a, backlog f17) | f17-ci-reporters |
 | [f17-lsp](f17-lsp.md)                         | ankaa lsp + posiciones YAML M17.7b (M17.8, backlog f17)         | f17-lsp |
+| [f8-spectral-import](f8-spectral-import.md)  | transpiler rulesets Spectral offline (M17.9, backlog f17)       | f8-spectral-import |
 | [f17-diferenciales](f17-diferenciales.md)     | Backlog T1–T3 de diferenciales competitivos (specs en draft)    | f17-* + drafts f8/f13 |
 
 ## Convención

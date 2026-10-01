@@ -305,7 +305,11 @@ describe("migrate e2e (AC-MG.*)", () => {
 
     const spectral = await runCapture(["migrate", "--spectral-rules", ".spectral.yaml", "--spec", "openapi.yaml"], { cwd: dir });
     expect(spectral.code).toBe(2);
-    expect(spectral.stderr).toContain("follow-up");
+    expect(spectral.stderr).toContain("ruleset not found");
+
+    const disables = await runCapture(["migrate", "--spectral-disables", "x.yaml"], { cwd: dir });
+    expect(disables.code).toBe(2);
+    expect(disables.stderr).toContain("follow-up");
 
     const missing = await runCapture(
       ["migrate", "--redocly-ignore", "nope.yaml", "--spec", "nope.yaml"],

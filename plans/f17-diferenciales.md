@@ -76,11 +76,12 @@ diff (oasdiff) ni en generación de docs (anti-alcance SDD §4).
    atestaciones deterministas.
 2. `f8-fp-budget`: **resuelta e implementada** (M17.1) — feedback de learn +
    tracking dashboard; n>=10; >30% = noisy; `ankaa skills stats`.
-3. `f8-spectral-import`: **análisis listo, decisión pendiente** — inventario
-   verificable contra `@stoplight/spectral-rulesets@1.23.0` (57 reglas: 14
-   cubiertas / 4 transpilables / 15 port curado / 24 skip) + shapes S1..S7
-   en [spec §3b/§3c](../specs/f8-spectral-import.md). Pendiente: dueño
-   resuelve §4 (extends offline, representación, límites, salida).
+3. `f8-spectral-import`: **resuelta e implementada (2026-10-01, M17.9)** —
+   vendor pineado 1.23.0 (módulo TS bundleado, cero IO) + shapes genéricos
+   S1..S7 + `SPEC-NNN` + envelope `rules import` + límites reusados;
+   `ankaa migrate --spectral-rules`. Port curado (bucket C del inventario)
+   queda como épica aparte per ADR-14; `--spectral-disables` follow-up.
+   Inventario y detalle en [spec §3b/§3c/§4](../specs/f8-spectral-import.md).
 4. `f17-migration-kit`: **resuelta e implementada** (M17.3, excepciones
    redocly+vacuum) — `ankaa migrate` escribe `skills/migrated/<origin>.yaml`
    idempotente; piezas Spectral son follow-up documentado en el spec (reglas:
@@ -154,3 +155,9 @@ diff (oasdiff) ni en generación de docs (anti-alcance SDD §4).
   `packages/lsp` (LSP 3.17 stdio hand-rolled, cero deps) + `ankaa lsp` con
   paridad CLI + 21 tests · specs → `implementada`. **Backlog T1+T2+T3
   completo** (8/8).
+- 2026-10-01: `f8-spectral-import` (M17.9) implementado: spike de
+  inventario verificable (57 reglas @1.23.0: 14 cubiertas / 4 netas / 15
+  port curado / 24 skip) + vendor pineado bundleado + transpiler shapes
+  S1..S7 + `ankaa migrate --spectral-rules` + 18 tests · spec →
+  `implementada`. Con esto el migration-kit cubre excepciones **y reglas**
+  (la pieza `spectral` de §5.3 cierra).

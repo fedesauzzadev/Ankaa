@@ -178,6 +178,7 @@ export function getHelp(): string {
     "  ankaa learn --report <r.json> --feedback <f.json> [options]",
     "  ankaa suppress --report <r.json> --fingerprint <fp> --decision <d> [--reason ...]",
     "  ankaa migrate --redocly-ignore|--vacuum-ignore <file> --spec <path> [--dry-run]",
+    "  ankaa migrate --spectral-rules <ruleset.yaml> [--out <file>] [--force] [--dry-run]",
     "  ankaa skills list [--format json]",
     "  ankaa skills promote <draftId>",
     "  ankaa skills stats --report <r.json> [--feedback <f.json>] [--tracking <t.json>]",
