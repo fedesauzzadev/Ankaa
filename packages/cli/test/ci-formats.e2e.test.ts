@@ -135,4 +135,22 @@ describe("analyze CI formats e2e (f17-ci-reporters, AC-CI.2/3/4)", () => {
       expect(content).toContain("ankaa");
     }
   });
+
+  it("M17.8a checkstyle emits real lines for YAML specs with positions", async () => {
+    const { stdout } = await runCapture([
+      "analyze",
+      petstore,
+      "--format",
+      "checkstyle",
+      "--fail-on",
+      "never",
+      "--no-color",
+    ]);
+    const lines = [...stdout.matchAll(/line="(\d+)" column="(\d+)"/g)].map(
+      (m) => Number(m[1]),
+    );
+    expect(lines.length).toBeGreaterThan(0);
+    expect(lines.some((line) => line > 1)).toBe(true);
+    expect(stdout).not.toContain("[at /paths");
+  }, 20000);
 });

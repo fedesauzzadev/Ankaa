@@ -16,12 +16,15 @@ export function formatCheckstyle(report: Report): string {
       files.set(name, errors);
       orderedNames.push(name);
     }
+    const hasPosition = finding.position !== undefined;
     const message =
-      pointer === ""
+      pointer === "" || hasPosition
         ? redactText(finding.message)
         : `${redactText(finding.message)} [at ${pointer}]`;
+    const line = finding.position?.line ?? 1;
+    const column = finding.position?.column ?? 1;
     errors.push(
-      `      <error line="1" column="1" severity="${finding.severity}" message="${escapeXml(message)}" source="${escapeXml(finding.ruleId)}"/>`,
+      `      <error line="${line}" column="${column}" severity="${finding.severity}" message="${escapeXml(message)}" source="${escapeXml(finding.ruleId)}"/>`,
     );
   }
 

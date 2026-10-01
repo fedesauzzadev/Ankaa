@@ -1,6 +1,6 @@
-import type { Spec, Stability } from "./spec.js";
+import type { SourcePosition, Spec, Stability } from "./spec.js";
 
-export type { Spec, Stability } from "./spec.js";
+export type { SourcePosition, Spec, Stability } from "./spec.js";
 
 export type Severity = "error" | "warning" | "info";
 
@@ -171,6 +171,8 @@ export interface Finding {
   message: string;
   location: string;
   apiLocation?: string;
+  /** Source position when the parser preserved it (YAML). Not part of the fingerprint. */
+  position?: SourcePosition;
   fix?: string;
   examples?: RuleExamples;
   source?: SourceRef;

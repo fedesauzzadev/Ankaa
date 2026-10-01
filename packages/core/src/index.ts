@@ -45,6 +45,7 @@ export type {
   OperationField,
   DocField,
   ParameterIn,
+  SourcePosition,
 } from "./rule.js";
 
 export {
@@ -53,6 +54,7 @@ export {
   dedupeFindings,
   severityRank,
   messageKey,
+  attachPositions,
 } from "./finding.js";
 
 export {

@@ -15,6 +15,13 @@ export interface Spec {
   operations: Operation[];
   components: ComponentIndex;
   parseWarnings: ParseWarning[];
+  /** JSON Pointer (document) → 1-based position. YAML sources only (f17 §8); consumers must tolerate misses. */
+  positions?: Record<string, SourcePosition>;
+}
+
+export interface SourcePosition {
+  line: number;
+  column: number;
 }
 
 export type Stability = "draft" | "beta" | "stable";

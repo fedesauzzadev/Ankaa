@@ -60,6 +60,10 @@ function collectRules(report: Report): SarifReportingDescriptor[] {
 }
 
 function toResult(report: Report, finding: Finding): SarifResult {
+  const region =
+    finding.position !== undefined
+      ? { startLine: finding.position.line, startColumn: finding.position.column }
+      : undefined;
   return {
     ruleId: finding.ruleId,
     level: SARIF_LEVEL[finding.severity],
@@ -68,6 +72,7 @@ function toResult(report: Report, finding: Finding): SarifResult {
       {
         physicalLocation: {
           artifactLocation: { uri: artifactUri(report, finding) },
+          ...(region !== undefined ? { region } : {}),
         },
       },
     ],

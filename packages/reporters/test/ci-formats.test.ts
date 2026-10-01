@@ -209,6 +209,23 @@ describe("formatCheckstyle (AC-CI.1/3)", () => {
   it("is byte-stable across runs", () => {
     expect(formatCheckstyle(makeReport())).toBe(formatCheckstyle(makeReport()));
   });
+
+  it("uses real line/column when findings carry a position (M17.8a)", () => {
+    const report = makeReport({
+      results: [
+        {
+          findings: [
+            finding({ location: "/paths/~1users/get", position: { line: 12, column: 5 } }),
+          ],
+          errors: [],
+        },
+      ],
+    });
+    const xml = formatCheckstyle(report);
+    assertWellFormedXml(xml);
+    expect(xml).toContain('line="12" column="5"');
+    expect(xml).not.toContain("[at /paths/~1users/get]");
+  });
 });
 
 interface CodeQualityIssue {
@@ -267,5 +284,18 @@ describe("formatCodequality (AC-CI.1/3)", () => {
 
   it("is byte-stable across runs", () => {
     expect(formatCodequality(makeReport())).toBe(formatCodequality(makeReport()));
+  });
+
+  it("lines.begin follows the finding position when present (M17.8a)", () => {
+    const report = makeReport({
+      results: [
+        {
+          findings: [finding({ position: { line: 12, column: 5 } })],
+          errors: [],
+        },
+      ],
+    });
+    const issues = JSON.parse(formatCodequality(report)) as CodeQualityIssue[];
+    expect(issues[0]!.location.lines.begin).toBe(12);
   });
 });

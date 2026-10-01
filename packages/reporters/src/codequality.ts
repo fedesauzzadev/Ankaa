@@ -23,7 +23,7 @@ export function formatCodequality(report: Report): string {
       severity: CC_SEVERITY[finding.severity],
       location: {
         path: uri,
-        lines: { begin: 1 },
+        lines: { begin: finding.position?.line ?? 1 },
       },
     });
   });

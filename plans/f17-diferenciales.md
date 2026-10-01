@@ -96,8 +96,10 @@ diff (oasdiff) ni en generación de docs (anti-alcance SDD §4).
    misma dep) a demanda de checkstyle. JSON siempre fallback. Detalle en
    [spec §8](../specs/f17-ci-reporters.md). Pendiente menor: pinnear schemas
    JUnit/Checkstyle antes de implementar.
-8. `f17-lsp`: pendiente — alcance v0 single-file y canal de distribución de la
-   extensión.
+8. `f17-lsp`: **resuelta (2026-10-01)** — dueño decide: solo binario + docs
+   por editor (marketplace postergado), protocolo hand-rolled cero deps,
+   **M17.7b activado** en el slice (squiggles reales en YAML), cache por
+   hash de contenido. Detalle en [spec §7](../specs/f17-lsp.md).
 
 ## 6. Definition of done (por item)
 
@@ -143,3 +145,9 @@ diff (oasdiff) ni en generación de docs (anti-alcance SDD §4).
   recetas `examples/ci/` + 15 tests · spec → `implementada`. T3 restante:
   `f17-lsp` (decisiones de alcance pendientes). M17.7b (mapper YAML) a
   demanda.
+- 2026-10-01: dueño cierra §5.8 (binario+docs, hand-rolled, M17.7b activado,
+  cache). `f17-lsp` (M17.8a+b) implementado: `Spec.positions` (f1-openapi
+  regla 5b) + checkstyle/sarif/codequality con líneas reales +
+  `packages/lsp` (LSP 3.17 stdio hand-rolled, cero deps) + `ankaa lsp` con
+  paridad CLI + 21 tests · specs → `implementada`. **Backlog T1+T2+T3
+  completo** (8/8).

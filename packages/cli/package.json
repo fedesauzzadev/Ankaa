@@ -42,6 +42,7 @@
     "@ankaa/graphql": "workspace:*",
     "@ankaa/grpc": "workspace:*",
     "@ankaa/mcp": "workspace:*",
+    "@ankaa/lsp": "workspace:*",
     "@ankaa/openapi": "workspace:*",
     "@ankaa/reporters": "workspace:*",
     "mammoth": "^1.12.3",

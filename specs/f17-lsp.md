@@ -2,7 +2,7 @@
 
 | Campo     | Valor                              |
 | --------- | ---------------------------------- |
-| Estado    | draft                              |
+| Estado    | implementada                       |
 | Fase      | 17                                 |
 | Fecha     | 2026-09-30                         |
 | Deriva de | SDD §3 (local-first); INV-1/INV-2  |
@@ -43,12 +43,12 @@ VS Code/JetBrains. Esto es paridad necesaria para adopción, no diferencial.
 
 ## 4. Criterios de aceptación (preliminares)
 
-- [ ] AC-LSP.1 Handshake + `didOpen` produce los mismos findings que el CLI
+- [x] AC-LSP.1 Handshake + `didOpen` produce los mismos findings que el CLI
       (fixture compartido CLI-vs-LSP).
-- [ ] AC-LSP.2 `didChange` con debounce no duplica ni pierde diagnostics.
-- [ ] AC-LSP.3 Spec inválido → diagnóstico de parse honesto, sin crash.
-- [ ] AC-LSP.4 Test de red: el server no hace fetch (INV-1).
-- [ ] AC-LSP.5 Determinismo: dos análisis del mismo buffer → mismos findings.
+- [x] AC-LSP.2 `didChange` con debounce no duplica ni pierde diagnostics.
+- [x] AC-LSP.3 Spec inválido → diagnóstico de parse honesto, sin crash.
+- [x] AC-LSP.4 Test de red: el server no hace fetch (INV-1).
+- [x] AC-LSP.5 Determinismo: dos análisis del mismo buffer → mismos findings.
 
 ## 5. Test plan
 
@@ -59,15 +59,24 @@ VS Code/JetBrains. Esto es paridad necesaria para adopción, no diferencial.
 
 - Motor `analyze` reutilizable como biblioteca (ya existe vía MCP/workspace).
 
-## 7. Riesgos y decisiones abiertas
+## 7. Riesgos y decisiones (cerradas por el dueño, 2026-10-01)
 
-- ¿Extensión VS Code publicada en marketplace o solo binario + docs de
-  configuración por editor?
-- Rendimiento en specs grandes: ¿cache del modelo por versión de documento?
-- Prioridad relativa contra Tier 1/2: este spec no debería ganarle al backlog
-  superior.
+| Tema                             | Decisión                                                                       |
+| -------------------------------- | ------------------------------------------------------------------------------ |
+| Distribución v0                  | **Solo binario `ankaa lsp` + docs por editor** (Neovim/Helix/Zed/Emacs; VS Code vía cliente LSP genérico). Marketplace/.vsix = decisión posterior al server (como f9). |
+| Protocolo                        | **Hand-rolled** subset LSP 3.17 sobre stdio (cero deps nuevas): `initialize/initialized`, `didOpen/didChange/didSave`, `shutdown/exit`, `textDocument/publishDiagnostics`. Framing `Content-Length` con tests propios. |
+| Rangos de diagnostics            | **Activar M17.7b** (mapper YAML ya analizado en f17-ci-reporters §8, spike validado): diagnostics con línea real en YAML; fallback `(0,0)` file-level en JSON/GraphQL/gRPC y pointers con miss. Requiere `Spec.positions` (spec `f1-openapi` regla 5b, editada antes). |
+| Cache                            | **Content-hash**: si el hash del buffer no cambió entre eventos, no re-analizar. |
+| Rendimiento specs grandes         | Debounce default 300 ms (configurable) + cache por hash; parse duplicado (valor + CST) aceptado en v0 (specs ≤ 1 MB ⇒ ms). |
 
 ## Changelog
 
 - 2026-09-30: draft inicial desde el backlog f17
   ([plan](../plans/f17-diferenciales.md)).
+- 2026-10-01: dueño cierra las 4 decisiones (§7) → spec `ready`. El slice
+  incluye M17.7b (posiciones) como prerrequisito: spec `f1-openapi` regla 5b
+  primero (regla de oro).
+- 2026-10-01: M17.8 implementado: `packages/lsp` (protocolo hand-rolled, 11
+  tests) + `ankaa lsp` con paridad CLI (5 e2e) + `docs/editors.md` ·
+  AC-LSP.1..5 verdes → `implementada`. M17.7b quedó activo vía
+  `Spec.positions` (checkstyle/sarif/codequality con líneas reales).

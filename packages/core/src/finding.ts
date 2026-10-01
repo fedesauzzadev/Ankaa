@@ -1,5 +1,15 @@
 import { sha256HexString } from "./sha256.js";
 import type { Finding, Severity } from "./rule.js";
+import type { Spec } from "./spec.js";
+
+/** Attach source positions (exact pointer match) without touching fingerprints. */
+export function attachPositions(findings: Finding[], spec: Spec): Finding[] {
+  if (spec.positions === undefined) return findings;
+  return findings.map((finding) => {
+    const position = spec.positions?.[finding.location];
+    return position === undefined ? finding : { ...finding, position };
+  });
+}
 
 const SEVERITY_RANK: Record<Severity, number> = {
   error: 0,

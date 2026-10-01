@@ -1,4 +1,5 @@
 import {
+  attachPositions,
   computeCoverage,
   evaluate,
   mergeCoverages,
@@ -324,7 +325,11 @@ export async function analyzeUseCase(
     emitProgress("evaluating", index + 1, sortedInputs.length, label);
 
     inputs.push({ path: label, sha256: `sha256:${parsed.spec.inputHash}` });
-    results.push(prefixFindings(result, label, multi));
+    const withPositions: EvaluationResult = {
+      ...result,
+      findings: attachPositions(result.findings, parsed.spec),
+    };
+    results.push(prefixFindings(withPositions, label, multi));
     coverageParts.push({ spec: parsed.spec, packs: activePacks });
   }
 

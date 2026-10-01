@@ -9,11 +9,12 @@ import type {
   SchemaNode,
   SecurityRequirement,
   SecuritySchemeDef,
+  SourcePosition,
   Spec,
   Stability,
 } from "@ankaa/core";
 import { createHash } from "node:crypto";
-import { parse as parseYaml } from "yaml";
+import { parse as parseYaml, parseDocument } from "yaml";
 import { convertSwagger1, convertSwagger2, isSwagger1Doc, isSwagger2Doc } from "./legacy.js";
 
 const HTTP_METHODS = new Set(["get", "put", "post", "delete", "options", "head", "patch", "trace"]);
@@ -75,13 +76,15 @@ export function parseSpec(input: Uint8Array | string, opts: ParseOptions): Parse
     };
   }
 
-  const raw = parseDocumentToUnknown(text, limits, errors);
-  if (raw === undefined) {
+  const parsed = parseDocumentToUnknown(text, limits, errors);
+  if (parsed === undefined) {
     return {
       ok: false,
       errors: errors.length > 0 ? errors : [{ message: "PARSE_FAILED" }],
     };
   }
+  const raw = parsed.value;
+  const positions = parsed.isJson ? undefined : collectYamlPositions(text);
 
   if (checkDepth(raw, limits.maxDepth)) {
     return {
@@ -215,6 +218,7 @@ export function parseSpec(input: Uint8Array | string, opts: ParseOptions): Parse
       ...(Object.keys(extensions).length > 0 ? { extensions } : {}),
       ...(rootTags && rootTags.length > 0 ? { rootTags } : {}),
       ...(security && security.length > 0 ? { security } : {}),
+      ...(positions !== undefined ? { positions } : {}),
       inputBytes,
     },
   };
@@ -234,13 +238,17 @@ function parseServers(value: unknown): Array<{ url: string; description?: string
   return out.length > 0 ? out : undefined;
 }
 
-function parseDocumentToUnknown(text: string, limits: ParseLimits, errors: ParseError[]): unknown {
+function parseDocumentToUnknown(
+  text: string,
+  limits: ParseLimits,
+  errors: ParseError[],
+): { value: unknown; isJson: boolean } | undefined {
   const trimmed = text.replace(/^\uFEFF/, "").trimStart();
   const looksJson = trimmed.startsWith("{") || trimmed.startsWith("[");
 
   if (looksJson) {
     try {
-      return JSON.parse(trimmed);
+      return { value: JSON.parse(trimmed), isJson: true };
     } catch (err) {
       errors.push({
         message: `JSON_PARSE: ${err instanceof Error ? err.message : String(err)}`,
@@ -250,11 +258,14 @@ function parseDocumentToUnknown(text: string, limits: ParseLimits, errors: Parse
   }
 
   try {
-    return parseYaml(text, {
-      maxAliasCount: limits.maxAliases,
-      prettyErrors: true,
-      uniqueKeys: true,
-    });
+    return {
+      value: parseYaml(text, {
+        maxAliasCount: limits.maxAliases,
+        prettyErrors: true,
+        uniqueKeys: true,
+      }),
+      isJson: false,
+    };
   } catch (err) {
     // prettyErrors embeds the offending source snippet; keep only the first
     // line (message + line/column) so parse errors never quote spec bodies.
@@ -268,6 +279,99 @@ function parseDocumentToUnknown(text: string, limits: ParseLimits, errors: Parse
     }
     return undefined;
   }
+}
+
+const MAX_POSITIONS = 20_000;
+
+interface CstNode {
+  type?: string;
+  range?: [number, number] | [number, number, number];
+  value?: unknown;
+  items?: unknown;
+}
+
+interface CstPair {
+  key?: CstNode;
+  value?: CstNode | null;
+}
+
+function computeLineStarts(text: string): number[] {
+  const starts = [0];
+  for (let i = 0; i < text.length; i++) {
+    if (text.charCodeAt(i) === 10) starts.push(i + 1);
+  }
+  return starts;
+}
+
+function offsetToPosition(offset: number, lineStarts: number[]): SourcePosition {
+  let lo = 0;
+  let hi = lineStarts.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >> 1;
+    if (lineStarts[mid]! <= offset) lo = mid;
+    else hi = mid - 1;
+  }
+  return { line: lo + 1, column: offset - lineStarts[lo]! + 1 };
+}
+
+/**
+ * YAML-only side table: JSON Pointer → 1-based position of the mapping key
+ * (or item start for sequences). Skips alias usage sites; misses are expected
+ * and consumers fall back (spec f1-openapi rule 5b).
+ */
+function collectYamlPositions(text: string): Record<string, SourcePosition> | undefined {
+  let doc: { contents: CstNode | null; errors: unknown[] };
+  try {
+    doc = parseDocument(text) as unknown as {
+      contents: CstNode | null;
+      errors: unknown[];
+    };
+  } catch {
+    return undefined;
+  }
+  if (doc.errors.length > 0 || doc.contents === null) return undefined;
+
+  const lineStarts = computeLineStarts(text);
+  const positions: Record<string, SourcePosition> = {};
+  let count = 0;
+  let overflow = false;
+
+  const register = (pointer: string, offset: number): void => {
+    if (overflow) return;
+    if (count >= MAX_POSITIONS) {
+      overflow = true;
+      return;
+    }
+    positions[pointer] = offsetToPosition(offset, lineStarts);
+    count += 1;
+  };
+
+  const visit = (node: CstNode | undefined, path: string): void => {
+    if (overflow || node === undefined) return;
+    const items = node.items;
+    if (!Array.isArray(items)) return;
+    const isMap = items.length === 0 ||
+      (typeof items[0] === "object" && items[0] !== null && "key" in items[0]);
+    if (isMap) {
+      for (const pair of items as CstPair[]) {
+        const key = pair.key;
+        if (key?.range === undefined) continue;
+        if (key.items !== undefined || key.value === undefined) continue;
+        const segment = escapePointer(String(key.value));
+        register(`${path}/${segment}`, key.range[0]);
+        visit(pair.value ?? undefined, `${path}/${segment}`);
+      }
+      return;
+    }
+    (items as CstNode[]).forEach((item, index) => {
+      if (item.range === undefined) return;
+      register(`${path}/${index}`, item.range[0]);
+      visit(item, `${path}/${index}`);
+    });
+  };
+
+  visit(doc.contents, "");
+  return count > 0 ? positions : undefined;
 }
 
 function decodeUtf8(bytes: Uint8Array): string {

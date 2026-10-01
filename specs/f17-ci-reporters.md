@@ -132,6 +132,12 @@ anotaciones de GitHub mejoran). C queda out salvo demanda explícita.
 M17.7b mapper B (YAML only, JSON queda en fallback) cuando la adopción real
 de checkstyle lo exija. C queda out salvo demanda explícita.
 
+**Actualización (mismo día):** el arranque de `f17-lsp` exigió posiciones
+reales en el editor, así que M17.7b se activó dentro del slice M17.8 (ver
+[f17-lsp](f17-lsp.md) §7): `Spec.positions` (spec `f1-openapi` regla 5b) +
+checkstyle/sarif/codequality con línea real; JSON y pointers con miss
+mantienen el fallback de §3.
+
 ## Changelog
 
 - 2026-09-30: draft inicial desde el backlog f17
@@ -149,3 +155,6 @@ de checkstyle lo exija. C queda out salvo demanda explícita.
   `formatCodequality` + `locationParts` en `@ankaa/reporters`, `--format
   junit|checkstyle|codequality` en el CLI, recetas `examples/ci/` y 15 tests
   (AC-CI.1..5) → `implementada`. M17.7b (mapper YAML) queda a demanda.
+- 2026-10-01: **M17.7b activado** dentro del slice `f17-lsp` (§8.6):
+  checkstyle/sarif/codequality emiten líneas reales cuando el parser
+  preserva posiciones; fallback intacto para JSON/miss.

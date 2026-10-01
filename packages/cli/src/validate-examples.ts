@@ -3,6 +3,7 @@ import { relative, resolve, sep } from "node:path";
 import { performance } from "node:perf_hooks";
 import {
   EXAMPLES_PACK_ID,
+  attachPositions,
   packageVersion,
   sortFindings,
   validateExamples,
@@ -163,8 +164,9 @@ export async function runValidateExamplesCommand(
   const { findings: raw, summary: counts } = validateExamples(parsed.spec, {
     packVersion: packageVersion(),
   });
+  const positioned = attachPositions(raw, parsed.spec);
 
-  let findings: Finding[] = raw.filter((f) => !setup.disabledRuleIds.has(f.ruleId));
+  let findings: Finding[] = positioned.filter((f) => !setup.disabledRuleIds.has(f.ruleId));
   if (setup.severityOverrides.size > 0) {
     findings = findings.map((f) =>
       setup.severityOverrides.has(f.ruleId)

@@ -46,6 +46,7 @@ interface Spec {
   operations: Operation[];
   components: ComponentIndex;
   parseWarnings: ParseWarning[]; // ej. Swagger 2.0, dialect unknown
+  positions?: Record<string, { line: number; column: number }>; // 1-based; YAML only (f17 §8, M17.8a)
 }
 
 interface Operation {
@@ -140,6 +141,20 @@ export interface ParseError {
 3. **Security:** `security: undefined` en operation = hereda `security` global del doc (el engine lo resuelve); si doc no tiene global y op no tiene ⇒ `[]` (pública) vs `undefined` — **decisión:** representar como `security: null` heredado vs `[]` explícito vacío; documentar: `undefined` = hereda, `[]` = anula.
 4. **`$ref`:** solo `#/components/...` (y internos al doc). Resolver a profundidad máx `maxDepth`; ciclo ⇒ dejar `ref` sin expandir + warning `REF_CYCLE` (reglas deben tolerar).
 5. **JSON Pointer** en findings = puntero al **documento original** (para saltar desde el reporte), no al modelo normalizado.
+5b. **Posiciones (f17 §8, M17.8a):** para documentos YAML, `parseSpec` llena
+    `spec.positions` mapeando JSON Pointer → `{line, column}` (1-based, UTF-16
+    columns) vía el CST de `yaml#parseDocument` (misma dep ya usada; los
+    valores siguen saliendo de `yaml#parse` para no alterar errores). La
+    posición de un nodo map es la de su **clave** (`get:` apunta a la línea de
+    `get:`); items de seq apuntan al inicio del item. Límites: máx 20 000
+    entradas (después deja de colectar, determinista). Aliases apuntan a la
+    primera definición. Entradas JSON o GraphQL/gRPC/AsyncAPI/webhooks:
+    `positions` ausente (los consumidores deben tolerar el miss con fallback).
+    Pointers que usan índices del modelo donde el YAML usa claves (p. ej.
+    `content/0` vs `content/application~1json`) → miss consciente → fallback
+    del consumidor. `position` en `Finding` **no** participa del fingerprint
+    (solo `ruleId|location|apiLocation|messageKey`); sí del `reportHash`
+    (determinista, INV-2).
 6. **Remote ref** `$ref: http...` ⇒ `ParseError` código `REF_REMOTE_FORBIDDEN`.
 7. **YAML tags:** solo default YAML 1.1/1.2 scalars; `!!python/object` ⇒ error.
 8. Encoding: UTF-8 con BOM opcional; invalid UTF-8 ⇒ error.
@@ -199,3 +214,6 @@ Unit tests de normalize + property: shuffle keys de path ⇒ mismo orden.
 - 2026-09-23 · Implementada (M1.1): `parseSpec` con `yaml@2` + limits; AC-O.1…14 verdes (16 tests); tipos `Spec` consolidados en `@apigovscan/core`; Swagger 2.0 = error `SWAGGER_20` (decisión §7).
 - 2026-09-30 · `Operation.stability?` (AC-O.15, backlog M8.6): `x-stability-level` en operation ?? path-item ?? root; valor desconocido ⇒ warning `UNKNOWN_STABILITY`.
 - 2026-09-30 · `SecuritySchemeDef.scopes?` (M8.6-A2): unión ordenada de scopes de flows OAuth2 (para el átomo `undefinedOAuthScopes`).
+- 2026-10-01 · `Spec.positions?` + regla 5b (f17 §8 M17.8a): side-table
+  pointer→{line,column} 1-based vía CST de `yaml#parseDocument` (YAML only);
+  `Finding.position?` fuera del fingerprint.

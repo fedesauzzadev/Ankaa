@@ -121,6 +121,17 @@ describe("formatSarif (AC-SARIF.*)", () => {
     expect(singleLocation.region).toBeUndefined();
   });
 
+  it("M17.8a emits region.startLine/startColumn when the finding has a position", () => {
+    const report = makeReport({
+      results: [result([finding({ position: { line: 12, column: 5 } })])],
+    });
+    const region = sarifOf(report).runs[0].results[0].locations[0].physicalLocation.region as {
+      startLine: number;
+      startColumn: number;
+    };
+    expect(region).toEqual({ startLine: 12, startColumn: 5 });
+  });
+
   it("AC-SARIF.4 deterministic and free of meta/timestamps", () => {
     const report = makeReport({
       meta: { durationMs: 1234, startedAt: "2026-09-24T00:00:00.000Z" },

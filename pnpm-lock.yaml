@@ -69,6 +69,9 @@ importers:
       '@ankaa/grpc':
         specifier: workspace:*
         version: link:../grpc
+      '@ankaa/lsp':
+        specifier: workspace:*
+        version: link:../lsp
       '@ankaa/mcp':
         specifier: workspace:*
         version: link:../mcp
@@ -139,6 +142,12 @@ importers:
       vitest:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@22.20.4)
+
+  packages/lsp:
+    devDependencies:
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@25.9.8)
 
   packages/mcp:
     dependencies:
@@ -2262,14 +2271,6 @@ snapshots:
     optionalDependencies:
       vite: 5.4.21(@types/node@22.20.4)
 
-  '@vitest/mocker@2.1.9(vite@5.4.21(@types/node@25.9.8))':
-    dependencies:
-      '@vitest/spy': 2.1.9
-      estree-walker: 3.0.3
-      magic-string: 0.30.21
-    optionalDependencies:
-      vite: 5.4.21(@types/node@25.9.8)
-
   '@vitest/pretty-format@2.1.9':
     dependencies:
       tinyrainbow: 1.2.0
@@ -3357,7 +3358,7 @@ snapshots:
   vitest@2.1.9(@types/node@25.9.8):
     dependencies:
       '@vitest/expect': 2.1.9
-      '@vitest/mocker': 2.1.9(vite@5.4.21(@types/node@25.9.8))
+      '@vitest/mocker': 2.1.9(vite@5.4.21(@types/node@22.20.4))
       '@vitest/pretty-format': 2.1.9
       '@vitest/runner': 2.1.9
       '@vitest/snapshot': 2.1.9

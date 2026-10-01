@@ -127,6 +127,7 @@ import { runSkillsStatsCommand } from "./fp-stats.js";
 import { runCertifyCommand, runVerifyCommand } from "./certify.js";
 import { runMigrateCommand } from "./migrate.js";
 import { runValidateExamplesCommand } from "./validate-examples.js";
+import { runLspCommand } from "./lsp.js";
 import {
   buildLearnPatch,
   loadExistingSeverities,
@@ -195,6 +196,7 @@ export function getHelp(): string {
     "  ankaa workspace [--port <n>]",
     "  ankaa guided",
     "  ankaa mcp [--help]",
+    "  ankaa lsp [--debounce <ms>]",
     "  ankaa --version",
     "  ankaa --help",
     "",
@@ -3609,6 +3611,7 @@ export async function run(argv: readonly string[], io?: RunIO): Promise<number> 
     first === "workspace" ||
     first === "guided" ||
     first === "review" ||
+    first === "lsp" ||
     first === "mcp";
 
   if (
@@ -3795,6 +3798,14 @@ export async function run(argv: readonly string[], io?: RunIO): Promise<number> 
   }
   if (first === "mcp") {
     return runMcpCommand(args.slice(1), {
+      stdout,
+      stderr,
+      env,
+      cwd,
+    });
+  }
+  if (first === "lsp") {
+    return runLspCommand(args.slice(1), {
       stdout,
       stderr,
       env,
