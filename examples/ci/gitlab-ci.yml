@@ -1,0 +1,19 @@
+# Ankaa en GitLab CI · publica JUnit + CodeQuality que GitLab consume nativo
+# Requiere la CLI instalada (npm i -g @ankaa/cli o imagen propia) y
+# ANKAA_LICENSE_KEY como variable protegida de CI/CD.
+ankaa:
+  stage: test
+  image: node:22
+  before_script:
+    - npm install -g @ankaa/cli
+  script:
+    - ankaa analyze ./specs --format junit --output ankaa-junit.xml --fail-on error
+    - ankaa analyze ./specs --format codequality --output ankaa-codequality.json --fail-on error
+  artifacts:
+    when: always
+    paths:
+      - ankaa-junit.xml
+      - ankaa-codequality.json
+    reports:
+      junit: ankaa-junit.xml
+      codequality: ankaa-codequality.json

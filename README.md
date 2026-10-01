@@ -296,7 +296,16 @@ Outputs `sarif-path`, `exit-code`. El gate funciona **sin code scanning** (exit 
 con `review-ref` (p. ej. `main`) la Action revisa el cambio completo del candidato contra el
 contrato base — mismo evaluador que `review`/MCP (ver [action/README.md](action/README.md)).
 
-Flags útiles de `analyze`: `--format console|json|sarif|markdown|annotations`, `--output <file>`, `--fail-on error|warning|info|never`, `--rules <file>` (repetible), `--rule <json>`, `--config <file>`, `--write-baseline`, `--baseline`, `--ratchet [--ratchet-severity error|warning]`, `--baseline-path <file>`, `--force`, `--strict-hash`, `--baseline-ignore-hash`, `--skills-dir <dir>`, `--no-color`, `--debug`.
+Flags útiles de `analyze`: `--format console|json|sarif|markdown|annotations|junit|checkstyle|codequality`, `--output <file>`, `--fail-on error|warning|info|never`, `--rules <file>` (repetible), `--rule <json>`, `--config <file>`, `--write-baseline`, `--baseline`, `--ratchet [--ratchet-severity error|warning]`, `--baseline-path <file>`, `--force`, `--strict-hash`, `--baseline-ignore-hash`, `--skills-dir <dir>`, `--no-color`, `--debug`.
+
+#### Reportes para Jenkins / GitLab / Azure (f17-ci-reporters)
+
+`junit` (XML testsuite por spec, sin timestamps), `checkstyle` (XML con
+fallback `line="1"` + pointer en message hasta que haya mapper) y
+`codequality` (CodeClimate con el fingerprint del finding) son byte-estables
+(INV-2) y comparten exit codes. Recetas listas para copiar en
+[`examples/ci/`](examples/ci/): `gitlab-ci.yml`, `azure-pipelines.yml`,
+`Jenkinsfile`. Spec: [`specs/f17-ci-reporters.md`](specs/f17-ci-reporters.md).
 
 Exit codes: `0` ok · `1` findings ≥ `failOn` · `2` usage/parse/config/rule/baseline error.
 

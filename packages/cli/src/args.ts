@@ -1,5 +1,13 @@
 export type FailOn = "error" | "warning" | "info" | "never";
-export type OutputFormat = "console" | "json" | "sarif" | "markdown" | "annotations";
+export type OutputFormat =
+  | "console"
+  | "json"
+  | "sarif"
+  | "markdown"
+  | "annotations"
+  | "junit"
+  | "checkstyle"
+  | "codequality";
 
 export interface AnalyzeArgs {
   path: string;
@@ -31,9 +39,13 @@ const ANALYZE_FORMATS = new Set<OutputFormat>([
   "sarif",
   "markdown",
   "annotations",
+  "junit",
+  "checkstyle",
+  "codequality",
 ]);
 const RULES_FORMATS = new Set<OutputFormat>(["console", "json"]);
-const ANALYZE_FORMAT_LIST = "console | json | sarif | markdown | annotations";
+const ANALYZE_FORMAT_LIST =
+  "console | json | sarif | markdown | annotations | junit | checkstyle | codequality";
 const RULES_FORMAT_LIST = "console | json";
 const FAIL_ON = new Set<FailOn>(["error", "warning", "info", "never"]);
 

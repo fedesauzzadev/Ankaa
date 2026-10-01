@@ -1,0 +1,27 @@
+// Ankaa en Jenkins · publica JUnit para el plugin junit y Checkstyle
+// para warnings-ng (recordIssues). Requiere ANKAA_LICENSE_KEY en credentials.
+pipeline {
+  agent any
+
+  environment {
+    ANKAA_LICENSE_KEY = credentials('ankaa-license-key')
+  }
+
+  stages {
+    stage('Ankaa') {
+      steps {
+        sh 'npm install -g @ankaa/cli'
+        sh 'ankaa analyze ./specs --format junit --output ankaa-junit.xml --fail-on error'
+        sh 'ankaa analyze ./specs --format checkstyle --output ankaa-checkstyle.xml --fail-on error'
+      }
+    }
+  }
+
+  post {
+    always {
+      junit allowEmptyResults: true, testResults: 'ankaa-junit.xml'
+      recordIssues tools: [checkStyle(pattern: 'ankaa-checkstyle.xml')], aggregatingResults: true
+      archiveArtifacts artifacts: 'ankaa-junit.xml,ankaa-checkstyle.xml', allowEmptyArchive: true
+    }
+  }
+}

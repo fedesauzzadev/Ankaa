@@ -2,8 +2,11 @@ import { readFile, writeFile } from "node:fs/promises";
 import type { Report } from "@ankaa/reporters";
 import {
   formatAnnotations,
+  formatCheckstyle,
+  formatCodequality,
   formatConsole,
   formatJson,
+  formatJunit,
   formatMarkdown,
   formatSarif,
 } from "@ankaa/reporters";
@@ -80,6 +83,12 @@ function renderReport(report: Report, opts: SinkOptions, toFile: boolean): strin
       return formatMarkdown(report);
     case "annotations":
       return formatAnnotations(report);
+    case "junit":
+      return formatJunit(report);
+    case "checkstyle":
+      return formatCheckstyle(report);
+    case "codequality":
+      return formatCodequality(report);
     case "console":
       return formatConsole(report, { color: !toFile && opts.color });
   }

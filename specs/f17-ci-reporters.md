@@ -2,7 +2,7 @@
 
 | Campo     | Valor                                 |
 | --------- | ------------------------------------- |
-| Estado    | draft                                 |
+| Estado    | implementada                                       |
 | Fase      | 17                                    |
 | Fecha     | 2026-09-30                            |
 | Deriva de | [f5-reporters](f5-reporters.md) (cerrada); INV-2 |
@@ -35,15 +35,30 @@ recetas listas para copiar, para que Ankaa no me fuerce a cambiar de CI.
   existentes.
 - Determinismo byte-estable (snapshots); orden = orden canónico de findings.
 - line/col: si no existe mapper pointer → posición, emitir `line="1"` con el
-  pointer en el message (decisión §7); nunca inventar posiciones.
+  pointer en el message (decisión §8.6); nunca inventar posiciones.
+- Schemas pineados (decisión del dueño 2026-10-01, sin fetch de DTDs — INV-1):
+  - **junit**: XML "testsuite clásico" estilo JUnit 4 (el que consumen Jenkins
+    y GitLab CI y emiten pytest/jest): `<testsuites>` raíz, `<testsuite>` por
+    spec de entrada, `<testcase>` por finding — severity `error` → `<error>`,
+    `warning` → `<failure>`, `info` → `<skipped>` — **sin `timestamp` ni
+    `time`** (INV-2).
+  - **checkstyle**: XML estilo Checkstyle 8.x (`<checkstyle version="ankaa/<v>">`,
+    `<file name>`, `<error line column severity message source=ruleId/>`);
+    fallback `line="1" column="1"` + pointer en message hasta M17.7b.
+  - **codequality**: CodeClimate/GitLab CodeQuality (array JSON con
+    `description/check_name/fingerprint/severity/location.path/location.lines.begin`);
+    severity map `error→critical`, `warning→major`, `info→minor`;
+    `fingerprint` = fingerprint del finding (dedupe estable en GitLab).
+- Agrupación por spec de entrada: misma regla que `artifactUri` de SARIF
+  (`label#pointer` en multi-input).
 
 ## 4. Criterios de aceptación (preliminares)
 
-- [ ] AC-CI.1 XML/JSON válidos y parseables contra schemas de referencia.
-- [ ] AC-CI.2 e2e exit codes por formato.
-- [ ] AC-CI.3 Snapshots deterministas: dos corridas → bytes idénticos.
-- [ ] AC-CI.4 Recetas de `examples/ci/` corren el CLI y publican artifacts.
-- [ ] AC-CI.5 `pnpm check` e invariantes verdes.
+- [x] AC-CI.1 XML/JSON válidos y parseables contra schemas de referencia.
+- [x] AC-CI.2 e2e exit codes por formato.
+- [x] AC-CI.3 Snapshots deterministas: dos corridas → bytes idénticos.
+- [x] AC-CI.4 Recetas de `examples/ci/` corren el CLI y publican artifacts.
+- [x] AC-CI.5 `pnpm check` e invariantes verdes.
 
 ## 5. Test plan
 
@@ -55,9 +70,8 @@ recetas listas para copiar, para que Ankaa no me fuerce a cambiar de CI.
 
 ## 7. Riesgos y decisiones abiertas
 
-- Versión de schema JUnit (4 vs 5) y de Checkstyle a pinnear.
-- Mapper pointer → line/col: análisis de viabilidad en §8 (decisión del dueño
-  pendiente entre A / A→B escalonado / B+C).
+- Mapper pointer → line/col: resuelto (§8.6, A→B escalonado).
+- Schemas JUnit/Checkstyle: pineados (§3, decisión del dueño 2026-10-01).
 
 ## 8. Análisis de viabilidad · mapper pointer → line/col (2026-10-01)
 
@@ -112,9 +126,11 @@ tocar el parser); M17.7b agrega el mapper B solo si la adopción real de
 checkstyle exige inline (side-benefit: SARIF gana `region.startLine` y las
 anotaciones de GitHub mejoran). C queda out salvo demanda explícita.
 
-### 8.6 Pregunta al dueño
+### 8.6 Decisión del dueño (2026-10-01)
 
-¿A-only, A→B escalonado (recomendado), o B+C de una?
+**A→B escalonado**: M17.7a junit + codequality + checkstyle con fallback A;
+M17.7b mapper B (YAML only, JSON queda en fallback) cuando la adopción real
+de checkstyle lo exija. C queda out salvo demanda explícita.
 
 ## Changelog
 
@@ -123,3 +139,13 @@ anotaciones de GitHub mejoran). C queda out salvo demanda explícita.
 - 2026-10-01: análisis de viabilidad del mapper pointer → line/col (§8) con
   spike sobre `yaml` 2.9.1 — viable y barato para YAML (misma dep), fallback
   para JSON; recomendación A→B escalonado. Decisión del dueño pendiente.
+- 2026-10-01: dueño decide **A→B escalonado** (§8.6): M17.7a reporters con
+  fallback, M17.7b mapper YAML a demanda. Pendiente para `ready`: pinnear
+  schemas JUnit/Checkstyle (§7).
+- 2026-10-01: dueño pinnear schemas (§3): junit 4-style sin timestamps,
+  checkstyle 8.x-style con fallback line/column="1", codequality CodeClimate
+  con fingerprint del finding → spec `ready` para M17.7a.
+- 2026-10-01: M17.7a implementado: `formatJunit`/`formatCheckstyle`/
+  `formatCodequality` + `locationParts` en `@ankaa/reporters`, `--format
+  junit|checkstyle|codequality` en el CLI, recetas `examples/ci/` y 15 tests
+  (AC-CI.1..5) → `implementada`. M17.7b (mapper YAML) queda a demanda.

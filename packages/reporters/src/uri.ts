@@ -6,9 +6,20 @@ import type { Report } from "./build.js";
  * belongs to. Multi-input findings carry `label#pointer` in `location`.
  */
 export function artifactUri(report: Report, finding: Finding): string {
+  return locationParts(report, finding).uri;
+}
+
+/** Split a finding location into (input label, json pointer). */
+export function locationParts(
+  report: Report,
+  finding: Finding,
+): { uri: string; pointer: string } {
   if (report.input.length > 1) {
     const hash = finding.location.indexOf("#");
-    return hash > 0 ? finding.location.slice(0, hash) : "";
+    if (hash > 0) {
+      return { uri: finding.location.slice(0, hash), pointer: finding.location.slice(hash + 1) };
+    }
+    return { uri: "", pointer: finding.location };
   }
-  return report.input[0]?.path ?? "";
+  return { uri: report.input[0]?.path ?? "", pointer: finding.location };
 }

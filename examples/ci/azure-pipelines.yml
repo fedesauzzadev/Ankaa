@@ -1,0 +1,38 @@
+# Ankaa en Azure DevOps · publica JUnit + SARIF como artifacts del pipeline
+# Requiere ANKAA_LICENSE_KEY como variable secreta del pipeline.
+trigger:
+  - main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: "22"
+    displayName: Install Node 22
+
+  - script: npm install -g @ankaa/cli
+    displayName: Install Ankaa CLI
+
+  - script: |
+      ankaa analyze ./specs --format junit --output $(Build.ArtifactStagingDirectory)/ankaa-junit.xml --fail-on error
+      ankaa analyze ./specs --format sarif --output $(Build.ArtifactStagingDirectory)/ankaa.sarif --fail-on error
+    displayName: Run Ankaa
+    env:
+      ANKAA_LICENSE_KEY: $(ANKAA_LICENSE_KEY)
+
+  - task: PublishTestResults@2
+    condition: always()
+    inputs:
+      testResultsFormat: JUnit
+      testResultsFiles: $(Build.ArtifactStagingDirectory)/ankaa-junit.xml
+      testRunTitle: Ankaa API governance
+    displayName: Publish JUnit results
+
+  - task: PublishBuildArtifacts@1
+    condition: always()
+    inputs:
+      pathToPublish: $(Build.ArtifactStagingDirectory)
+      artifactName: ankaa-reports
+    displayName: Publish reports
