@@ -126,6 +126,7 @@ import { applySkillSuppressions, listSkills, promoteDraft } from "./skills.js";
 import { runSkillsStatsCommand } from "./fp-stats.js";
 import { runCertifyCommand, runVerifyCommand } from "./certify.js";
 import { runMigrateCommand } from "./migrate.js";
+import { runValidateExamplesCommand } from "./validate-examples.js";
 import {
   buildLearnPatch,
   loadExistingSeverities,
@@ -185,6 +186,7 @@ export function getHelp(): string {
     "  ankaa fix <path> [--fingerprint <fp>]",
     "  ankaa drift <dir> [--spec <file>]",
     "  ankaa diff <old> <new> [--format <fmt>] [--output <file>]",
+    "  ankaa validate-examples <path> [--format console|json] [--fail-on <sev>]",
     "  ankaa review <base> <candidate> [--format console|json]",
     "  ankaa scan-org <dir> [--github <org>]",
     "  ankaa scan-repo <git-url> [--format console|json] [--out <file>] [--workdir <dir>]",
@@ -3737,6 +3739,15 @@ export async function run(argv: readonly string[], io?: RunIO): Promise<number> 
   }
   if (first === "diff") {
     return runDiffCommand(args.slice(1), {
+      stdout,
+      stderr,
+      env,
+      cwd,
+      isTTY,
+    });
+  }
+  if (first === "validate-examples") {
+    return runValidateExamplesCommand(args.slice(1), {
       stdout,
       stderr,
       env,

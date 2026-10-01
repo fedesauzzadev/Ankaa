@@ -74,6 +74,12 @@ export {
 } from "./diff.js";
 
 export {
+  validateExamples,
+  EXAMPLES_PACK_ID,
+  type ExamplesSummary,
+} from "./examples.js";
+
+export {
   computeCoverage,
   isRuleActive,
   mergeCoverages,

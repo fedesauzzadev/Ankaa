@@ -40,7 +40,7 @@ diff (oasdiff) ni en generación de docs (anti-alcance SDD §4).
 | -- | --------------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------- | ------------------------------------------- |
 | 4  | Compliance pack + mapeo finding→control             | [f17-compliance-pack](../specs/f17-compliance-pack.md)        | Evidencia para audits (OWASP API, GDPR) sin nube        | Se potencia con #1 (firma) y #3 (FP medido) |
 | 5  | Ratchet + burn-down                                 | [f17-ratchet](../specs/f17-ratchet.md)                        | Deuda congelada que nunca baja; ignore-files que crecen  | Sobre fingerprints + historial ya existentes |
-| 6  | Mini-validator de ejemplos contra schemas           | [f13-mini-validator](../specs/f13-mini-validator.md) (draft)  | Ejemplos/docs que mienten respecto del schema           | Determinista y offline                      |
+| 6  | Mini-validator de ejemplos contra schemas           | [f13-mini-validator](../specs/f13-mini-validator.md)          | Ejemplos/docs que mienten respecto del schema           | Determinista y offline                      |
 
 ### Tier 3 — paridad (no diferencial, pero necesaria)
 
@@ -125,3 +125,8 @@ diff (oasdiff) ni en generación de docs (anti-alcance SDD §4).
   + `PRIV-001` (elite 96) + `compliance-mappings.yaml` + `export --controls`
   + 9 tests · spec → `implementada`. T2 restante: `f13-mini-validator`
   (draft).
+- 2026-10-01: `f13-mini-validator` (M17.6) implementado: `ankaa
+  validate-examples` (subset §2, `$ref` locales, budgets depth/size) +
+  `EXVAL-001/002` + 16 tests · spec → `implementada`. **Tier 2 completo**
+  (ratchet, compliance-pack, mini-validator). Restan T3 (`f17-ci-reporters`,
+  `f17-lsp`).

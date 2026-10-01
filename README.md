@@ -107,6 +107,7 @@ La key comunitaria es pública y verificable offline (no permite forjar otras ke
 | `ankaa verify --report <r> --attestation <a.json> --key <pub.pem>` | Verifica que los bytes del reporte no cambiaron y la firma corresponde; exit 0/1/2; sin licencia (es el lado consumidor, p. ej. CI)                                                                                                                                                |
 | `ankaa fix <path> [--fingerprint <fp>]`         | Propone diffs unificados para findings con tu propio LLM (opcional; ver abajo)                                                                                                                                                                                                                                                                                |
 | `ankaa drift <dir> [--spec <file>]`             | Detecta drift spec↔código y genera borradores (ver abajo)                                                                                                                                                                                                                                                                                                     |
+| `ankaa validate-examples <path>`                | Mini-validador offline de ejemplos schema-level contra su schema (EXVAL-001/002; ver abajo)                                                                                                                                                                                                                                                                   |
 | `ankaa review <base> <candidate>`               | Combina governance del candidato y cambios incompatibles OpenAPI/Swagger en una revisión local JSON o legible                                                                                                                                                                                                                                                 |
 | `ankaa dashboard <report.json> [--port <n>]`    | Visor local de tarjetas en `127.0.0.1` con agrupadores y tracking (ver abajo)                                                                                                                                                                                                                                                                            |
 | `ankaa workspace [--port <n>]`                  | App web guiada local: corre operaciones tipadas (analyze) con progreso en vivo (ver abajo)                                                                                                                                                                                                                                                               |
@@ -349,6 +350,25 @@ muestran `(ratchet: +N new · M resolved · net +X)`. Matriz de gates: exit
 final es el más severo entre `--fail-on` (findings visibles) y ratchet (deuda
 neta); ambos se evalúan post-supresiones. Spec:
 [`specs/f17-ratchet.md`](specs/f17-ratchet.md).
+
+### Validación de ejemplos (f13-mini-validator)
+
+```bash
+ankaa validate-examples openapi.yaml                     # console + counts
+ankaa validate-examples specs/ --format json --output examples-report.json
+ankaa validate-examples openapi.yaml --fail-on warning   # warnings rompen CI
+```
+
+Valida offline los `example` a nivel schema (parameters, requestBody,
+responses) contra el subset documentado (`type` incl. uniones 3.1, `enum`,
+`required`, `properties`, `items`, `maxLength`, `maximum`, `$ref` locales).
+Console abre con `examples: N checked · V valid · P partial · I invalid ·
+S skipped`. Mismatch ⇒ `EXVAL-001` (warning); ejemplo no evaluable (`$ref`
+irresoluble, ciclo, presupuesto depth/size) ⇒ `EXVAL-002` (info); keywords
+fuera del subset (`pattern`, `oneOf`, …) marcan `partial`, nunca un valid
+silencioso. Exit codes como `analyze` (default `error`: los warnings de
+ejemplos no rompen CI solos). Determinista (INV-2), sin red (INV-1). Spec:
+[`specs/f13-mini-validator.md`](specs/f13-mini-validator.md).
 
 ### Skills (`.ankaa/skills/`)
 
